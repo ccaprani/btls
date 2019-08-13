@@ -33,18 +33,17 @@ void CEventStatistics::update(CEvent Ev, unsigned int iLE)
 	double x = Ev.getMaxEffect(iLE).getValue();
 	accumulator(x);
 	m_NoVehicles += Ev.getNoVehicles();
-	size_t nEventTrucks = Ev.getNoTrucks();
-	m_NoTrucks += nEventTrucks;
+	m_NoTrucks += Ev.getNoTrucks();
 
-	if (nEventTrucks > m_MaxNoTrucksInEvent)
+	if (m_NoTrucks > m_MaxNoTrucksInEvent)
 	{
-		while (m_MaxNoTrucksInEvent < nEventTrucks)
+		while (m_MaxNoTrucksInEvent < m_NoTrucks)
 		{
 			m_vNoTrucksInEvent.push_back(0);
 			m_MaxNoTrucksInEvent++;
 		}
 	}
-	m_vNoTrucksInEvent.at(nEventTrucks - 1) += 1;
+	m_vNoTrucksInEvent.at(m_NoTrucks - 1) += 1;
 }
 
 void CEventStatistics::accumulator(double x)
@@ -91,11 +90,10 @@ std::string CEventStatistics::outputString()
 	oStr.width(10);		oStr << std::fixed << std::setprecision(2) << m_Skewness;
 	oStr.width(10);		oStr << std::fixed << std::setprecision(2) << m_Kurtosis;
 	
-	oStr.width(25);
 	for (size_t i = 0; i < m_vNoTrucksInEvent.size(); ++i)
 	{
+		oStr.width(10);
 		oStr << std::fixed << std::setprecision(2) << m_vNoTrucksInEvent.at(i);
-		oStr.width(6);
 	}
 
 	oStr << std::ends;
@@ -115,7 +113,7 @@ std::string CEventStatistics::headingsString()
 	oStr.width(15);		oStr << "Variance";
 	oStr.width(10);		oStr << "Skewness";
 	oStr.width(10);		oStr << "Kurtosis";
-	oStr.width(25);		oStr << "Truck Presence Counts";
+	oStr.width(10);		oStr << "Truck Presence Counts";
 	oStr << std::ends;
 	return oStr.str();
 };
