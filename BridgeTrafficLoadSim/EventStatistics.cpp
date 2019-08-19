@@ -92,10 +92,11 @@ std::string CEventStatistics::outputString()
 	oStr.width(10);		oStr << std::fixed << std::setprecision(2) << m_Skewness;
 	oStr.width(10);		oStr << std::fixed << std::setprecision(2) << m_Kurtosis;
 	
+	oStr.width(20);
 	for (size_t i = 0; i < m_vNoTrucksInEvent.size(); ++i)
 	{
-		oStr.width(10);
 		oStr << std::fixed << std::setprecision(2) << m_vNoTrucksInEvent.at(i);
+		oStr.width(10);
 	}
 
 	oStr << std::ends;
@@ -115,7 +116,7 @@ std::string CEventStatistics::headingsString()
 	oStr.width(15);		oStr << "Variance";
 	oStr.width(10);		oStr << "Skewness";
 	oStr.width(10);		oStr << "Kurtosis";
-	oStr.width(10);		oStr << "Truck Presence Counts";
+	oStr.width(20);		oStr << "Truck Presence Counts";
 	oStr << std::ends;
 	return oStr.str();
 };

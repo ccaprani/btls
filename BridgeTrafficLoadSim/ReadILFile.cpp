@@ -108,10 +108,17 @@ std::vector<CInfluenceLine> CReadILFile::getInfLines(std::string file,unsigned i
 	m_vInfLine.clear();	// dump whatever we have
 	m_NoInfLines = 0;
 
-	if(mode == 1)	// read an influence surface
+	if (mode == 1)	// read an influence surface
+	{
+		cout << "Reading influence surface file: " << file.c_str() << endl;
 		ReadInfSurfFile(file);
+	}
+
 	else
+	{
+		cout << "Reading influence line file: " << file.c_str() << endl;
 		ReadILFile(file);
+	}
 	
 	return m_vInfLine;
 }
