@@ -5,6 +5,11 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BridgeTrafficLoadSim", "BridgeTrafficLoadSim.vcxproj", "{13EB83D2-367B-A5F8-2C34-8A74990B1449}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9B154FA9-BC16-4396-834B-2B0905B0C2F7}"
+	ProjectSection(SolutionItems) = preProject
+		Manual\BTLS - User Manual.docx = Manual\BTLS - User Manual.docx
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
 		Svn-Managed = True

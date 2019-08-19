@@ -33,17 +33,19 @@ void CEventStatistics::update(CEvent Ev, unsigned int iLE)
 	double x = Ev.getMaxEffect(iLE).getValue();
 	accumulator(x);
 	m_NoVehicles += Ev.getNoVehicles();
-	m_NoTrucks += Ev.getNoTrucks();
+	size_t nTrucksInEvent = Ev.getNoTrucks();
+	m_NoTrucks += nTrucksInEvent;
 
-	if (m_NoTrucks > m_MaxNoTrucksInEvent)
+	if (nTrucksInEvent > m_MaxNoTrucksInEvent)
 	{
-		while (m_MaxNoTrucksInEvent < m_NoTrucks)
+		while (m_MaxNoTrucksInEvent < nTrucksInEvent)
 		{
 			m_vNoTrucksInEvent.push_back(0);
 			m_MaxNoTrucksInEvent++;
 		}
 	}
-	m_vNoTrucksInEvent.at(m_NoTrucks - 1) += 1;
+	if (nTrucksInEvent > 0)
+		m_vNoTrucksInEvent.at(nTrucksInEvent - 1) += 1;
 }
 
 void CEventStatistics::accumulator(double x)
