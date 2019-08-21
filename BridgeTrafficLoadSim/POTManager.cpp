@@ -51,10 +51,10 @@ void CPOTManager::Update(CEvent curEvent)
 	if( curTime > (double)(m_CurBlockNo)*m_BlockSize )
 		UpdateCounter();
 
-	int nEventVehs = curEvent.getNoVehicles();
+	size_t nEventVehs = curEvent.getNoVehicles();
 	if(nEventVehs > 0)
 	{
-		for(unsigned int i = 0; i < m_NoLoadEffects; i++)
+		for (size_t i = 0; i < m_NoLoadEffects; i++)
 		{	
 			if(curEvent.getMaxEffect(i).getValue() > m_vThreshold.at(i))
 			{
@@ -73,7 +73,7 @@ void CPOTManager::CheckBuffer(bool bForceOutput)
 {
 	// finish allows for block max buffers greater than the simulation length
 
-	unsigned int i = 0;
+	size_t i = 0;
 	while(bForceOutput == false && i < m_NoLoadEffects)
 	{	
 		if(m_vEvents.at(i).size() >= WRITE_BUFFER_SIZE)
@@ -85,7 +85,7 @@ void CPOTManager::CheckBuffer(bool bForceOutput)
 	{
 		WriteBuffer();
 		// clear data
-		for(unsigned int i = 0; i < m_NoLoadEffects; i++)
+		for (size_t i = 0; i < m_NoLoadEffects; i++)
 			m_vEvents.at(i).clear();
 		
 		m_vCounter.clear();
@@ -111,7 +111,7 @@ void CPOTManager::WriteBuffer()
 
 void CPOTManager::OpenVehicleFiles()
 {
-	for(unsigned int i = 0; i < m_NoLoadEffects; i++)
+	for (size_t i = 0; i < m_NoLoadEffects; i++)
 		OpenVehicleFile(i+1);
 }
 
@@ -123,7 +123,7 @@ void CPOTManager::OpenCounterFile()
 	std::ofstream outFile( m_CounterFile.c_str(), std::ios::out );
 	
 	outFile << "Block" << '\t';
-	for(unsigned int iLE = 0; iLE < m_NoLoadEffects; iLE++)
+	for (size_t iLE = 0; iLE < m_NoLoadEffects; iLE++)
 		outFile << "LE " << iLE+1 << '\t';
 	outFile << std::endl;
 	
@@ -134,12 +134,12 @@ void CPOTManager::WriteCounter()
 {
 	std::ofstream outFile( m_CounterFile.c_str(), std::ios::app ); 
 
-	unsigned int nBlocks = m_vCounter.size();
-	unsigned int index = m_CurBlockNo - nBlocks + 1;
-	for(unsigned int iBlock = 0; iBlock < nBlocks; iBlock++)
+	size_t nBlocks = m_vCounter.size();
+	size_t index = m_CurBlockNo - nBlocks + 1;
+	for (size_t iBlock = 0; iBlock < nBlocks; iBlock++)
 	{
 		outFile << index + iBlock << '\t';
-		for(unsigned int iLE = 0; iLE < m_NoLoadEffects; iLE++)
+		for (size_t iLE = 0; iLE < m_NoLoadEffects; iLE++)
 			outFile << m_vCounter.at(iBlock).at(iLE) << '\t';
 		outFile << std::endl;
 	}
@@ -148,9 +148,9 @@ void CPOTManager::WriteCounter()
 
 void CPOTManager::WriteVehicleFiles()
 {
-	for(unsigned int i = 0; i < m_NoLoadEffects; i++)
+	for (size_t i = 0; i < m_NoLoadEffects; i++)
 	{
-		for(unsigned int iEv = 0; iEv < m_vEvents.at(i).size(); iEv++)
+		for (size_t iEv = 0; iEv < m_vEvents.at(i).size(); iEv++)
 		{
 			CEvent& Ev = m_vEvents.at(i).at(iEv);
 			Ev.setID(iEv+1);
@@ -161,11 +161,11 @@ void CPOTManager::WriteVehicleFiles()
 
 void CPOTManager::WriteSummaryFiles()
 {
-	for(unsigned int iLE = 0; iLE < m_NoLoadEffects; iLE++)
+	for (size_t iLE = 0; iLE < m_NoLoadEffects; iLE++)
 	{
 		ofstream outFile( m_vSummaryFiles[iLE].c_str(), ios::app );
 		
-		for(unsigned int iEv = 0; iEv < m_vEvents.at(iLE).size(); iEv++)
+		for (size_t iEv = 0; iEv < m_vEvents.at(iLE).size(); iEv++)
 		{
 			CEvent& Ev = m_vEvents.at(iLE).at(iEv);
 			Ev.setCurEffect(iLE);

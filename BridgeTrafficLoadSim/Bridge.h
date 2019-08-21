@@ -34,14 +34,14 @@ public:
     //void join();
 
 	void Finish();
-	int getIndex(void);
-	void setIndex(int index);
+	size_t getIndex(void);
+	void setIndex(size_t index);
 	double getLength(void);
-	void InitializeLanes(int NoLanes);
-	void setNoLoadEffects(int nLE);
-	int getNoLoadEffects(void);
+	void InitializeLanes(size_t NoLanes);
+	void setNoLoadEffects(size_t nLE);
+	size_t getNoLoadEffects(void);
 	void InitializeDataMgr();
-	CBridgeLane& getBridgeLane(int iLane);
+	CBridgeLane& getBridgeLane(size_t iLane);
 	size_t getNoLanes();
 
 private:
@@ -60,10 +60,10 @@ private:
 	double	m_CalcTimeStep;
 	double	m_Length;
 	
-	int		NO_LANES_DIR1;
-	int		NO_DIRS;
-	int		NO_LANES;
-	int		m_Index;
+	size_t	NO_LANES_DIR1;
+	size_t	NO_DIRS;
+	size_t	NO_LANES;
+	size_t	m_Index;
 	size_t	m_NoLanes;
 	size_t	m_NoLoadEffects;
 	size_t	m_NoVehs;

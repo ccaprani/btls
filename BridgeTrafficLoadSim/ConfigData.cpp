@@ -117,8 +117,8 @@ vector<double> CConfigData::GetVectorFromNextLine()
 	while(line.substr(0,2) == m_CommentString)
 		m_CSV.getline(line);
 
-	int nData = m_CSV.getnfield();	// minus 1 if comma to be at the end is counted
-	for(int j = 0; j < nData; j++)
+	size_t nData = m_CSV.getnfield();	// minus 1 if comma to be at the end is counted
+	for (size_t j = 0; j < nData; j++)
 	{
 		string str = m_CSV.getfield(j);
 		double val = m_CSV.stringToDouble(str);

@@ -59,7 +59,7 @@ void CBridge::setThresholds(std::vector<double> vThresholds)
 	m_vThresholds = vThresholds;
 }
 
-void CBridge::InitializeLanes(int NoLanes)
+void CBridge::InitializeLanes(size_t NoLanes)
 {
 	m_NoLanes = NoLanes;
 	if(m_Length <= 0.0)
@@ -67,7 +67,7 @@ void CBridge::InitializeLanes(int NoLanes)
 	CBridgeLane lane(m_Length);
 	m_vLanes.assign(m_NoLanes,lane);
 	// set the lane numbers
-	for(int i = 0; i < m_NoLanes; i++)
+	for (size_t i = 0; i < m_NoLanes; i++)
 		m_vLanes.at(i).setIndex(i);	
 }
 
@@ -106,12 +106,12 @@ void CBridge::Update(double NextArrivalTime, double curTime)
 			//if(m_CurTime > 29378.40)
 			//	cout << "Hi";
 			// Update vehicles
-			for(int i = 0; i < m_NoLanes; i++)
+			for (size_t i = 0; i < m_NoLanes; i++)
 				m_vLanes[i].Update(m_CurTime);
 			// calculate the load effects
 			m_vEffectValues.assign(m_NoLoadEffects,0.0);
-			for(int i = 0; i < m_NoLoadEffects; i++)
-				for(int j = 0; j < m_NoLanes; j++)
+			for (size_t i = 0; i < m_NoLoadEffects; i++)
+				for (size_t j = 0; j < m_NoLanes; j++)
 					m_vEffectValues[i] += m_vLanes[j].getLoadEffect(i);
 			// update the event
 			m_EventMgr.UpdateEffects(m_vEffectValues, m_vLanes[lead_lane].getLeadVehPosition(), m_CurTime);
@@ -122,7 +122,7 @@ void CBridge::Update(double NextArrivalTime, double curTime)
 
 		// remove any vehicles that have left the bridge
 		m_NoVehs = 0;
-		for(int i = 0; i < m_NoLanes; i++)
+		for (size_t i = 0; i < m_NoLanes; i++)
 			// IDEA: add a m_CalcTimeStep before purging to make sure they don't leave
 			// within next timestep
 			m_NoVehs += m_vLanes[i].purgeVehicles(m_CurTime);	// remove pointer from lane
@@ -139,7 +139,7 @@ void CBridge::Finish()
 double CBridge::TimeNextVehOffBridge()
 {
 	double TimeOff = 1e300; // MAGIC NUMBER - very big time
-	for(int i = 0; i < m_NoLanes; i++)
+	for (size_t i = 0; i < m_NoLanes; i++)
 	{
 		double temp = m_vLanes.at(i).setTimeNextVehOff();
 		temp < TimeOff ? TimeOff = temp : 0.0;
@@ -164,7 +164,7 @@ void CBridge::AddVehicle(CVehicle* pVeh)
 	Veh.setBridgeTimes(m_Length);
 
 	// Map global direction lane to zero-based bridge lane - CASTOR type format
-	int iLane = Veh.getLane() - 1; // zero based array
+	size_t iLane = Veh.getLane() - 1; // zero based array
 	
 	// if the lane is local-numbered, something like this is needed:
 	// if(NO_DIRS == 2 && Veh.getDirection() == 2)
@@ -178,7 +178,7 @@ void CBridge::AddVehicle(CVehicle* pVeh)
 			 << " direction: " << Veh.getDirection()
 			 << " cannot be added as no. lanes is " << m_vLanes.size() << endl;
 	// Lanes are out of order due to sorting above
-	for(int i = 0; i < m_NoLanes; i++)
+	for (size_t i = 0; i < m_NoLanes; i++)
 	{
 		if( m_vLanes.at(i).getIndex() ==  Veh.getBridgeLaneNo() )
 			m_vLanes.at(i).AddVehicle(&Veh);
@@ -188,7 +188,7 @@ void CBridge::AddVehicle(CVehicle* pVeh)
 std::vector<CVehicle*> CBridge::AssembleVehicles(void)
 {
 	std::vector<CVehicle*> pVehs;
-	for(int i = 0; i < m_NoLanes; i++)
+	for (size_t i = 0; i < m_NoLanes; i++)
 	{
 		std::vector<CVehicle*> pLaneVehs = m_vLanes[i].getVehicles();
 		pVehs.insert(pVehs.end(), pLaneVehs.begin(), pLaneVehs.end());
@@ -198,13 +198,13 @@ std::vector<CVehicle*> CBridge::AssembleVehicles(void)
 }
 
 
-int CBridge::getIndex(void)
+size_t CBridge::getIndex(void)
 {
 	return m_Index;
 }
 
 
-void CBridge::setIndex(int index)
+void CBridge::setIndex(size_t index)
 {
 	m_Index = index;
 }
@@ -216,7 +216,7 @@ double CBridge::getLength(void)
 }
 
 
-CBridgeLane& CBridge::getBridgeLane(int iLane)
+CBridgeLane& CBridge::getBridgeLane(size_t iLane)
 {
 	CBridgeLane& lane = m_vLanes.at(iLane);
 	return lane;
@@ -227,13 +227,13 @@ size_t CBridge::getNoLanes()
 	return m_NoLanes;
 }
 
-void CBridge::setNoLoadEffects(int nLE)
+void CBridge::setNoLoadEffects(size_t nLE)
 {
 	m_NoLoadEffects = nLE;
 }
 
 
-int CBridge::getNoLoadEffects(void)
+size_t CBridge::getNoLoadEffects(void)
 {
 	return m_NoLoadEffects;
 }

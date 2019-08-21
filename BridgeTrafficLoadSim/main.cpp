@@ -36,7 +36,7 @@ void main()
 {
 	cout << "---------------------------------------------" << endl;
 	cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
-	cout << "                Version 1.2.4                " << endl;
+	cout << "                Version 1.2.5                " << endl;
 	cout << "---------------------------------------------" << endl << endl;
 
 	if (!g_ConfigData.ReadData("BTLSin.txt") )
@@ -160,8 +160,7 @@ void GetTrafficFileLanes(vector<CLane*>& vpLanes, double& StartTime, double& End
 
 void doSimulation(vector<CBridge*> vBridges, vector<CLane*> vLanes, double SimStartTime, double SimEndTime)
 {
-	CVehicleBuffer VehBuff;//(g_ConfigData.Output.VehicleFile.WRITE_VEHICLE_FILE, 
-		//g_ConfigData.Output.VehicleFile.VEHICLE_FILENAME, g_ConfigData.Output.VehicleFile.WRITE_VEHICLE_BUFFER_SIZE);
+	CVehicleBuffer VehBuff(SimStartTime);
 	size_t nLanes = vLanes.size();
 	double curTime = SimStartTime;
 	double nextTime = 0.0;

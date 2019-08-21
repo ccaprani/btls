@@ -22,15 +22,15 @@ public:
 	void UpdatePosition(double time);
 	
 	double m_TimeAtDatum;
-	int m_Index;
+	size_t m_Index;
 	double m_Speed;
 	double m_Position;
 	double m_AxleWeight;
-	int m_Dirn;
+	size_t m_Dirn;
 	double m_TrackWidth;
 	double m_TransPos;
 	double m_Eccentricity;
-	unsigned int m_Lane;
+	size_t m_Lane;
 
 private:
 	int m_Sign;

@@ -150,17 +150,17 @@ double CBridgeFile::ReadLoadEffect(CBridge* pBridge, vector<CInfluenceLine> vDis
 	else
 		std::cerr << "***WARNING: Bridge definition - assumed zero threhold at: " << line << endl;
 	
-	int NoLanes = pBridge->getNoLanes();
+	size_t NoLanes = pBridge->getNoLanes();
 
 	switch(type)
 	{
 	case 2:	// Seperate ILs and weights for each lane
 		{
-			for(int i = 0; i < NoLanes; i++)
+			for (size_t i = 0; i < NoLanes; i++)
 			{
 				GetNextDataLine(line); // m_CSV.getline(line);
 				int ILtype = m_CSV.stringToInt( m_CSV.getfield(0) );
-				int ILno = m_CSV.stringToInt( m_CSV.getfield(1) );
+				size_t ILno = m_CSV.stringToInt(m_CSV.getfield(1));
 				double ILweight = m_CSV.stringToDouble( m_CSV.getfield(2) );
 
 				CInfluenceLine IL;
@@ -187,12 +187,12 @@ double CBridgeFile::ReadLoadEffect(CBridge* pBridge, vector<CInfluenceLine> vDis
 	case 3:		// Influence surface for bridge
 		{
 			GetNextDataLine(line); // m_CSV.getline(line);
-			int ISno = m_CSV.stringToInt( m_CSV.getfield(0) );
+			size_t ISno = m_CSV.stringToInt(m_CSV.getfield(0));
 
 			if(ISno > vInfSurf.size())
 				cout << "**ERROR: Influence Surface does not exist. Bridge " << pBridge->getIndex() << " : Load effect " << index << endl;
 					
-			for(int i = 0; i < NoLanes; i++)
+			for (size_t i = 0; i < NoLanes; i++)
 				pBridge->getBridgeLane(i).addLoadEffect(vInfSurf.at(ISno-1),1.0);
 
 		} break;
@@ -202,7 +202,7 @@ double CBridgeFile::ReadLoadEffect(CBridge* pBridge, vector<CInfluenceLine> vDis
 		{
 			GetNextDataLine(line); // m_CSV.getline(line);
 			int ILtype = m_CSV.stringToInt( m_CSV.getfield(0) );
-			int ILno = m_CSV.stringToInt( m_CSV.getfield(1) );
+			size_t ILno = m_CSV.stringToInt(m_CSV.getfield(1));
 
 			CInfluenceLine IL;
 			if(ILtype == 2)	// discrete IL
@@ -218,7 +218,7 @@ double CBridgeFile::ReadLoadEffect(CBridge* pBridge, vector<CInfluenceLine> vDis
 				IL.setIL(ILno,pBridge->getLength());
 
 			IL.setIndex(index);
-			for(int j = 0; j < NoLanes; j++)
+			for (size_t j = 0; j < NoLanes; j++)
 			{
 				double weight = m_CSV.stringToDouble(m_CSV.getfield(2 + j));
 				CBridgeLane& lane = pBridge->getBridgeLane(j);

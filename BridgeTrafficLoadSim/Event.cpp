@@ -13,7 +13,7 @@ using namespace std;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CEvent::CEvent(int ID, size_t noEffects)
+CEvent::CEvent(size_t ID, size_t noEffects)
 {
 	setDefaults();
 	m_EventID = ID;
@@ -21,7 +21,7 @@ CEvent::CEvent(int ID, size_t noEffects)
 	setNoEffects(noEffects);
 }
 
-CEvent::CEvent(int ID)
+CEvent::CEvent(size_t ID)
 {
 	setDefaults();
 	m_EventID = ID;
@@ -63,17 +63,17 @@ void CEvent::setDefaults()
 
 //////// THE SETS /////////////
 
-void CEvent::setMaxEffect(CEffect Eff, int i)
+void CEvent::setMaxEffect(CEffect Eff, size_t i)
 {
 	m_vMaxEffects[i] = Eff;
 }
 
-void CEvent::setMinEffect(CEffect Eff, int i)
+void CEvent::setMinEffect(CEffect Eff, size_t i)
 {
 	m_vMinEffects[i] = Eff;
 }
 
-void CEvent::setID(int id)
+void CEvent::setID(size_t id)
 {
 	m_EventID = id;
 }
@@ -83,14 +83,14 @@ void CEvent::setNoEffects(size_t noEffects)
 	CEffect maxEff;
 	CEffect minEff(1e90,0,0);	// MAGIC NUMBER - very large to start minimum off
 	m_NoEffects = noEffects;
-	for(int i = 0; i < noEffects; i++)
+	for (size_t i = 0; i < noEffects; i++)
 	{
 		m_vMaxEffects.push_back(maxEff);
 		m_vMinEffects.push_back(minEff);
 	}
 }
 
-void CEvent::setCurEffect(int ce)
+void CEvent::setCurEffect(size_t ce)
 {
 	m_CurEffect = ce;
 }
@@ -102,15 +102,15 @@ void CEvent::setStartTime(double StartTime)
 
 ////////// THE GETS /////////////////
 
-unsigned int CEvent::getNoVehicles()
+size_t CEvent::getNoVehicles()
 {
 	return m_vMaxEffects[0].m_NoVehicles;
 }
 
-unsigned int CEvent::getNoTrucks()
+size_t CEvent::getNoTrucks()
 {
-	unsigned int n = 0;
-	for(int i = 0; i < m_vMaxEffects[0].m_NoVehicles; i++)
+	size_t n = 0;
+	for (size_t i = 0; i < m_vMaxEffects[0].m_NoVehicles; i++)
 		if( !m_vMaxEffects[0].giveVehicle(i).IsCar() )
 			n++;
 	return n;
@@ -121,7 +121,7 @@ double CEvent::getStartTime()
 	return m_StartTime;
 }
 
-int CEvent::getID()
+size_t CEvent::getID()
 {
 	return m_EventID;
 }
@@ -131,7 +131,7 @@ size_t	CEvent::getNoEffects()
 	return m_NoEffects;
 }
 
-CEffect& CEvent::getMaxEffect(int effNo)
+CEffect& CEvent::getMaxEffect(size_t effNo)
 {
 	if(effNo < m_NoEffects)
 		return m_vMaxEffects[effNo];
@@ -142,7 +142,7 @@ CEffect& CEvent::getMaxEffect(int effNo)
 	}
 }
 
-CEffect& CEvent::getMinEffect(int effNo)
+CEffect& CEvent::getMinEffect(size_t effNo)
 {
 	if(effNo < m_NoEffects)
 		return m_vMinEffects[effNo];
@@ -195,13 +195,13 @@ void CEvent::writeToFile(string file)
 	outFile << m_EventID << endl;
 //	outFile.close();
 
-	for(int k = 0; k < m_NoEffects; k++)
+	for (size_t k = 0; k < m_NoEffects; k++)
 		writeEffect(k, file, 1);
 
 	outFile.close();
 }
 
-void CEvent::writeEffect(int k, string file, bool trucks)
+void CEvent::writeEffect(size_t k, string file, bool trucks)
 {
 	// ofstream constructor opens file fo appending data
 	ofstream outFile( file.c_str(), ios::app );
@@ -212,7 +212,7 @@ void CEvent::writeEffect(int k, string file, bool trucks)
 		exit( 1 );
 	}
 
-	double val, time, dist;			int nTks;
+	double val, time, dist;			size_t nTks;
 	ostringstream oStr;
 
 	val = m_vMaxEffects[k].getValue();	
@@ -231,7 +231,7 @@ void CEvent::writeEffect(int k, string file, bool trucks)
 	if(trucks)
 	{
 		m_vMaxEffects[k].sortVehicles();
-		for(int j = 0; j < nTks; j++)
+		for (size_t j = 0; j < nTks; j++)
 			outFile << m_vMaxEffects[k].giveVehicle(j).Write(1) << '\n';		// write castor format	
 	}
 //	outFile.close();

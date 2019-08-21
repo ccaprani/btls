@@ -29,38 +29,38 @@ public:
 	void	setTime(double time);
 	void	setLength(double length);
 	void	setVelocity(double velocity);
-	void	setLane(int l);
-	void	setDirection(int d);
+	void	setLane(size_t l);
+	void	setDirection(size_t d);
 	void	setGVW(double weight);
-	void	setNoAxles(int axNo);
-	void	setAW(int i, double w);
-	void	setAS(int i, double s);
-	void	setAT(int i, double tw);
+	void	setNoAxles(size_t axNo);
+	void	setAW(size_t i, double w);
+	void	setAS(size_t i, double s);
+	void	setAT(size_t i, double tw);
 	void	setTrns(double trans);
 	void	setBridgeTimes(double length);
 	void	setTimeOnBridge(double length);
-	void	setBridgeLaneNo(unsigned int BridgeLaneNo);
+	void	setBridgeLaneNo(size_t BridgeLaneNo);
 	void	setTrackWidth(double tw);
 	void	setLaneEccentricity(double e);
 
 	// the gets
 	std::string getTimeStr();
-	int		getHead();
+	size_t	getHead();
 	double  getTime() const;
 	double	getLength();
 	double	getVelocity();
-	int		getLane();
-	int		getDirection();
+	size_t	getLane();
+	size_t	getDirection();
 	double	getGVW();
-	int		getNoAxles();
-	double	getAW(int i);
-	double	getAS(int i);
-	double	getAT(int i);
+	size_t	getNoAxles();
+	double	getAW(size_t i);
+	double	getAS(size_t i);
+	double	getAT(size_t i);
 	double	getTrans();
 	double	getTimeOnBridge();
 	double	getTimeOffBridge();
 	bool	IsOnBridge(double atTime);
-	unsigned int getBridgeLaneNo(void);
+	size_t	getBridgeLaneNo(void);
 	double	getTrackWidth(void);
 	double	getLaneEccentricity(void);
 
@@ -73,30 +73,32 @@ private:
 	void createCASTORVehicle(const std::string data);
 	void createBEDITVehicle(const std::string data);
 	void createDITISVehicle(const std::string data);
+	void createMONVehicle(const std::string data);
 
 	std::string	writeBEDITData();
 	std::string	writeCASTORData();
 	std::string writeDITISData();
+	std::string writeMONData();
 
-	int		m_Dir;
-	int		m_Lane;
+	size_t	m_Dir;
+	size_t	m_Lane;
 	double	m_Velocity;
-	int		m_Head;
-	int		m_Year;
-	int		m_Month;	
-	int		m_Day; 	
-	int		m_Hour; 
-	int		m_Min;
-	int		m_Sec; 
-	int		m_Hndt;
+	size_t	m_Head;
+	size_t	m_Year;
+	size_t	m_Month;
+	size_t	m_Day;
+	size_t	m_Hour;
+	size_t	m_Min;
+	double	m_Sec;
 	double	m_GVW;
 	double	m_Trns;
-	unsigned int m_NoAxles;
+	size_t	m_NoAxles;
+	size_t	m_NoAxleGroups;
 	double	m_Length;
 	double	m_TrackWidth; // width
 	double	m_TimeOnBridge;
 	double	m_TimeOffBridge;
-	int		m_BridgeLaneNo;
+	size_t	m_BridgeLaneNo;
 	double	m_LaneEccentricity;
 
 	struct Axle
@@ -107,16 +109,19 @@ private:
 	};
 	std::vector<Axle> m_vAxles;
 
-	int		DAYS_PER_MT;
-	int		MTS_PER_YR;
-	int		HOURS_PER_DAY;
-	int		SECS_PER_HOUR;
-	int		MINS_PER_HOUR;
-	int		SECS_PER_MIN;
+	size_t	DAYS_PER_MT;
+	size_t	MTS_PER_YR;
+	size_t	HOURS_PER_DAY;
+	size_t	SECS_PER_HOUR;
+	size_t	MINS_PER_HOUR;
+	size_t	SECS_PER_MIN;
 
 	double	KG100_TO_KN;
-	int		CASTOR_MAX_AXLES;
-	int		BEDIT_MAX_AXLES;
+	double	KG_TO_KN;
+	size_t	CASTOR_MAX_AXLES;
+	size_t	BEDIT_MAX_AXLES;
+	size_t	MON_MAX_AXLES;
+	size_t	MON_BASE_YEAR;
 
 	template<typename T>
 	T from_string(const std::string& s)

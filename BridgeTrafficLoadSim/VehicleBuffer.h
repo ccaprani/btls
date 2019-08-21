@@ -16,11 +16,11 @@
 
 struct CFlowRateData
 {
-	unsigned int m_ID;
-	unsigned int m_NoVehicles;
-	unsigned int m_NoTrucks;
-	unsigned int m_NoCars;
-	std::vector<unsigned int> m_vNoTruckAxles;
+	size_t m_ID;
+	size_t m_NoVehicles;
+	size_t m_NoTrucks;
+	size_t m_NoCars;
+	std::vector<size_t> m_vNoTruckAxles;
 
 	CFlowRateData()
 	{
@@ -35,11 +35,9 @@ struct CFlowRateData
 class CVehicleBuffer  
 {
 public:
-	CVehicleBuffer();
-	//CVehicleBuffer(bool WriteVehicleFile, std::string OutFile, int size);
+	CVehicleBuffer(double starttime);
 	virtual ~CVehicleBuffer();
 	
-	//void init(bool WriteVehicleFile, std::string OutFile, int size);
 	void AddVehicle(CVehicle* pVeh);
 	void FlushBuffer();
 
@@ -51,10 +49,11 @@ private:
 
 	std::ofstream m_OutFile;
 	std::vector<CVehicle*> m_vVehicles;
-	int m_NoVehicles;
+	size_t m_NoVehicles;
 	//int m_BufferSize;
 
-	unsigned int m_CurHour;
+	size_t m_FirstHour;
+	size_t m_CurHour;
 	std::vector< std::vector<CFlowRateData> > m_vFlowData;
 
 	unsigned int FILE_FORMAT;

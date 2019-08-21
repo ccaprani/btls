@@ -17,7 +17,7 @@ void COutputManagerBase::Finish()
 
 void COutputManagerBase::OpenSummaryFiles()
 {
-	for(unsigned int i = 0; i < m_NoLoadEffects; i++)
+	for (size_t i = 0; i < m_NoLoadEffects; i++)
 	{
 		std::string file;
 		file = m_FileStem + "_S_" + to_string(m_BridgeLength) + "_Eff_" + to_string(i+1) + ".txt";
@@ -26,7 +26,7 @@ void COutputManagerBase::OpenSummaryFiles()
 	}
 }
 
-void COutputManagerBase::OpenVehicleFile(unsigned int i)
+void COutputManagerBase::OpenVehicleFile(size_t i)
 {
 	std::string thefile;
 	thefile = m_FileStem + "_V_" + to_string(m_BridgeLength) + "_" + to_string(i) + ".txt";

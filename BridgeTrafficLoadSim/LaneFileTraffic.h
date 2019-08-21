@@ -15,7 +15,7 @@ public:
 	void addVehicle(CVehicle* pVeh);
 	void setFirstArrivalTime();
 
-	unsigned int GetNoVehicles() {return m_vVehicles.size();};
+	size_t GetNoVehicles() { return m_vVehicles.size(); };
 
 private:
 	std::vector<CVehicle*> m_vVehicles;

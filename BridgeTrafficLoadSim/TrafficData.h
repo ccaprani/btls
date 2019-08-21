@@ -60,10 +60,10 @@ public:
 	void SetNHM( std::vector< std::vector<double> > NHM );
 	//void SetFlowRate( std::vector< std::vector<double> > vFlowRate );
 	void SetLaneFlow(std::vector<CLaneFlow> lane_flow);
-	int getNoDirn(void);
-	int getNoLanes(void);
-	int getNoLanesDir1(void);
-	int getNoLanesDir2(void);
+	size_t getNoDirn(void);
+	size_t getNoLanes(void);
+	size_t getNoLanesDir1(void);
+	size_t getNoLanesDir2(void);
 	
 private:
 	double m_CarPercent;

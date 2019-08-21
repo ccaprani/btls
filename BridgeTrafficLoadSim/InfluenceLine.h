@@ -13,11 +13,11 @@ public:
 	double getOrdinate(double x);
 	size_t getNoPoints(void);
 	double getLoadEffect(std::vector<CAxle>& vAxle);
-	int getType() {return m_Type;};
+	size_t getType() { return m_Type; };
 	CInfluenceSurface* getIS();
 
 	// set the influence line no.
-	void setIL(int nIL, double length);
+	void setIL(size_t nIL, double length);
 	void setIL(std::vector<double> vDis,std::vector<double> vOrd);
 	void setIL(CInfluenceSurface IS);
 	double getLength(void);
@@ -37,9 +37,9 @@ private:
 	double LoadEffect6(double x);
 	double LoadEffect7(double x);
 
-	int m_Type;			// 1 - expression, 2 - discrete, 3 - Surface
-	int m_ILFunctionNo;	// If Type = 1, then the IL function no.
-	int m_Index;		// just a reference no.
+	size_t m_Type;			// 1 - expression, 2 - discrete, 3 - Surface
+	size_t m_ILFunctionNo;	// If Type = 1, then the IL function no.
+	size_t m_Index;			// just a reference no.
 	double m_Length;
 	size_t m_NoPoints;
 	double m_Weight;

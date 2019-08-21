@@ -29,12 +29,12 @@ private:
 
 	std::string m_MixedEventFile;
 	
-	unsigned int m_MaxEvTypesForBridge;
-	unsigned int m_BlockSize;
-	unsigned int m_CurBlockNo;
-	unsigned int m_CurEventNoVehicles;
+	size_t m_MaxEvTypesForBridge;
+	size_t m_BlockSize;
+	size_t m_CurBlockNo;
+	size_t m_CurEventNoVehicles;
 	
-	int		BLOCK_SIZE_SECS;
-	int		BLOCK_SIZE_DAYS;
+	size_t	BLOCK_SIZE_SECS;
+	size_t	BLOCK_SIZE_DAYS;
 	bool	WRITE_BM_MIXED;
 };

@@ -31,7 +31,7 @@ protected:
 	virtual void	WriteBuffer();
 	
 	void OpenSummaryFiles();
-	void OpenVehicleFile(unsigned int i);
+	void OpenVehicleFile(size_t i);
 	
 	double	m_BridgeLength;
 	std::string m_FileStem;

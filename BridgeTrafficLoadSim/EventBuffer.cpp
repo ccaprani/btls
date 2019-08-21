@@ -87,13 +87,13 @@ void CEventBuffer::FlushAllEventsBuff()
 	CEvent Ev = m_vEvents[nEvs-1];
 	std::cout << std::endl << "Bridge " << to_string(m_BridgeLength) << " m: Flushing AllEvents buffer: " << nEvs << " events at " << Ev.getTimeStr() << '\t';
 	
-	for(int i = 0; i < nEvs; i++)
+	for (size_t i = 0; i < nEvs; i++)
 	{	
 		CEvent& Ev = m_vEvents[i];
 
 		m_OutFile << Ev.getStartTime() << '\t';
 		m_OutFile << Ev.getNoVehicles() << '\t';
-		for(int j = 0; j < Ev.getNoEffects(); j++)
+		for (size_t j = 0; j < Ev.getNoEffects(); j++)
 			m_OutFile << Ev.getMaxEffect(j).getValue() << '\t';
 		m_OutFile << '\n';
 	}
@@ -112,7 +112,7 @@ void CEventBuffer::FlushFatigueBuff()
 	CEvent Ev = m_vEvents[nEvs-1];
 	std::cout << std::endl << "Bridge " << to_string(m_BridgeLength) << " m: Flushing Fatigue buffer: " << nEvs << " events at " << Ev.getTimeStr() << '\t';
 	
-	for(int i = 0; i < nEvs; i++)
+	for (size_t i = 0; i < nEvs; i++)
 	{	
 		CEvent& Ev = m_vEvents[i];
 		ostringstream oStr; 
@@ -120,7 +120,7 @@ void CEventBuffer::FlushFatigueBuff()
 		// Write the first line
 		oStr.width(15); oStr << std::left << std::fixed << std::setprecision(2) << Ev.getStartTime() << '\t';
 		oStr << std::right;
-		for(int j = 0; j < Ev.getNoEffects(); j++)
+		for (size_t j = 0; j < Ev.getNoEffects(); j++)
 		{
 			if( Ev.getMaxEffect(j).getTime() < Ev.getMinEffect(j).getTime() )
 			{	
@@ -137,7 +137,7 @@ void CEventBuffer::FlushFatigueBuff()
 
 		// And the second line
 		oStr.width(15); oStr << std::fixed << std::setprecision(2) << Ev.getNoVehicles() << '\t';
-		for(int j = 0; j < Ev.getNoEffects(); j++)
+		for (size_t j = 0; j < Ev.getNoEffects(); j++)
 		{
 			if( Ev.getMaxEffect(j).getTime() >= Ev.getMinEffect(j).getTime() )
 			{	

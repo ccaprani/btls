@@ -36,13 +36,13 @@ void CBridgeLane::Update(double curTime)
 }
 
 
-void CBridgeLane::setLaneNo(int LaneNo)
+void CBridgeLane::setLaneNo(size_t LaneNo)
 {
 	m_LaneNo = LaneNo;
 }
 
 
-int CBridgeLane::getLaneNo(void)
+size_t CBridgeLane::getLaneNo(void)
 {
 	return m_LaneNo;
 }
@@ -144,7 +144,7 @@ double CBridgeLane::setTimeNextVehOff(void)
 }
 
 
-double CBridgeLane::getLoadEffect(int nLE)
+double CBridgeLane::getLoadEffect(size_t nLE)
 {
 	if(m_vVehicles.size() != 0)
 		return m_vInfLine[nLE].getLoadEffect(m_vAxles); //doAxleLoop(nLE);
@@ -170,13 +170,13 @@ size_t CBridgeLane::getNoVehs(void)
 }
 
 
-int CBridgeLane::getIndex(void)
+size_t CBridgeLane::getIndex(void)
 {
 	return m_Index;
 }
 
 
-void CBridgeLane::setIndex(int indx)
+void CBridgeLane::setIndex(size_t indx)
 {
 	m_Index = indx;
 }

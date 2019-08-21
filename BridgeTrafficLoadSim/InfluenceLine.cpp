@@ -65,7 +65,7 @@ double CInfluenceLine::getOrdinate(double x)
 
 
 // set the influence line no.
-void CInfluenceLine::setIL(int nIL, double length)
+void CInfluenceLine::setIL(size_t nIL, double length)
 {
 	m_Type = 1;
 	m_ILFunctionNo = nIL;

@@ -31,7 +31,7 @@ void CBlockMaxEvent::setNoLoadEffects(size_t nLE)
 	m_NoLoadEffects = nLE;
 }
 
-void CBlockMaxEvent::AddExtraEvents(unsigned int nVehs)
+void CBlockMaxEvent::AddExtraEvents(size_t nVehs)
 {
 	while(m_NoEvents < nVehs)
 	{
@@ -42,7 +42,7 @@ void CBlockMaxEvent::AddExtraEvents(unsigned int nVehs)
 	}
 }
 
-void CBlockMaxEvent::UpdateEvent(unsigned int iEvent, CEvent Ev)
+void CBlockMaxEvent::UpdateEvent(size_t iEvent, CEvent Ev)
 {
 	if(iEvent < m_NoEvents)
 		m_vEvents[iEvent] = Ev;
@@ -50,22 +50,22 @@ void CBlockMaxEvent::UpdateEvent(unsigned int iEvent, CEvent Ev)
 		std::cout << "*** ERROR in CBlockMaxEvent" << std::endl;
 }
 
-void CBlockMaxEvent::setID(unsigned int ID)
+void CBlockMaxEvent::setID(size_t ID)
 {
 	m_ID = ID;
 }
 
-CEvent& CBlockMaxEvent::getEvent(unsigned int iEv)
+CEvent& CBlockMaxEvent::getEvent(size_t iEv)
 {
 	return m_vEvents[iEv];
 }
 
-unsigned int CBlockMaxEvent::getSize()
+size_t CBlockMaxEvent::getSize()
 {
 	return m_NoEvents;
 }
 
-unsigned int CBlockMaxEvent::getID()
+size_t CBlockMaxEvent::getID()
 {
 	return m_ID;
 }

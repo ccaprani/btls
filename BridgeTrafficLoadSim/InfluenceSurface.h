@@ -8,11 +8,11 @@ public:
 	CInfluenceSurface(void);
 	CInfluenceSurface(std::vector< std::vector<double> > ISmat, std::vector<double> ylanes);
 	virtual ~CInfluenceSurface(void);
-	double giveOrdinate(double x, double laneEccentricity, unsigned int iLane);
+	double giveOrdinate(double x, double laneEccentricity, size_t iLane);
 	void setIS(std::vector< std::vector<double> > ISmat);
 	void setLanes(std::vector<double> ylanes);
 	double getLength();
-	double getLaneWidth(unsigned int iLane);
+	double getLaneWidth(size_t iLane);
 
 private:
 	std::vector< std::vector<double> > m_ISords;

@@ -83,7 +83,7 @@ void CEventManager::UpdateEffects(std::vector<double> vEffs, double position, do
 	std::vector<double> temp(m_NoLoadEffects, 0.0);
 	
 	// Detect maxima as matter of course
-	for(int k = 0; k < m_NoLoadEffects; k++)
+	for (size_t k = 0; k < m_NoLoadEffects; k++)
 	{
 		double curVal = vEffs[k];
 		CEffect& Eff = m_CurEvent.getMaxEffect(k);
@@ -103,7 +103,7 @@ void CEventManager::UpdateEffects(std::vector<double> vEffs, double position, do
 	// Only detect minima if a fatigue analysis is being done
 	if(WRITE_FATIGUE_EVENT)
 	{
-		for(int k = 0; k < m_NoLoadEffects; k++)
+		for (size_t k = 0; k < m_NoLoadEffects; k++)
 		{
 			double curVal = vEffs[k];
 			CEffect& Eff = m_CurEvent.getMinEffect(k);
@@ -173,7 +173,7 @@ void CEventManager::DoTimeHistory(int i, std::vector<double>& vEff)
 			size_t nVehs = m_CurEvent.getMaxEffect(0).m_NoVehicles;
 			m_TimeHistoryFile << std::setw(12) << fixed << setprecision (3) //14-6-19 changed to 3
 				<< m_CurTime << "\t\t" << nVehs << "\t\t";
-			for(int k = 0; k < m_NoLoadEffects; k++)
+			for (size_t k = 0; k < m_NoLoadEffects; k++)
 				m_TimeHistoryFile << vEff[k] << "\t\t";
 			m_TimeHistoryFile << '\n';
 			break;

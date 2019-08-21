@@ -11,7 +11,7 @@ extern CConfigData g_ConfigData;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CVehicleBuffer::CVehicleBuffer()
+CVehicleBuffer::CVehicleBuffer(double starttime)
 {
 	//init(false, "", 0);
 
@@ -29,8 +29,9 @@ CVehicleBuffer::CVehicleBuffer()
 
 	if(WRITE_FLOW_STATS)
 	{
-		m_CurHour = -1;
-		flushFlowData(); // will set cur hour to 0
+		m_FirstHour = (size_t)floor(starttime / 3600.0);
+		m_CurHour = 0;
+		flushFlowData(); // will set cur hour to 1
 	}
 	
 	if(WRITE_VEHICLE_FILE)
@@ -99,12 +100,12 @@ void CVehicleBuffer::updateFlowData()
 
 	// get vehicle and see if in next hour
 	CVehicle* pV = m_vVehicles.back();
-	double curTime = pV->getTime();
-	if(curTime > m_CurHour*3600.0)
+	double curRelTime = pV->getTime() - m_FirstHour*3600.0;
+	if (curRelTime > m_CurHour*3600.0)
 		flushFlowData();
 	
 	// get ref to data
-	int lane = pV->getLane();
+	size_t lane = pV->getLane();
 	CFlowRateData& data = m_vFlowData.at(m_CurHour-1).at(lane-1);
 	
 	// assemble data
@@ -114,7 +115,7 @@ void CVehicleBuffer::updateFlowData()
 	else
 	{
 		data.m_NoTrucks++;
-		unsigned int n = pV->getNoAxles();
+		size_t n = pV->getNoAxles();
 		data.m_vNoTruckAxles.at(n-2)++;
 	}
 }

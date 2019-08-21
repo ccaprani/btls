@@ -113,7 +113,7 @@ void CBlockMaxManager::AddExtraEvents()
 
 void CBlockMaxManager::OpenVehicleFiles()
 {
-	unsigned int curNoEvents = m_BlockMaxEvent.getSize();
+	size_t curNoEvents = m_BlockMaxEvent.getSize();
 	while(curNoEvents < m_CurEventNoVehicles)
 	{
 		curNoEvents++;

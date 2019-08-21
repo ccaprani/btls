@@ -34,8 +34,8 @@ class CCSVParse {	// read and parse comma-separated values
 	virtual ~CCSVParse();
 
 	int getline(string&);
-	string getfield(int n);
-	int getnfield() const { return nfield; }
+	string getfield(size_t n);
+	size_t getnfield() const { return nfield; }
 	vector<double> GetVectorFromNextLine();
 	vector<double> GetVectorFromCurrentLine();
 
@@ -47,13 +47,13 @@ class CCSVParse {	// read and parse comma-separated values
 	ifstream fin;			// input file pointer
 	string line;			// input line
 	vector<string> field;	// field strings
-	int nfield;				// number of fields
+	size_t nfield;			// number of fields
 	string fieldsep;		// separator characters
 
-	int split();
+	size_t split();
 	int endofline(char);
-	int advplain(const string& line, string& fld, int);
-	int advquoted(const string& line, string& fld, int);
+	size_t advplain(const string& line, string& fld, size_t);
+	size_t advquoted(const string& line, string& fld, size_t);
 
 };
 

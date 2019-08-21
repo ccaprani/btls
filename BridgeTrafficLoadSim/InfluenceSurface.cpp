@@ -36,7 +36,7 @@ void CInfluenceSurface::setLanes(std::vector<double> ylanes)
 	m_NoLanes = m_Ylanes.size();
 }
 
-double CInfluenceSurface::getLaneWidth(unsigned int iLane)
+double CInfluenceSurface::getLaneWidth(size_t iLane)
 {
 	double width = m_Ylanes.at(iLane+1)-m_Ylanes.at(iLane);
 	return width;
@@ -74,7 +74,7 @@ void CInfluenceSurface::setIS(std::vector< std::vector<double> > ISmat)
 	m_Length = m_Xmax - m_Xmin;
 }
 
-double CInfluenceSurface::giveOrdinate(double x, double laneEccentricity, unsigned int iLane)
+double CInfluenceSurface::giveOrdinate(double x, double laneEccentricity, size_t iLane)
 {
 	// x is the position along the length of the bridge
 	// ylocal is the transverse position within lane number iLane
@@ -90,8 +90,8 @@ double CInfluenceSurface::giveOrdinate(double x, double laneEccentricity, unsign
 	if(y < m_Ymin - buffer || y > m_Ymax + buffer)
 		return 0.0;
 
-	unsigned int iX = 1;
-	unsigned int iY = 1;
+	size_t iX = 1;
+	size_t iY = 1;
 	
 	// find the indices
 	while(x >= m_X.at(iX) && iX < m_NoX-1) iX++;

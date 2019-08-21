@@ -81,7 +81,7 @@ void CEffect::AddVehicle(CVehicle& Vehicle)
 	m_vVehicles.push_back(Vehicle);
 }
 
-CVehicle CEffect::giveVehicle(unsigned int i)
+CVehicle CEffect::giveVehicle(size_t i)
 {
 	//i = i - 1;
 	if(i <= m_vVehicles.size())

@@ -162,7 +162,7 @@ size_t CVehicleTrafficFile::getNoVehicles()
 double CVehicleTrafficFile::getStartTime()
 {
 	// make the start time the start of the first day of the sim
-	return (int)(m_Starttime/(3600.0*24));
+	return (double)((int)(m_Starttime/(3600.0*24))*3600.0*24);
 }
 
 double CVehicleTrafficFile::getEndTime()

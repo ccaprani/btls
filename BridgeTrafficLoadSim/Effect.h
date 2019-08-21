@@ -28,15 +28,15 @@ public:
 	void setTime(double time);
 	void setValue(double time);
 	void setPosition(double time);
-	CVehicle giveVehicle(unsigned int i);
+	CVehicle giveVehicle(size_t i);
 	void AddVehicle(CVehicle& Vehicle);
 	void AddVehicles(std::vector<CVehicle> vVeh);
-	void AddVehicle(int i);
+	void AddVehicle(size_t i);
 	void sortVehicles();
 
 	size_t m_NoVehicles;
-	int m_IndEvent;
-	int m_IndEff;
+	size_t m_IndEvent;
+	size_t m_IndEff;
 
 private:
 	double m_Time;

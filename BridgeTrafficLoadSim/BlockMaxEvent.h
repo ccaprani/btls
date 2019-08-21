@@ -18,18 +18,18 @@ public:
 	CBlockMaxEvent();
 	virtual ~CBlockMaxEvent();
 	
-	void AddExtraEvents(unsigned int nVehs);
-	void UpdateEvent(unsigned int iEvent, CEvent Ev);
-	CEvent& getEvent(unsigned int iEv);
+	void AddExtraEvents(size_t nVehs);
+	void UpdateEvent(size_t iEvent, CEvent Ev);
+	CEvent& getEvent(size_t iEv);
 	void clear();
-	void setID(unsigned int ID);
-	unsigned int getID();
-	unsigned int getSize();
+	void setID(size_t ID);
+	size_t getID();
+	size_t getSize();
 	void setNoLoadEffects(size_t nLE);
 private:
 	size_t m_NoLoadEffects;
-	unsigned int m_NoEvents;
-	unsigned int m_ID;
+	size_t m_NoEvents;
+	size_t m_ID;
 	std::vector<CEvent>	m_vEvents;
 };
 

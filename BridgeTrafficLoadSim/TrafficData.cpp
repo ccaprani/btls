@@ -150,25 +150,25 @@ std::vector< std::vector<double> > CTrafficData::GetNHM()
 //	return m_vFlowRate[iLane];
 //}
 
-int CTrafficData::getNoDirn(void)
+size_t CTrafficData::getNoDirn(void)
 {
 	return m_NoDirn;
 }
 
 
-int CTrafficData::getNoLanes(void)
+size_t CTrafficData::getNoLanes(void)
 {
 	return m_NoLanes;
 }
 
 
-int CTrafficData::getNoLanesDir1(void)
+size_t CTrafficData::getNoLanesDir1(void)
 {
 	return m_NoLanesDir1;
 }
 
 
-int CTrafficData::getNoLanesDir2(void)
+size_t CTrafficData::getNoLanesDir2(void)
 {
 	return m_NoLanesDir2;
 }
@@ -288,7 +288,7 @@ void CTrafficData::SetLaneFlow(std::vector<CLaneFlow> lane_flow)
 	m_NoDirn = 0;
 	m_NoLanesDir1 = 0;
 	m_NoLanesDir2 = 0;
-	for(int i = 0; i < m_NoLanes; ++i)
+	for(size_t i = 0; i < m_NoLanes; ++i)
 	{
 		int cur_dir = m_vLaneFlow.at(i).getDirn();
 		if(cur_dir > m_NoDirn) m_NoDirn = cur_dir;

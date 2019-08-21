@@ -24,16 +24,16 @@ public:
 
 	struct Mode_Config
 	{
-		int PROGRAM_MODE;
+		size_t PROGRAM_MODE;
 	} Mode;
 
 	struct Road_Config
 	{
 		string LANES_FILE;
-		int NO_LANES_DIR1;
-		int NO_LANES_DIR2;
-		int NO_LANES;
-		int NO_DIRS;
+		size_t NO_LANES_DIR1;
+		size_t NO_LANES_DIR2;
+		size_t NO_LANES;
+		size_t NO_DIRS;
 	} Road;
 
 	struct Gen_Config
