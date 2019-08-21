@@ -80,16 +80,16 @@ void CReadILFile::ReadInfSurfFile(string file)
 		CInfluenceLine infline;
 		CInfluenceSurface IS;
 		infline.setIndex( m_CSV.stringToInt( m_CSV.getfield(0) ) );
-		int nrows = m_CSV.stringToInt( m_CSV.getfield(1) );
-		int nLanes = m_CSV.stringToInt( m_CSV.getfield(2) );
+		size_t nrows = m_CSV.stringToInt(m_CSV.getfield(1));
+		size_t nLanes = m_CSV.stringToInt(m_CSV.getfield(2));
 		// set the lanes
 		std::vector<double> ylanes;
-		for(unsigned int i = 0; i <= nLanes; i++)
+		for (size_t i = 0; i <= nLanes; i++)
 			ylanes.push_back( m_CSV.stringToDouble( m_CSV.getfield(i+3) ) );
 		IS.setLanes(ylanes);
 		// read in the ISmatrix
 		std::vector<std::vector<double>> ISmat;
-		for(unsigned int i = 0; i < nrows+1; i++)
+		for (size_t i = 0; i < nrows + 1; i++)
 			ISmat.push_back( m_CSV.GetVectorFromNextLine() );
 		// set it and assign IS to IL
 		IS.setIS(ISmat);
