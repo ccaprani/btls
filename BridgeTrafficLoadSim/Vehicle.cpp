@@ -28,7 +28,7 @@ CVehicle::CVehicle()
 
 	CASTOR_MAX_AXLES	= 9;
 	BEDIT_MAX_AXLES		= 20;
-	MON_MAX_AXLES		= 11;
+	MON_MAX_AXLES		= 15;
 	
 	MON_BASE_YEAR = 2010; // to help avoid overflows
 
@@ -236,12 +236,24 @@ void CVehicle::createMONVehicle(const std::string data)
 	m_Trns /= 1000;				// mm to meters
 	m_Sec /= 1000;				// ms to sec
 
-	setNoAxles(m_NoAxles);
 	double W;
 	double S;
 	int j = 45;					// start reading axle info at index
 	int NoDigitsAS = 5;			// MON file characteristics
 	int NoDigitsAW = 5;
+	
+	// Because of the variable string length in MON it's better not to rely on
+	// the deinifition of MON_MAX_AXLES to read files which may differ. So
+	// Let's find out how many axles are left, noting there an additional last 
+	// axle spacing representing the rear overhand
+	size_t len = data.length();
+	double nAxlesRemaining = (len - j - NoDigitsAS) / (double)(NoDigitsAS + NoDigitsAW);
+	if(nAxlesRemaining < m_NoAxles)
+	{
+		std::cout << "*** WARNING: Read #axles < #stated in vehicle: " << data << std::endl;
+		m_NoAxles = (size_t)nAxlesRemaining; // reset
+	}
+	setNoAxles(m_NoAxles);		// prepare vectors of AW/AS
 
 	for (size_t i = 0; i < m_NoAxles; i++)
 	{

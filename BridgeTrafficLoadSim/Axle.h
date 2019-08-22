@@ -15,8 +15,8 @@ class CAxle
 {
 public:
 	CAxle();
-	CAxle(int i, double t, double v, double x, double w, double tw, int dirn);
-	CAxle(int i, int iAxle, double t, double x, CVehicle* pVeh);
+	CAxle(size_t i, double t, double v, double x, double w, double tw, int dirn);
+	CAxle(size_t i, size_t iAxle, double t, double x, CVehicle* pVeh);
 	virtual ~CAxle();
 	
 	void UpdatePosition(double time);

@@ -106,9 +106,9 @@ std::string CEventStatistics::outputString()
 std::string CEventStatistics::headingsString()
 {
 	std::ostringstream oStr;
-	oStr.width(10);		oStr << "No.Events";
-	oStr.width(10);		oStr << "No.Vehs";
-	oStr.width(10);		oStr << "No.Trucks";
+	oStr.width(10);		oStr << "#Events";
+	oStr.width(10);		oStr << "#Ev Vehs";
+	oStr.width(10);		oStr << "#Ev Trucks";
 	oStr.width(10);		oStr << "Min";
 	oStr.width(10);		oStr << "Max";
 	oStr.width(10);		oStr << "Mean";

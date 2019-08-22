@@ -71,7 +71,7 @@ void CBridgeLane::AddVehicle(CVehicle* pVeh)
 void CBridgeLane::setAxleVector()
 {
 	m_vAxles.clear();
-	int iAxle = 0;
+	size_t iAxle = 0;
 	for(unsigned int i = 0; i < m_vVehicles.size(); i++)
 	{
 		CVehicle& Veh = *m_vVehicles[i];
@@ -81,7 +81,7 @@ void CBridgeLane::setAxleVector()
 		double timeVehicleOn = Veh.getTime();
 		double axleSpacing = 0.0;
 		
-		for(int j = 0; j < Veh.getNoAxles(); j++)
+		for(size_t j = 0; j < Veh.getNoAxles(); j++)
 		{
 			iAxle++;
 			axleSpacing += j == 0 ? 0.0 : double( Veh.getAS(j-1) ); // ASs are cumulative

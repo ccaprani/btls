@@ -9,7 +9,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CAxle::CAxle(int i, double t, double v, double x, double w, double tw, int dirn)
+CAxle::CAxle(size_t i, double t, double v, double x, double w, double tw, int dirn)
 {
 	m_Index = i;
 	m_TimeAtDatum = t;
@@ -22,7 +22,7 @@ CAxle::CAxle(int i, double t, double v, double x, double w, double tw, int dirn)
 	m_Sign = m_Dirn == 1 ? 1 : -1;
 }
 
-CAxle::CAxle(int i, int iAxle, double t, double x, CVehicle* pVeh)
+CAxle::CAxle(size_t i, size_t iAxle, double t, double x, CVehicle* pVeh)
 {
 	m_Index = i;
 	m_TimeAtDatum = t;
