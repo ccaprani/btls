@@ -9,7 +9,7 @@ public:
 	virtual ~CPOTManager(void);
 
 	virtual void Update(CEvent Ev);
-	virtual void Initialize(double BridgeLength, std::vector<double> vThreshold);
+	virtual void Initialize(double BridgeLength, std::vector<double> vThreshold, double SimStartTime);
 
 private:
 	virtual void	WriteVehicleFiles();

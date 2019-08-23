@@ -36,8 +36,9 @@ CBlockMaxManager::~CBlockMaxManager()
 
 }
 
-void CBlockMaxManager::Initialize(double BridgeLength,size_t nLE)
+void CBlockMaxManager::Initialize(double BridgeLength, size_t nLE, double SimStartTime)
 {
+	m_SimStartTime = SimStartTime;
 	m_BridgeLength = BridgeLength;
 	m_NoLoadEffects = nLE;
 	m_BlockMaxEvent.setNoLoadEffects(m_NoLoadEffects);
@@ -61,7 +62,7 @@ void CBlockMaxManager::Update(CEvent curEvent)
 {
 	double curTime = curEvent.getStartTime();
 	
-	if( curTime > (double)(m_CurBlockNo)*m_BlockSize )
+	if (curTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
 		CheckBuffer(false);	// at the end of a block
 
 	m_CurEventNoVehicles = curEvent.getNoVehicles();

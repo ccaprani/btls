@@ -10,7 +10,7 @@ public:
 	virtual ~CBlockMaxManager();
 
 	virtual void Update(CEvent Ev);
-	virtual void Initialize(double BridgeLength, size_t nLE);
+	virtual void Initialize(double BridgeLength, size_t nLE, double SimStartTime);
 
 private:
 	virtual void	WriteVehicleFiles();

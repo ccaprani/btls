@@ -19,7 +19,7 @@ public:
 	virtual void Update(CEvent Ev) = 0;
 	void Finish();
 	//virtual void setOutFile(double BridgeLength);
-	virtual void Initialize(double BridgeLength, std::vector<double> vThreshold) {};
+	virtual void Initialize(double BridgeLength, std::vector<double> vThreshold, double SimStartTime) {};
 	virtual void Initialize(double BridgeLength, size_t nLE) {};
 
 protected:
@@ -35,6 +35,8 @@ protected:
 	
 	double	m_BridgeLength;
 	std::string m_FileStem;
+
+	double m_SimStartTime;
 
 	size_t m_NoLoadEffects;
 	std::ofstream m_OutFile;

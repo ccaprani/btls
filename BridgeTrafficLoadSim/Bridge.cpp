@@ -33,10 +33,10 @@ CBridge::~CBridge()
 
 }
 
-void CBridge::InitializeDataMgr()
+void CBridge::InitializeDataMgr(double SimStartTime)
 {
 	// must be called after length and nLE set
-	m_EventMgr.Initialize(m_Length,m_vThresholds);
+	m_EventMgr.Initialize(m_Length, m_vThresholds, SimStartTime);
 }
 
 void CBridge::setLength(double length)

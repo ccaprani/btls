@@ -23,8 +23,9 @@ CPOTManager::~CPOTManager(void)
 {
 }
 
-void CPOTManager::Initialize(double BridgeLength, std::vector<double> vThreshold)
+void CPOTManager::Initialize(double BridgeLength, std::vector<double> vThreshold, double SimStartTime)
 {
+	m_SimStartTime = SimStartTime;
 	m_BridgeLength = BridgeLength;
 	m_vThreshold = vThreshold;
 	m_NoLoadEffects = m_vThreshold.size();
@@ -48,7 +49,7 @@ void CPOTManager::Update(CEvent curEvent)
 {
 	double curTime = curEvent.getStartTime();
 	
-	if( curTime > (double)(m_CurBlockNo)*m_BlockSize )
+	if( curTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
 		UpdateCounter();
 
 	size_t nEventVehs = curEvent.getNoVehicles();

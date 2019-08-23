@@ -31,7 +31,7 @@ CEventManager::~CEventManager()
 
 }
 
-void CEventManager::Initialize(double BridgeLength, std::vector<double> vThresholds)
+void CEventManager::Initialize(double BridgeLength, std::vector<double> vThresholds, double SimStartTime)
 {
 	m_BridgeLength = BridgeLength;
 	m_vThresholds = vThresholds;
@@ -42,9 +42,9 @@ void CEventManager::Initialize(double BridgeLength, std::vector<double> vThresho
 	if(WRITE_FATIGUE_EVENT)
 		m_FatigueEventBuffer.setOutFile(m_BridgeLength);
 	
-	if(WRITE_BM) m_BlockMaxManager.Initialize(m_BridgeLength,m_NoLoadEffects);
-	if(WRITE_POT) m_POTManager.Initialize(m_BridgeLength,m_vThresholds);
-	if(WRITE_STATS) m_StatsManager.Initialize(m_BridgeLength,m_NoLoadEffects);
+	if (WRITE_BM) m_BlockMaxManager.Initialize(m_BridgeLength, m_NoLoadEffects, SimStartTime);
+	if (WRITE_POT) m_POTManager.Initialize(m_BridgeLength, m_vThresholds, SimStartTime);
+	if (WRITE_STATS) m_StatsManager.Initialize(m_BridgeLength, m_NoLoadEffects, SimStartTime);
 
 	if(WRITE_TIME_HISTORY)
 	{

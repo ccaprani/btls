@@ -25,8 +25,9 @@ CStatsManager::~CStatsManager(void)
 }
 
 
-void CStatsManager::Initialize(double BridgeLength,size_t nLE)
+void CStatsManager::Initialize(double BridgeLength,size_t nLE, double SimStartTime)
 {
+	m_SimStartTime = SimStartTime;
 	m_BridgeLength = BridgeLength;
 	m_NoLoadEffects = nLE;
 
@@ -47,7 +48,7 @@ void CStatsManager::Update(CEvent curEvent)
 {
 	m_CurTime = curEvent.getStartTime();
 	
-	if(m_CurTime > (double)(m_CurIntervalNo)*WRITE_SS_INTERVAL_SIZE && WRITE_SS_INTERVALS)
+	if( m_CurTime - m_SimStartTime > (double)(m_CurIntervalNo)*WRITE_SS_INTERVAL_SIZE && WRITE_SS_INTERVALS )
 		CheckBuffer(false);	// at the end of a block
 
 	if(curEvent.getNoVehicles() > 0)

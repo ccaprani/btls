@@ -28,7 +28,7 @@ public:
 	CEventManager();
 	virtual ~CEventManager();
 
-	void Initialize(double BridgeLength,std::vector<double> vThresholds);
+	void Initialize(double BridgeLength,std::vector<double> vThresholds, double SimStartTime);
 	void EndEvent();
 	void Finish();
 	void UpdateEffects(std::vector<double> vEffs, double position, double time);

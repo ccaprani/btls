@@ -56,15 +56,15 @@ private:
 	size_t m_CurHour;
 	std::vector< std::vector<CFlowRateData> > m_vFlowData;
 
-	unsigned int FILE_FORMAT;
+	size_t FILE_FORMAT;
 	bool WRITE_VEHICLE_FILE;
 	std::string VEHICLE_FILENAME;
-	int	 WRITE_VEHICLE_BUFFER_SIZE;
+	size_t	 WRITE_VEHICLE_BUFFER_SIZE;
 	bool WRITE_FLOW_STATS;
 
-	unsigned int NO_LANES_DIR1;
-	unsigned int NO_LANES_DIR2;
-	unsigned int NO_LANES;
+	size_t NO_LANES_DIR1;
+	size_t NO_LANES_DIR2;
+	size_t NO_LANES;
 
 	template <typename T> std::string to_string(T const& value);
 };

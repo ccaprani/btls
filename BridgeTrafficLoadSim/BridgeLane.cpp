@@ -78,7 +78,7 @@ void CBridgeLane::setAxleVector()
 
 		double speed = Veh.getVelocity();
 		double timeAtRHSDatum = 0.0;
-		double timeVehicleOn = Veh.getTime();
+		double timeVehicleOn = Veh.getTimeOnBridge(); // Veh.getTime();
 		double axleSpacing = 0.0;
 		
 		for(size_t j = 0; j < Veh.getNoAxles(); j++)

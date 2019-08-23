@@ -40,7 +40,7 @@ public:
 	void InitializeLanes(size_t NoLanes);
 	void setNoLoadEffects(size_t nLE);
 	size_t getNoLoadEffects(void);
-	void InitializeDataMgr();
+	void InitializeDataMgr(double SimStartTime);
 	CBridgeLane& getBridgeLane(size_t iLane);
 	size_t getNoLanes();
 

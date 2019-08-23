@@ -28,7 +28,7 @@ using namespace std;
 
 void GetGeneratorLanes(vector<CLane*>& vpLanes, double& StartTime, double& EndTime);
 void GetTrafficFileLanes(vector<CLane*>& vpLanes, double& StartTime, double& EndTime);
-vector<CBridge*> PrepareBridges();
+vector<CBridge*> PrepareBridges(double SimStartTime);
 void doSimulation(vector<CBridge*> pBridges, vector<CLane*> pLanes, double SimStartTime, double SimEndTime);
 bool lane_compare(const CLane* pL1, const CLane* pL2);
 
@@ -55,7 +55,7 @@ void main()
 	
 	vector<CBridge*> vBridges;
 	if(g_ConfigData.Sim.CALC_LOAD_EFFECTS)
-		vBridges = PrepareBridges();
+		vBridges = PrepareBridges(StartTime);
 
 	clock_t start = clock();
 	doSimulation(vBridges, vLanes, StartTime, EndTime);
@@ -69,12 +69,13 @@ void main()
 	system("PAUSE");
 }
 
-vector<CBridge*> PrepareBridges()
+vector<CBridge*> PrepareBridges(double SimStartTime)
 {
 	CReadILFile readIL;
 	CBridgeFile BridgeFile(g_ConfigData.Sim.BRIDGE_FILE,
 		readIL.getInfLines(g_ConfigData.Sim.INFLINE_FILE,0),	// discrete ILs
-		readIL.getInfLines(g_ConfigData.Sim.INFSURF_FILE,1));	// Influence Surfaces
+		readIL.getInfLines(g_ConfigData.Sim.INFSURF_FILE,1),	// Influence Surfaces
+		SimStartTime);											// Tell Event mgrs the time
 	vector<CBridge*> vpBridges = BridgeFile.getBridges();
 	g_ConfigData.Gen.NO_OVERLAP_LENGTH = BridgeFile.getMaxBridgeLength();
 
@@ -105,7 +106,7 @@ void GetGeneratorLanes(vector<CLane*>& vpLanes, double& StartTime, double& EndTi
 	g_ConfigData.Road.NO_LANES_DIR1 = TD.getNoLanesDir1();
 	g_ConfigData.Road.NO_LANES_DIR2 = TD.getNoLanesDir2();
 
-	for(int i = 0; i < TD.getNoLanes(); ++i)
+	for(size_t i = 0; i < TD.getNoLanes(); ++i)
 	{
 		CLaneGenTraffic* pLane = new CLaneGenTraffic;
 		CVehicleGenerator* pGen = new CVehicleGenerator(TD, vLaneFlow.at(i));
@@ -136,13 +137,21 @@ void GetTrafficFileLanes(vector<CLane*>& vpLanes, double& StartTime, double& End
 	{
 		CLaneFileTraffic* pLane = new CLaneFileTraffic;
 		int dirn = i < TrafficFile.getNoLanesDir1() ? 1 : 2;
-		pLane->setLaneData(dirn,i); // direction and lane number
+		pLane->setLaneData(dirn,i); // direction and cumulative lane number
 		vpLanes.push_back(pLane);
 	}
 	for(unsigned int i = 0; i < TrafficFile.getNoVehicles(); ++i)
 	{
 		CVehicle* pVeh = TrafficFile.getNextVehicle();
-		CLaneFileTraffic* pLane = static_cast<CLaneFileTraffic*>( vpLanes.at( pVeh->getLane() - 1 ) ); // zero based lane no.
+		// Map vehicle to lane using zero based cumulative lane no.
+		unsigned int iLane = 0;
+		if (pVeh->getDirection() == 2)
+			iLane = TrafficFile.getNoLanes() - pVeh->getLane();
+		else
+			iLane = pVeh->getLane() - 1;
+
+		//CLaneFileTraffic* pLane = static_cast<CLaneFileTraffic*>( vpLanes.at( pVeh->getLane() - 1 ) ); // zero based cumulative lane no.
+		CLaneFileTraffic* pLane = static_cast<CLaneFileTraffic*>(vpLanes.at(iLane));
 		pLane->addVehicle(pVeh);
 	}
 	for(unsigned int i = 0; i < TrafficFile.getNoLanes(); ++i)
