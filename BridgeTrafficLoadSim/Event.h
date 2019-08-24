@@ -66,6 +66,7 @@ private:
 	size_t	SECS_PER_HOUR;
 	size_t	MINS_PER_HOUR;
 	size_t	SECS_PER_MIN;
+	size_t	FILE_FORMAT;
 };
 
 #endif // !defined(AFX_EVENT_H__0B74769F_32EB_4F04_BD76_F27A2F5FF946__INCLUDED_)

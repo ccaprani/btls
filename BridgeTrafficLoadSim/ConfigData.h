@@ -40,7 +40,7 @@ public:
 	{
 		string TRAFFIC_FOLDER;
 		bool GEN_TRAFFIC;
-		int NO_DAYS;
+		size_t NO_DAYS;
 		//int SITE_WEIGHT;
 		//int SITE_FLOW;
 		double TRUCK_TRACK_WIDTH;

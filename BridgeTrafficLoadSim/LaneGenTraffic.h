@@ -44,10 +44,10 @@ private:
 
 	double m_BufferGap;
 	
-	double CONGESTED_GAP;
-	double CONGESTED_GAP_COEF_VAR;
-	double CONGESTED_SPEED;
-	int HEADWAY_MODEL;
-	double NO_OVERLAP_LENGTH;
+	double	CONGESTED_GAP;
+	double	CONGESTED_GAP_COEF_VAR;
+	double	CONGESTED_SPEED;
+	int		HEADWAY_MODEL;
+	double	NO_OVERLAP_LENGTH;
 };
 

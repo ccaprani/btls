@@ -131,7 +131,8 @@ void GetTrafficFileLanes(vector<CLane*>& vpLanes, double& StartTime, double& End
 	if(g_ConfigData.Gen.NO_DAYS == 0)	std::cout << "*** ERROR: No traffic in vehicle file" << std::endl;
 	if(g_ConfigData.Road.NO_LANES == 0)	std::cout << "*** ERROR: No lanes in vehicle file" << std::endl;
 	if(g_ConfigData.Road.NO_DIRS == 0)	std::cout << "*** ERROR: No directions in vehicle file" << std::endl;
-	if(g_ConfigData.Road.NO_DIRS == 2 && g_ConfigData.Road.NO_LANES == 1)	std::cout << "*** ERROR: Two directions and one lane detected" << std::endl;
+	if(g_ConfigData.Road.NO_DIRS == 2 && g_ConfigData.Road.NO_LANES == 1)	
+		std::cout << "*** ERROR: Two directions and one lane detected" << std::endl;
 
 	for(unsigned int i = 0; i < TrafficFile.getNoLanes(); ++i)
 	{
@@ -143,14 +144,9 @@ void GetTrafficFileLanes(vector<CLane*>& vpLanes, double& StartTime, double& End
 	for(unsigned int i = 0; i < TrafficFile.getNoVehicles(); ++i)
 	{
 		CVehicle* pVeh = TrafficFile.getNextVehicle();
-		// Map vehicle to lane using zero based cumulative lane no.
-		unsigned int iLane = 0;
-		if (pVeh->getDirection() == 2)
-			iLane = TrafficFile.getNoLanes() - pVeh->getLane();
-		else
-			iLane = pVeh->getLane() - 1;
 
-		//CLaneFileTraffic* pLane = static_cast<CLaneFileTraffic*>( vpLanes.at( pVeh->getLane() - 1 ) ); // zero based cumulative lane no.
+		// Map vehicle to lane using zero based cumulative lane no
+		size_t iLane = pVeh->getGlobalLane(g_ConfigData.Road.NO_LANES) - 1;
 		CLaneFileTraffic* pLane = static_cast<CLaneFileTraffic*>(vpLanes.at(iLane));
 		pLane->addVehicle(pVeh);
 	}

@@ -16,12 +16,18 @@ CVehicleGenerator::CVehicleGenerator(CTrafficData TD, CLaneFlow LF)
 	CONGESTED_SPEED			= g_ConfigData.Traffic.CONGESTED_SPEED;
 	HEADWAY_MODEL			= g_ConfigData.Traffic.HEADWAY_MODEL;
 	LANE_ECCENTRICITY_STD	= g_ConfigData.Gen.LANE_ECCENTRICITY_STD/100; // cm to m
+	NO_LANES				= g_ConfigData.Road.NO_LANES;
 
 	m_TD = TD;
 	m_LaneFlow = LF;
 
-	m_CurLane = m_LaneFlow.getLaneNo();
 	m_CurDirection = m_LaneFlow.getDirn();
+	
+	// Map vehicles to lane using zero based cumulative lane no.
+	if (m_CurDirection == 2)
+		m_CurLane = NO_LANES - m_LaneFlow.getLaneNo();
+	else
+		m_CurLane = m_LaneFlow.getLaneNo();
 }
 
 CVehicleGenerator::~CVehicleGenerator()
@@ -72,8 +78,8 @@ CVehicle* CVehicleGenerator::Generate(int iHour)
 	m_CurHour = iHour;
 	
 	// assign general properties
-	pVeh->setLane(m_CurLane+1);
 	pVeh->setDirection(m_CurDirection);
+	pVeh->setGlobalLane(m_CurLane + 1, NO_LANES);
 	pVeh->setLaneEccentricity(m_RNG.GenerateNormal(0.0,LANE_ECCENTRICITY_STD));
 	pVeh->setTrns(0.0); // m 0 for generated vehicles
 	pVeh->setHead(1001);		

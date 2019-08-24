@@ -163,18 +163,14 @@ void CBridge::AddVehicle(CVehicle* pVeh)
 	CVehicle& Veh = *pLocalVeh;
 	Veh.setBridgeTimes(m_Length);
 
-	// Map global direction lane to zero-based bridge lane - CASTOR type format
-	size_t iLane = Veh.getLane() - 1; // zero based array
+	// Get global lane number to zero-based bridge lane - CASTOR type format
+	size_t iLane = Veh.getGlobalLane(NO_LANES) - 1; // zero based array
 	
-	// if the lane is local-numbered, something like this is needed:
-	// if(NO_DIRS == 2 && Veh.getDirection() == 2)
-	//		iLane = NO_LANES - iLane + 1;
-
 	Veh.setBridgeLaneNo(iLane);	// bridge lanes in global lane numbering
 
 	// update pointer to local store and save
 	if(iLane > m_NoLanes)
-		cout << "***ERROR: Veh - lane: " << Veh.getLane()
+		cout << "***ERROR: Veh - lane: " << Veh.getLocalLane()
 			 << " direction: " << Veh.getDirection()
 			 << " cannot be added as no. lanes is " << m_vLanes.size() << endl;
 	// Lanes are out of order due to sorting above

@@ -22,14 +22,15 @@ public:
 	bool IsCar();
 	bool operator<(const CVehicle& x);
 	void setHead(int head);
-	std::string Write(unsigned int file_type);
-	void create(std::string str, unsigned int format);
+	std::string Write(size_t file_type);
+	void create(std::string str, size_t format);
 
 	// the sets
 	void	setTime(double time);
 	void	setLength(double length);
 	void	setVelocity(double velocity);
-	void	setLane(size_t l);
+	void	setLocalLane(size_t l);
+	void	setGlobalLane(size_t l, size_t nRoadLanes);
 	void	setDirection(size_t d);
 	void	setGVW(double weight);
 	void	setNoAxles(size_t axNo);
@@ -49,7 +50,8 @@ public:
 	double  getTime() const;
 	double	getLength();
 	double	getVelocity();
-	size_t	getLane();
+	size_t	getLocalLane();
+	size_t	getGlobalLane(size_t nRoadLanes);
 	size_t	getDirection();
 	double	getGVW();
 	size_t	getNoAxles();
@@ -122,6 +124,14 @@ private:
 	size_t	BEDIT_MAX_AXLES;
 	size_t	MON_MAX_AXLES;
 	size_t	MON_BASE_YEAR;
+
+	//enum eFileFormat
+	//{
+	//	eCASTOR,
+	//	eBEDIT,
+	//	eDITIS,
+	//	eMON
+	//} m_FileFormat;
 
 	template<typename T>
 	T from_string(const std::string& s)

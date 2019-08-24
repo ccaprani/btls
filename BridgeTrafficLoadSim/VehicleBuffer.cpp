@@ -60,13 +60,13 @@ void CVehicleBuffer::AddVehicle(CVehicle *pVeh)
 	CVehicle* pV = new CVehicle;
 	*pV = *pVeh;
 
-	if(m_NoVehicles >= WRITE_VEHICLE_BUFFER_SIZE)
-		FlushBuffer();
-		
 	m_NoVehicles++;
 	m_vVehicles.push_back(pV);
 	
 	updateFlowData();
+
+	if(m_NoVehicles >= WRITE_VEHICLE_BUFFER_SIZE)
+		FlushBuffer();
 }
 
 void CVehicleBuffer::FlushBuffer()
@@ -80,7 +80,7 @@ void CVehicleBuffer::FlushBuffer()
 		CVehicle* pVeh = m_vVehicles[nVehs-1];
 		std::cout << std::endl  << "Flushing buffer of " << nVehs << " vehicles at " << pVeh->getTimeStr() <<  '\t';
 		
-		for(unsigned int i = 0; i < nVehs; i++)
+		for (size_t i = 0; i < nVehs; i++)
 			m_OutFile << m_vVehicles[i]->Write(FILE_FORMAT) << '\n';
 		
 		// clear the memory
@@ -105,7 +105,7 @@ void CVehicleBuffer::updateFlowData()
 		flushFlowData();
 	
 	// get ref to data
-	size_t lane = pV->getLane();
+	size_t lane = pV->getGlobalLane(NO_LANES);
 	CFlowRateData& data = m_vFlowData.at(m_CurHour-1).at(lane-1);
 	
 	// assemble data

@@ -73,14 +73,14 @@ void CVehicleTrafficFile::UpdateProperties()
 {
 	m_NoVehs = m_vVehicles.size();
 
-	int maxLaneNoDir1 = 0;
-	int maxLaneNoDir2 = 0;
+	size_t maxLaneNoDir1 = 0;
+	size_t maxLaneNoDir2 = 0;
 
 	for(unsigned int i = 0; i < m_NoVehs; ++i)
 	{
 		CVehicle* pVeh = m_vVehicles.at(i);
-		unsigned int dirn = pVeh->getDirection();
-		int lane = pVeh->getLane();
+		size_t dirn = pVeh->getDirection();
+		size_t lane = pVeh->getLocalLane();
 		
 		if(dirn > m_NoDirn) m_NoDirn = 2;
 		if(dirn == 1 && lane > maxLaneNoDir1) maxLaneNoDir1 = lane;
@@ -89,10 +89,12 @@ void CVehicleTrafficFile::UpdateProperties()
 	
 	// If both directions have lanes
 	if(maxLaneNoDir1 > 0 && maxLaneNoDir2 > 0)
-	{
-		// Since lanes are cumulative, subtract dir 1 lanes from dir 2
+	{ 
 		m_NoLanesDir1 = maxLaneNoDir1;
-		m_NoLanesDir2 = maxLaneNoDir2 - maxLaneNoDir1;
+		// If vehicle lanes are cumulative then subtract dir 1 lanes from dir 2
+		//m_NoLanesDir2 = maxLaneNoDir2 -maxLaneNoDir1;
+		// Lnes are no longer cumulative
+		m_NoLanesDir2 = maxLaneNoDir2;
 		m_NoLanes = m_NoLanesDir1 + m_NoLanesDir2;
 	}
 	else	// only one direction has lanes
@@ -129,27 +131,27 @@ CVehicle* CVehicleTrafficFile::getNextVehicle()
 	return pVeh;
 }
 
-unsigned int CVehicleTrafficFile::getNoDays()
+size_t CVehicleTrafficFile::getNoDays()
 {
 	return m_NoDays;
 }
 
-unsigned int CVehicleTrafficFile::getNoLanes()
+size_t CVehicleTrafficFile::getNoLanes()
 {
 	return m_NoLanes;
 }
 
-unsigned int CVehicleTrafficFile::getNoDirn()
+size_t CVehicleTrafficFile::getNoDirn()
 {
 	return m_NoDirn;
 }
 
-unsigned int CVehicleTrafficFile::getNoLanesDir1()
+size_t CVehicleTrafficFile::getNoLanesDir1()
 {
 	return m_NoLanesDir1;
 }
 
-unsigned int CVehicleTrafficFile::getNoLanesDir2()
+size_t CVehicleTrafficFile::getNoLanesDir2()
 {
 	return m_NoLanesDir2;
 }

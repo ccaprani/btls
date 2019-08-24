@@ -54,6 +54,8 @@ void CEvent::setDefaults()
 	MINS_PER_HOUR	= g_ConfigData.Time.MINS_PER_HOUR;
 	SECS_PER_MIN	= g_ConfigData.Time.SECS_PER_MIN;
 
+	FILE_FORMAT = g_ConfigData.Output.VehicleFile.FILE_FORMAT;
+
 	m_CurEffect = 0;
 	m_StartTime = 0;
 	m_CurEffect = 0;
@@ -232,7 +234,7 @@ void CEvent::writeEffect(size_t k, string file, bool trucks)
 	{
 		m_vMaxEffects[k].sortVehicles();
 		for (size_t j = 0; j < nTks; j++)
-			outFile << m_vMaxEffects[k].giveVehicle(j).Write(1) << '\n';		// write castor format	
+			outFile << m_vMaxEffects[k].giveVehicle(j).Write(FILE_FORMAT) << '\n';
 	}
 //	outFile.close();
 }

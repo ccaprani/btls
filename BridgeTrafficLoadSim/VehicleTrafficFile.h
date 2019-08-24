@@ -14,11 +14,11 @@ public:
 
 	void Read(std::string file, int filetype);
 
-	unsigned int getNoDays();
-	unsigned int getNoLanes();
-	unsigned int getNoDirn();
-	unsigned int getNoLanesDir1();
-	unsigned int getNoLanesDir2();
+	size_t getNoDays();
+	size_t getNoLanes();
+	size_t getNoDirn();
+	size_t getNoLanesDir1();
+	size_t getNoLanesDir2();
 	size_t getNoVehicles();
 	
 	CVehicle* getNextVehicle();
@@ -34,11 +34,11 @@ private:
 	double m_ConstSpeed;
 
 	size_t m_NoVehs;
-	unsigned int m_NoDays;
-	unsigned int m_NoLanes;
-	unsigned int m_NoDirn;
-	unsigned int m_NoLanesDir1;
-	unsigned int m_NoLanesDir2;
+	size_t m_NoDays;
+	size_t m_NoLanes;
+	size_t m_NoDirn;
+	size_t m_NoLanesDir1;
+	size_t m_NoLanesDir2;
 
 	double m_Starttime;
 	double m_Endtime;

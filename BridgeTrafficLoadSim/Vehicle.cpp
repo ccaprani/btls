@@ -36,6 +36,8 @@ CVehicle::CVehicle()
 	m_LaneEccentricity = 0.0;
 
 	m_NoAxleGroups = 0;
+
+//	m_FileFormat = eCASTOR;
 }
 
 CVehicle::~CVehicle()
@@ -45,7 +47,7 @@ CVehicle::~CVehicle()
 
 //////// CREATE IT ////////////////
 
-void CVehicle::create(std::string str, unsigned int format)
+void CVehicle::create(std::string str, size_t format)
 {
 	switch(format)
 	{
@@ -337,7 +339,7 @@ std::string CVehicle::Write()
 }
 */
 
-std::string CVehicle::Write(unsigned int file_type)
+std::string CVehicle::Write(size_t file_type)
 {
 	if(m_Trns < 0.01)	// generated vehicles have 0.0 trans but eccentricity
 		m_Trns = 1.80 + m_LaneEccentricity;
@@ -600,9 +602,18 @@ void CVehicle::setLength(double length)
 	m_Length = length;
 }
 
-void CVehicle::setLane(size_t lane)
+// Set local lane number within its direction, 1-based
+void CVehicle::setLocalLane(size_t lane)
 {
 	m_Lane = lane;
+}
+
+// Set local lane number within its direction, 1-based, from global lane number
+void CVehicle::setGlobalLane(size_t l, size_t nRoadLanes)
+{
+	// The passed in lane index is in 1-based cumulative lane numbering
+	// so comvert to local direction lane numbering
+	m_Lane = m_Dir == 1 ? l : nRoadLanes - l + 1;
 }
 
 void CVehicle::setDirection(size_t dir)
@@ -739,9 +750,24 @@ double CVehicle::getLength()
 	return m_Length;
 }
 
-size_t CVehicle::getLane()
+// Lane number within the direction, 1-based
+size_t CVehicle::getLocalLane()
 {
 	return m_Lane;
+}
+
+// Cumulative lane number on the road, 1-based
+size_t CVehicle::getGlobalLane(size_t nRoadLanes)
+{
+	if (m_Dir == 1)
+		return m_Lane;
+	else if (m_Dir == 2 && m_Lane < nRoadLanes)
+		return nRoadLanes - m_Lane + 1;
+	else
+	{
+		cout << "**** Warning: Lane error Vehicle " << m_Head << std::endl;
+		return 1;
+	}
 }
 
 size_t CVehicle::getDirection()

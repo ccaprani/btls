@@ -34,8 +34,8 @@ private:
 	void ScaleVector(std::vector<double>& vec, double scale);
 	double SumVector(std::vector<double> vec);
 	
-	int m_CurLane;
-	int m_CurDirection;
+	size_t m_CurLane;
+	size_t m_CurDirection;
 	double m_Time;
 	int m_CurHour;
 	int TruckType();
@@ -44,9 +44,10 @@ private:
 	CDistribution m_RNG;
 	CLaneFlow m_LaneFlow;
 
-	double CONGESTED_SPEED;
-	int HEADWAY_MODEL;
-	double LANE_ECCENTRICITY_STD;
+	double	CONGESTED_SPEED;
+	int		HEADWAY_MODEL;
+	double	LANE_ECCENTRICITY_STD;
+	size_t	NO_LANES;
 };
 
 #endif // !defined(AFX_VEHICLEGENERATOR_H__CD28CD98_79D8_447A_988C_8EB02B19CA73__INCLUDED_)
