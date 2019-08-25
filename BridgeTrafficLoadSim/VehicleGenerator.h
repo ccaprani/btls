@@ -10,12 +10,12 @@
 #endif // _MSC_VER > 1000
 
 #include <vector>
+#include "Generator.h"
 #include "Vehicle.h"
 #include "TrafficData.h"
-#include "Distribution.h"
 #include "LaneFlow.h"
 
-class CVehicleGenerator  
+class CVehicleGenerator : public CGenerator  
 {
 public:
 	std::vector< std::vector<double> > GetNHM();
@@ -41,7 +41,6 @@ private:
 	int TruckType();
 
 	CTrafficData m_TD;
-	CDistribution m_RNG;
 	CLaneFlow m_LaneFlow;
 	CVehicleClassification* m_pVehClassification;
 

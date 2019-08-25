@@ -477,6 +477,9 @@
     <ClCompile Include="EventBuffer.cpp" />
     <ClCompile Include="EventManager.cpp" />
     <ClCompile Include="EventStatistics.cpp" />
+    <ClCompile Include="FlowGenerator.cpp" />
+    <ClCompile Include="FlowModelData.cpp" />
+    <ClCompile Include="Generator.cpp" />
     <ClCompile Include="InfluenceLine.cpp" />
     <ClCompile Include="InfluenceSurface.cpp" />
     <ClCompile Include="Lane.cpp" />
@@ -485,6 +488,7 @@
     <ClCompile Include="LaneGenTraffic.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ManagerBase.cpp" />
+    <ClCompile Include="ModelData.cpp" />
     <ClCompile Include="OutputManagerBase.cpp" />
     <ClCompile Include="POTManager.cpp" />
     <ClCompile Include="ReadILFile.cpp" />
@@ -496,6 +500,7 @@
     <ClCompile Include="VehicleBuffer.cpp" />
     <ClCompile Include="VehicleClassification.cpp" />
     <ClCompile Include="VehicleGenerator.cpp" />
+    <ClCompile Include="VehicleModelData.cpp" />
     <ClCompile Include="VehicleTrafficFile.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -518,6 +523,9 @@
     <ClInclude Include="EventBuffer.h" />
     <ClInclude Include="EventManager.h" />
     <ClInclude Include="EventStatistics.h" />
+    <ClInclude Include="FlowGenerator.h" />
+    <ClInclude Include="FlowModelData.h" />
+    <ClInclude Include="Generator.h" />
     <ClInclude Include="GlobalVars.h" />
     <ClInclude Include="InfluenceLine.h" />
     <ClInclude Include="InfluenceSurface.h" />
@@ -528,6 +536,7 @@
     <ClInclude Include="ManagerBase.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="MersenneTwister.h" />
+    <ClInclude Include="ModelData.h" />
     <ClInclude Include="OutputManagerBase.h" />
     <ClInclude Include="POTManager.h" />
     <ClInclude Include="ReadILFile.h" />
@@ -540,6 +549,7 @@
     <ClInclude Include="VehicleBuffer.h" />
     <ClInclude Include="VehicleClassification.h" />
     <ClInclude Include="VehicleGenerator.h" />
+    <ClInclude Include="VehicleModelData.h" />
     <ClInclude Include="VehicleTrafficFile.h" />
   </ItemGroup>
   <ItemGroup>
