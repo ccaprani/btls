@@ -23,7 +23,7 @@ public:
 	void GenerateTruck23(CVehicle* pVeh, int nAxles);
 	//CVehicle* Generate(int iLane, int dir);
 	CVehicle* Generate(int iHour);
-	CVehicleGenerator(CTrafficData TD, CLaneFlow LF);
+	CVehicleGenerator(CVehicleClassification* pVC, CTrafficData TD, CLaneFlow LF);
 	virtual ~CVehicleGenerator();
 
 private:
@@ -43,6 +43,7 @@ private:
 	CTrafficData m_TD;
 	CDistribution m_RNG;
 	CLaneFlow m_LaneFlow;
+	CVehicleClassification* m_pVehClassification;
 
 	double	CONGESTED_SPEED;
 	int		HEADWAY_MODEL;

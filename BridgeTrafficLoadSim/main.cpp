@@ -26,17 +26,17 @@
 extern CConfigData g_ConfigData;
 using namespace std;
 
-void GetGeneratorLanes(vector<CLane*>& vpLanes, double& StartTime, double& EndTime);
-void GetTrafficFileLanes(vector<CLane*>& vpLanes, double& StartTime, double& EndTime);
+void GetGeneratorLanes(CVehicleClassification* pVC, vector<CLane*>& vpLanes, double& StartTime, double& EndTime);
+void GetTrafficFileLanes(CVehicleClassification* pVC, vector<CLane*>& vpLanes, double& StartTime, double& EndTime);
 vector<CBridge*> PrepareBridges(double SimStartTime);
-void doSimulation(vector<CBridge*> pBridges, vector<CLane*> pLanes, double SimStartTime, double SimEndTime);
+void doSimulation(CVehicleClassification* pVC, vector<CBridge*> pBridges, vector<CLane*> pLanes, double SimStartTime, double SimEndTime);
 bool lane_compare(const CLane* pL1, const CLane* pL2);
 
 void main()
 {
 	cout << "---------------------------------------------" << endl;
 	cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
-	cout << "                Version 1.2.5                " << endl;
+	cout << "                Version 1.2.6                " << endl;
 	cout << "---------------------------------------------" << endl << endl;
 
 	if (!g_ConfigData.ReadData("BTLSin.txt") )
@@ -48,23 +48,32 @@ void main()
 	cout << "Program Mode: " << g_ConfigData.Mode.PROGRAM_MODE << endl;
 	cout << endl;
 	
+	// Set a classification model for now, but later this needs to be read in
+	CVehicleClassification* pVC = new CVehClassPattern; // CVehClassAxle;
+
 	double StartTime = 0.0; double EndTime = 0.0;
 	vector<CLane*> vLanes;
-	if(g_ConfigData.Gen.GEN_TRAFFIC) GetGeneratorLanes(vLanes, StartTime, EndTime);
-	if(g_ConfigData.Read.READ_FILE)	GetTrafficFileLanes(vLanes, StartTime, EndTime);
+	if (g_ConfigData.Gen.GEN_TRAFFIC) GetGeneratorLanes(pVC, vLanes, StartTime, EndTime);
+	if (g_ConfigData.Read.READ_FILE)	GetTrafficFileLanes(pVC, vLanes, StartTime, EndTime);
 	
 	vector<CBridge*> vBridges;
 	if(g_ConfigData.Sim.CALC_LOAD_EFFECTS)
 		vBridges = PrepareBridges(StartTime);
 
 	clock_t start = clock();
-	doSimulation(vBridges, vLanes, StartTime, EndTime);
+	doSimulation(pVC, vBridges, vLanes, StartTime, EndTime);
 
 	cout << endl << "Simulation complete" << endl;
 
 	clock_t end = clock();
 	cout << endl << "Duration of analysis: " << std::fixed << std::setprecision(3) 
 		<< (double)((end - start)/(double)CLOCKS_PER_SEC) << " s" << endl;
+
+	// Tidy up
+	for (auto i : vLanes)
+		delete i;
+	vLanes.clear();
+	delete pVC;
 
 	system("PAUSE");
 }
@@ -85,7 +94,7 @@ vector<CBridge*> PrepareBridges(double SimStartTime)
 	return vpBridges;
 }
 
-void GetGeneratorLanes(vector<CLane*>& vpLanes, double& StartTime, double& EndTime)
+void GetGeneratorLanes(CVehicleClassification* pVC, vector<CLane*>& vpLanes, double& StartTime, double& EndTime)
 {
 	// Useful debugging tool - set start time higher
 	//int startday = 0;
@@ -109,15 +118,15 @@ void GetGeneratorLanes(vector<CLane*>& vpLanes, double& StartTime, double& EndTi
 	for(size_t i = 0; i < TD.getNoLanes(); ++i)
 	{
 		CLaneGenTraffic* pLane = new CLaneGenTraffic;
-		CVehicleGenerator* pGen = new CVehicleGenerator(TD, vLaneFlow.at(i));
+		CVehicleGenerator* pGen = new CVehicleGenerator(pVC, TD, vLaneFlow.at(i));
 		pLane->setLaneData(pGen, vLaneFlow.at(i), StartTime);
 		vpLanes.push_back(pLane);
 	}
 }
 
-void GetTrafficFileLanes(vector<CLane*>& vpLanes, double& StartTime, double& EndTime)
+void GetTrafficFileLanes(CVehicleClassification* pVC, vector<CLane*>& vpLanes, double& StartTime, double& EndTime)
 {
-	CVehicleTrafficFile TrafficFile(g_ConfigData.Read.USE_CONSTANT_SPEED, 
+	CVehicleTrafficFile TrafficFile(pVC, g_ConfigData.Read.USE_CONSTANT_SPEED, 
 		g_ConfigData.Read.USE_AVE_SPEED, g_ConfigData.Read.CONST_SPEED);
 	cout << "Reading traffic file..." << endl;
 	TrafficFile.Read(g_ConfigData.Read.TRAFFIC_FILE,g_ConfigData.Read.FILE_FORMAT);
@@ -163,9 +172,9 @@ void GetTrafficFileLanes(vector<CLane*>& vpLanes, double& StartTime, double& End
 	EndTime = TrafficFile.getEndTime();
 }
 
-void doSimulation(vector<CBridge*> vBridges, vector<CLane*> vLanes, double SimStartTime, double SimEndTime)
+void doSimulation(CVehicleClassification* pVC, vector<CBridge*> vBridges, vector<CLane*> vLanes, double SimStartTime, double SimEndTime)
 {
-	CVehicleBuffer VehBuff(SimStartTime);
+	CVehicleBuffer VehBuff(pVC, SimStartTime);
 	size_t nLanes = vLanes.size();
 	double curTime = SimStartTime;
 	double nextTime = 0.0;

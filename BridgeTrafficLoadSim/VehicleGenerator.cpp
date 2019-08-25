@@ -11,13 +11,14 @@ extern CConfigData g_ConfigData;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CVehicleGenerator::CVehicleGenerator(CTrafficData TD, CLaneFlow LF)
+CVehicleGenerator::CVehicleGenerator(CVehicleClassification* pVC, CTrafficData TD, CLaneFlow LF)
 {
 	CONGESTED_SPEED			= g_ConfigData.Traffic.CONGESTED_SPEED;
 	HEADWAY_MODEL			= g_ConfigData.Traffic.HEADWAY_MODEL;
 	LANE_ECCENTRICITY_STD	= g_ConfigData.Gen.LANE_ECCENTRICITY_STD/100; // cm to m
 	NO_LANES				= g_ConfigData.Road.NO_LANES;
 
+	m_pVehClassification = pVC;
 	m_TD = TD;
 	m_LaneFlow = LF;
 
@@ -97,6 +98,7 @@ CVehicle* CVehicleGenerator::Generate(int iHour)
 		else
 			GenerateTruck23(pVeh, nAxles);
 	}
+	m_pVehClassification->setClassification(pVeh);
 	return pVeh;
 }
 

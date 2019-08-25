@@ -20,22 +20,30 @@ struct CFlowRateData
 	size_t m_NoVehicles;
 	size_t m_NoTrucks;
 	size_t m_NoCars;
-	std::vector<size_t> m_vNoTruckAxles;
+	std::vector<size_t> m_vClassCount;
 
-	CFlowRateData()
+	CFlowRateData(size_t n)
 	{
 		m_ID = 0;
 		m_NoVehicles = 0;
 		m_NoTrucks = 0;
 		m_NoCars = 0;
-		m_vNoTruckAxles.assign(20,0); // MAGIC NUMBER - max number of axles
+		m_vClassCount.assign(n, 0);
 	};
+
+	void addByClass(size_t iClass)
+	{
+		if (iClass > m_vClassCount.size())
+			m_vClassCount.at(0)++; // count as default
+		else
+			m_vClassCount.at(iClass)++;
+	}
 };
 
 class CVehicleBuffer  
 {
 public:
-	CVehicleBuffer(double starttime);
+	CVehicleBuffer(CVehicleClassification* pVC, double starttime);
 	virtual ~CVehicleBuffer();
 	
 	void AddVehicle(CVehicle* pVeh);
@@ -65,6 +73,8 @@ private:
 	size_t NO_LANES_DIR1;
 	size_t NO_LANES_DIR2;
 	size_t NO_LANES;
+
+	CVehicleClassification* m_pVehClassification;
 
 	template <typename T> std::string to_string(T const& value);
 };

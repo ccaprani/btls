@@ -1,231 +1,257 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ClassDiagram MajorVersion="1" MinorVersion="1">
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="FullSignature">
+  <Comment CommentText="Inputs">
+    <Position X="7.625" Y="0.552" Height="0.375" Width="0.7" />
+  </Comment>
+  <Comment CommentText="Outputs">
+    <Position X="3.344" Y="0.573" Height="0.291" Width="0.7" />
+  </Comment>
+  <Comment CommentText="Analysis">
+    <Position X="11.719" Y="0.615" Height="0.344" Width="0.7" />
+  </Comment>
   <Class Name="CAxle" Collapsed="true">
-    <Position X="21.25" Y="4.5" Width="1.5" />
+    <Position X="9.5" Y="5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAoAAACAGKAAACAAAIAAAAAAAAIAQggAAAAAAAAAIAA=</HashCode>
       <FileName>Axle.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CAxleSpacing" Collapsed="true">
-    <Position X="24.5" Y="1.5" Width="1.5" />
+    <Position X="7.25" Y="9.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>gAAAAAAgAAAAIAAADMMDAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>AxleSpacing.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CAxleWeight23" Collapsed="true">
-    <Position X="24.5" Y="2.5" Width="1.5" />
+    <Position X="7.25" Y="10.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAEAACAAAAAAAAMDAAAAAAAAAAAAIAAAAAAAAAA=</HashCode>
       <FileName>AxleWeight23.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CAxleWeight45" Collapsed="true">
-    <Position X="24.5" Y="3.5" Width="1.5" />
+    <Position X="7.25" Y="11.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAUAAAACAAAAAAAAAAAAAAAAAEAAAAAgAAAAAIA=</HashCode>
       <FileName>AxleWeight45.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CBlockMaxEvent" Collapsed="true">
-    <Position X="5.25" Y="3.75" Width="1.5" />
+    <Position X="5.25" Y="4.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AEAIACAABIAAAACkAAAAAAASAAgAAAAAAAAEAAACCAA=</HashCode>
       <FileName>BlockMaxEvent.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CBlockMaxManager" Collapsed="true">
-    <Position X="5.25" Y="1.75" Width="1.5" />
+    <Position X="5.25" Y="3.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>gAQAAAAEEAIAgYAQABAAFAAgAIAAAgKASIAAABgCAAA=</HashCode>
       <FileName>BlockMaxManager.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CBridge" Collapsed="true">
-    <Position X="21.25" Y="1.5" Width="1.5" />
+    <Position X="9.5" Y="2.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>CAQERoBAEAQEgkQgQAAAEACBAAgABwgQA2iAAAAAAAg=</HashCode>
       <FileName>Bridge.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CBridgeFile" Collapsed="true">
-    <Position X="21.25" Y="0.5" Width="1.5" />
+    <Position X="7.25" Y="2.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAJgAAAAAAAAQAAAAAAAAIAAAIIAAAAAOAAAAA=</HashCode>
       <FileName>BridgeFile.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CBridgeLane" Collapsed="true">
-    <Position X="21.25" Y="2.5" Width="1.5" />
+    <Position X="9.5" Y="3.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>CgQACAhAEgCUQAAQABAAEIgBQAgAAAgAAjhgAAIkAAA=</HashCode>
       <FileName>BridgeLane.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CCalcEffect" Collapsed="true">
-    <Position X="21.25" Y="3.5" Width="1.5" />
+    <Position X="9.5" Y="4.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAACAAABAAAAACICJaYAAAAAIAIAAAAAAAAA=</HashCode>
       <FileName>CalcEffect.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CClassPercent" Collapsed="true">
-    <Position X="13.5" Y="6.5" Width="1.5" />
-    <NestedTypes>
-      <Struct Name="CClassPercent::CP" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>ClassPercent.h</NewMemberFileName>
-        </TypeIdentifier>
-      </Struct>
-    </NestedTypes>
+    <Position X="7.25" Y="9" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AgAAAAgAAAAAAAABAAIAAAAAAAAIAQAAAAAAAAQAAAA=</HashCode>
       <FileName>ClassPercent.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CConfigData" Collapsed="true">
-    <Position X="10" Y="0.5" Width="1.5" />
+    <Position X="7.25" Y="1.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAEAawIABAABAIAAMAAAkAAAAAgAgAAAAAIAAAwA=</HashCode>
       <FileName>ConfigData.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CCSVParse" Collapsed="true">
-    <Position X="16.5" Y="1.5" Width="1.5" />
+    <Position X="7.25" Y="2" Width="1.5" />
     <TypeIdentifier>
       <HashCode>hAGAAAAAwIgAEAAAAAQACgAEIJAAAEABCAAAAAAAABA=</HashCode>
       <FileName>CSVParse.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CDistribution" Collapsed="true">
-    <Position X="13" Y="7.75" Width="1.5" />
+    <Position X="15.75" Y="9" Width="1.5" />
     <TypeIdentifier>
       <HashCode>MAIEAAACAAAACDAAAABIAQAAACIgEAACAIEAAASAQBA=</HashCode>
       <FileName>Distribution.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CEffect" Collapsed="true">
-    <Position X="1.25" Y="3" Width="1.5" />
+    <Position X="5.25" Y="5.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>ABAAIAAgAAAAACAAAAICAAgChAAEAQAAAgBgAAEYAAA=</HashCode>
       <FileName>Effect.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CEvent" Collapsed="true">
-    <Position X="3" Y="3" Width="1.5" />
+    <Position X="5.25" Y="5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>RABAQEAAoKBSABCgCAGgABABBAACICIAIAIgBAAICQg=</HashCode>
+      <HashCode>RABAQEAAoKBSABCgCAGgABABBAACoCIAIAIgBAAICQg=</HashCode>
       <FileName>Event.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CEventBuffer" Collapsed="true">
-    <Position X="13" Y="2.5" Width="1.5" />
+    <Position X="1.25" Y="1.25" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="CEventBuffer::Mode" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>EventBuffer.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
     <TypeIdentifier>
       <HashCode>AAAAICQAAAAQAABEIgIAAAACAAAAAAAgIAgAAAAAARA=</HashCode>
       <FileName>EventBuffer.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CEventManager" Collapsed="true">
-    <Position X="5.25" Y="3" Width="1.5" />
+    <Position X="3" Y="1.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>gABAgAAAAEQBARAkAERCEGoGAA4AAAAgICEAAAAAQBg=</HashCode>
       <FileName>EventManager.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CEventStatistics" Collapsed="true">
-    <Position X="16.5" Y="2.5" Width="1.5" />
+    <Position X="3" Y="4.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AQAAoAAEAAgAIAAAHgAAAAAAUIAEAAABIIgUAAAGAAA=</HashCode>
       <FileName>EventStatistics.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CInfluenceLine" Collapsed="true">
-    <Position X="7.75" Y="3.5" Width="1.5" />
+    <Position X="9.5" Y="5.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>CkAgLAAgEgCUCFMBAAIAFAEBIQgAAkAACAACAAAAAQA=</HashCode>
       <FileName>InfluenceLine.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CInfluenceSurface" Collapsed="true">
-    <Position X="9.5" Y="3.5" Width="1.5" />
+    <Position X="9.5" Y="6.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAgQCAAAEAAABEAAAIAAQQAgAkUACAAAAAAAAAAA=</HashCode>
       <FileName>InfluenceSurface.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CLane" Collapsed="true">
-    <Position X="2.25" Y="8.25" Width="1.5" />
+    <Position X="13.5" Y="5.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AGAAAAAAAAAIAAAAAAAAAgACABIEAABAAAACAAACAAA=</HashCode>
       <FileName>Lane.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CLaneFileTraffic" Collapsed="true">
-    <Position X="1" Y="9.5" Width="1.5" />
+    <Position X="11.5" Y="6.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AhABAAAAAAAAAAAAggAAAAgCAAACAAAAAAAAAAAAAAA=</HashCode>
       <FileName>LaneFileTraffic.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CLaneFlow" Collapsed="true">
-    <Position X="11.25" Y="3.5" Width="1.5" />
+    <Position X="13.25" Y="1.5" Width="1.5" />
+    <NestedTypes>
+      <Struct Name="CLaneFlow::Speed" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>LaneFlow.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+      <Struct Name="CLaneFlow::CP" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>LaneFlow.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+      <Struct Name="CLaneFlow::HourData" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>LaneFlow.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+    </NestedTypes>
     <TypeIdentifier>
       <HashCode>AAIAFEAAAAAIQQgABAACAAAAAAAAAEAEAADAgACMACA=</HashCode>
       <FileName>LaneFlow.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CLaneGenTraffic" Collapsed="true">
-    <Position X="3.25" Y="9.5" Width="1.5" />
+    <Position X="15.75" Y="6.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AgABAACDAAAIAAEAAAAEAQkCABgIACVBAYDACIAACBA=</HashCode>
       <FileName>LaneGenTraffic.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CMatrix&lt;T&gt;" Collapsed="true">
-    <Position X="13" Y="3.5" Width="1.5" />
+    <Position X="15.75" Y="8.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AEBAAABQACAAAAAAEAAAAAAAAAAAEAIAIgAACACCAAA=</HashCode>
       <FileName>Matrix.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="MTRand" Collapsed="true">
-    <Position X="13" Y="8.5" Width="1.5" />
+    <Position X="15.75" Y="9.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAEIAAAICASAQSEAEAAAAAIAEYAAAEAQQAAAABAAA=</HashCode>
       <FileName>MersenneTwister.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="COutputManagerBase" Collapsed="true">
-    <Position X="3" Y="0.5" Width="1.5" />
+    <Position X="3" Y="2" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AARgABQAAIAAI4AwABAAAAAAgIEAAAKAIAAAAAAAAJg=</HashCode>
       <FileName>OutputManagerBase.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CPOTManager" Collapsed="true">
-    <Position X="0.75" Y="1.75" Width="1.5" />
+    <Position X="0.75" Y="3.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>qAQAACAAAAAAgYAQABAAMAAABIICAAIAEAABAAAAoEA=</HashCode>
       <FileName>POTManager.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CReadILFile" Collapsed="true">
-    <Position X="14.75" Y="3.5" Width="1.5" />
+    <Position X="7.25" Y="5.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>gAIAAAAAgCgAAAAAAAAAAICAAEAAAAMBAgAAAAAAAAQ=</HashCode>
       <FileName>ReadILFile.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CStatsManager" Collapsed="true">
-    <Position X="3" Y="1.75" Width="1.5" />
+    <Position X="3" Y="3.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>gAQAAIAAAAABBQAUgBAIAEAgAAAAgAKAADAAAAAAAAA=</HashCode>
       <FileName>StatsManager.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CTrafficData" Collapsed="true">
-    <Position X="24.5" Y="0.5" Width="1.5" />
+    <Position X="7.25" Y="8.25" Width="1.5" />
     <NestedTypes>
       <Struct Name="CTrafficData::Dist" Collapsed="true">
         <TypeIdentifier>
@@ -244,58 +270,51 @@
     </TypeIdentifier>
   </Class>
   <Class Name="CTrafficFiles" Collapsed="true">
-    <Position X="7.75" Y="4.5" Width="1.5" />
+    <Position X="7.25" Y="7.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AIAAAABBgAAAAAEAEIAAAACAAgAAAAAAECAGgAAQAAA=</HashCode>
       <FileName>TrafficFiles.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CTriModalNormal" Collapsed="true">
-    <Position X="13" Y="9.25" Width="1.5" />
-    <NestedTypes>
-      <Struct Name="CTriModalNormal::Mode" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>TriModalNormal.h</NewMemberFileName>
-        </TypeIdentifier>
-      </Struct>
-    </NestedTypes>
+    <Position X="15.75" Y="10.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>EAAAQgAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAA=</HashCode>
       <FileName>TriModalNormal.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CVehicle" Collapsed="true">
-    <Position X="7.75" Y="0.5" Width="1.5" />
+    <Position X="9.5" Y="2" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>kwJIYQ1ECYgWhRAjLgSwCJAgkAihKY5A4CRgaAOwAAA=</HashCode>
+      <HashCode>kwJIYQ1ECcgWhRAjLgS4iJAgkAihKY5A4CRgaAOwAAA=</HashCode>
       <FileName>Vehicle.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CVehicleBuffer" Collapsed="true">
-    <Position X="13" Y="4.5" Width="1.5" />
+    <Position X="13.25" Y="2.25" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAANAQAkAAIIAAAQAAAAAgCgAEAgAARIgABCAAAFAA=</HashCode>
+      <HashCode>AAAAPAQAkAAIIAAAQAAAAAgCgAEAgAARIgABCAAAFAA=</HashCode>
       <FileName>VehicleBuffer.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CVehicleGenerator" Collapsed="true">
-    <Position X="14.75" Y="4.5" Width="1.5" />
+    <Position X="15.75" Y="7.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>ABEAAYACAAAIAAEAQCBAABAAAIgAAAAEwIiEAEAQAAA=</HashCode>
+      <HashCode>ABEACYACAAAIAAEAQCBAABAAAIgAAAAEwIiEAEAQAAA=</HashCode>
       <FileName>VehicleGenerator.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CVehicleTrafficFile" Collapsed="true">
-    <Position X="26.75" Y="0.5" Width="1.5" />
+    <Position X="11.5" Y="7.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>CQAQgAQAIQAkAACAAAJgALggBgACBQAAAACAAAAAAQA=</HashCode>
+      <HashCode>CQAQiAQAIQAkAACAAAJgALggBgACBQAAAACAAAAAAQA=</HashCode>
       <FileName>VehicleTrafficFile.h</FileName>
     </TypeIdentifier>
   </Class>
   <Struct Name="CFlowRateData" Collapsed="true">
-    <Position X="7.75" Y="6.75" Width="1.5" />
+    <Position X="11.5" Y="2.25" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAIgAAAACAAAAAAAAAAAAAAAAEAAQAAAAEAAAAAAA=</HashCode>
+      <HashCode>AAAAIAAgAACAAAAAAAAAAAAAAAAEAAQAAABEAAAAAAA=</HashCode>
       <FileName>VehicleBuffer.h</FileName>
     </TypeIdentifier>
   </Struct>

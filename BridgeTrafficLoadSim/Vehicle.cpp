@@ -13,7 +13,7 @@ extern CConfigData g_ConfigData;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CVehicle::CVehicle()
+CVehicle::CVehicle() : m_Class(Classification(0, "default"))
 {
 	DAYS_PER_MT		= g_ConfigData.Time.DAYS_PER_MT;
 	MTS_PER_YR		= g_ConfigData.Time.MTS_PER_YR;
@@ -723,6 +723,11 @@ void CVehicle::setBridgeLaneNo(size_t BridgeLaneNo)
 	m_BridgeLaneNo = BridgeLaneNo;	// in global zero-based numbering
 }
 
+void CVehicle::setClass(Classification cl)
+{
+	m_Class = cl;
+}
+
 ////////// THE GETS //////////////////
 
 size_t CVehicle::getBridgeLaneNo(void)
@@ -844,7 +849,12 @@ size_t CVehicle::getHead()
 
 bool CVehicle::IsCar()
 {
-	return (m_NoAxles == 2 && m_GVW < 34.334);	// MAGIC NUMBER - CAR WEIGHT THRESHOLD
+	return m_Class.m_ID == 0; // default class 0 is car
+}
+
+Classification CVehicle::getClass()
+{
+	return m_Class;
 }
 
 bool CVehicle::IsOnBridge(double atTime)

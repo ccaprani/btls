@@ -1,7 +1,8 @@
 #include "VehicleTrafficFile.h"
 
 
-CVehicleTrafficFile::CVehicleTrafficFile(bool UseConstSpeed, bool UseAveSpeed, double ConstSpeed)
+CVehicleTrafficFile::CVehicleTrafficFile(CVehicleClassification* pVC, 
+	bool UseConstSpeed, bool UseAveSpeed, double ConstSpeed)
 {
 	m_NoVehs = 0;
 	m_NoDays = 0;
@@ -12,9 +13,10 @@ CVehicleTrafficFile::CVehicleTrafficFile(bool UseConstSpeed, bool UseAveSpeed, d
 	
 	m_iCurVehicle = 0;
 
+	m_pVehClassification = pVC;
 	m_UseConstSpeed = UseConstSpeed;
 	m_UseAveSpeed = UseAveSpeed;
-	m_ConstSpeed = ConstSpeed;
+	m_ConstSpeed = ConstSpeed;	
 }
 
 
@@ -41,6 +43,7 @@ void CVehicleTrafficFile::Read(std::string file, int filetype)
 		{
 			CVehicle* pVeh = new CVehicle;
 			pVeh->create(str, filetype);
+			m_pVehClassification->setClassification(pVeh);
 			m_vVehicles.push_back(pVeh);
 		}
 	}

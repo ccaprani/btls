@@ -11,7 +11,7 @@ extern CConfigData g_ConfigData;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CVehicleBuffer::CVehicleBuffer(double starttime)
+CVehicleBuffer::CVehicleBuffer(CVehicleClassification* pVC, double starttime)
 {
 	//init(false, "", 0);
 
@@ -25,6 +25,7 @@ CVehicleBuffer::CVehicleBuffer(double starttime)
 	NO_LANES_DIR2	= g_ConfigData.Road.NO_LANES_DIR2;
 	NO_LANES = NO_LANES_DIR1 + NO_LANES_DIR2;
 
+	m_pVehClassification = pVC;
 	m_NoVehicles = 0;
 
 	if(WRITE_FLOW_STATS)
@@ -113,17 +114,14 @@ void CVehicleBuffer::updateFlowData()
 	if( pV->IsCar() ) 
 		data.m_NoCars++;
 	else
-	{
 		data.m_NoTrucks++;
-		size_t n = pV->getNoAxles();
-		data.m_vNoTruckAxles.at(n-2)++;
-	}
+	data.addByClass( m_pVehClassification->getClassID(pV->getClass()) );
 }
 
 void CVehicleBuffer::flushFlowData()
 {
 	m_CurHour++;
-	CFlowRateData data;
+	CFlowRateData data(m_pVehClassification->getNoClasses());
 	data.m_ID = m_CurHour;
 	
 	std::vector<CFlowRateData> vFD(NO_LANES,data);
@@ -140,23 +138,38 @@ void CVehicleBuffer::writeFlowData()
 		int dir = iLane < NO_LANES_DIR1 ? 1 : 2;
 		std::string file = "FlowData_" + to_string(dir) + "_" + to_string(iLane+1) + ".txt";
 		std::ofstream outFile(file.c_str(), std::ios::out ); 
-	
-		outFile << "Hour" << "\t" << "No.Vehicles"
-				<< "\t" << "No.Trucks" << "\t" << "No.Cars";
-		for(size_t j = 0; j < 4; j++)		// MAGIC NUMBER Assumes 5 axles max
-			outFile << "\t\t" << j+2 << "-Axles";
-		outFile << std::endl;
+
+		std::ostringstream oStr;
+		oStr.width(12);		oStr << std::right << "Hour";
+		oStr.width(12);		oStr << std::right << "#Vehicles";
+		oStr.width(12);		oStr << std::right << "#Trucks";
+		oStr.width(12);		oStr << std::right << "#Cars";
+		for (size_t j = 0; j < m_pVehClassification->getNoClasses(); j++)
+		{
+			std::string str;
+			str = to_string(j) + ": " + m_pVehClassification->getClass(j).m_Desc;
+			oStr.width(20);
+			oStr << std::right << str;
+		}
+		oStr << std::ends;
+		outFile << oStr.str() << '\n';
+		oStr.str(""); //clears the stringstream
 
 		for(size_t i = 0; i < m_vFlowData.size(); i++)
 		{
 			CFlowRateData& data = m_vFlowData.at(i).at(iLane);
 			
-			outFile << data.m_ID << "\t" << data.m_NoVehicles 
-					<< "\t\t" << data.m_NoTrucks << "\t\t" << data.m_NoCars;
-			for(size_t j = 0; j < data.m_vNoTruckAxles.size(); j++)	
-				outFile << "\t\t" << data.m_vNoTruckAxles.at(j);
-	
-			outFile << std::endl;
+			oStr.width(12); oStr << std::right << data.m_ID;
+			oStr.width(12); oStr << std::right << data.m_NoVehicles;
+			oStr.width(12); oStr << std::right << data.m_NoTrucks;
+			oStr.width(12); oStr << std::right << data.m_NoCars;
+			for (size_t j = 0; j < data.m_vClassCount.size(); j++)
+			{
+				oStr.width(20); oStr << std::right << data.m_vClassCount.at(j);
+			}
+			oStr << std::ends;
+			outFile << oStr.str() << '\n';
+			oStr.str("");
 		}
 	
 		outFile.close();

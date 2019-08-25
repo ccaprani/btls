@@ -9,7 +9,7 @@
 class CVehicleTrafficFile
 {
 public:
-	CVehicleTrafficFile(bool UseConstSpeed, bool UseAveSpeed, double ConstSpeed);
+	CVehicleTrafficFile(CVehicleClassification* pVC, bool UseConstSpeed, bool UseAveSpeed, double ConstSpeed);
 	~CVehicleTrafficFile(void);
 
 	void Read(std::string file, int filetype);
@@ -32,6 +32,8 @@ private:
 	bool m_UseConstSpeed;
 	bool m_UseAveSpeed;
 	double m_ConstSpeed;
+
+	CVehicleClassification* m_pVehClassification;
 
 	size_t m_NoVehs;
 	size_t m_NoDays;

@@ -12,6 +12,7 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include "VehicleClassification.h"
 
 class CVehicle  
 {
@@ -43,6 +44,7 @@ public:
 	void	setBridgeLaneNo(size_t BridgeLaneNo);
 	void	setTrackWidth(double tw);
 	void	setLaneEccentricity(double e);
+	void	setClass(Classification cl);
 
 	// the gets
 	std::string getTimeStr();
@@ -65,6 +67,7 @@ public:
 	size_t	getBridgeLaneNo(void);
 	double	getTrackWidth(void);
 	double	getLaneEccentricity(void);
+	Classification getClass();
 
 private:
 	int Round(double val) {return int(val + 0.5);};
@@ -81,6 +84,8 @@ private:
 	std::string	writeCASTORData();
 	std::string writeDITISData();
 	std::string writeMONData();
+
+	Classification m_Class;
 
 	size_t	m_Dir;
 	size_t	m_Lane;
