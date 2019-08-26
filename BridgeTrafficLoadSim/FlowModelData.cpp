@@ -1,8 +1,11 @@
 #include "FlowModelData.h"
 
 
-CFlowModelData::CFlowModelData()
+CFlowModelData::CFlowModelData(CLaneFlow lf, EFlowModel fm) 
+	: m_LaneFlow(lf), m_FlowModel(fm)
 {
+	m_BufferGapSpace = 1.0; // MAGIC NUMBER - internal gap buffer (e.g. tyre diameter)
+	m_BufferGapTime = 0.1;
 }
 
 
@@ -20,19 +23,22 @@ double CFlowModelData::getCP_cars(size_t iHour)
 	return m_LaneFlow.getCP_cars((int)iHour);
 }
 
-double CFlowModelData::getSpeedMean(int iHour)
+void CFlowModelData::getSpeedParams(size_t iHour, double& mean, double& std)
 {
-	return m_LaneFlow.getSpeedMean((int)iHour);
+	mean = m_LaneFlow.getSpeedMean((int)iHour);
+	std = m_LaneFlow.getSpeedStDev((int)iHour);
 }
 
-double CFlowModelData::getSpeedStd(int iHour)
+void CFlowModelData::getGapBuffers(double& space, double& time)
 {
-	return m_LaneFlow.getSpeedStDev((int)iHour);
+	space = m_BufferGapSpace;
+	time = m_BufferGapTime;
 }
 
 //////////// CFlowModelDataNHM //////////////
 
-CFlowModelDataNHM::CFlowModelDataNHM()
+CFlowModelDataNHM::CFlowModelDataNHM(CLaneFlow lf, matrix vNHM) 
+	: CFlowModelData(lf, eNHM), m_vNHM(vNHM)
 {
 
 }
@@ -42,11 +48,6 @@ CFlowModelDataNHM::~CFlowModelDataNHM()
 
 }
 
-void CFlowModelDataNHM::setNHM(matrix NHM)
-{
-	m_vNHM = NHM;
-}
-
 matrix CFlowModelDataNHM::GetNHM()
 {
 	return m_vNHM;
@@ -54,8 +55,8 @@ matrix CFlowModelDataNHM::GetNHM()
 
 //////////// CFlowModelDataCongested //////////////
 
-CFlowModelDataCongested::CFlowModelDataCongested(double mean, double std) 
-	: m_GapMean(mean), m_GapStd(std)
+CFlowModelDataCongested::CFlowModelDataCongested(CLaneFlow lf, double mean, double std)
+	: CFlowModelData(lf, eCongested), m_GapMean(mean), m_GapStd(std)
 {
 
 }
@@ -73,7 +74,8 @@ void CFlowModelDataCongested::getGapParams(double& mean, double& std)
 
 //////////// CFlowModelDataPoisson //////////////
 
-CFlowModelDataPoisson::CFlowModelDataPoisson()
+CFlowModelDataPoisson::CFlowModelDataPoisson(CLaneFlow lf) 
+	: CFlowModelData(lf, ePoisson)
 {
 
 }

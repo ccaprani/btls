@@ -6,30 +6,36 @@
 class CFlowModelData :	public CModelData
 {
 public:
-	CFlowModelData();
+	CFlowModelData(CLaneFlow lf, EFlowModel fm);
 	virtual ~CFlowModelData();
 
-	double getFlow(size_t iHour);
-	double getCP_cars(size_t iHour);
-	double getSpeedMean(int iHour);
-	double getSpeedStd(int iHour);
+	double	getFlow(size_t iHour);
+	double	getCP_cars(size_t iHour);
+	void	getSpeedParams(size_t iHour, double& mean, double& std);
+	void	getGapBuffers(double& space, double& time);
+
+	EFlowModel getFlowModel() const { return m_FlowModel; };
 
 protected:
+	EFlowModel m_FlowModel;
+
 	// Probably CLaneFlow needs to be merged into CFlowModelData
 	// but we'll leave it alone for now
 	CLaneFlow m_LaneFlow;
 
 	double m_SpeedMean;
 	double m_SpeedStd;
+
+	double m_BufferGapSpace;
+	double m_BufferGapTime;
 };
 
 class CFlowModelDataNHM : public CFlowModelData
 {
 public:
-	CFlowModelDataNHM();
+	CFlowModelDataNHM(CLaneFlow lf, matrix vNHM);
 	virtual ~CFlowModelDataNHM();
 
-	void setNHM(matrix NHM);
 	matrix GetNHM();
 
 private:
@@ -40,7 +46,7 @@ private:
 class CFlowModelDataCongested : public CFlowModelData
 {
 public:
-	CFlowModelDataCongested(double mean, double std);
+	CFlowModelDataCongested(CLaneFlow lf, double mean, double std);
 	virtual ~CFlowModelDataCongested();
 
 	void getGapParams(double& mean, double& std);
@@ -53,7 +59,7 @@ private:
 class CFlowModelDataPoisson : public CFlowModelData
 {
 public:
-	CFlowModelDataPoisson();
+	CFlowModelDataPoisson(CLaneFlow lf);
 	virtual ~CFlowModelDataPoisson();
 };
 

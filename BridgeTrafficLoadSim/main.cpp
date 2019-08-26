@@ -36,7 +36,7 @@ void main()
 {
 	cout << "---------------------------------------------" << endl;
 	cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
-	cout << "                Version 1.2.6                " << endl;
+	cout << "                Version 1.2.7                " << endl;
 	cout << "---------------------------------------------" << endl << endl;
 
 	if (!g_ConfigData.ReadData("BTLSin.txt") )
@@ -98,7 +98,7 @@ void GetGeneratorLanes(CVehicleClassification* pVC, vector<CLane*>& vpLanes, dou
 {
 	// Useful debugging tool - set start time higher
 	//int startday = 0;
-	StartTime = 0.0; // (double)(startday)*86400;
+	StartTime = 80000; // (double)(startday)*86400;
 	EndTime = (double)(g_ConfigData.Gen.NO_DAYS)*24*3600;
 	
 	// read in the vehicle generation data
