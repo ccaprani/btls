@@ -147,6 +147,12 @@
     <ClCompile Include="FlowModelData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="VehicleGenGrave.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VehModelDataGrave.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Axle.h">
@@ -288,6 +294,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FlowModelData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VehicleGenGrave.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VehModelDataGrave.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

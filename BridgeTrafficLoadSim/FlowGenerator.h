@@ -55,7 +55,7 @@ protected:
 	void updateProperties();
 
 private:
-	CFlowModelDataNHM* m_pFDM;
+	CFlowModelDataNHM* m_pFMD;
 	matrix m_vNHM;
 	Normal m_Speed;
 };
@@ -72,9 +72,9 @@ protected:
 	void updateProperties();
 
 private:
-	CFlowModelDataCongested* m_pFDM;
+	CFlowModelDataCongested* m_pFMD;
 	Normal m_Gap;
-	Normal m_Speed;
+	double m_Speed;
 };
 
 class CFlowGenPoisson : public CFlowGenerator
@@ -89,7 +89,23 @@ protected:
 	void updateProperties();
 
 private:
-	CFlowModelDataPoisson* m_pFDM;
+	CFlowModelDataPoisson* m_pFMD;
 	Normal m_Speed;
+};
+
+class CFlowGenConstant : public CFlowGenerator
+{
+public:
+	CFlowGenConstant(CFlowModelData* pFDM) :CFlowGenerator(NULL,eConstant){};
+	virtual ~CFlowGenConstant(){};
+
+protected:
+	double GenerateGap(){ return 10.0; };		// MAGIC NUMBER - for testing
+	double GenerateSpeed() { return 20.0; };;
+	//void updateProperties();
+
+private:
+	//CFlowModelDataPoisson* m_pFMD;
+	//Normal m_Speed;
 };
 

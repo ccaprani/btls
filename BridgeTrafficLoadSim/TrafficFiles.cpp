@@ -12,58 +12,8 @@ using namespace std;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CTrafficFiles::CTrafficFiles()//int siteW)
+CTrafficFiles::CTrafficFiles()
 {
-/*	int siteQ = 2;	// This is now superseeded by the lane definition file
-
-	int QW[2];
-	std::string m_Folder;
-
-	QW[0] = siteQ;
-	QW[1] = siteW;
-
-	for(int i = 0; i<2; i++)
-	{
-		switch(QW[i])
-		{
-		case 1:
-			{ m_Folder = "Angers\\"; break;}
-		case 2:
-			{ m_Folder = "Auxerre\\"; break;}
-		case 3:
-			{ m_Folder = "A196\\"; break;}
-		case 4:
-			{ m_Folder = "B224\\"; break;}
-		case 5:
-			{ m_Folder = "A296\\"; break;}
-		case 6:
-			{ m_Folder = "Samaris\\D1\\"; break;}
-		case 7:
-			{ m_Folder = "Samaris\\D2\\"; break;}
-		case 8:
-			{ m_Folder = "Samaris\\D3\\"; break;}
-		case 9:
-			{ m_Folder = "Samaris\\S1\\"; break;}
-		case 10:
-			{ m_Folder = "Samaris\\S2\\"; break;}
-		case 11:
-			{ m_Folder = "Samaris\\S3\\"; break;}
-		case 12:
-			{ m_Folder = "Samaris\\D\\"; break;}
-		case 13:
-			{ m_Folder = "Samaris\\S\\"; break;}
-		}
-
-		if(i == 0)
-			m_FolderW = m_Folder;
-		else
-			m_FolderQ = m_Folder;
-	}
-
-	m_Root = "C:\\Traffic\\";
-	m_PathW = m_Root + m_FolderW;
-	m_PathQ = m_Root + m_FolderQ;
-*/	
 	m_Path = g_ConfigData.Gen.TRAFFIC_FOLDER;
 	// check if the path ends in a \ and if not add it
 	if( *m_Path.rbegin() != '\\')
@@ -79,9 +29,6 @@ CTrafficFiles::~CTrafficFiles()
 void CTrafficFiles::ReadAll(int HWmodel)
 {
 	ReadPhysical();
-
-	//ReadFile_CP();
-	//ReadFile_Q();
 
 	if(HWmodel == 0)
 		ReadFile_NHM(); // NHM
@@ -349,52 +296,8 @@ void CTrafficFiles::ReadFile_GVW()
 	m_TD.AddSpeed(vSpeed);
 	m_CSV.CloseFile();
 }
-/*
-void CTrafficFiles::ReadFile_CP()
-{
-	string file = m_PathW + "Class%.csv";	
-	m_CSV.OpenFile(file, ",");
-    
-	for(int i = 0; i < 4; i++)
-	{ 
-		string line;
-		m_CSV.getline(line);
-		int nLanes = m_CSV.getnfield()-1;	// minus 1 because the comma at the end is counted
-		for(int j = 0; j < nLanes; j++)
-			m_TD.AddClassPercent(j, i+2, m_CSV.stringToDouble(m_CSV.getfield(j)) );
-	};
 
-	m_CSV.CloseFile();			// and close file
-}
 
-void CTrafficFiles::ReadFile_Q()
-{
-	string file = m_PathQ + "FlowR.csv";
-	m_CSV.OpenFile(file, ",");
-	
-	string line;
-	m_CSV.getline(line);
-	int nLanes = m_CSV.getnfield() - 1;	// minus 1 because the end comma is counted
-
-	vector<double> temp;
-	vector< vector<double> > vFlowRate(nLanes, temp);
-
-	for(int hr = 0; hr < 24; hr++)
-	{	
-	 	for(int iLane = 0; iLane < nLanes; iLane++)
-		{
-			string str = m_CSV.getfield(iLane);
-			double q = m_CSV.stringToDouble( str );
-			vFlowRate[iLane].push_back(q);
-		}
-		if(hr < 23)
-			m_CSV.getline(line);	// at end since line has already been read
-	}
-
-	m_TD.SetFlowRate( vFlowRate );
-	m_CSV.CloseFile();
-}
-*/
 void CTrafficFiles::ReadFile_NHM()
 {
 	string file = m_Path + "NHM.csv";
@@ -428,7 +331,6 @@ CTrafficData CTrafficFiles::GetTrafficData()
 {
 	return m_TD;
 }
-
 
 std::vector<CLaneFlow> CTrafficFiles::ReadLaneFlow(std::string file)
 {

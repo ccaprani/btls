@@ -41,8 +41,6 @@ public:
 		string TRAFFIC_FOLDER;
 		bool GEN_TRAFFIC;
 		size_t NO_DAYS;
-		//int SITE_WEIGHT;
-		//int SITE_FLOW;
 		double TRUCK_TRACK_WIDTH;
 		double LANE_ECCENTRICITY_STD;
 		double NO_OVERLAP_LENGTH;
@@ -60,8 +58,8 @@ public:
 
 	struct Traffic_Config
 	{
+		int VEHICLE_MODEL;
 		int HEADWAY_MODEL;
-		//double PROPORTION_OF_CARS;
 		double CONGESTED_SPACING;
 		double CONGESTED_SPEED;
 		double CONGESTED_GAP;

@@ -5,6 +5,7 @@
 #include "Distribution.h"
 #include "LaneFlow.h"
 #include "FlowGenerator.h"
+#include "VehicleGenGrave.h"
 
 class CLaneGenTraffic : public CLane
 {
@@ -14,7 +15,7 @@ public:
 
 	virtual CVehicle* GetNextVehicle();
 	
-	void setLaneData(CVehicleGenerator* pGen, CLaneFlow lane_flow, double starttime);
+	void setLaneData(CVehicleClassification* pVC, CTrafficData TD, CLaneFlow lane_flow, double starttime);
 
 private:
 	void	GenNextArrival();
@@ -22,16 +23,15 @@ private:
 	void	GenNextVehicle();
 	
 	CVehicleGenerator* m_pVehicleGen;
+	CVehicleModelData* m_pVehModelData;
 	CFlowGenerator* m_pFlowGen;
 	CFlowModelData* m_pFlowModelData;
 
 	CVehicle* m_pPrevVeh;
 	CVehicle* m_pNextVeh;
 	
-	double	CONGESTED_GAP;
-	double	CONGESTED_GAP_COEF_VAR;
-	double	CONGESTED_SPEED;
 	int		HEADWAY_MODEL;
-	double	NO_OVERLAP_LENGTH;
+	int		VEHICLE_MODEL;
+	size_t	NO_LANES;
 };
 

@@ -22,6 +22,10 @@
 #include "BridgeFile.h"
 #include "Bridge.h"
 #include "LaneFlow.h"
+// for tracking memory leaks
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
 
 extern CConfigData g_ConfigData;
 using namespace std;
@@ -75,6 +79,7 @@ void main()
 	vLanes.clear();
 	delete pVC;
 
+	//_CrtDumpMemoryLeaks(); // for hunting memory leaks
 	system("PAUSE");
 }
 
@@ -98,14 +103,14 @@ void GetGeneratorLanes(CVehicleClassification* pVC, vector<CLane*>& vpLanes, dou
 {
 	// Useful debugging tool - set start time higher
 	//int startday = 0;
-	StartTime = 80000; // (double)(startday)*86400;
+	StartTime = 70000; // (double)(startday)*86400;
 	EndTime = (double)(g_ConfigData.Gen.NO_DAYS)*24*3600;
 	
 	// read in the vehicle generation data
-	CTrafficFiles DataIn;//g_ConfigData.Gen.SITE_WEIGHT);
-	DataIn.ReadPhysical();
-	if( g_ConfigData.Traffic.HEADWAY_MODEL == 0 )
-		DataIn.ReadFile_NHM();
+	CTrafficFiles DataIn;
+	//DataIn.ReadPhysical();
+	//if( g_ConfigData.Traffic.HEADWAY_MODEL == 0 )
+	//	DataIn.ReadFile_NHM();
 	vector<CLaneFlow> vLaneFlow = DataIn.ReadLaneFlow(g_ConfigData.Road.LANES_FILE);
 	CTrafficData TD = DataIn.GetTrafficData();
 	TD.SetLaneFlow(vLaneFlow);
@@ -118,8 +123,7 @@ void GetGeneratorLanes(CVehicleClassification* pVC, vector<CLane*>& vpLanes, dou
 	for(size_t i = 0; i < TD.getNoLanes(); ++i)
 	{
 		CLaneGenTraffic* pLane = new CLaneGenTraffic;
-		CVehicleGenerator* pGen = new CVehicleGenerator(pVC, TD, vLaneFlow.at(i));
-		pLane->setLaneData(pGen, vLaneFlow.at(i), StartTime);
+		pLane->setLaneData(pVC, TD, vLaneFlow.at(i), StartTime);
 		vpLanes.push_back(pLane);
 	}
 }

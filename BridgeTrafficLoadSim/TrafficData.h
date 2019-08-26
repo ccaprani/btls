@@ -66,7 +66,7 @@ public:
 	size_t getNoLanesDir2(void);
 	
 private:
-	double m_CarPercent;
+	//double m_CarPercent;
 	std::vector<CTriModalNormal> m_v2AxleSpacings;
 	std::vector<CTriModalNormal> m_v3AxleSpacings;
 	std::vector<CTriModalNormal> m_v4AxleSpacings;

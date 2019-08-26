@@ -40,10 +40,10 @@ void CConfigData::ExtractData()
 
 	str = GetNextDataLine();	Gen.NO_DAYS						= m_CSV.stringToInt(	str);
 	str = GetNextDataLine();	Gen.TRAFFIC_FOLDER				= str;
-	//str = GetNextDataLine();	Gen.SITE_WEIGHT					= m_CSV.stringToInt(	str);
 	str = GetNextDataLine();	Gen.TRUCK_TRACK_WIDTH			= m_CSV.stringToDouble( str);
 	str = GetNextDataLine();	Gen.LANE_ECCENTRICITY_STD		= m_CSV.stringToDouble( str);
 	str = GetNextDataLine();	Traffic.HEADWAY_MODEL			= m_CSV.stringToInt(	str);
+	//str = GetNextDataLine();	Traffic.VEHICLE_MODEL			= m_CSV.stringToInt(str);
 	str = GetNextDataLine();	Road.LANES_FILE					= str;
 	str = GetNextDataLine();	Traffic.CONGESTED_SPACING		= m_CSV.stringToDouble( str);
 	str = GetNextDataLine();	Traffic.CONGESTED_SPEED			= m_CSV.stringToDouble( str);
@@ -134,8 +134,8 @@ void CConfigData::SetDefaults()
 
 	Gen.NO_DAYS = 2;
 	Gen.TRAFFIC_FOLDER = "C:\\Traffic\\Auxerre\\";
-	//Gen.SITE_WEIGHT = 2;
 	Traffic.HEADWAY_MODEL = 6;
+	Traffic.VEHICLE_MODEL = 0; // Grave
 	Road.LANES_FILE = "laneflow.csv";
 	Traffic.CONGESTED_SPACING = 5;
 	Traffic.CONGESTED_SPEED = 30;	// km/h

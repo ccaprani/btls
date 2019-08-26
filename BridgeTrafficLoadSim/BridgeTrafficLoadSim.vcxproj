@@ -500,8 +500,10 @@
     <ClCompile Include="VehicleBuffer.cpp" />
     <ClCompile Include="VehicleClassification.cpp" />
     <ClCompile Include="VehicleGenerator.cpp" />
+    <ClCompile Include="VehicleGenGrave.cpp" />
     <ClCompile Include="VehicleModelData.cpp" />
     <ClCompile Include="VehicleTrafficFile.cpp" />
+    <ClCompile Include="VehModelDataGrave.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Axle.h" />
@@ -549,8 +551,10 @@
     <ClInclude Include="VehicleBuffer.h" />
     <ClInclude Include="VehicleClassification.h" />
     <ClInclude Include="VehicleGenerator.h" />
+    <ClInclude Include="VehicleGenGrave.h" />
     <ClInclude Include="VehicleModelData.h" />
     <ClInclude Include="VehicleTrafficFile.h" />
+    <ClInclude Include="VehModelDataGrave.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />

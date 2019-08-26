@@ -1,16 +1,18 @@
 #include "FlowGenerator.h"
 
-CFlowGenerator::CFlowGenerator(CFlowModelData* pFDM, EFlowModel fm) 
-	: m_CurHour(0), m_FlowModel(fm)
+CFlowGenerator::CFlowGenerator(CFlowModelData* pFMD, EFlowModel fm) 
+	: m_CurHour(0), m_FlowModel(fm), m_BufferGapSpace(1.0), m_BufferGapTime(0.1)
+	, m_vFlowRate(0.0), m_CarPerc(80)
 {
-	m_pFlowModelData = pFDM;
+	m_pFlowModelData = pFMD;
 
 	m_pPrevVeh = NULL;
 	m_pNextVeh = NULL;
 
 	m_MinGap = 0.1; // 0.1 s min gap for first vehicle
 
-	m_pFlowModelData->getGapBuffers(m_BufferGapSpace, m_BufferGapTime);
+	if (m_pFlowModelData != NULL) // some models may not use data
+		m_pFlowModelData->getGapBuffers(m_BufferGapSpace, m_BufferGapTime);
 
 	updateProperties(); // for first hour
 }
@@ -40,6 +42,9 @@ double CFlowGenerator::Generate()
 //			std::cout << "Overlap prevented: " << gap << " s < " << minGap << " s" << endl;
 	}
 
+	// Assign speed based on flow model
+	m_pNextVeh->setVelocity(GenerateSpeed());
+
 	return gap;
 }
 
@@ -61,8 +66,11 @@ void CFlowGenerator::updateHour(double time)
 void CFlowGenerator::updateProperties()
 {
 	// Update flow properties
-	m_vFlowRate = m_pFlowModelData->getFlow(m_CurHour);
-	m_CarPerc = m_pFlowModelData->getCP_cars(m_CurHour);
+	if (m_pFlowModelData != NULL)
+	{
+		m_vFlowRate = m_pFlowModelData->getFlow(m_CurHour);
+		m_CarPerc = m_pFlowModelData->getCP_cars(m_CurHour);
+	}
 
 	updateExponential();
 }
@@ -111,12 +119,12 @@ void CFlowGenerator::setMinGap()
 
 //////////// CFlowGenNHM ///////////////
 
-CFlowGenNHM::CFlowGenNHM(CFlowModelDataNHM* pFDM) : CFlowGenerator(pFDM, eNHM)
+CFlowGenNHM::CFlowGenNHM(CFlowModelDataNHM* pFMD) : CFlowGenerator(pFMD, eNHM)
 {
-	m_pFDM = dynamic_cast<CFlowModelDataNHM*>(m_pFlowModelData);
+	m_pFMD = dynamic_cast<CFlowModelDataNHM*>(m_pFlowModelData);
 
-	m_vNHM = m_pFDM->GetNHM();
-	m_pFDM->getSpeedParams(m_CurHour, m_Speed.Mean, m_Speed.StdDev);
+	m_vNHM = m_pFMD->GetNHM();
+	m_pFMD->getSpeedParams(m_CurHour, m_Speed.Mean, m_Speed.StdDev);
 }
 
 
@@ -178,17 +186,17 @@ void CFlowGenNHM::updateProperties()
 	// update anything relevant to gap generation as hours changes
 	CFlowGenerator::updateProperties();
 
-	m_pFDM->getSpeedParams(m_CurHour, m_Speed.Mean, m_Speed.StdDev);
+	m_pFMD->getSpeedParams(m_CurHour, m_Speed.Mean, m_Speed.StdDev);
 }
 
 //////////// CFlowGenCongested ///////////////
 
-CFlowGenCongested::CFlowGenCongested(CFlowModelDataCongested* pFDM) : CFlowGenerator(pFDM, eCongested)
+CFlowGenCongested::CFlowGenCongested(CFlowModelDataCongested* pFMD) : CFlowGenerator(pFMD, eCongested)
 {
-	m_pFDM = dynamic_cast<CFlowModelDataCongested*>(m_pFlowModelData);
+	m_pFMD = dynamic_cast<CFlowModelDataCongested*>(m_pFlowModelData);
 
-	m_pFDM->getSpeedParams(m_CurHour, m_Speed.Mean, m_Speed.StdDev);
-	m_pFDM->getGapParams(m_Gap.Mean, m_Gap.StdDev);
+	m_Speed = m_pFMD->getSpeed();
+	m_pFMD->getGapParams(m_Gap.Mean, m_Gap.StdDev);
 }
 
 CFlowGenCongested::~CFlowGenCongested()
@@ -218,7 +226,7 @@ double CFlowGenCongested::GenerateGap()
 
 double CFlowGenCongested::GenerateSpeed()
 {
-	return m_RNG.GenerateNormal(m_Speed.Mean, m_Speed.StdDev);
+	return m_Speed;
 }
 
 void CFlowGenCongested::updateProperties()
@@ -226,7 +234,6 @@ void CFlowGenCongested::updateProperties()
 	CFlowGenerator::updateProperties();
 	// update anything relevant to gap generation as hours changes
 
-	m_pFDM->getSpeedParams(m_CurHour, m_Speed.Mean, m_Speed.StdDev);
 }
 
 
@@ -234,9 +241,9 @@ void CFlowGenCongested::updateProperties()
 
 CFlowGenPoisson::CFlowGenPoisson(CFlowModelDataPoisson* pFDM) : CFlowGenerator(pFDM, ePoisson)
 {
-	m_pFDM = dynamic_cast<CFlowModelDataPoisson*>(m_pFlowModelData);
+	m_pFMD = dynamic_cast<CFlowModelDataPoisson*>(m_pFlowModelData);
 
-	m_pFDM->getSpeedParams(m_CurHour, m_Speed.Mean, m_Speed.StdDev);
+	m_pFMD->getSpeedParams(m_CurHour, m_Speed.Mean, m_Speed.StdDev);
 }
 
 CFlowGenPoisson::~CFlowGenPoisson()
@@ -258,5 +265,5 @@ void CFlowGenPoisson::updateProperties()
 	CFlowGenerator::updateProperties();
 	// update anything relevant to gap generation as hours changes
 
-	m_pFDM->getSpeedParams(m_CurHour, m_Speed.Mean, m_Speed.StdDev);
+	m_pFMD->getSpeedParams(m_CurHour, m_Speed.Mean, m_Speed.StdDev);
 }

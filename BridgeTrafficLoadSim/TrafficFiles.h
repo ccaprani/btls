@@ -22,7 +22,7 @@
 class CTrafficFiles
 {
 public:	
-	CTrafficFiles();//int siteW);
+	CTrafficFiles();
 	virtual ~CTrafficFiles();
 	
 	CTrafficData GetTrafficData();
@@ -35,23 +35,13 @@ private:
 	CCSVParse m_CSV;	
 	CTrafficData m_TD;
 	
-	//int siteW;
-	//int siteQ;
 	std::string m_Path;
-	//std::string m_Root;
-	//std::string m_PathW;
-	//std::string m_PathQ;
-	//std::string m_FolderW;
-	//std::string m_FolderQ;
 
 	void ReadFile_AW23();
 	void ReadFile_AW45();
 	void ReadFile_AS();
 	void ReadFile_GVW();
-	void ReadFile_ATW();
-	//void ReadFile_CP();
-	//void ReadFile_Q();
-	
+	void ReadFile_ATW();	
 };
 
 #endif // !defined(AFX_TrafficFiles_H__25102AA8_BD81_4AA9_815E_81EAE2C49E0C__INCLUDED_)

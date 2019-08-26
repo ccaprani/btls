@@ -34,3 +34,18 @@ double CGenerator::inv_quad(double a, double b, double c, const double y)
 			return x2;
 	}
 }
+
+double CGenerator::SumVector(std::vector<double> vec)
+{
+	double sum = 0.0;
+	for (unsigned int i = 0; i < vec.size(); ++i)
+		sum += vec[i];
+
+	return sum;
+}
+
+void CGenerator::ScaleVector(std::vector<double>& vec, double scale)
+{
+	for (unsigned int i = 0; i < vec.size(); ++i)
+		vec[i] *= scale;
+}
