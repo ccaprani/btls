@@ -14,7 +14,6 @@ public:
 	const size_t getTruckClassCount() const { return m_TruckClassCount; };
 	CVehicleClassification* getVehClassification() const { return m_pVehClassification; };
 	double getLaneEccStd() const { return m_LaneEccStd; };
-	double getCarPercent(size_t i) const;
 	vec getComposition(size_t i) const;
 
 protected:	
@@ -27,7 +26,6 @@ protected:
 	size_t m_CurDirection;
 
 	matrix m_mComposition;
-	vec m_vCarPercent;
 
 	double m_LaneEccStd;
 

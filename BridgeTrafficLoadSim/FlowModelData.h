@@ -9,6 +9,7 @@ public:
 	CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars);
 	virtual ~CFlowModelData();
 
+	vec		getCarPercent() const { return m_vCarPercent; };
 	void	getFlow(size_t i, double& totalFlow, double& truckFlow);
 	void	getSpeedParams(size_t i, Normal& speed);
 	void	getGapBuffers(double& space, double& time);
@@ -24,6 +25,7 @@ protected:
 
 	vec m_vTotalFlow;
 	vec m_vTruckFlow;
+	vec m_vCarPercent;
 	std::vector<Normal> m_vSpeed;
 
 	size_t m_BlockSize;		// Typically 3600 secs - an hour

@@ -12,16 +12,17 @@ typedef std::vector< std::vector<double> > matrix;
 
 enum EFlowModel
 {
-	eNHM = 0,
-	ePoisson,
-	eCongested,
-	eConstant
+	eFM_NHM = 0,
+	eFM_Poisson,
+	eFM_Congested,
+	eFM_Constant
 };
 
 enum EVehicleModel
 {
-	eGrave = 0,
-	eGarage
+	eVM_Grave = 0,
+	eVM_Garage,
+	eVM_Constant
 };
 
 struct Normal

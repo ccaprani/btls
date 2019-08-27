@@ -9,17 +9,11 @@ CVehicleModelData::CVehicleModelData(EVehicleModel vm, CVehicleClassification* p
 	m_LaneEccStd = g_ConfigData.Gen.LANE_ECCENTRICITY_STD / 100; // cm to m
 
 	m_mComposition = lfc.getComposition();
-	m_vCarPercent = lfc.getCarPercent();
 }
 
 CVehicleModelData::~CVehicleModelData()
 {
 
-}
-
-double CVehicleModelData::getCarPercent(size_t i) const
-{
-	return m_vCarPercent.at(i);
 }
 
 vec CVehicleModelData::getComposition(size_t i) const

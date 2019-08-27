@@ -17,7 +17,6 @@
 #include "CSVParse.h"
 #include "TriModalNormal.h"
 #include "TrafficData.h"
-#include "LaneFlow.h"
 
 class CTrafficFiles
 {

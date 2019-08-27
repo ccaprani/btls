@@ -3,10 +3,10 @@
 #include "Lane.h"
 #include "VehicleGenerator.h"
 #include "Distribution.h"
-#include "LaneFlow.h"
+#include "LaneFlowComposition.h"
 #include "FlowGenerator.h"
 #include "VehicleGenGrave.h"
-#include "LaneFlowComposition.h"
+#include "VehicleGenConstant.h"
 
 class CLaneGenTraffic : public CLane
 {

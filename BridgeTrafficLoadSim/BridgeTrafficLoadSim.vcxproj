@@ -500,6 +500,7 @@
     <ClCompile Include="Vehicle.cpp" />
     <ClCompile Include="VehicleBuffer.cpp" />
     <ClCompile Include="VehicleClassification.cpp" />
+    <ClCompile Include="VehicleGenConstant.cpp" />
     <ClCompile Include="VehicleGenerator.cpp" />
     <ClCompile Include="VehicleGenGrave.cpp" />
     <ClCompile Include="VehicleModelData.cpp" />
@@ -552,6 +553,7 @@
     <ClInclude Include="Vehicle.h" />
     <ClInclude Include="VehicleBuffer.h" />
     <ClInclude Include="VehicleClassification.h" />
+    <ClInclude Include="VehicleGenConstant.h" />
     <ClInclude Include="VehicleGenerator.h" />
     <ClInclude Include="VehicleGenGrave.h" />
     <ClInclude Include="VehicleModelData.h" />

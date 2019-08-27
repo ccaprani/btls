@@ -12,9 +12,10 @@ extern CConfigData g_ConfigData;
 //////////////////////////////////////////////////////////////////////
 
 CVehicleGenerator::CVehicleGenerator(EVehicleModel vm, CVehicleModelData* pVMD)
-	: m_VehModel(vm), m_pVehModelData(pVMD)
+	: m_VehModel(vm), m_pVehModelData(pVMD), m_pVehClassification(NULL)
 {
-	m_pVehClassification = m_pVehModelData->getVehClassification();
+	if (m_pVehModelData != NULL) // not all models have data
+		m_pVehClassification = m_pVehModelData->getVehClassification();
 }
 
 CVehicleGenerator::~CVehicleGenerator()
@@ -25,6 +26,7 @@ CVehicleGenerator::~CVehicleGenerator()
 void CVehicleGenerator::update(CFlowModelData* pFMD)
 {
 	m_bModelHasCars = pFMD->getModelHasCars();
+	m_vCarPercent = pFMD->getCarPercent();
 }
 
 CVehicle* CVehicleGenerator::Generate(int iHour)
@@ -42,7 +44,7 @@ bool CVehicleGenerator::NextVehicleIsCar()
 	if (m_bModelHasCars)
 	{
 		double prop = m_RNG.GenerateUniform();
-		if (prop > m_pVehModelData->getCarPercent(m_CurHour) )
+		if (prop > m_vCarPercent.at(m_CurHour))
 			return false;	// is not a car
 		return true;		// is a car
 	}

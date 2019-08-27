@@ -4,7 +4,7 @@
 //////////////////// CVehicleGenGrave ////////////////////////
 
 CVehicleGenGrave::CVehicleGenGrave(CVehModelDataGrave* pVMD)
-	: CVehicleGenerator(eGrave, pVMD)
+	: CVehicleGenerator(eVM_Grave, pVMD)
 {
 	m_pVMD = dynamic_cast<CVehModelDataGrave*>(m_pVehModelData);
 

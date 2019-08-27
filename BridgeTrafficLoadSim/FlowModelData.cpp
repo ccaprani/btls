@@ -11,6 +11,7 @@ CFlowModelData::CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bo
 
 	m_vTotalFlow = lfc.getTotalFlow();
 	m_vTruckFlow = lfc.getTruckFlow();
+	m_vCarPercent = lfc.getCarPercent();
 	m_vSpeed = lfc.getSpeed();
 	m_BlockSize = lfc.getBlockSize();
 	m_BlockCount = lfc.getBlockCount();
@@ -47,7 +48,7 @@ void CFlowModelData::getBlockInfo(size_t& sz, size_t& n) const
 //////////// CFlowModelDataNHM //////////////
 
 CFlowModelDataNHM::CFlowModelDataNHM(CLaneFlowComposition lfc)
-	: CFlowModelData(eNHM, lfc, false) // Model does not have cars
+	: CFlowModelData(eFM_NHM, lfc, false) // Model does not have cars
 {
 	ReadDataIn();
 }
@@ -95,7 +96,7 @@ void CFlowModelDataNHM::ReadFile_NHM()
 //////////// CFlowModelDataCongested //////////////
 
 CFlowModelDataCongested::CFlowModelDataCongested(CLaneFlowComposition lfc)
-	: CFlowModelData(eCongested, lfc, true) // Model has cars
+	: CFlowModelData(eFM_Congested, lfc, true) // Model has cars
 {
 	m_GapMean = g_ConfigData.Traffic.CONGESTED_GAP;
 	m_GapStd = g_ConfigData.Traffic.CONGESTED_GAP_COEF_VAR;
@@ -121,7 +122,7 @@ void CFlowModelDataCongested::getGapParams(double& mean, double& std)
 //////////// CFlowModelDataPoisson //////////////
 
 CFlowModelDataPoisson::CFlowModelDataPoisson(CLaneFlowComposition lfc)
-	: CFlowModelData(ePoisson, lfc, true) // Model has cars
+	: CFlowModelData(eFM_Poisson, lfc, true) // Model has cars
 {
 
 }

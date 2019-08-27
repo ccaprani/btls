@@ -10,7 +10,6 @@
 #endif // _MSC_VER > 1000
 
 #include "TriModalNormal.h"
-#include "LaneFlow.h"
 
 class CTrafficData  
 {

@@ -21,7 +21,6 @@
 #include "ReadILFile.h"
 #include "BridgeFile.h"
 #include "Bridge.h"
-#include "LaneFlow.h"
 #include "LaneFlowData.h""
 // for tracking memory leaks
 #define _CRTDBG_MAP_ALLOC
@@ -54,7 +53,7 @@ void main()
 	cout << endl;
 	
 	// Set a classification model for now, but later this needs to be read in
-	CVehicleClassification* pVC = new CVehClassAxle; // CVehClassPattern; // CVehClassAxle;
+	CVehicleClassification* pVC = new CVehClassPattern; // CVehClassAxle;
 
 	double StartTime = 0.0; double EndTime = 0.0;
 	vector<CLane*> vLanes;
@@ -104,7 +103,7 @@ void GetGeneratorLanes(CVehicleClassification* pVC, vector<CLane*>& vpLanes, dou
 {
 	// Useful debugging tool - set start time higher
 	//int startday = 0;
-	StartTime = 0; // 70000; // (double)(startday)*86400;
+	StartTime = 70000; // (double)(startday)*86400;
 	EndTime = (double)(g_ConfigData.Gen.NO_DAYS)*24*3600;
 	
 	CLaneFlowData LaneFlowData; 
@@ -114,6 +113,8 @@ void GetGeneratorLanes(CVehicleClassification* pVC, vector<CLane*>& vpLanes, dou
 	g_ConfigData.Road.NO_DIRS		= LaneFlowData.getNoDirn();
 	g_ConfigData.Road.NO_LANES_DIR1 = LaneFlowData.getNoLanesDir1();
 	g_ConfigData.Road.NO_LANES_DIR2 = LaneFlowData.getNoLanesDir2();
+
+	g_ConfigData.Traffic.VEHICLE_MODEL = 1; // Constant = 1; Grave = 0
 
 	for (size_t i = 0; i < LaneFlowData.getNoLanes(); ++i)
 	{

@@ -97,7 +97,7 @@ private:
 class CFlowGenConstant : public CFlowGenerator
 {
 public:
-	CFlowGenConstant(CFlowModelData* pFDM) :CFlowGenerator(NULL,eConstant){};
+	CFlowGenConstant(CFlowModelData* pFDM) :CFlowGenerator(NULL,eFM_Constant){};
 	virtual ~CFlowGenConstant(){};
 
 protected:

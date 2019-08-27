@@ -117,7 +117,7 @@ void CFlowGenerator::setMinGap()
 
 //////////// CFlowGenNHM ///////////////
 
-CFlowGenNHM::CFlowGenNHM(CFlowModelDataNHM* pFMD) : CFlowGenerator(pFMD, eNHM)
+CFlowGenNHM::CFlowGenNHM(CFlowModelDataNHM* pFMD) : CFlowGenerator(pFMD, eFM_NHM)
 {
 	m_pFMD = dynamic_cast<CFlowModelDataNHM*>(m_pFlowModelData);
 
@@ -189,7 +189,7 @@ void CFlowGenNHM::updateProperties()
 
 //////////// CFlowGenCongested ///////////////
 
-CFlowGenCongested::CFlowGenCongested(CFlowModelDataCongested* pFMD) : CFlowGenerator(pFMD, eCongested)
+CFlowGenCongested::CFlowGenCongested(CFlowModelDataCongested* pFMD) : CFlowGenerator(pFMD, eFM_Congested)
 {
 	m_pFMD = dynamic_cast<CFlowModelDataCongested*>(m_pFlowModelData);
 
@@ -237,7 +237,7 @@ void CFlowGenCongested::updateProperties()
 
 ///////////// CFlowGenPoisson ///////////////
 
-CFlowGenPoisson::CFlowGenPoisson(CFlowModelDataPoisson* pFDM) : CFlowGenerator(pFDM, ePoisson)
+CFlowGenPoisson::CFlowGenPoisson(CFlowModelDataPoisson* pFDM) : CFlowGenerator(pFDM, eFM_Poisson)
 {
 	m_pFMD = dynamic_cast<CFlowModelDataPoisson*>(m_pFlowModelData);
 
