@@ -15,7 +15,7 @@ public:
 
 	virtual void prepareNextGen(double time, CVehicle* pPrevVeh, CVehicle* pNextVeh);
 	
-	size_t getHour() {return m_CurHour;};
+	size_t getCurBlock() {return m_CurBlock;};
 
 protected:
 	virtual double GenerateGap() = 0;
@@ -29,16 +29,17 @@ protected:
 	CVehicle* m_pNextVeh;
 	
 	double m_MinGap;
-	double m_vFlowRate;
-	double m_CarPerc;
-	size_t m_CurHour;
+	double m_TotalFlow;
+	double m_TruckFlow;
+	size_t m_CurBlock;		// i.e. which hour
+	size_t m_BlockSize;		// Typically 3600 secs - an hour
+	size_t m_BlockCount;	// Typically 24 blocks (hours)
 
 	double m_BufferGapSpace;
 	double m_BufferGapTime;
 
 private:
-//	void updateFlowProperties();
-	void updateHour(double time);
+	void updateBlock(double time);
 	void updateExponential();
 	void setMinGap();
 };

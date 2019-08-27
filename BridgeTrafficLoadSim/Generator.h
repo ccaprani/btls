@@ -14,12 +14,6 @@ protected:
 	void	ScaleVector(std::vector<double>& vec, double scale);
 	double	SumVector(std::vector<double> vec);
 
-	struct Normal
-	{
-		double Mean;
-		double StdDev;
-	};
-
 	CModelData* m_pModelData;
 	CDistribution m_RNG;
 };

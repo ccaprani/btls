@@ -10,8 +10,6 @@
 
 CTrafficData::CTrafficData()
 {
-	m_NoLanes = 0;
-
 	GVWRange range;
 	m_v4AxleWeight.assign(12, range);
 	m_v5AxleWeight.assign(12, range);
@@ -83,37 +81,6 @@ std::vector<double> CTrafficData::GetGVWRange(int iTruck, int iRange)
 	return data;
 }
 
-//double CTrafficData::GetClassPercent(int iLane, int iClass)
-//{
-//	double val = 0.0;
-//
-//	if(iLane < m_NoLanes)
-//	{
-//		val = m_vCP[iLane][iClass-2]; 
-//	}
-//	return val;
-//}
-
-//std::vector<double> CTrafficData::GetClassPercent(int iLane)
-//{
-//	return m_vCP[iLane];
-//}
-
-//double CTrafficData::GetPercent_Cars()
-//{
-//	return m_CarPercent;
-//}
-
-//int CTrafficData::GetNoLanes()
-//{
-//	return m_NoLanes;
-//}
-
-//double CTrafficData::GetPercent_OtherVehs()
-//{
-//	return 1 - m_CarPercent;
-//}
-
 CTriModalNormal CTrafficData::GetGVW(int dir, int iTruck)
 {
 	if(dir == 1)
@@ -122,55 +89,12 @@ CTriModalNormal CTrafficData::GetGVW(int dir, int iTruck)
 		return m_vDir2GVW[iTruck - 2];
 }	
 
-//CTriModalNormal CTrafficData::GetSpeed(int dir)
-//{
-//	if(dir == 1)
-//		return m_vSpeed[0];
-//	else
-//		return m_vSpeed[1];
-//}
-
-std::vector< std::vector<double> > CTrafficData::GetNHM()
+CTriModalNormal CTrafficData::GetSpeed(int dir)
 {
-	return m_vNHM;
-}
-
-//std::vector< std::vector<double> > CTrafficData::GetFlowRate()
-//{
-//	return m_vFlowRate;
-//}
-
-//double CTrafficData::GetFlowRate(int iLane, int iHour)
-//{
-//	return m_vFlowRate[iLane][iHour];
-//}
-
-//std::vector<double> CTrafficData::GetFlowRate(int iLane)
-//{
-//	return m_vFlowRate[iLane];
-//}
-
-size_t CTrafficData::getNoDirn(void)
-{
-	return m_NoDirn;
-}
-
-
-size_t CTrafficData::getNoLanes(void)
-{
-	return m_NoLanes;
-}
-
-
-size_t CTrafficData::getNoLanesDir1(void)
-{
-	return m_NoLanesDir1;
-}
-
-
-size_t CTrafficData::getNoLanesDir2(void)
-{
-	return m_NoLanesDir2;
+	if (dir == 1)
+		return m_vSpeed[0];
+	else
+		return m_vSpeed[1];
 }
 
 /////////////// THE SETS //////////////////
@@ -241,18 +165,6 @@ void CTrafficData::Add45AxleWeight(std::vector<double> data, int iTruck, int iRa
 		m_v5AxleWeight[iRange] = range;
 }
 
-//void CTrafficData::AddClassPercent(int iLane, int iClass, double val)
-//{
-//	if( iLane >= m_NoLanes )
-//	{
-//		std::vector<double> temp(4, 0.0);
-//		m_NoLanes++;
-//		m_vCP.push_back(temp);
-//	}
-//	
-//	m_vCP[iLane][iClass-2] = val; 
-//}
-
 void CTrafficData::AddGVW(int dir, std::vector<CTriModalNormal> vGVW)
 {
 	if(dir == 1)
@@ -264,38 +176,4 @@ void CTrafficData::AddGVW(int dir, std::vector<CTriModalNormal> vGVW)
 void CTrafficData::AddSpeed(std::vector<CTriModalNormal> vSpeed)
 {
 	m_vSpeed = vSpeed;
-}
-
-void CTrafficData::SetNHM(	std::vector< std::vector<double> > NHM )
-{
-	m_vNHM = NHM;
-}
-
-//void CTrafficData::SetCarPercent(double perc)
-//{
-//	m_CarPercent = perc;
-//}
-//
-//void CTrafficData::SetFlowRate(	std::vector< std::vector<double> > vFlowRate )
-//{
-//	m_vFlowRate = vFlowRate;
-//}
-
-void CTrafficData::SetLaneFlow(std::vector<CLaneFlow> lane_flow)
-{
-	m_vLaneFlow = lane_flow;
-	m_NoLanes = m_vLaneFlow.size();
-	m_NoDirn = 0;
-	m_NoLanesDir1 = 0;
-	m_NoLanesDir2 = 0;
-	for(size_t i = 0; i < m_NoLanes; ++i)
-	{
-		int cur_dir = m_vLaneFlow.at(i).getDirn();
-		if(cur_dir > m_NoDirn) m_NoDirn = cur_dir;
-		if(cur_dir == 1)
-			++m_NoLanesDir1;
-		else
-			++m_NoLanesDir2;
-	}
-
 }

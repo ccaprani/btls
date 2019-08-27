@@ -22,6 +22,7 @@
 #include "BridgeFile.h"
 #include "Bridge.h"
 #include "LaneFlow.h"
+#include "LaneFlowData.h""
 // for tracking memory leaks
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -53,7 +54,7 @@ void main()
 	cout << endl;
 	
 	// Set a classification model for now, but later this needs to be read in
-	CVehicleClassification* pVC = new CVehClassPattern; // CVehClassAxle;
+	CVehicleClassification* pVC = new CVehClassAxle; // CVehClassPattern; // CVehClassAxle;
 
 	double StartTime = 0.0; double EndTime = 0.0;
 	vector<CLane*> vLanes;
@@ -103,27 +104,21 @@ void GetGeneratorLanes(CVehicleClassification* pVC, vector<CLane*>& vpLanes, dou
 {
 	// Useful debugging tool - set start time higher
 	//int startday = 0;
-	StartTime = 70000; // (double)(startday)*86400;
+	StartTime = 0; // 70000; // (double)(startday)*86400;
 	EndTime = (double)(g_ConfigData.Gen.NO_DAYS)*24*3600;
 	
-	// read in the vehicle generation data
-	CTrafficFiles DataIn;
-	//DataIn.ReadPhysical();
-	//if( g_ConfigData.Traffic.HEADWAY_MODEL == 0 )
-	//	DataIn.ReadFile_NHM();
-	vector<CLaneFlow> vLaneFlow = DataIn.ReadLaneFlow(g_ConfigData.Road.LANES_FILE);
-	CTrafficData TD = DataIn.GetTrafficData();
-	TD.SetLaneFlow(vLaneFlow);
+	CLaneFlowData LaneFlowData; 
+	LaneFlowData.ReadDataIn();
 	
-	g_ConfigData.Road.NO_LANES		= TD.getNoLanes();
-	g_ConfigData.Road.NO_DIRS		= TD.getNoDirn();
-	g_ConfigData.Road.NO_LANES_DIR1 = TD.getNoLanesDir1();
-	g_ConfigData.Road.NO_LANES_DIR2 = TD.getNoLanesDir2();
+	g_ConfigData.Road.NO_LANES		= LaneFlowData.getNoLanes();
+	g_ConfigData.Road.NO_DIRS		= LaneFlowData.getNoDirn();
+	g_ConfigData.Road.NO_LANES_DIR1 = LaneFlowData.getNoLanesDir1();
+	g_ConfigData.Road.NO_LANES_DIR2 = LaneFlowData.getNoLanesDir2();
 
-	for(size_t i = 0; i < TD.getNoLanes(); ++i)
+	for (size_t i = 0; i < LaneFlowData.getNoLanes(); ++i)
 	{
 		CLaneGenTraffic* pLane = new CLaneGenTraffic;
-		pLane->setLaneData(pVC, TD, vLaneFlow.at(i), StartTime);
+		pLane->setLaneData(pVC, LaneFlowData.getLaneComp(i), StartTime);
 		vpLanes.push_back(pLane);
 	}
 }

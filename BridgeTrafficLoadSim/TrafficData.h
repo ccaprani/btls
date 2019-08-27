@@ -15,29 +15,15 @@
 class CTrafficData  
 {
 public:
-
 	CTrafficData();
 	virtual ~CTrafficData();
 
+	std::vector<double>		GetGVWRange(int iTruck, int iRange);
 	CTriModalNormal			GetSpacingDist(int iTruck, int iSpace);
 	CTriModalNormal			GetAxleWeightDist(int iTruck, int iAxle);
 	CTriModalNormal			GetTrackWidthDist(int iTruck, int iAxle);
-	//CTriModalNormal			GetSpeed(int dir);
 	CTriModalNormal			GetGVW(int dir, int iTruck);
 
-	std::vector< std::vector<double> > GetNHM();
-	//std::vector< std::vector<double> > GetFlowRate();
-	
-	std::vector<double>		GetGVWRange(int iTruck, int iRange);
-	std::vector<double>		GetClassPercent(int iLane);	
-	std::vector<double>		GetFlowRate(int iLane);
-	
-	//int						GetNoLanes();
-	//double					GetClassPercent(int iLane, int iClass);	
-	//double					GetFlowRate(int iLane, int iHour);
-	//double					GetPercent_OtherVehs();
-	//double					GetPercent_Cars();	
-	
 	void Add2AxleSpacings(std::vector<CTriModalNormal> vSpace);
 	void Add3AxleSpacings(std::vector<CTriModalNormal> vSpace);
 	void Add4AxleSpacings(std::vector<CTriModalNormal> vSpace);
@@ -53,20 +39,12 @@ public:
 	void Add45AxleWeight(std::vector<double> data, int iTruck, int iRange);
 	
 	void AddGVW(int dir, std::vector<CTriModalNormal> vGVW);
-	void AddSpeed(std::vector<CTriModalNormal> vSpeed);	
-	//void AddClassPercent(int iLane, int iClass, double val);
 	
-	//void SetCarPercent(double perc);
-	void SetNHM( std::vector< std::vector<double> > NHM );
-	//void SetFlowRate( std::vector< std::vector<double> > vFlowRate );
-	void SetLaneFlow(std::vector<CLaneFlow> lane_flow);
-	size_t getNoDirn(void);
-	size_t getNoLanes(void);
-	size_t getNoLanesDir1(void);
-	size_t getNoLanesDir2(void);
+	// Speed is kept here as part of the class modelling
+	void AddSpeed(std::vector<CTriModalNormal> vSpeed);	
+	CTriModalNormal			GetSpeed(int dir);
 	
 private:
-	//double m_CarPercent;
 	std::vector<CTriModalNormal> m_v2AxleSpacings;
 	std::vector<CTriModalNormal> m_v3AxleSpacings;
 	std::vector<CTriModalNormal> m_v4AxleSpacings;
@@ -97,18 +75,8 @@ private:
 		Dist WT;
 	};
 	
-	int m_NoDirn;
-	size_t m_NoLanes;
-	int m_NoLanesDir1;
-	int m_NoLanesDir2;
-
 	std::vector<GVWRange> m_v4AxleWeight;
 	std::vector<GVWRange> m_v5AxleWeight;
-
-	//std::vector< std::vector<double> > m_vCP;
-	std::vector< std::vector<double> > m_vNHM;
-	//std::vector< std::vector<double> > m_vFlowRate;
-	std::vector<CLaneFlow> m_vLaneFlow;
 };
 
 #endif // !defined(AFX_TRAFFICDATA_H__30B186A2_C2CB_47A5_BB16_7566527FC87B__INCLUDED_)

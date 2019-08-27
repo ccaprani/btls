@@ -19,6 +19,5 @@ private:
 	void GenerateCommonProps(CVehicle* pVeh, int nAxles);
 
 	CVehModelDataGrave* m_pVMD;
-	CTrafficData m_TD; // may merge into CVehModelDataGrave later on
 };
 

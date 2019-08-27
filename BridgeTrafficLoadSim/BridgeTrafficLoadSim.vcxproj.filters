@@ -99,9 +99,6 @@
     <ClCompile Include="TrafficFiles.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LaneFlow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="LaneGenTraffic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -151,6 +148,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VehModelDataGrave.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LaneFlowComposition.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LaneFlowData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -245,9 +248,6 @@
     <ClInclude Include="TrafficFiles.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LaneFlow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="LaneGenTraffic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -300,6 +300,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VehModelDataGrave.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LaneFlowComposition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LaneFlowData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

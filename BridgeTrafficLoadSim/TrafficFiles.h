@@ -26,10 +26,7 @@ public:
 	virtual ~CTrafficFiles();
 	
 	CTrafficData GetTrafficData();
-	void ReadAll(int HWmodel);
 	void ReadPhysical();
-	void ReadFile_NHM();
-	std::vector<CLaneFlow> ReadLaneFlow(std::string file);
 
 private:
 	CCSVParse m_CSV;	

@@ -11,19 +11,20 @@ extern CConfigData g_ConfigData;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CVehicleGenerator::CVehicleGenerator(CVehicleModelData* pVMD, EVehicleModel vm)
-	: m_pVehModelData(pVMD), m_VehModel(vm)
+CVehicleGenerator::CVehicleGenerator(EVehicleModel vm, CVehicleModelData* pVMD)
+	: m_VehModel(vm), m_pVehModelData(pVMD)
 {
-	HEADWAY_MODEL = g_ConfigData.Traffic.HEADWAY_MODEL;
-	VEHICLE_MODEL = g_ConfigData.Traffic.VEHICLE_MODEL;
-
-	m_pVehClassification = pVMD->getVehClassification();
-	m_LaneFlow = pVMD->getLaneFlow();
+	m_pVehClassification = m_pVehModelData->getVehClassification();
 }
 
 CVehicleGenerator::~CVehicleGenerator()
 {
 
+}
+
+void CVehicleGenerator::update(CFlowModelData* pFMD)
+{
+	m_bModelHasCars = pFMD->getModelHasCars();
 }
 
 CVehicle* CVehicleGenerator::Generate(int iHour)
@@ -38,14 +39,11 @@ CVehicle* CVehicleGenerator::Generate(int iHour)
 
 bool CVehicleGenerator::NextVehicleIsCar()
 {
-	// cars are only possible with HW of 5 (congestion) or 6 (FF w/ cars)
-	if(HEADWAY_MODEL == 5 || HEADWAY_MODEL == 6)
+	if (m_bModelHasCars)
 	{
 		double prop = m_RNG.GenerateUniform();
-		// if( prop > m_TD.GetPercent_Cars() )
-		if( prop > m_LaneFlow.getCP_cars(m_CurHour) )
+		if (prop > m_pVehModelData->getCarPercent(m_CurHour) )
 			return false;	// is not a car
-		
 		return true;		// is a car
 	}
 	else

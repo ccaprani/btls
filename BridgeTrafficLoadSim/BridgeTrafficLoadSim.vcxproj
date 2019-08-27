@@ -484,7 +484,8 @@
     <ClCompile Include="InfluenceSurface.cpp" />
     <ClCompile Include="Lane.cpp" />
     <ClCompile Include="LaneFileTraffic.cpp" />
-    <ClCompile Include="LaneFlow.cpp" />
+    <ClCompile Include="LaneFlowComposition.cpp" />
+    <ClCompile Include="LaneFlowData.cpp" />
     <ClCompile Include="LaneGenTraffic.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ManagerBase.cpp" />
@@ -533,7 +534,8 @@
     <ClInclude Include="InfluenceSurface.h" />
     <ClInclude Include="Lane.h" />
     <ClInclude Include="LaneFileTraffic.h" />
-    <ClInclude Include="LaneFlow.h" />
+    <ClInclude Include="LaneFlowComposition.h" />
+    <ClInclude Include="LaneFlowData.h" />
     <ClInclude Include="LaneGenTraffic.h" />
     <ClInclude Include="ManagerBase.h" />
     <ClInclude Include="Matrix.h" />

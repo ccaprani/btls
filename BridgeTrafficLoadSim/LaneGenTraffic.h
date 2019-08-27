@@ -6,6 +6,7 @@
 #include "LaneFlow.h"
 #include "FlowGenerator.h"
 #include "VehicleGenGrave.h"
+#include "LaneFlowComposition.h"
 
 class CLaneGenTraffic : public CLane
 {
@@ -15,7 +16,7 @@ public:
 
 	virtual CVehicle* GetNextVehicle();
 	
-	void setLaneData(CVehicleClassification* pVC, CTrafficData TD, CLaneFlow lane_flow, double starttime);
+	void setLaneData(CVehicleClassification* pVC, CLaneFlowComposition lfc, double starttime);
 
 private:
 	void	GenNextArrival();

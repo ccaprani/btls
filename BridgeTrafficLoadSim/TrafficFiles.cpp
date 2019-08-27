@@ -26,14 +26,6 @@ CTrafficFiles::~CTrafficFiles()
 
 }
 
-void CTrafficFiles::ReadAll(int HWmodel)
-{
-	ReadPhysical();
-
-	if(HWmodel == 0)
-		ReadFile_NHM(); // NHM
-}
-
 void CTrafficFiles::ReadPhysical()
 {
 	ReadFile_AW23();
@@ -298,62 +290,7 @@ void CTrafficFiles::ReadFile_GVW()
 }
 
 
-void CTrafficFiles::ReadFile_NHM()
-{
-	string file = m_Path + "NHM.csv";
-	m_CSV.OpenFile(file, ",");
-
-	std::vector< std::vector<double> > NHM;
-
-	int noRows = 0;
-	string line;
-
-	// get no of rows
-	m_CSV.getline(line);
-	noRows = m_CSV.stringToInt( m_CSV.getfield(0) ) + 3;
-
-	std::vector<double> temp2(noRows,0.0);
-	NHM.assign(noRows,temp2);
-
-	NHM[0][0] = noRows - 3; // ie the no of flow intervals
-	
-	for(int i = 1; i < noRows; i++) // first row already done
-	{
-		m_CSV.getline(line);
-		NHM[i] = m_CSV.GetVectorFromCurrentLine();
-	};
-
-	m_TD.SetNHM( NHM );
-	m_CSV.CloseFile();
-}
-
 CTrafficData CTrafficFiles::GetTrafficData()
 {
 	return m_TD;
-}
-
-std::vector<CLaneFlow> CTrafficFiles::ReadLaneFlow(std::string file)
-{
-	std::vector<CLaneFlow> vLaneFlow;
-
-	m_CSV.OpenFile(file, ",");
-	string line;
-
-	while(m_CSV.getline(line))	// while another lane
-	{
-		CLaneFlow lane_flow;
-		lane_flow.setLaneNo( m_CSV.stringToInt( m_CSV.getfield(0) ) -1 ); // -1: zero-based
-		lane_flow.setDirn( m_CSV.stringToInt( m_CSV.getfield(1) ) );
-		for (int iHour = 0; iHour < 24; ++iHour)
-		{
-			if(m_CSV.getline(line))
-				lane_flow.setHourData( m_CSV.GetVectorFromCurrentLine() );
-			else
-				cout << "ERROR: not enough hours in lane " << lane_flow.getLaneNo() 
-					 << "  - no flow data beyond hour " << iHour << endl;
-		}
-		vLaneFlow.push_back(lane_flow);
-	}
-	m_CSV.CloseFile();
-	return vLaneFlow;
 }

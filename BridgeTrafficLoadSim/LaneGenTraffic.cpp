@@ -28,17 +28,16 @@ CLaneGenTraffic::~CLaneGenTraffic(void)
 }
 
 
-void CLaneGenTraffic::setLaneData(CVehicleClassification* pVC, CTrafficData TD, CLaneFlow lane_flow, double starttime)
+void CLaneGenTraffic::setLaneData(CVehicleClassification* pVC, CLaneFlowComposition lfc, double starttime)
 {
 	m_NextArrivalTime = starttime;
 
-	m_LaneIndex = lane_flow.getLaneNo();
-	m_Direction = lane_flow.getDirn();
-	// Map vehicles to lane using zero based cumulative lane no.
+	m_Direction = lfc.getDirn();
+	// Map vehicles to local lane using zero based cumulative lane no.
 	if (m_Direction == 2)
-		m_LaneIndex = NO_LANES - lane_flow.getLaneNo();
+		m_LaneIndex = NO_LANES - lfc.getGlobalLaneNo();
 	else
-		m_LaneIndex = lane_flow.getLaneNo();
+		m_LaneIndex = lfc.getGlobalLaneNo();
 
 	// Vehicle model must come first for NHM temporary
 	switch (VEHICLE_MODEL)
@@ -47,8 +46,9 @@ void CLaneGenTraffic::setLaneData(CVehicleClassification* pVC, CTrafficData TD, 
 		//	m_pFlowModelData = new CFlowModelDataNHM(lane_flow, m_pVehicleGen->GetNHM()); // TEMPORARY
 		//	m_pFlowGen = new CFlowGenNHM(dynamic_cast<CFlowModelDataNHM*>(m_pFlowModelData));
 		//	break;
+	case 0:
 	default:	// Grave
-		m_pVehModelData = new CVehModelDataGrave(pVC, lane_flow);
+		m_pVehModelData = new CVehModelDataGrave(pVC,lfc);
 		m_pVehicleGen = new CVehicleGenGrave(dynamic_cast<CVehModelDataGrave*>(m_pVehModelData));
 		break;
 	}
@@ -56,7 +56,7 @@ void CLaneGenTraffic::setLaneData(CVehicleClassification* pVC, CTrafficData TD, 
 	switch (HEADWAY_MODEL)
 	{
 	case 0:		// NHM
-		m_pFlowModelData = new CFlowModelDataNHM(lane_flow); // TEMPORARY
+		m_pFlowModelData = new CFlowModelDataNHM(lfc); // TEMPORARY
 		m_pFlowGen = new CFlowGenNHM(dynamic_cast<CFlowModelDataNHM*>(m_pFlowModelData));
 		break;
 	case 1:		// Constant test
@@ -64,14 +64,17 @@ void CLaneGenTraffic::setLaneData(CVehicleClassification* pVC, CTrafficData TD, 
 		m_pFlowGen = new CFlowGenConstant(NULL);
 		break;
 	case 5:		// Congestion
-		m_pFlowModelData = new CFlowModelDataCongested(lane_flow);
+		m_pFlowModelData = new CFlowModelDataCongested(lfc);
 		m_pFlowGen = new CFlowGenCongested(dynamic_cast<CFlowModelDataCongested*>(m_pFlowModelData));
 		break;
 	default:	// Poisson arrivals
-		m_pFlowModelData = new CFlowModelDataPoisson(lane_flow);
+		m_pFlowModelData = new CFlowModelDataPoisson(lfc);
 		m_pFlowGen = new CFlowGenPoisson(dynamic_cast<CFlowModelDataPoisson*>(m_pFlowModelData));
 		break;
 	}
+
+	// Now update the vehicle generator about the flow model
+	m_pVehicleGen->update(m_pFlowModelData);
 
 	GenNextArrival();	// the first arrival generation
 }
@@ -96,7 +99,7 @@ void CLaneGenTraffic::GenNextArrival()
 void CLaneGenTraffic::GenNextVehicle()
 {
 	m_pPrevVeh = m_pNextVeh;	// assign as previous vehicle
-	m_pNextVeh = m_pVehicleGen->Generate(m_pFlowGen->getHour());
+	m_pNextVeh = m_pVehicleGen->Generate(m_pFlowGen->getCurBlock());
 	m_pNextVeh->setDirection(m_Direction);
 	m_pNextVeh->setGlobalLane(m_LaneIndex + 1, NO_LANES);
 }

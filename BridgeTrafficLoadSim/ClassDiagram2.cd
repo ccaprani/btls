@@ -123,13 +123,6 @@
   </Class>
   <Class Name="CEventBuffer" Collapsed="true">
     <Position X="1.25" Y="1.25" Width="1.5" />
-    <NestedTypes>
-      <Enum Name="CEventBuffer::Mode" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>EventBuffer.h</NewMemberFileName>
-        </TypeIdentifier>
-      </Enum>
-    </NestedTypes>
     <TypeIdentifier>
       <HashCode>AAAAICQAAAAQAABEIgIAAAACAAAAAAAgIAgAAAAAARA=</HashCode>
       <FileName>EventBuffer.h</FileName>
@@ -177,34 +170,10 @@
       <FileName>LaneFileTraffic.h</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="CLaneFlow" Collapsed="true">
-    <Position X="13.25" Y="1.5" Width="1.5" />
-    <NestedTypes>
-      <Struct Name="CLaneFlow::Speed" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>LaneFlow.h</NewMemberFileName>
-        </TypeIdentifier>
-      </Struct>
-      <Struct Name="CLaneFlow::CP" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>LaneFlow.h</NewMemberFileName>
-        </TypeIdentifier>
-      </Struct>
-      <Struct Name="CLaneFlow::HourData" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>LaneFlow.h</NewMemberFileName>
-        </TypeIdentifier>
-      </Struct>
-    </NestedTypes>
-    <TypeIdentifier>
-      <HashCode>AAIAFEAAAAAIQQgABAACAAAAAAAAAEAEAADAgACMACA=</HashCode>
-      <FileName>LaneFlow.h</FileName>
-    </TypeIdentifier>
-  </Class>
   <Class Name="CLaneGenTraffic" Collapsed="true">
     <Position X="15.75" Y="6.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AgABAACDAAAIAAEAAAAEAQkCABgIACVBAYDACIAACBA=</HashCode>
+      <HashCode>AgABAAAQAAAAAAAAQAAAAgAiAJAAACAAAICAAIAAECA=</HashCode>
       <FileName>LaneGenTraffic.h</FileName>
     </TypeIdentifier>
   </Class>
@@ -252,27 +221,15 @@
   </Class>
   <Class Name="CTrafficData" Collapsed="true">
     <Position X="7.25" Y="8.25" Width="1.5" />
-    <NestedTypes>
-      <Struct Name="CTrafficData::Dist" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>TrafficData.h</NewMemberFileName>
-        </TypeIdentifier>
-      </Struct>
-      <Struct Name="CTrafficData::GVWRange" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>TrafficData.h</NewMemberFileName>
-        </TypeIdentifier>
-      </Struct>
-    </NestedTypes>
     <TypeIdentifier>
-      <HashCode>DwFIgAwQBQAJKgICASRAGCGCBgECh2ABAECNABAQAIA=</HashCode>
+      <HashCode>BQFIAAgQBAAIKgICACQAGACCAgEAhmABAECFABAAAIA=</HashCode>
       <FileName>TrafficData.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="CTrafficFiles" Collapsed="true">
     <Position X="7.25" Y="7.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AIAAAABBgAAAAAEAEIAAAACAAgAAAAAAECAGgAAQAAA=</HashCode>
+      <HashCode>AIAAAABAgAAAAAEAAIAAAACAAgAAAAAAECAEgAAQAAA=</HashCode>
       <FileName>TrafficFiles.h</FileName>
     </TypeIdentifier>
   </Class>
@@ -300,7 +257,7 @@
   <Class Name="CVehicleGenerator" Collapsed="true">
     <Position X="15.75" Y="7.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>ABEACYACAAAIAAEAQCBAABAAAIgAAAAEwIiEAEAQAAA=</HashCode>
+      <HashCode>ABEAGAAAAAAIAAAAACAAARAAAIAAAAAAQAiAAEAEAAA=</HashCode>
       <FileName>VehicleGenerator.h</FileName>
     </TypeIdentifier>
   </Class>
@@ -309,6 +266,13 @@
     <TypeIdentifier>
       <HashCode>CQAQiAQAIQAkAACAAAJgALggBgACBQAAAACAAAAAAQA=</HashCode>
       <FileName>VehicleTrafficFile.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CLaneFlow" Collapsed="true">
+    <Position X="13.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAFEAAAAAIQQgABAACAAAAAAAAAEAEAADAgACMACA=</HashCode>
+      <FileName>laneflow.h</FileName>
     </TypeIdentifier>
   </Class>
   <Struct Name="CFlowRateData" Collapsed="true">

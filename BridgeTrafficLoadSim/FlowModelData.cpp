@@ -3,11 +3,17 @@
 
 extern CConfigData g_ConfigData;
 
-CFlowModelData::CFlowModelData(CLaneFlow lf, EFlowModel fm) 
-	: m_LaneFlow(lf), m_Model(fm)
+CFlowModelData::CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars)
+	: m_Model(fm), m_bModelHasCars(bCars)
 {
 	m_BufferGapSpace = 1.0; // MAGIC NUMBER - internal gap buffer (e.g. tyre diameter)
 	m_BufferGapTime = 0.1;
+
+	m_vTotalFlow = lfc.getTotalFlow();
+	m_vTruckFlow = lfc.getTruckFlow();
+	m_vSpeed = lfc.getSpeed();
+	m_BlockSize = lfc.getBlockSize();
+	m_BlockCount = lfc.getBlockCount();
 }
 
 
@@ -15,20 +21,15 @@ CFlowModelData::~CFlowModelData()
 {
 }
 
-double CFlowModelData::getFlow(size_t iHour)
+void CFlowModelData::getFlow(size_t i, double& totalFlow, double& truckFlow)
 {
-	return m_LaneFlow.getFlow((int)iHour);
+	totalFlow = m_vTotalFlow.at(i);
+	truckFlow = m_vTruckFlow.at(i);
 }
 
-double CFlowModelData::getCP_cars(size_t iHour)
+void CFlowModelData::getSpeedParams(size_t i, Normal& speed)
 {
-	return m_LaneFlow.getCP_cars((int)iHour);
-}
-
-void CFlowModelData::getSpeedParams(size_t iHour, double& mean, double& std)
-{
-	mean = m_LaneFlow.getSpeedMean((int)iHour);
-	std = m_LaneFlow.getSpeedStDev((int)iHour);
+	speed = m_vSpeed.at(i);
 }
 
 void CFlowModelData::getGapBuffers(double& space, double& time)
@@ -37,10 +38,16 @@ void CFlowModelData::getGapBuffers(double& space, double& time)
 	time = m_BufferGapTime;
 }
 
+void CFlowModelData::getBlockInfo(size_t& sz, size_t& n) const
+{
+	sz = m_BlockSize;
+	n = m_BlockCount;
+}
+
 //////////// CFlowModelDataNHM //////////////
 
-CFlowModelDataNHM::CFlowModelDataNHM(CLaneFlow lf) 
-	: CFlowModelData(lf, eNHM)
+CFlowModelDataNHM::CFlowModelDataNHM(CLaneFlowComposition lfc)
+	: CFlowModelData(eNHM, lfc, false) // Model does not have cars
 {
 	ReadDataIn();
 }
@@ -87,8 +94,8 @@ void CFlowModelDataNHM::ReadFile_NHM()
 
 //////////// CFlowModelDataCongested //////////////
 
-CFlowModelDataCongested::CFlowModelDataCongested(CLaneFlow lf)
-	: CFlowModelData(lf, eCongested)
+CFlowModelDataCongested::CFlowModelDataCongested(CLaneFlowComposition lfc)
+	: CFlowModelData(eCongested, lfc, true) // Model has cars
 {
 	m_GapMean = g_ConfigData.Traffic.CONGESTED_GAP;
 	m_GapStd = g_ConfigData.Traffic.CONGESTED_GAP_COEF_VAR;
@@ -113,8 +120,8 @@ void CFlowModelDataCongested::getGapParams(double& mean, double& std)
 
 //////////// CFlowModelDataPoisson //////////////
 
-CFlowModelDataPoisson::CFlowModelDataPoisson(CLaneFlow lf) 
-	: CFlowModelData(lf, ePoisson)
+CFlowModelDataPoisson::CFlowModelDataPoisson(CLaneFlowComposition lfc)
+	: CFlowModelData(ePoisson, lfc, true) // Model has cars
 {
 
 }

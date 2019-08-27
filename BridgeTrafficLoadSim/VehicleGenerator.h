@@ -8,16 +8,18 @@
 #include "Generator.h"
 #include "Vehicle.h"
 #include "VehicleModelData.h"
+#include "FlowModelData.h"
 #include "TrafficData.h"
 #include "LaneFlow.h"
 
 class CVehicleGenerator : public CGenerator  
 {
 public:
-	CVehicleGenerator(CVehicleModelData* pVMD, EVehicleModel vm);
+	CVehicleGenerator(EVehicleModel vm, CVehicleModelData* pVMD);
 	virtual ~CVehicleGenerator();
 	
 	CVehicle* Generate(int iHour);
+	virtual void update(CFlowModelData* pFMD);
 
 protected:
 	virtual void GenerateVehicle(CVehicle* pVeh) = 0;
@@ -28,6 +30,7 @@ protected:
 	
 	CVehicleModelData* m_pVehModelData;
 	EVehicleModel m_VehModel;
+	bool m_bModelHasCars;
 
 	size_t m_CurLane;
 	size_t m_CurDirection;
@@ -35,11 +38,7 @@ protected:
 	int m_CurHour;
 	
 	CVehicleClassification* m_pVehClassification;
-	CLaneFlow m_LaneFlow;	
 
 private:
-	int		HEADWAY_MODEL;
-	int		VEHICLE_MODEL;
-	double	LANE_ECCENTRICITY_STD;
-	size_t	NO_LANES;
+
 };

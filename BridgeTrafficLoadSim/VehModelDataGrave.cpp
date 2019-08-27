@@ -5,8 +5,8 @@ extern CConfigData g_ConfigData;
 
 /////////////// CVehicleModelGrave /////////////////
 
-CVehModelDataGrave::CVehModelDataGrave(CVehicleClassification* pVC, CLaneFlow lf)
-	: CVehicleModelData(pVC, lf, eGrave)
+CVehModelDataGrave::CVehModelDataGrave(CVehicleClassification* pVC, CLaneFlowComposition lfc)
+	: CVehicleModelData(eGrave, pVC, lfc, 5) // MAGIC NUMBER - truck class count of the Grave Model
 {
 	ReadDataIn();
 }
@@ -14,6 +14,35 @@ CVehModelDataGrave::CVehModelDataGrave(CVehicleClassification* pVC, CLaneFlow lf
 CVehModelDataGrave::~CVehModelDataGrave()
 {
 
+}
+
+std::vector<double>	CVehModelDataGrave::GetGVWRange(int iTruck, int iRange)
+{
+	return m_TD.GetGVWRange(iTruck, iRange);
+}
+
+
+CTriModalNormal	CVehModelDataGrave::GetSpacingDist(int iTruck, int iSpace)
+{
+	return m_TD.GetSpacingDist(iTruck, iSpace);
+}
+
+
+CTriModalNormal	CVehModelDataGrave::GetAxleWeightDist(int iTruck, int iAxle)
+{
+	return m_TD.GetAxleWeightDist(iTruck, iAxle);
+}
+
+
+CTriModalNormal	CVehModelDataGrave::GetTrackWidthDist(int iTruck, int iAxle)
+{
+	return m_TD.GetTrackWidthDist(iTruck, iAxle);
+}
+
+
+CTriModalNormal	CVehModelDataGrave::GetGVW(int dir, int iTruck)
+{
+	return m_TD.GetGVW(dir, iTruck);
 }
 
 void CVehModelDataGrave::ReadDataIn()

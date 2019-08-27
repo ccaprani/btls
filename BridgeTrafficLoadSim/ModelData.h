@@ -24,6 +24,18 @@ enum EVehicleModel
 	eGarage
 };
 
+struct Normal
+{
+	Normal(double m, double s)
+	{
+		Mean = m;
+		StdDev = s;
+	};
+	Normal():Mean(0.0), StdDev(0.0){};
+	double Mean;
+	double StdDev;
+};
+
 class CModelData
 {
 public:

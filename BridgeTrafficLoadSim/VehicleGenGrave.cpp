@@ -4,12 +4,11 @@
 //////////////////// CVehicleGenGrave ////////////////////////
 
 CVehicleGenGrave::CVehicleGenGrave(CVehModelDataGrave* pVMD)
-	: CVehicleGenerator(pVMD, eGrave)
+	: CVehicleGenerator(eGrave, pVMD)
 {
 	m_pVMD = dynamic_cast<CVehModelDataGrave*>(m_pVehModelData);
 
 	m_pVehClassification = m_pVMD->getVehClassification();
-	m_TD = m_pVMD->getTrafficData();
 }
 
 CVehicleGenGrave::~CVehicleGenGrave()
@@ -42,7 +41,7 @@ void CVehicleGenGrave::GenerateVehicle(CVehicle* pVeh)
 size_t CVehicleGenGrave::GenVehClass()
 {
 	double prop = m_RNG.GenerateUniform();
-	vec vCP = m_LaneFlow.getCP(m_CurHour);
+	vec vCP = m_pVMD->getComposition(m_CurHour);
 
 	int nAxles = 1;
 	double limit = 0.0;
@@ -66,7 +65,7 @@ void CVehicleGenGrave::GenerateTruck23(CVehicle *pVeh, int nAxles)
 	{
 		double val = -1.0;
 		while (val < 15 || val > 500)
-			val = m_RNG.GenerateTriModalNormal(m_TD.GetAxleWeightDist(nAxles, i));
+			val = m_RNG.GenerateTriModalNormal(m_pVMD->GetAxleWeightDist(nAxles, i));
 		vAW[i] = val*0.981;	// kg/100 to kN
 	}
 
@@ -87,7 +86,7 @@ void CVehicleGenGrave::GenerateTruck45(CVehicle *pVeh, int nAxles)
 	// Generate Axle Weights
 	double GVW = pVeh->getGVW();	// since it's already set
 	int iRange = int((GVW - 25.0) / 50.0) + 1;	// iRange - index of truck weight in 50 kN intervals
-	std::vector<double> vAWdist = m_TD.GetGVWRange(nAxles, iRange);
+	std::vector<double> vAWdist = m_pVMD->GetGVWRange(nAxles, iRange);
 	std::vector<double> vAW(5, 0.0);
 
 	for (int i = 0; i < 3; ++i)
@@ -120,7 +119,7 @@ void CVehicleGenGrave::GenerateCommonProps(CVehicle *pVeh, int nAxles)
 	// Generate GVW, AS, length properties
 	double GVW = -1.0;
 	while (GVW < 35 || GVW > 1000)
-		GVW = m_RNG.GenerateTriModalNormal(m_TD.GetGVW(m_CurDirection, nAxles));
+		GVW = m_RNG.GenerateTriModalNormal(m_pVMD->GetGVW(m_CurDirection, nAxles));
 	GVW = GVW*0.981; // kg/100 to kN
 
 	// Gen axle spacings
@@ -129,7 +128,7 @@ void CVehicleGenGrave::GenerateCommonProps(CVehicle *pVeh, int nAxles)
 	{
 		double val = -1.0;
 		while (val < 0.5 || val > 200)
-			val = m_RNG.GenerateTriModalNormal(m_TD.GetSpacingDist(nAxles, i));
+			val = m_RNG.GenerateTriModalNormal(m_pVMD->GetSpacingDist(nAxles, i));
 		vAS[i] = val / 10; // dm to m
 	}
 	double length = SumVector(vAS);
@@ -139,16 +138,16 @@ void CVehicleGenGrave::GenerateCommonProps(CVehicle *pVeh, int nAxles)
 	// do first axle and see if to be constant for all other axles
 	double val = -1.0;
 	while (val < 120.0 || val > 260.0)	// physical bounds
-		val = m_RNG.GenerateTriModalNormal(m_TD.GetTrackWidthDist(nAxles, 0));
+		val = m_RNG.GenerateTriModalNormal(m_pVMD->GetTrackWidthDist(nAxles, 0));
 	vATW[0] = val / 100; // cm to m
 	for (int i = 1; i < nAxles; ++i)
 	{
-		CTriModalNormal tmn = m_TD.GetTrackWidthDist(nAxles, i);
+		CTriModalNormal tmn = m_pVMD->GetTrackWidthDist(nAxles, i);
 		if (tmn.m_vModes[0].Mean > 1e-6)	// only generate if a new value is required
 		{
 			val = -1.0;
 			while (val < 120.0 || val > 260.0)	// physical bounds
-				val = m_RNG.GenerateTriModalNormal(m_TD.GetTrackWidthDist(nAxles, i));
+				val = m_RNG.GenerateTriModalNormal(m_pVMD->GetTrackWidthDist(nAxles, i));
 		}
 		vATW[i] = val / 100; // cm to m
 	}

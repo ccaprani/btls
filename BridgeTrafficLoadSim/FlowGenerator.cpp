@@ -1,8 +1,8 @@
 #include "FlowGenerator.h"
 
 CFlowGenerator::CFlowGenerator(CFlowModelData* pFMD, EFlowModel fm) 
-	: m_CurHour(0), m_FlowModel(fm), m_BufferGapSpace(1.0), m_BufferGapTime(0.1)
-	, m_vFlowRate(0.0), m_CarPerc(80)
+	: m_CurBlock(0), m_FlowModel(fm), m_BufferGapSpace(1.0), m_BufferGapTime(0.1)
+	, m_TotalFlow(0.0), m_TruckFlow(0.0), m_BlockSize(3600), m_BlockCount(24)
 {
 	m_pFlowModelData = pFMD;
 
@@ -12,7 +12,10 @@ CFlowGenerator::CFlowGenerator(CFlowModelData* pFMD, EFlowModel fm)
 	m_MinGap = 0.1; // 0.1 s min gap for first vehicle
 
 	if (m_pFlowModelData != NULL) // some models may not use data
+	{
 		m_pFlowModelData->getGapBuffers(m_BufferGapSpace, m_BufferGapTime);
+		m_pFlowModelData->getBlockInfo(m_BlockSize, m_BlockCount);
+	}
 
 	updateProperties(); // for first hour
 }
@@ -27,8 +30,7 @@ void CFlowGenerator::prepareNextGen(double time, CVehicle* pPrevVeh, CVehicle* p
 	m_pPrevVeh = pPrevVeh;
 	m_pNextVeh = pNextVeh;
 
-	updateHour(time);
-
+	updateBlock(time);
 	setMinGap();
 }
 
@@ -48,17 +50,19 @@ double CFlowGenerator::Generate()
 	return gap;
 }
 
-void CFlowGenerator::updateHour(double time)
+void CFlowGenerator::updateBlock(double time)
 {
-	int nHour = (int)(time/3600.0);
-	nHour = nHour % 24;	// reduce to one day
+	// This is now made more generic: 
+	// a block is usually an hour
+	// blockCount is usually 24
 
-	if (nHour - m_CurHour != 0) // if it's not the same hour
+	size_t iBlock = (int)(time / static_cast<double>(m_BlockSize) );
+	iBlock = iBlock % m_BlockCount;	// reduce to one period (i.e. day)
+
+	if (iBlock - m_CurBlock != 0) // if it's not the same hour/block
 	{
-		m_CurHour++;
-		m_CurHour = m_CurHour % 24;	// make sure under 24
-		// Give derived classes chance to update
-		//updateFlowProperties();
+		m_CurBlock++;
+		m_CurBlock = m_CurBlock % m_BlockCount;	// make sure under e.g. 24
 		updateProperties();	
 	}
 }
@@ -67,10 +71,7 @@ void CFlowGenerator::updateProperties()
 {
 	// Update flow properties
 	if (m_pFlowModelData != NULL)
-	{
-		m_vFlowRate = m_pFlowModelData->getFlow(m_CurHour);
-		m_CarPerc = m_pFlowModelData->getCP_cars(m_CurHour);
-	}
+		m_pFlowModelData->getFlow(m_CurBlock, m_TotalFlow, m_TruckFlow);
 
 	updateExponential();
 }
@@ -79,10 +80,7 @@ void CFlowGenerator::updateExponential()
 {
 	// update anything relevant to gap generation as hours changes
 
-	// We must amplify the truck flows because there are cars
-	double truckPercent = 1.0 - m_CarPerc;
-	double totalFlow = m_vFlowRate / truckPercent;
-	double mean = 3600.0 / totalFlow;
+	double mean = 3600.0 / m_TotalFlow;
 
 	m_RNG.setScale(mean);
 	m_RNG.setLocation(0.0);	// for exponential deviates
@@ -124,7 +122,7 @@ CFlowGenNHM::CFlowGenNHM(CFlowModelDataNHM* pFMD) : CFlowGenerator(pFMD, eNHM)
 	m_pFMD = dynamic_cast<CFlowModelDataNHM*>(m_pFlowModelData);
 
 	m_vNHM = m_pFMD->GetNHM();
-	m_pFMD->getSpeedParams(m_CurHour, m_Speed.Mean, m_Speed.StdDev);
+	m_pFMD->getSpeedParams(m_CurBlock, m_Speed);
 }
 
 
@@ -135,7 +133,7 @@ CFlowGenNHM::~CFlowGenNHM()
 double CFlowGenNHM::GenerateGap()
 {
 	double headwayType = m_RNG.GenerateUniform();
-	double Q = m_vFlowRate; //[m_CurHour];
+	double Q = m_TruckFlow;
 	double gap = 0.0;
 
 	// vector - vNHM: ie New Headway Model - as per IStructE paper
@@ -186,7 +184,7 @@ void CFlowGenNHM::updateProperties()
 	// update anything relevant to gap generation as hours changes
 	CFlowGenerator::updateProperties();
 
-	m_pFMD->getSpeedParams(m_CurHour, m_Speed.Mean, m_Speed.StdDev);
+	m_pFMD->getSpeedParams(m_CurBlock, m_Speed);
 }
 
 //////////// CFlowGenCongested ///////////////
@@ -243,7 +241,7 @@ CFlowGenPoisson::CFlowGenPoisson(CFlowModelDataPoisson* pFDM) : CFlowGenerator(p
 {
 	m_pFMD = dynamic_cast<CFlowModelDataPoisson*>(m_pFlowModelData);
 
-	m_pFMD->getSpeedParams(m_CurHour, m_Speed.Mean, m_Speed.StdDev);
+	m_pFMD->getSpeedParams(m_CurBlock, m_Speed);
 }
 
 CFlowGenPoisson::~CFlowGenPoisson()
@@ -265,5 +263,5 @@ void CFlowGenPoisson::updateProperties()
 	CFlowGenerator::updateProperties();
 	// update anything relevant to gap generation as hours changes
 
-	m_pFMD->getSpeedParams(m_CurHour, m_Speed.Mean, m_Speed.StdDev);
+	m_pFMD->getSpeedParams(m_CurBlock, m_Speed);
 }

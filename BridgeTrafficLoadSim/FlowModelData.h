@@ -1,30 +1,33 @@
 #pragma once
 #include <vector>
 #include "ModelData.h"
-#include "LaneFlow.h"
+#include "LaneFlowComposition.h"
 
 class CFlowModelData :	public CModelData
 {
 public:
-	CFlowModelData(CLaneFlow lf, EFlowModel fm);
+	CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars);
 	virtual ~CFlowModelData();
 
-	//virtual void ReadDataIn();
-
-	void	setLane(size_t indx);
-	double	getFlow(size_t iHour);
-	double	getCP_cars(size_t iHour);
-	void	getSpeedParams(size_t iHour, double& mean, double& std);
+	void	getFlow(size_t i, double& totalFlow, double& truckFlow);
+	void	getSpeedParams(size_t i, Normal& speed);
 	void	getGapBuffers(double& space, double& time);
 
 	EFlowModel getModel() const { return m_Model; };
+	const bool getModelHasCars() const { return m_bModelHasCars; };
+
+	void getBlockInfo(size_t& sz, size_t& n) const;
 
 protected:
 	EFlowModel m_Model;
+	const bool m_bModelHasCars;
 
-	// Probably CLaneFlow needs to be merged into CFlowModelData
-	// but we'll leave it alone for now
-	CLaneFlow m_LaneFlow;
+	vec m_vTotalFlow;
+	vec m_vTruckFlow;
+	std::vector<Normal> m_vSpeed;
+
+	size_t m_BlockSize;		// Typically 3600 secs - an hour
+	size_t m_BlockCount;	// Typically 24 blocks (hours)
 
 	double m_SpeedMean;
 	double m_SpeedStd;
@@ -33,13 +36,13 @@ protected:
 	double m_BufferGapTime;
 
 private:
-	std::vector<CLaneFlow> ReadLaneFlow(std::string file);
+
 };
 
 class CFlowModelDataNHM : public CFlowModelData
 {
 public:
-	CFlowModelDataNHM(CLaneFlow lf);
+	CFlowModelDataNHM(CLaneFlowComposition lfc);
 	virtual ~CFlowModelDataNHM();
 
 	virtual void ReadDataIn();
@@ -56,7 +59,7 @@ private:
 class CFlowModelDataCongested : public CFlowModelData
 {
 public:
-	CFlowModelDataCongested(CLaneFlow lf);
+	CFlowModelDataCongested(CLaneFlowComposition lfc);
 	virtual ~CFlowModelDataCongested();
 
 	virtual void ReadDataIn();
@@ -73,7 +76,7 @@ private:
 class CFlowModelDataPoisson : public CFlowModelData
 {
 public:
-	CFlowModelDataPoisson(CLaneFlow lf);
+	CFlowModelDataPoisson(CLaneFlowComposition lfc);
 	virtual ~CFlowModelDataPoisson();
 
 	virtual void ReadDataIn();
