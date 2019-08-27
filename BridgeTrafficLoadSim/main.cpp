@@ -40,7 +40,7 @@ void main()
 {
 	cout << "---------------------------------------------" << endl;
 	cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
-	cout << "                Version 1.2.7                " << endl;
+	cout << "                Version 1.3.0                " << endl;
 	cout << "---------------------------------------------" << endl << endl;
 
 	if (!g_ConfigData.ReadData("BTLSin.txt") )
@@ -52,12 +52,18 @@ void main()
 	cout << "Program Mode: " << g_ConfigData.Mode.PROGRAM_MODE << endl;
 	cout << endl;
 	
-	// Set a classification model for now, but later this needs to be read in
-	CVehicleClassification* pVC = new CVehClassPattern; // CVehClassAxle;
+	CVehicleClassification* pVC;
+	switch (g_ConfigData.Traffic.CLASSIFICATION)
+	{
+	case 1: // Pattern
+		pVC = new CVehClassPattern; break;
+	default: // Axle count
+		pVC = new CVehClassAxle; break;
+	}
 
 	double StartTime = 0.0; double EndTime = 0.0;
 	vector<CLane*> vLanes;
-	if (g_ConfigData.Gen.GEN_TRAFFIC) GetGeneratorLanes(pVC, vLanes, StartTime, EndTime);
+	if (g_ConfigData.Gen.GEN_TRAFFIC)	GetGeneratorLanes(pVC, vLanes, StartTime, EndTime);
 	if (g_ConfigData.Read.READ_FILE)	GetTrafficFileLanes(pVC, vLanes, StartTime, EndTime);
 	
 	vector<CBridge*> vBridges;
@@ -102,8 +108,7 @@ vector<CBridge*> PrepareBridges(double SimStartTime)
 void GetGeneratorLanes(CVehicleClassification* pVC, vector<CLane*>& vpLanes, double& StartTime, double& EndTime)
 {
 	// Useful debugging tool - set start time higher
-	//int startday = 0;
-	StartTime = 70000; // (double)(startday)*86400;
+	StartTime = 0; // (double)(startday)*86400;
 	EndTime = (double)(g_ConfigData.Gen.NO_DAYS)*24*3600;
 	
 	CLaneFlowData LaneFlowData; 
@@ -113,8 +118,6 @@ void GetGeneratorLanes(CVehicleClassification* pVC, vector<CLane*>& vpLanes, dou
 	g_ConfigData.Road.NO_DIRS		= LaneFlowData.getNoDirn();
 	g_ConfigData.Road.NO_LANES_DIR1 = LaneFlowData.getNoLanesDir1();
 	g_ConfigData.Road.NO_LANES_DIR2 = LaneFlowData.getNoLanesDir2();
-
-	g_ConfigData.Traffic.VEHICLE_MODEL = 1; // Constant = 1; Grave = 0
 
 	for (size_t i = 0; i < LaneFlowData.getNoLanes(); ++i)
 	{

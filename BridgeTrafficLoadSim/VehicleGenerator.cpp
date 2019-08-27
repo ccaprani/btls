@@ -31,6 +31,8 @@ void CVehicleGenerator::update(CFlowModelData* pFMD)
 
 CVehicle* CVehicleGenerator::Generate(int iHour)
 {
+	// Must generate a new CVehicle because once off the bridge
+	// the object is deleted
 	CVehicle* pVeh = new CVehicle;
 	m_CurHour = iHour;
 

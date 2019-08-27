@@ -159,6 +159,12 @@
     <ClCompile Include="VehicleGenConstant.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="VehicleGenGarage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VehModelDataGarage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Axle.h">
@@ -312,6 +318,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VehicleGenConstant.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VehicleGenGarage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VehModelDataGarage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

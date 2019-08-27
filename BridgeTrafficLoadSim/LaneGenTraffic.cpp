@@ -42,13 +42,13 @@ void CLaneGenTraffic::setLaneData(CVehicleClassification* pVC, CLaneFlowComposit
 	// Vehicle model must come first for NHM temporary
 	switch (VEHICLE_MODEL)
 	{
-	case 1: // Constant
+	case 1:		// Constant
 		m_pVehicleGen = new CVehicleGenConstant();
 		break;
-	//case 2:		// Library
-		//	m_pFlowModelData = new CFlowModelDataNHM(lane_flow, m_pVehicleGen->GetNHM()); // TEMPORARY
-		//	m_pFlowGen = new CFlowGenNHM(dynamic_cast<CFlowModelDataNHM*>(m_pFlowModelData));
-		//	break;
+	case 2:		// Garage
+		m_pVehModelData = new CVehModelDataGarage(pVC, lfc);
+		m_pVehicleGen = new CVehicleGenGarage(dynamic_cast<CVehModelDataGarage*>(m_pVehModelData));
+		break;
 	default:	// Grave
 		m_pVehModelData = new CVehModelDataGrave(pVC,lfc);
 		m_pVehicleGen = new CVehicleGenGrave(dynamic_cast<CVehModelDataGrave*>(m_pVehModelData));
@@ -58,7 +58,7 @@ void CLaneGenTraffic::setLaneData(CVehicleClassification* pVC, CLaneFlowComposit
 	switch (HEADWAY_MODEL)
 	{
 	case 0:		// NHM
-		m_pFlowModelData = new CFlowModelDataNHM(lfc); // TEMPORARY
+		m_pFlowModelData = new CFlowModelDataNHM(lfc);
 		m_pFlowGen = new CFlowGenNHM(dynamic_cast<CFlowModelDataNHM*>(m_pFlowModelData));
 		break;
 	case 1:		// Constant test

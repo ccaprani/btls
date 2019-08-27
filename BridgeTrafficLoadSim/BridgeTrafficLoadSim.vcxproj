@@ -502,9 +502,11 @@
     <ClCompile Include="VehicleClassification.cpp" />
     <ClCompile Include="VehicleGenConstant.cpp" />
     <ClCompile Include="VehicleGenerator.cpp" />
+    <ClCompile Include="VehicleGenGarage.cpp" />
     <ClCompile Include="VehicleGenGrave.cpp" />
     <ClCompile Include="VehicleModelData.cpp" />
     <ClCompile Include="VehicleTrafficFile.cpp" />
+    <ClCompile Include="VehModelDataGarage.cpp" />
     <ClCompile Include="VehModelDataGrave.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -555,9 +557,11 @@
     <ClInclude Include="VehicleClassification.h" />
     <ClInclude Include="VehicleGenConstant.h" />
     <ClInclude Include="VehicleGenerator.h" />
+    <ClInclude Include="VehicleGenGarage.h" />
     <ClInclude Include="VehicleGenGrave.h" />
     <ClInclude Include="VehicleModelData.h" />
     <ClInclude Include="VehicleTrafficFile.h" />
+    <ClInclude Include="VehModelDataGarage.h" />
     <ClInclude Include="VehModelDataGrave.h" />
   </ItemGroup>
   <ItemGroup>

@@ -3,8 +3,6 @@
 
 extern CConfigData g_ConfigData;
 
-/////////////// CVehicleModelGrave /////////////////
-
 CVehModelDataGrave::CVehModelDataGrave(CVehicleClassification* pVC, CLaneFlowComposition lfc)
 	: CVehicleModelData(eVM_Grave, pVC, lfc, 5) // MAGIC NUMBER - truck class count of the Grave Model
 {

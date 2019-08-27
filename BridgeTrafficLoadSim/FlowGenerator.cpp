@@ -30,12 +30,15 @@ void CFlowGenerator::prepareNextGen(double time, CVehicle* pPrevVeh, CVehicle* p
 	m_pPrevVeh = pPrevVeh;
 	m_pNextVeh = pNextVeh;
 
-	updateBlock(time);
-	setMinGap();
+	updateBlock(time);	
 }
 
 double CFlowGenerator::Generate()
 {
+	// Assign speed based on flow model, then check min gap
+	m_pNextVeh->setVelocity(GenerateSpeed());
+	setMinGap();
+
 	double gap = 0.0;
 	while (gap < m_MinGap)
 	{
@@ -43,9 +46,6 @@ double CFlowGenerator::Generate()
 //		if(gap < minGap)
 //			std::cout << "Overlap prevented: " << gap << " s < " << minGap << " s" << endl;
 	}
-
-	// Assign speed based on flow model
-	m_pNextVeh->setVelocity(GenerateSpeed());
 
 	return gap;
 }
@@ -59,9 +59,9 @@ void CFlowGenerator::updateBlock(double time)
 	size_t iBlock = (int)(time / static_cast<double>(m_BlockSize) );
 	iBlock = iBlock % m_BlockCount;	// reduce to one period (i.e. day)
 
-	if (iBlock - m_CurBlock != 0) // if it's not the same hour/block
+	if (iBlock != m_CurBlock) // if it's not the same hour/block
 	{
-		m_CurBlock++;
+		m_CurBlock = iBlock;
 		m_CurBlock = m_CurBlock % m_BlockCount;	// make sure under e.g. 24
 		updateProperties();	
 	}

@@ -49,6 +49,8 @@ public:
 	struct Read_Config
 	{
 		bool READ_FILE;
+		string GARAGE_FILE;
+		string KERNEL_FILE;
 		string TRAFFIC_FILE;
 		unsigned int FILE_FORMAT;
 		bool USE_CONSTANT_SPEED;
@@ -60,6 +62,7 @@ public:
 	{
 		int VEHICLE_MODEL;
 		int HEADWAY_MODEL;
+		int CLASSIFICATION;
 		double CONGESTED_SPACING;
 		double CONGESTED_SPEED;
 		double CONGESTED_GAP;

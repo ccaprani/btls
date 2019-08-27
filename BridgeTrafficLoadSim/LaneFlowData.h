@@ -2,6 +2,8 @@
 #include "ModelData.h"
 #include "LaneFlowComposition.h"
 
+class CVehicle; // forward declare
+
 class CLaneFlowData : public CModelData
 {
 public:
@@ -9,7 +11,7 @@ public:
 	virtual ~CLaneFlowData();
 
 	virtual void ReadDataIn();
-
+	
 	CLaneFlowComposition getLaneComp(size_t i) const;
 
 	size_t getNoDirn() const { return m_NoDir;};
@@ -20,7 +22,8 @@ public:
 private:
 	void ReadLaneFlow(std::string file);
 	void SetRoadProperties();
-
+	void ReadGarageFile();
+	
 	size_t m_NoLanes;
 	size_t m_NoDir;
 	size_t m_NoLanesDir1;
@@ -32,5 +35,7 @@ private:
 	size_t m_TruckClassCount;
 
 	std::vector<CLaneFlowComposition> m_vLaneComp;
+
+	std::vector<CVehicle*> m_vVehicles;
 };
 

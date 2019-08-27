@@ -9,11 +9,11 @@ public:
 
 	virtual void ReadDataIn();
 
-	std::vector<double>		GetGVWRange(int iTruck, int iRange);
-	CTriModalNormal			GetSpacingDist(int iTruck, int iSpace);
-	CTriModalNormal			GetAxleWeightDist(int iTruck, int iAxle);
-	CTriModalNormal			GetTrackWidthDist(int iTruck, int iAxle);
-	CTriModalNormal			GetGVW(int dir, int iTruck);
+	std::vector<double>	GetGVWRange(int iTruck, int iRange);
+	CTriModalNormal		GetSpacingDist(int iTruck, int iSpace);
+	CTriModalNormal		GetAxleWeightDist(int iTruck, int iAxle);
+	CTriModalNormal		GetTrackWidthDist(int iTruck, int iAxle);
+	CTriModalNormal		GetGVW(int dir, int iTruck);
 
 private:
 	void ReadFile_AW23();

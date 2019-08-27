@@ -42,14 +42,18 @@ void CConfigData::ExtractData()
 	str = GetNextDataLine();	Gen.TRAFFIC_FOLDER				= str;
 	str = GetNextDataLine();	Gen.TRUCK_TRACK_WIDTH			= m_CSV.stringToDouble( str);
 	str = GetNextDataLine();	Gen.LANE_ECCENTRICITY_STD		= m_CSV.stringToDouble( str);
+	str = GetNextDataLine();	Traffic.VEHICLE_MODEL			= m_CSV.stringToInt(	str);
 	str = GetNextDataLine();	Traffic.HEADWAY_MODEL			= m_CSV.stringToInt(	str);
-	//str = GetNextDataLine();	Traffic.VEHICLE_MODEL			= m_CSV.stringToInt(str);
+	str = GetNextDataLine();	Traffic.CLASSIFICATION			= m_CSV.stringToInt(str);
+	
 	str = GetNextDataLine();	Road.LANES_FILE					= str;
 	str = GetNextDataLine();	Traffic.CONGESTED_SPACING		= m_CSV.stringToDouble( str);
 	str = GetNextDataLine();	Traffic.CONGESTED_SPEED			= m_CSV.stringToDouble( str);
 	str = GetNextDataLine();	Traffic.CONGESTED_GAP_COEF_VAR	= m_CSV.stringToDouble( str);
 
-	str = GetNextDataLine();	Read.TRAFFIC_FILE				= str;
+	str = GetNextDataLine();	Read.GARAGE_FILE				= str;
+	str = GetNextDataLine();	Read.KERNEL_FILE				= str;
+	str = GetNextDataLine();	Read.TRAFFIC_FILE				= str;	
 	str = GetNextDataLine();	Read.FILE_FORMAT				= m_CSV.stringToInt(	str);
 	str = GetNextDataLine();	Read.USE_CONSTANT_SPEED			= m_CSV.stringToBool(	str);
 	str = GetNextDataLine();	Read.USE_AVE_SPEED				= m_CSV.stringToBool(	str);
@@ -135,7 +139,8 @@ void CConfigData::SetDefaults()
 	Gen.NO_DAYS = 2;
 	Gen.TRAFFIC_FOLDER = "C:\\Traffic\\Auxerre\\";
 	Traffic.HEADWAY_MODEL = 6;
-	Traffic.VEHICLE_MODEL = 0; // Grave
+	Traffic.VEHICLE_MODEL = 0;	// Grave
+	Traffic.CLASSIFICATION = 0; // Axles
 	Road.LANES_FILE = "laneflow.csv";
 	Traffic.CONGESTED_SPACING = 5;
 	Traffic.CONGESTED_SPEED = 30;	// km/h
@@ -143,6 +148,8 @@ void CConfigData::SetDefaults()
 	Gen.NO_OVERLAP_LENGTH = 100.0;
 	Gen.TRUCK_TRACK_WIDTH = 190.0; // cm
 
+	Read.GARAGE_FILE = "garage.txt";
+	Read.KERNEL_FILE = "kernel.csv";
 	Read.TRAFFIC_FILE = "input.txt";
 	Read.FILE_FORMAT = 1;
 	Read.USE_CONSTANT_SPEED = false;

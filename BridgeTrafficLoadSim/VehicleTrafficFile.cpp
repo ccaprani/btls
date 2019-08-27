@@ -50,12 +50,13 @@ void CVehicleTrafficFile::Read(std::string file, int filetype)
 	inFile.close();
 
 	UpdateProperties();
-	SetSpeed();
+	if(m_UseConstSpeed)
+		SetSpeed();
 }
 
 void CVehicleTrafficFile::SetSpeed()
 {
-	if(m_UseConstSpeed)
+	
 	{
 		double speed = 0.0;
 		if(m_UseAveSpeed)

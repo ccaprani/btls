@@ -22,6 +22,7 @@ public:
 	size_t getNoVehicles();
 	
 	CVehicle* getNextVehicle();
+	std::vector<CVehicle*> getVehicles() const { return m_vVehicles; };
 	double getStartTime();
 	double getEndTime();
 
