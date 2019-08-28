@@ -400,6 +400,7 @@
       <PrecompiledHeaderOutputFile>.\Release\BridgeTrafficLoadSim.pch</PrecompiledHeaderOutputFile>
       <ObjectFileName>.\Release\</ObjectFileName>
       <ProgramDataBaseFileName>.\Release\</ProgramDataBaseFileName>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Midl>
       <TypeLibraryName>.\Release\BridgeTrafficLoadSim.tlb</TypeLibraryName>

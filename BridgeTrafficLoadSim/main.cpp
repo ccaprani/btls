@@ -1,6 +1,7 @@
 //	main.cpp
 // the main file for the BridgeTrafficLoadSim program
 
+#include <omp.h> // for parallel
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -21,7 +22,7 @@
 #include "ReadILFile.h"
 #include "BridgeFile.h"
 #include "Bridge.h"
-#include "LaneFlowData.h""
+#include "LaneFlowData.h"
 // for tracking memory leaks
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -86,7 +87,7 @@ void main()
 	delete pVC;
 
 	//_CrtDumpMemoryLeaks(); // for hunting memory leaks
-	system("PAUSE");
+	//system("PAUSE");
 }
 
 vector<CBridge*> PrepareBridges(double SimStartTime)
@@ -186,27 +187,30 @@ void doSimulation(CVehicleClassification* pVC, vector<CBridge*> vBridges, vector
 	cout << "Starting simulation..." << endl;
 	cout << "Day complete..." << endl;
 
-	while(curTime <= SimEndTime)
+//#pragma omp parallel
+//	{
+	while (curTime <= SimEndTime)
 	{
-//		if(curTime >= 195725062.20)
-//			cout << "here" << endl;
+		//		if(curTime >= 195725062.20)
+		//			cout << "here" << endl;
 
 		// find the next arrival lane and the time
 		sort(vLanes.begin(), vLanes.end(), lane_compare);
 		double NextArrivalTime = vLanes[0]->GetNextArrivalTime();
-		
+
 		// generate the next vehicle from the lane with the next arrival time		
 		CVehicle* pVeh = vLanes[0]->GetNextVehicle();
 		VehBuff.AddVehicle(pVeh);
-		if(g_ConfigData.Sim.CALC_LOAD_EFFECTS)
+		if (g_ConfigData.Sim.CALC_LOAD_EFFECTS)
 		{
-			for(unsigned int i = 0; i < vBridges.size(); i++)
+//#pragma omp for
+			for (int i = 0; i < vBridges.size(); i++)
 			{
 				// update each bridge until the next vehicle comes on
 				vBridges[i]->Update(NextArrivalTime, curTime);
 				//vBridges[i]->UpdateMT(NextArrivalTime, curTime);
 				// Add the next vehicle to the bridge, if it is not a car
-				if(pVeh != NULL && pVeh->getGVW() > g_ConfigData.Sim.MIN_GVW)
+				if (pVeh != NULL && pVeh->getGVW() > g_ConfigData.Sim.MIN_GVW)
 					vBridges[i]->AddVehicle(pVeh);
 			}
 			//for(unsigned int i = 0; i < vBridges.size(); i++)
@@ -215,7 +219,7 @@ void doSimulation(CVehicleClassification* pVC, vector<CBridge*> vBridges, vector
 
 		// update the current time to that of the vehicle just added
 		// and delete it
-		if(pVeh != NULL)
+		if (pVeh != NULL)
 		{
 			curTime = pVeh->getTime();
 			delete pVeh;
@@ -224,13 +228,14 @@ void doSimulation(CVehicleClassification* pVC, vector<CBridge*> vBridges, vector
 			curTime = SimEndTime + 1.0;
 
 		// Keep informing the user
-		if(curTime > (double)(86400)*(curDay+1))
+		if (curTime > (double)(86400)*(curDay + 1))
 		{
 			curDay += 1;
 			cout << curDay;
-			curDay%10==0 ? 	cout << endl : cout << '\t';
+			curDay % 10 == 0 ? cout << endl : cout << '\t';
 		}
 	}
+//	}
 	cout << endl;
 	
 	if(g_ConfigData.Sim.CALC_LOAD_EFFECTS)

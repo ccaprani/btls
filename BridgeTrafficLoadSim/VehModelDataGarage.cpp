@@ -7,12 +7,12 @@ CVehModelDataGarage::CVehModelDataGarage(CVehicleClassification* pVC, CLaneFlowC
 	: CVehicleModelData(eVM_Garage, pVC, lfc, 1) // MAGIC NUMBER - truck class count
 	, m_NoVehicles(0)
 {
-	ReadDataIn();
-
 	// MAGIC NUMBER for now
 	m_KernalGVW = Normal(1.0,0.08); // Mean and COV
 	m_KernalAW = Normal(1.0, 0.05);
 	m_KernalAS = Normal(1.0, 0.02);
+
+	ReadDataIn();
 }
 
 
