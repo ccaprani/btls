@@ -6,18 +6,18 @@
 class CVehicleGenGrave : public CVehicleGenerator
 {
 public:
-	CVehicleGenGrave(CVehModelDataGrave* pVMD);
+	CVehicleGenGrave(CVehModelDataGrave_ptr pVMD);
 	~CVehicleGenGrave();
 
 protected:
-	virtual void GenerateVehicle(CVehicle* pVeh);
+	virtual void GenerateVehicle(CVehicle_ptr pVeh);
 	virtual size_t GenVehClass();
 
 private:
-	void GenerateTruck23(CVehicle* pVeh, int nAxles);
-	void GenerateTruck45(CVehicle* pVeh, int nAxles);
-	void GenerateCommonProps(CVehicle* pVeh, int nAxles);
+	void GenerateTruck23(CVehicle_ptr pVeh, int nAxles);
+	void GenerateTruck45(CVehicle_ptr pVeh, int nAxles);
+	void GenerateCommonProps(CVehicle_ptr pVeh, int nAxles);
 
-	CVehModelDataGrave* m_pVMD;
+	CVehModelDataGrave_ptr m_pVMD;
 };
 

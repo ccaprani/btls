@@ -1,9 +1,9 @@
 #include "VehicleGenConstant.h"
 
 
-CVehicleGenConstant::CVehicleGenConstant()	: CVehicleGenerator(eVM_Constant, NULL)
+CVehicleGenConstant::CVehicleGenConstant()	: CVehicleGenerator(eVM_Constant, nullptr)
 {
-	m_pVehClassification = NULL;
+	m_pVehClassification = nullptr;
 }
 
 
@@ -11,7 +11,7 @@ CVehicleGenConstant::~CVehicleGenConstant()
 {
 }
 
-void CVehicleGenConstant::GenerateVehicle(CVehicle* pVeh)
+void CVehicleGenConstant::GenerateVehicle(CVehicle_ptr pVeh)
 {
 	// assign general properties
 	pVeh->setLaneEccentricity(0.0);

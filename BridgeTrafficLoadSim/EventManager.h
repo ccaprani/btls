@@ -33,7 +33,7 @@ public:
 	void Finish();
 	void UpdateEffects(std::vector<double> vEffs, double position, double time);
 	void AddNewEvent(std::vector<CVehicle> vVehs, double curTime);
-	void AddNewEvent(std::vector<CVehicle*> vVehs, double curTime);
+	void AddNewEvent(std::vector<CVehicle_ptr> vVehs, double curTime);
 	void setEventOutputFile(double BridgeLength);
 
 private:

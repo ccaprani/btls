@@ -12,7 +12,10 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include <memory>
 #include "VehicleClassification.h"
+
+typedef std::shared_ptr<CVehicle> CVehicle_ptr;
 
 class CVehicle  
 {

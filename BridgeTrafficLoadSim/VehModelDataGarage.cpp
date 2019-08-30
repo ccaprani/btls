@@ -3,7 +3,7 @@
 
 extern CConfigData g_ConfigData;
 
-CVehModelDataGarage::CVehModelDataGarage(CVehicleClassification* pVC, CLaneFlowComposition lfc)
+CVehModelDataGarage::CVehModelDataGarage(CVehicleClassification_ptr pVC, CLaneFlowComposition lfc)
 	: CVehicleModelData(eVM_Garage, pVC, lfc, 1) // MAGIC NUMBER - truck class count
 	, m_NoVehicles(0)
 {
@@ -61,12 +61,12 @@ void CVehModelDataGarage::readKernels()
 	}
 }
 
-CVehicle* CVehModelDataGarage::getVehicle(size_t i)
+CVehicle_ptr CVehModelDataGarage::getVehicle(size_t i)
 {
 	if (i < m_NoVehicles)
 		return m_vVehicles.at(i);
 	else
-		return NULL;
+		return nullptr;
 }
 
 void CVehModelDataGarage::getKernals(Normal& GVW, Normal& AW, Normal& AS)

@@ -14,7 +14,7 @@ extern CConfigData g_ConfigData;
 CLane::CLane()
 {
 	m_NextArrivalTime = 0.0;
-	m_pNextVeh = NULL;
+	m_pNextVeh = nullptr;
 }
 
 CLane::~CLane()

@@ -1,8 +1,9 @@
 #pragma once
 #include "ModelData.h"
 #include "LaneFlowComposition.h"
-
-class CVehicle; // forward declare
+#include <memory>
+// forward declare
+class CVehicle; typedef std::shared_ptr<CVehicle> CVehicle_ptr;
 
 class CLaneFlowData : public CModelData
 {
@@ -36,6 +37,6 @@ private:
 
 	std::vector<CLaneFlowComposition> m_vLaneComp;
 
-	std::vector<CVehicle*> m_vVehicles;
+	std::vector<CVehicle_ptr> m_vVehicles;
 };
 

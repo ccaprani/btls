@@ -11,12 +11,12 @@ CLaneFileTraffic::~CLaneFileTraffic(void)
 }
 
 
-CVehicle* CLaneFileTraffic::GetNextVehicle()
+CVehicle_ptr CLaneFileTraffic::GetNextVehicle()
 {
-	if(m_vVehicles.size() == 0)	return NULL;
+	if(m_vVehicles.size() == 0)	return nullptr;
 
 	// store pointer to vehicle
-	CVehicle* pVeh = m_vVehicles.front();
+	CVehicle_ptr pVeh = m_vVehicles.front();
 	// delete entry in vector
 	m_vVehicles.erase(m_vVehicles.begin());
 	// check now if no vehicles left
@@ -39,7 +39,7 @@ void CLaneFileTraffic::setLaneData(int dirn, int laneNo)
 	m_LaneIndex = laneNo;
 }
 
-void CLaneFileTraffic::addVehicle(CVehicle* pVeh)
+void CLaneFileTraffic::addVehicle(CVehicle_ptr pVeh)
 {
 	m_vVehicles.push_back(pVeh);
 }

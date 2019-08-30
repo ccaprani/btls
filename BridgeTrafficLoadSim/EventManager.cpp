@@ -65,7 +65,7 @@ void CEventManager::AddNewEvent(std::vector<CVehicle> vVehs, double curTime)
 	m_CurEvent.setStartTime(m_CurTime);
 }
 
-void CEventManager::AddNewEvent(std::vector<CVehicle*> pVehs, double curTime)
+void CEventManager::AddNewEvent(std::vector<CVehicle_ptr> pVehs, double curTime)
 {
 	// form local copy of vehs
 	std::vector<CVehicle> vVehs;

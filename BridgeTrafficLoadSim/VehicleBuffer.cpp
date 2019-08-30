@@ -11,7 +11,7 @@ extern CConfigData g_ConfigData;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CVehicleBuffer::CVehicleBuffer(CVehicleClassification* pVC, double starttime)
+CVehicleBuffer::CVehicleBuffer(CVehicleClassification_ptr pVC, double starttime)
 {
 	//init(false, "", 0);
 
@@ -50,16 +50,16 @@ CVehicleBuffer::~CVehicleBuffer()
 	writeFlowData();
 }
 
-void CVehicleBuffer::AddVehicle(CVehicle *pVeh)
+void CVehicleBuffer::AddVehicle(CVehicle_ptr pVeh)
 { 
-	if(pVeh == NULL)
+	if(pVeh == nullptr)
 		return;
 	if( !(WRITE_VEHICLE_FILE || WRITE_FLOW_STATS) )
 		return;
 
 	// copy it locally
-	CVehicle* pV = new CVehicle;
-	*pV = *pVeh;
+	CVehicle_ptr pV = std::make_shared<CVehicle>(*pVeh); //new CVehicle;
+	//*pV = *pVeh;
 
 	m_NoVehicles++;
 	m_vVehicles.push_back(pV);
@@ -78,15 +78,15 @@ void CVehicleBuffer::FlushBuffer()
 	size_t nVehs = m_vVehicles.size();
 	if(nVehs > 0)
 	{
-		CVehicle* pVeh = m_vVehicles[nVehs-1];
+		CVehicle_ptr pVeh = m_vVehicles[nVehs-1];
 		std::cout << std::endl  << "Flushing buffer of " << nVehs << " vehicles at " << pVeh->getTimeStr() <<  '\t';
 		
 		for (size_t i = 0; i < nVehs; i++)
 			m_OutFile << m_vVehicles[i]->Write(FILE_FORMAT) << '\n';
 		
 		// clear the memory
-		for(unsigned int i = 0; i < nVehs; i++)
-			delete m_vVehicles[i];
+		//for(unsigned int i = 0; i < nVehs; i++)
+		//	delete m_vVehicles[i];
 	}
 
 	m_NoVehicles = 0;
@@ -100,7 +100,7 @@ void CVehicleBuffer::updateFlowData()
 		return;
 
 	// get vehicle and see if in next hour
-	CVehicle* pV = m_vVehicles.back();
+	CVehicle_ptr pV = m_vVehicles.back();
 	double curRelTime = pV->getTime() - m_FirstHour*3600.0;
 	if (curRelTime > m_CurHour*3600.0)
 		flushFlowData();

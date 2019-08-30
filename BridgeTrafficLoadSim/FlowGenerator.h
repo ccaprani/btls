@@ -8,12 +8,12 @@
 class CFlowGenerator :	public CGenerator
 {
 public:
-	CFlowGenerator(CFlowModelData* pFDM, EFlowModel fm);
+	CFlowGenerator(CFlowModelData_ptr pFDM, EFlowModel fm);
 	virtual ~CFlowGenerator();
 
 	double Generate();
 
-	virtual void prepareNextGen(double time, CVehicle* pPrevVeh, CVehicle* pNextVeh);
+	virtual void prepareNextGen(double time, CVehicle_ptr pPrevVeh, CVehicle_ptr pNextVeh);
 	
 	size_t getCurBlock() {return m_CurBlock;};
 
@@ -24,9 +24,9 @@ protected:
 	double genExponential();
 	
 	EFlowModel m_FlowModel;
-	CFlowModelData* m_pFlowModelData;
-	CVehicle* m_pPrevVeh;
-	CVehicle* m_pNextVeh;
+	CFlowModelData_ptr m_pFlowModelData;
+	CVehicle_ptr m_pPrevVeh;
+	CVehicle_ptr m_pNextVeh;
 	
 	double m_MinGap;
 	double m_TotalFlow;
@@ -43,11 +43,12 @@ private:
 	void updateExponential();
 	void setMinGap();
 };
+typedef std::shared_ptr<CFlowGenerator> CFlowGenerator_ptr;
 
 class CFlowGenNHM : public CFlowGenerator
 {
 public:
-	CFlowGenNHM(CFlowModelDataNHM* pFDM);
+	CFlowGenNHM(CFlowModelDataNHM_ptr pFDM);
 	virtual ~CFlowGenNHM();
 
 protected:
@@ -56,15 +57,16 @@ protected:
 	void updateProperties();
 
 private:
-	CFlowModelDataNHM* m_pFMD;
+	CFlowModelDataNHM_ptr m_pFMD;
 	matrix m_vNHM;
 	Normal m_Speed;
 };
+typedef std::shared_ptr<CFlowGenNHM> CFlowGenNHM_ptr;
 
 class CFlowGenCongested : public CFlowGenerator
 {
 public:
-	CFlowGenCongested(CFlowModelDataCongested* pFDM);
+	CFlowGenCongested(CFlowModelDataCongested_ptr pFDM);
 	virtual ~CFlowGenCongested();
 
 protected:
@@ -73,15 +75,16 @@ protected:
 	void updateProperties();
 
 private:
-	CFlowModelDataCongested* m_pFMD;
+	CFlowModelDataCongested_ptr m_pFMD;
 	Normal m_Gap;
 	double m_Speed;
 };
+typedef std::shared_ptr<CFlowGenCongested> CFlowGenCongested_ptr;
 
 class CFlowGenPoisson : public CFlowGenerator
 {
 public:
-	CFlowGenPoisson(CFlowModelDataPoisson* pFDM);
+	CFlowGenPoisson(CFlowModelDataPoisson_ptr pFDM);
 	virtual ~CFlowGenPoisson();
 
 protected:
@@ -90,14 +93,15 @@ protected:
 	void updateProperties();
 
 private:
-	CFlowModelDataPoisson* m_pFMD;
+	CFlowModelDataPoisson_ptr m_pFMD;
 	Normal m_Speed;
 };
+typedef std::shared_ptr<CFlowGenPoisson> CFlowGenPoisson_ptr;
 
 class CFlowGenConstant : public CFlowGenerator
 {
 public:
-	CFlowGenConstant(CFlowModelData* pFDM) :CFlowGenerator(NULL,eFM_Constant){};
+	CFlowGenConstant(CFlowModelData_ptr pFDM) : CFlowGenerator(nullptr, eFM_Constant){};
 	virtual ~CFlowGenConstant(){};
 
 protected:
@@ -106,7 +110,8 @@ protected:
 	//void updateProperties();
 
 private:
-	//CFlowModelDataPoisson* m_pFMD;
+	//CFlowModelDataPoisson_ptr m_pFMD;
 	//Normal m_Speed;
 };
+typedef std::shared_ptr<CFlowGenConstant> CFlowGenConstant_ptr;
 

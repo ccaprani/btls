@@ -3,10 +3,10 @@
 
 //////////////////// CVehicleGenGrave ////////////////////////
 
-CVehicleGenGrave::CVehicleGenGrave(CVehModelDataGrave* pVMD)
+CVehicleGenGrave::CVehicleGenGrave(CVehModelDataGrave_ptr pVMD)
 	: CVehicleGenerator(eVM_Grave, pVMD)
 {
-	m_pVMD = dynamic_cast<CVehModelDataGrave*>(m_pVehModelData);
+	m_pVMD = std::dynamic_pointer_cast<CVehModelDataGrave>(m_pVehModelData);
 
 	m_pVehClassification = m_pVMD->getVehClassification();
 }
@@ -16,7 +16,7 @@ CVehicleGenGrave::~CVehicleGenGrave()
 
 }
 
-void CVehicleGenGrave::GenerateVehicle(CVehicle* pVeh)
+void CVehicleGenGrave::GenerateVehicle(CVehicle_ptr pVeh)
 {
 	// assign general properties
 	double ecc = m_RNG.GenerateNormal(0.0, m_pVMD->getLaneEccStd());
@@ -55,7 +55,7 @@ size_t CVehicleGenGrave::GenVehClass()
 	return nAxles;
 }
 
-void CVehicleGenGrave::GenerateTruck23(CVehicle *pVeh, int nAxles)
+void CVehicleGenGrave::GenerateTruck23(CVehicle_ptr pVeh, int nAxles)
 {
 	GenerateCommonProps(pVeh, nAxles);
 
@@ -79,7 +79,7 @@ void CVehicleGenGrave::GenerateTruck23(CVehicle *pVeh, int nAxles)
 
 }
 
-void CVehicleGenGrave::GenerateTruck45(CVehicle *pVeh, int nAxles)
+void CVehicleGenGrave::GenerateTruck45(CVehicle_ptr pVeh, int nAxles)
 {
 	GenerateCommonProps(pVeh, nAxles);
 
@@ -112,7 +112,7 @@ void CVehicleGenGrave::GenerateTruck45(CVehicle *pVeh, int nAxles)
 		pVeh->setAW(i, vAW[i]);
 }
 
-void CVehicleGenGrave::GenerateCommonProps(CVehicle *pVeh, int nAxles)
+void CVehicleGenGrave::GenerateCommonProps(CVehicle_ptr pVeh, int nAxles)
 {
 	pVeh->setNoAxles(nAxles);
 

@@ -152,41 +152,41 @@ bool CBridge::lane_compare(const CBridgeLane* pL1, const CBridgeLane* pL2)
 	return pL1->getTimeNextVehOff() < pL2->getTimeNextVehOff();
 }
 
-void CBridge::AddVehicle(CVehicle* pVeh)
+void CBridge::AddVehicle(CVehicle_ptr pVeh)
 {	
 	m_NoVehs++;
 	
 	// dereference ptr and get a copy, create new Vehicle on heap
 	// copy required as vehicle may be on multiple bridges
-	CVehicle* pLocalVeh = new CVehicle;
-	*pLocalVeh = *pVeh;
-	CVehicle& Veh = *pLocalVeh;
-	Veh.setBridgeTimes(m_Length);
+	CVehicle_ptr pLocalVeh = std::make_shared<CVehicle>(*pVeh); //new CVehicle;
+	//*pLocalVeh = *pVeh;
+	//CVehicle& Veh = *pLocalVeh;
+	pVeh->setBridgeTimes(m_Length);
 
 	// Get global lane number to zero-based bridge lane - CASTOR type format
-	size_t iLane = Veh.getGlobalLane(NO_LANES) - 1; // zero based array
+	size_t iLane = pVeh->getGlobalLane(NO_LANES) - 1; // zero based array
 	
-	Veh.setBridgeLaneNo(iLane);	// bridge lanes in global lane numbering
+	pVeh->setBridgeLaneNo(iLane);	// bridge lanes in global lane numbering
 
 	// update pointer to local store and save
 	if(iLane > m_NoLanes)
-		cout << "***ERROR: Veh - lane: " << Veh.getLocalLane()
-			 << " direction: " << Veh.getDirection()
+		cout << "***ERROR: Veh - lane: " << pVeh->getLocalLane()
+		<< " direction: " << pVeh->getDirection()
 			 << " cannot be added as no. lanes is " << m_vLanes.size() << endl;
 	// Lanes are out of order due to sorting above
 	for (size_t i = 0; i < m_NoLanes; i++)
 	{
-		if( m_vLanes.at(i).getIndex() ==  Veh.getBridgeLaneNo() )
-			m_vLanes.at(i).AddVehicle(&Veh);
+		if (m_vLanes.at(i).getIndex() == pVeh->getBridgeLaneNo())
+			m_vLanes.at(i).AddVehicle(pVeh);
 	}
 }
 
-std::vector<CVehicle*> CBridge::AssembleVehicles(void)
+std::vector<CVehicle_ptr> CBridge::AssembleVehicles(void)
 {
-	std::vector<CVehicle*> pVehs;
+	std::vector<CVehicle_ptr> pVehs;
 	for (size_t i = 0; i < m_NoLanes; i++)
 	{
-		std::vector<CVehicle*> pLaneVehs = m_vLanes[i].getVehicles();
+		std::vector<CVehicle_ptr> pLaneVehs = m_vLanes[i].getVehicles();
 		pVehs.insert(pVehs.end(), pLaneVehs.begin(), pLaneVehs.end());
 	}
 	sort(pVehs.begin(),pVehs.end());

@@ -8,7 +8,7 @@ public:
 	virtual ~CVehicleGenConstant();
 
 protected:
-	virtual void GenerateVehicle(CVehicle* pVeh);
+	virtual void GenerateVehicle(CVehicle_ptr pVeh);
 	virtual size_t GenVehClass();
 };
 

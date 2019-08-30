@@ -9,14 +9,16 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-class CVehicle; // pre-defined
+#include <memory>
+// forward declare
+class CVehicle; typedef std::shared_ptr<CVehicle> CVehicle_ptr;
 
 class CAxle  
 {
 public:
 	CAxle();
 	CAxle(size_t i, double t, double v, double x, double w, double tw, int dirn);
-	CAxle(size_t i, size_t iAxle, double t, double x, CVehicle* pVeh);
+	CAxle(size_t i, size_t iAxle, double t, double x, CVehicle_ptr pVeh);
 	virtual ~CAxle();
 	
 	void UpdatePosition(double time);
@@ -34,7 +36,7 @@ public:
 
 private:
 	int m_Sign;
-	//CVehicle* m_pVeh;
+	//CVehicle_ptr m_pVeh;
 };
 
 #endif // !defined(AFX_AXLE_H__9EEC5C84_8B3B_4D68_A004_465AAC0FD15A__INCLUDED_)

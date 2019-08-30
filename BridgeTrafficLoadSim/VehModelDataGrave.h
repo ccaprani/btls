@@ -4,7 +4,7 @@
 class CVehModelDataGrave : public CVehicleModelData
 {
 public:
-	CVehModelDataGrave(CVehicleClassification* pVC, CLaneFlowComposition lfc);
+	CVehModelDataGrave(CVehicleClassification_ptr pVC, CLaneFlowComposition lfc);
 	~CVehModelDataGrave();
 
 	virtual void ReadDataIn();
@@ -25,4 +25,5 @@ private:
 	// could merge this in here at some later stage
 	CTrafficData m_TD;
 };
+typedef std::shared_ptr<CVehModelDataGrave> CVehModelDataGrave_ptr;
 

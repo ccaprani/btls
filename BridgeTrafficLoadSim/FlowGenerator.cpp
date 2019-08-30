@@ -1,17 +1,17 @@
 #include "FlowGenerator.h"
 
-CFlowGenerator::CFlowGenerator(CFlowModelData* pFMD, EFlowModel fm) 
+CFlowGenerator::CFlowGenerator(CFlowModelData_ptr pFMD, EFlowModel fm)
 	: m_CurBlock(0), m_FlowModel(fm), m_BufferGapSpace(1.0), m_BufferGapTime(0.1)
 	, m_TotalFlow(0.0), m_TruckFlow(0.0), m_BlockSize(3600), m_BlockCount(24)
 {
 	m_pFlowModelData = pFMD;
 
-	m_pPrevVeh = NULL;
-	m_pNextVeh = NULL;
+	m_pPrevVeh = nullptr;
+	m_pNextVeh = nullptr;
 
 	m_MinGap = 0.1; // 0.1 s min gap for first vehicle
 
-	if (m_pFlowModelData != NULL) // some models may not use data
+	if (m_pFlowModelData != nullptr) // some models may not use data
 	{
 		m_pFlowModelData->getGapBuffers(m_BufferGapSpace, m_BufferGapTime);
 		m_pFlowModelData->getBlockInfo(m_BlockSize, m_BlockCount);
@@ -25,7 +25,7 @@ CFlowGenerator::~CFlowGenerator()
 {
 }
 
-void CFlowGenerator::prepareNextGen(double time, CVehicle* pPrevVeh, CVehicle* pNextVeh)
+void CFlowGenerator::prepareNextGen(double time, CVehicle_ptr pPrevVeh, CVehicle_ptr pNextVeh)
 {
 	m_pPrevVeh = pPrevVeh;
 	m_pNextVeh = pNextVeh;
@@ -70,7 +70,7 @@ void CFlowGenerator::updateBlock(double time)
 void CFlowGenerator::updateProperties()
 {
 	// Update flow properties
-	if (m_pFlowModelData != NULL)
+	if (m_pFlowModelData != nullptr)
 		m_pFlowModelData->getFlow(m_CurBlock, m_TotalFlow, m_TruckFlow);
 
 	updateExponential();
@@ -95,7 +95,7 @@ void CFlowGenerator::setMinGap()
 {
 	m_MinGap = 0.1; // default 0.1 s min gap
 
-	if (m_pPrevVeh == NULL)
+	if (m_pPrevVeh == nullptr)
 		return;
 
 	double Vii = m_pPrevVeh->getVelocity();
@@ -117,9 +117,9 @@ void CFlowGenerator::setMinGap()
 
 //////////// CFlowGenNHM ///////////////
 
-CFlowGenNHM::CFlowGenNHM(CFlowModelDataNHM* pFMD) : CFlowGenerator(pFMD, eFM_NHM)
+CFlowGenNHM::CFlowGenNHM(CFlowModelDataNHM_ptr pFMD) : CFlowGenerator(pFMD, eFM_NHM)
 {
-	m_pFMD = dynamic_cast<CFlowModelDataNHM*>(m_pFlowModelData);
+	m_pFMD = std::dynamic_pointer_cast<CFlowModelDataNHM>(m_pFlowModelData);
 
 	m_vNHM = m_pFMD->GetNHM();
 	m_pFMD->getSpeedParams(m_CurBlock, m_Speed);
@@ -189,9 +189,9 @@ void CFlowGenNHM::updateProperties()
 
 //////////// CFlowGenCongested ///////////////
 
-CFlowGenCongested::CFlowGenCongested(CFlowModelDataCongested* pFMD) : CFlowGenerator(pFMD, eFM_Congested)
+CFlowGenCongested::CFlowGenCongested(CFlowModelDataCongested_ptr pFMD) : CFlowGenerator(pFMD, eFM_Congested)
 {
-	m_pFMD = dynamic_cast<CFlowModelDataCongested*>(m_pFlowModelData);
+	m_pFMD = std::dynamic_pointer_cast<CFlowModelDataCongested>(m_pFlowModelData);
 
 	m_Speed = m_pFMD->getSpeed();
 	m_pFMD->getGapParams(m_Gap.Mean, m_Gap.StdDev);
@@ -206,13 +206,13 @@ double CFlowGenCongested::GenerateGap()
 	// randomize congestion: note this is time gap from front to front of truck
 	double timeForTruckToPass = 0.0;
 
-	if (m_pPrevVeh != NULL)
+	if (m_pPrevVeh != nullptr)
 	{
 		double Vii = m_pPrevVeh->getVelocity();
 		double Lii = m_pPrevVeh->getLength();
 		timeForTruckToPass = Lii / Vii; // ignores the m_BufferGap on purpose
 	}
-	else if (m_pNextVeh != NULL)
+	else if (m_pNextVeh != nullptr)
 		// there is no truck in front so set to own time to pass
 		timeForTruckToPass = m_pNextVeh->getLength() / m_pNextVeh->getVelocity();
 
@@ -237,9 +237,9 @@ void CFlowGenCongested::updateProperties()
 
 ///////////// CFlowGenPoisson ///////////////
 
-CFlowGenPoisson::CFlowGenPoisson(CFlowModelDataPoisson* pFDM) : CFlowGenerator(pFDM, eFM_Poisson)
+CFlowGenPoisson::CFlowGenPoisson(CFlowModelDataPoisson_ptr pFDM) : CFlowGenerator(pFDM, eFM_Poisson)
 {
-	m_pFMD = dynamic_cast<CFlowModelDataPoisson*>(m_pFlowModelData);
+	m_pFMD = std::dynamic_pointer_cast<CFlowModelDataPoisson>(m_pFlowModelData);
 
 	m_pFMD->getSpeedParams(m_CurBlock, m_Speed);
 }

@@ -11,10 +11,10 @@ extern CConfigData g_ConfigData;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CVehicleGenerator::CVehicleGenerator(EVehicleModel vm, CVehicleModelData* pVMD)
-	: m_VehModel(vm), m_pVehModelData(pVMD), m_pVehClassification(NULL)
+CVehicleGenerator::CVehicleGenerator(EVehicleModel vm, CVehicleModelData_ptr pVMD)
+	: m_VehModel(vm), m_pVehModelData(pVMD), m_pVehClassification(nullptr)
 {
-	if (m_pVehModelData != NULL) // not all models have data
+	if (m_pVehModelData != nullptr) // not all models have data
 		m_pVehClassification = m_pVehModelData->getVehClassification();
 }
 
@@ -23,17 +23,17 @@ CVehicleGenerator::~CVehicleGenerator()
 
 }
 
-void CVehicleGenerator::update(CFlowModelData* pFMD)
+void CVehicleGenerator::update(CFlowModelData_ptr pFMD)
 {
 	m_bModelHasCars = pFMD->getModelHasCars();
 	m_vCarPercent = pFMD->getCarPercent();
 }
 
-CVehicle* CVehicleGenerator::Generate(int iHour)
+CVehicle_ptr CVehicleGenerator::Generate(int iHour)
 {
 	// Must generate a new CVehicle because once off the bridge
 	// the object is deleted
-	CVehicle* pVeh = new CVehicle;
+	CVehicle_ptr pVeh = std::make_shared<CVehicle>(); //new CVehicle;
 	m_CurHour = iHour;
 
 	GenerateVehicle(pVeh);
@@ -54,7 +54,7 @@ bool CVehicleGenerator::NextVehicleIsCar()
 		return false;
 }
 
-void CVehicleGenerator::GenerateCar(CVehicle *pVeh)
+void CVehicleGenerator::GenerateCar(CVehicle_ptr pVeh)
 {
 	pVeh->setNoAxles(2);
 	pVeh->setGVW(20.0);

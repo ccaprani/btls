@@ -1,10 +1,10 @@
 #include "VehicleGenGarage.h"
 
 
-CVehicleGenGarage::CVehicleGenGarage(CVehModelDataGarage* pVMD)
+CVehicleGenGarage::CVehicleGenGarage(CVehModelDataGarage_ptr pVMD)
 	: CVehicleGenerator(eVM_Garage, pVMD)
 {
-	m_pVMD = dynamic_cast<CVehModelDataGarage*>(m_pVehModelData);
+	m_pVMD = std::dynamic_pointer_cast<CVehModelDataGarage>(m_pVehModelData);
 
 	m_pVehClassification = m_pVMD->getVehClassification();
 
@@ -17,19 +17,19 @@ CVehicleGenGarage::~CVehicleGenGarage()
 
 }
 
-void CVehicleGenGarage::GenerateVehicle(CVehicle* pVeh)
+void CVehicleGenGarage::GenerateVehicle(CVehicle_ptr pVeh)
 {
 	// Randomly pick a vehicle from the garage
 	double u = m_RNG.GenerateUniform();
 	size_t i = static_cast<size_t>(static_cast<double>(m_GarageCount) * u);
-	CVehicle* pGarageVeh = m_pVMD->getVehicle(i);
+	CVehicle_ptr pGarageVeh = m_pVMD->getVehicle(i);
 	*pVeh = *pGarageVeh; // Copy properties over
 
 	// Now randomize the vehicle
 	randomize(pVeh);
 }
 
-void CVehicleGenGarage::randomize(CVehicle* pVeh)
+void CVehicleGenGarage::randomize(CVehicle_ptr pVeh)
 {
 	double u = 1.0;
 	Normal kGVW, kAW, kAS;

@@ -22,7 +22,7 @@ CAxle::CAxle(size_t i, double t, double v, double x, double w, double tw, int di
 	m_Sign = m_Dirn == 1 ? 1 : -1;
 }
 
-CAxle::CAxle(size_t i, size_t iAxle, double t, double x, CVehicle* pVeh)
+CAxle::CAxle(size_t i, size_t iAxle, double t, double x, CVehicle_ptr pVeh)
 {
 	m_Index = i;
 	m_TimeAtDatum = t;

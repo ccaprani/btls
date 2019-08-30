@@ -2,22 +2,21 @@
 #include "lane.h"
 #include <vector>
 
-class CLaneFileTraffic :
-	public CLane
+class CLaneFileTraffic : public CLane
 {
 public:
 	CLaneFileTraffic(void);
 	~CLaneFileTraffic(void);
 
-	virtual CVehicle* GetNextVehicle();
+	virtual CVehicle_ptr GetNextVehicle();
 
 	void setLaneData(int dirn, int laneNo);
-	void addVehicle(CVehicle* pVeh);
+	void addVehicle(CVehicle_ptr pVeh);
 	void setFirstArrivalTime();
 
 	size_t GetNoVehicles() { return m_vVehicles.size(); };
 
 private:
-	std::vector<CVehicle*> m_vVehicles;
+	std::vector<CVehicle_ptr> m_vVehicles;
 };
-
+typedef std::shared_ptr<CLaneFileTraffic> CLaneFileTraffic_ptr;

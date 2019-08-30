@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <vector>
 #include "ModelData.h"
 #include "LaneFlowComposition.h"
@@ -40,6 +41,7 @@ protected:
 private:
 
 };
+typedef std::shared_ptr<CFlowModelData> CFlowModelData_ptr;
 
 class CFlowModelDataNHM : public CFlowModelData
 {
@@ -57,6 +59,7 @@ private:
 	matrix m_vNHM;
 
 };
+typedef std::shared_ptr<CFlowModelDataNHM> CFlowModelDataNHM_ptr;
 
 class CFlowModelDataCongested : public CFlowModelData
 {
@@ -74,6 +77,7 @@ private:
 	double m_GapMean;
 	double m_GapStd;
 };
+typedef std::shared_ptr<CFlowModelDataCongested> CFlowModelDataCongested_ptr;
 
 class CFlowModelDataPoisson : public CFlowModelData
 {
@@ -83,4 +87,5 @@ public:
 
 	virtual void ReadDataIn();
 };
+typedef std::shared_ptr<CFlowModelDataPoisson> CFlowModelDataPoisson_ptr;
 

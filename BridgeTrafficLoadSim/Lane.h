@@ -22,7 +22,7 @@ public:
 	int GetLaneID();
 	int GetDirection();
 
-	virtual CVehicle* GetNextVehicle() = NULL;
+	virtual CVehicle_ptr GetNextVehicle() = 0;
 	double GetNextArrivalTime() const;
 	void WriteVehicle();
 
@@ -31,7 +31,8 @@ protected:
 	int		m_Direction;
 	double	m_NextArrivalTime;
 	
-	CVehicle* m_pNextVeh;
+	CVehicle_ptr m_pNextVeh;
 };
+typedef std::shared_ptr<CLane> CLane_ptr;
 
 #endif // !defined(AFX_LANE_H__7ED6AACE_9B6B_4619_98A7_E7EA4F38FFD1__INCLUDED_)

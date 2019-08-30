@@ -60,7 +60,7 @@ void CBridgeLane::addLoadEffect(CInfluenceLine IL, double weight)
 }
 
 
-void CBridgeLane::AddVehicle(CVehicle* pVeh)
+void CBridgeLane::AddVehicle(CVehicle_ptr pVeh)
 {
 	m_vVehicles.push_back(pVeh);
 	setAxleVector();	// set up axle vector
@@ -74,24 +74,24 @@ void CBridgeLane::setAxleVector()
 	size_t iAxle = 0;
 	for(unsigned int i = 0; i < m_vVehicles.size(); i++)
 	{
-		CVehicle& Veh = *m_vVehicles[i];
+		CVehicle_ptr pVeh = m_vVehicles[i];
 
-		double speed = Veh.getVelocity();
+		double speed = pVeh->getVelocity();
 		double timeAtRHSDatum = 0.0;
-		double timeVehicleOn = Veh.getTimeOnBridge(); // Veh.getTime();
+		double timeVehicleOn = pVeh->getTimeOnBridge(); // pVeh->getTime();
 		double axleSpacing = 0.0;
 		
-		for(size_t j = 0; j < Veh.getNoAxles(); j++)
+		for(size_t j = 0; j < pVeh->getNoAxles(); j++)
 		{
 			iAxle++;
-			axleSpacing += j == 0 ? 0.0 : double( Veh.getAS(j-1) ); // ASs are cumulative
+			axleSpacing += j == 0 ? 0.0 : double( pVeh->getAS(j-1) ); // ASs are cumulative
 			timeAtRHSDatum = timeVehicleOn + axleSpacing/speed;
 
-			if(Veh.getDirection() == 2)
+			if(pVeh->getDirection() == 2)
 				timeAtRHSDatum += m_Length/speed;
 
-			//CAxle curAxle(iAxle,timeAtRHSDatum,speed,0.0,axleWeight,Veh.getDirection());
-			CAxle curAxle(iAxle,j,timeAtRHSDatum,0.0,&Veh);
+			//CAxle curAxle(iAxle,timeAtRHSDatum,speed,0.0,axleWeight,pVeh->getDirection());
+			CAxle curAxle(iAxle,j,timeAtRHSDatum,0.0,pVeh);
 			// Note that generated vehicles have eccentricity but no trans while
 			// read-in vehicles have tran but no eccentricity
 			curAxle.m_Eccentricity += curAxle.m_TransPos-m_LaneWidth/2.0;
@@ -190,7 +190,7 @@ size_t CBridgeLane::purgeVehicles(double curTime)
 		if( !m_vVehicles.at(i)->IsOnBridge(curTime) )
 		{
 			// delete object and remove pointer from vector
-			delete m_vVehicles.at(i);					
+			//delete m_vVehicles.at(i);					
 			m_vVehicles.erase( m_vVehicles.begin() + i );
 			--i;	// take one step back due to deletion
 			reset = true;
@@ -205,7 +205,7 @@ size_t CBridgeLane::purgeVehicles(double curTime)
 }
 
 
-std::vector<CVehicle*> CBridgeLane::getVehicles(void)
+std::vector<CVehicle_ptr> CBridgeLane::getVehicles(void)
 {
 	return m_vVehicles;
 }

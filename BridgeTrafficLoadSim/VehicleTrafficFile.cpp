@@ -1,7 +1,7 @@
 #include "VehicleTrafficFile.h"
 
 
-CVehicleTrafficFile::CVehicleTrafficFile(CVehicleClassification* pVC, 
+CVehicleTrafficFile::CVehicleTrafficFile(CVehicleClassification_ptr pVC, 
 	bool UseConstSpeed, bool UseAveSpeed, double ConstSpeed)
 {
 	m_NoVehs = 0;
@@ -41,7 +41,7 @@ void CVehicleTrafficFile::Read(std::string file, int filetype)
 		std::getline(inFile, str, '\n');
 		if(str != "")
 		{
-			CVehicle* pVeh = new CVehicle;
+			CVehicle_ptr pVeh = std::make_shared<CVehicle>(); //new CVehicle;
 			pVeh->create(str, filetype);
 			m_pVehClassification->setClassification(pVeh);
 			m_vVehicles.push_back(pVeh);
@@ -82,7 +82,7 @@ void CVehicleTrafficFile::UpdateProperties()
 
 	for(unsigned int i = 0; i < m_NoVehs; ++i)
 	{
-		CVehicle* pVeh = m_vVehicles.at(i);
+		CVehicle_ptr pVeh = m_vVehicles.at(i);
 		size_t dirn = pVeh->getDirection();
 		size_t lane = pVeh->getLocalLane();
 		
@@ -125,12 +125,12 @@ void CVehicleTrafficFile::UpdateProperties()
 		std::cout << "*** ERROR: No vehicles in traffic file" << std::endl;
 }
 
-CVehicle* CVehicleTrafficFile::getNextVehicle()
+CVehicle_ptr CVehicleTrafficFile::getNextVehicle()
 {
 	if(m_iCurVehicle > m_NoVehs-1) // m_iCurVehicle is zero-based
-		return NULL;
+		return nullptr;
 
-	CVehicle* pVeh = m_vVehicles.at(m_iCurVehicle);
+	CVehicle_ptr pVeh = m_vVehicles.at(m_iCurVehicle);
 	m_iCurVehicle++;
 	return pVeh;
 }
