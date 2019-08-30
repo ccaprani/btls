@@ -190,7 +190,7 @@ size_t CBridgeLane::purgeVehicles(double curTime)
 		if( !m_vVehicles.at(i)->IsOnBridge(curTime) )
 		{
 			// delete object and remove pointer from vector
-			//delete m_vVehicles.at(i);					
+			m_vVehicles.at(i) = nullptr;
 			m_vVehicles.erase( m_vVehicles.begin() + i );
 			--i;	// take one step back due to deletion
 			reset = true;

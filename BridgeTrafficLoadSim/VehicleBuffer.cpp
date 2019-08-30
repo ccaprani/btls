@@ -85,8 +85,8 @@ void CVehicleBuffer::FlushBuffer()
 			m_OutFile << m_vVehicles[i]->Write(FILE_FORMAT) << '\n';
 		
 		// clear the memory
-		//for(unsigned int i = 0; i < nVehs; i++)
-		//	delete m_vVehicles[i];
+		for (unsigned int i = 0; i < nVehs; i++)
+			m_vVehicles.at(i) = nullptr;
 	}
 
 	m_NoVehicles = 0;

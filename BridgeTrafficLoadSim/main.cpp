@@ -82,10 +82,10 @@ void main()
 		<< (double)((end - start)/(double)CLOCKS_PER_SEC) << " s" << endl;
 
 	// Tidy up
-	//for (auto i : vLanes)
-	//	delete i;
-	//vLanes.clear();
-	//delete pVC;
+	for (auto i : vLanes)
+		i = nullptr;
+	vLanes.clear();
+	pVC = nullptr;
 
 	_CrtDumpMemoryLeaks(); // for hunting memory leaks
 	//system("PAUSE");
@@ -223,7 +223,7 @@ void doSimulation(CVehicleClassification_ptr pVC, vector<CBridge_ptr> vBridges, 
 		if (pVeh != nullptr)
 		{
 			curTime = pVeh->getTime();
-			//delete pVeh;
+			pVeh = nullptr;
 		}
 		else	// finish
 			curTime = SimEndTime + 1.0;

@@ -21,10 +21,10 @@ CLaneGenTraffic::CLaneGenTraffic(void)
 
 CLaneGenTraffic::~CLaneGenTraffic(void)
 {
-	//delete m_pVehModelData;
-	//delete m_pVehicleGen;
-	//delete m_pFlowModelData;
-	//delete m_pFlowGen;
+	m_pVehModelData = nullptr;
+	m_pVehicleGen = nullptr;
+	m_pFlowModelData = nullptr;
+	m_pFlowGen = nullptr;
 }
 
 
