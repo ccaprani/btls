@@ -9,7 +9,7 @@
 class CVehicleTrafficFile
 {
 public:
-	CVehicleTrafficFile(CVehicleClassification_ptr pVC, bool UseConstSpeed, bool UseAveSpeed, double ConstSpeed);
+	CVehicleTrafficFile(CVehicleClassification_sp pVC, bool UseConstSpeed, bool UseAveSpeed, double ConstSpeed);
 	~CVehicleTrafficFile(void);
 
 	void Read(std::string file, int filetype);
@@ -21,8 +21,8 @@ public:
 	size_t getNoLanesDir2();
 	size_t getNoVehicles();
 	
-	CVehicle_ptr getNextVehicle();
-	std::vector<CVehicle_ptr> getVehicles() const { return m_vVehicles; };
+	CVehicle_sp getNextVehicle();
+	std::vector<CVehicle_sp> getVehicles() const { return m_vVehicles; };
 	double getStartTime();
 	double getEndTime();
 
@@ -34,7 +34,7 @@ private:
 	bool m_UseAveSpeed;
 	double m_ConstSpeed;
 
-	CVehicleClassification_ptr m_pVehClassification;
+	CVehicleClassification_sp m_pVehClassification;
 
 	size_t m_NoVehs;
 	size_t m_NoDays;
@@ -47,6 +47,6 @@ private:
 	double m_Endtime;
 
 	unsigned int m_iCurVehicle;
-	std::vector<CVehicle_ptr> m_vVehicles;
+	std::vector<CVehicle_sp> m_vVehicles;
 };
 

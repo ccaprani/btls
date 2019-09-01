@@ -22,7 +22,7 @@ CAxle::CAxle(size_t i, double t, double v, double x, double w, double tw, int di
 	m_Sign = m_Dirn == 1 ? 1 : -1;
 }
 
-CAxle::CAxle(size_t i, size_t iAxle, double t, double x, CVehicle_ptr pVeh)
+CAxle::CAxle(size_t i, size_t iAxle, double t, double x, const CVehicle_sp pVeh)
 {
 	m_Index = i;
 	m_TimeAtDatum = t;
@@ -31,7 +31,6 @@ CAxle::CAxle(size_t i, size_t iAxle, double t, double x, CVehicle_ptr pVeh)
 	m_AxleWeight = pVeh->getAW(iAxle);
 	m_TrackWidth = pVeh->getAT(iAxle);	
 	
-	//m_pVeh = pVeh;
 	m_Speed = pVeh->getVelocity();
 	m_Dirn = pVeh->getDirection();
 	m_TransPos = pVeh->getTrans();

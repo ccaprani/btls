@@ -5,7 +5,7 @@
 #include "TrafficFiles.h"
 #include "ConfigData.h"
 
-extern CConfigData g_ConfigData;
+//extern CConfigData g_ConfigData;
 using namespace std;
 
 //////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@ using namespace std;
 
 CTrafficFiles::CTrafficFiles()
 {
-	m_Path = g_ConfigData.Gen.TRAFFIC_FOLDER;
+	m_Path = CConfigData::get().Gen.TRAFFIC_FOLDER;
 	// check if the path ends in a \ and if not add it
 	if( *m_Path.rbegin() != '\\')
 		m_Path += "\\";
@@ -198,7 +198,7 @@ void CTrafficFiles::ReadFile_ATW()
 	{
 		std::cout << "*** Warning: Axle track width file not found, using default values" << std::endl;
 		CTriModalNormal tmn;
-		tmn.AddMode(1,g_ConfigData.Gen.TRUCK_TRACK_WIDTH,0);	// deterministic width
+		tmn.AddMode(1,CConfigData::get().Gen.TRUCK_TRACK_WIDTH,0);	// deterministic width
 		vector<CTriModalNormal> vTrack(2, tmn); // start off with 2 axles
 		m_TD.Add2AxleTrackWidth(vTrack); // add it
 		vTrack.push_back(tmn);	m_TD.Add3AxleTrackWidth(vTrack); // add another axle and store it

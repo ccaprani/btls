@@ -5,7 +5,7 @@
 #include "BlockMaxManager.h"
 #include "ConfigData.h"
 
-extern CConfigData g_ConfigData;
+//extern CConfigData g_ConfigData;
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -14,13 +14,13 @@ CBlockMaxManager::CBlockMaxManager()
 {
 	m_FileStem = "BM";
 
-	BLOCK_SIZE_DAYS		= g_ConfigData.Output.BlockMax.BLOCK_SIZE_DAYS;
-	BLOCK_SIZE_SECS		= g_ConfigData.Output.BlockMax.BLOCK_SIZE_SECS;
+	BLOCK_SIZE_DAYS		= CConfigData::get().Output.BlockMax.BLOCK_SIZE_DAYS;
+	BLOCK_SIZE_SECS		= CConfigData::get().Output.BlockMax.BLOCK_SIZE_SECS;
 
-	WRITE_BUFFER_SIZE	= g_ConfigData.Output.BlockMax.WRITE_BM_BUFFER_SIZE;
-	WRITE_VEHICLES		= g_ConfigData.Output.BlockMax.WRITE_BM_VEHICLES;
-	WRITE_SUMMARY		= g_ConfigData.Output.BlockMax.WRITE_BM_SUMMARY;
-	WRITE_BM_MIXED		= g_ConfigData.Output.BlockMax.WRITE_BM_MIXED;
+	WRITE_BUFFER_SIZE	= CConfigData::get().Output.BlockMax.WRITE_BM_BUFFER_SIZE;
+	WRITE_VEHICLES		= CConfigData::get().Output.BlockMax.WRITE_BM_VEHICLES;
+	WRITE_SUMMARY		= CConfigData::get().Output.BlockMax.WRITE_BM_SUMMARY;
+	WRITE_BM_MIXED		= CConfigData::get().Output.BlockMax.WRITE_BM_MIXED;
 
 	m_BlockSize = 3600 * 24 * BLOCK_SIZE_DAYS + BLOCK_SIZE_SECS;
 	m_CurBlockNo = 1;

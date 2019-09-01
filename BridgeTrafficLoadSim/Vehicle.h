@@ -15,8 +15,6 @@
 #include <memory>
 #include "VehicleClassification.h"
 
-typedef std::shared_ptr<CVehicle> CVehicle_ptr;
-
 class CVehicle  
 {
 public:
@@ -152,5 +150,8 @@ private:
 	}
 
 };
+typedef std::unique_ptr<CVehicle> CVehicle_up;
+typedef std::weak_ptr<CVehicle> CVehicle_wp;
+typedef std::shared_ptr<CVehicle> CVehicle_sp;
 
 #endif // !defined(AFX_VEHICLE_H__028A909A_9588_4305_9A3E_D255BD8D332A__INCLUDED_)

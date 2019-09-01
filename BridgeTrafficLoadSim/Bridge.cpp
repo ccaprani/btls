@@ -5,7 +5,7 @@
 #include "Bridge.h"
 #include "ConfigData.h"
 
-extern CConfigData g_ConfigData;
+//extern CConfigData g_ConfigData;
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -16,9 +16,9 @@ CBridge::CBridge()
 	, m_NoLoadEffects(0)
 	, m_NoVehs(0)
 {
-	NO_LANES_DIR1		= g_ConfigData.Road.NO_LANES_DIR1;
-	NO_DIRS				= g_ConfigData.Road.NO_DIRS;
-	NO_LANES			= g_ConfigData.Road.NO_LANES;
+	NO_LANES_DIR1		= CConfigData::get().Road.NO_LANES_DIR1;
+	NO_DIRS				= CConfigData::get().Road.NO_DIRS;
+	NO_LANES			= CConfigData::get().Road.NO_LANES;
 }
 
 CBridge::CBridge(double length, double calcTimeStep, int n, double curTime)
@@ -152,41 +152,42 @@ bool CBridge::lane_compare(const CBridgeLane* pL1, const CBridgeLane* pL2)
 	return pL1->getTimeNextVehOff() < pL2->getTimeNextVehOff();
 }
 
-void CBridge::AddVehicle(CVehicle_ptr pVeh)
+void CBridge::AddVehicle(const CVehicle_sp& pVeh)
 {	
 	m_NoVehs++;
 	
 	// dereference ptr and get a copy, create new Vehicle on heap
 	// copy required as vehicle may be on multiple bridges
-	CVehicle_ptr pLocalVeh = std::make_shared<CVehicle>(*pVeh); //new CVehicle;
-	//*pLocalVeh = *pVeh;
-	//CVehicle& Veh = *pLocalVeh;
-	pVeh->setBridgeTimes(m_Length);
+	CVehicle_up pLocalVeh = std::make_unique<CVehicle>(*pVeh); //new CVehicle;
+	pLocalVeh->setBridgeTimes(m_Length);
 
 	// Get global lane number to zero-based bridge lane - CASTOR type format
-	size_t iLane = pVeh->getGlobalLane(NO_LANES) - 1; // zero based array
+	size_t iLane = pLocalVeh->getGlobalLane(NO_LANES) - 1; // zero based array
 	
-	pVeh->setBridgeLaneNo(iLane);	// bridge lanes in global lane numbering
+	pLocalVeh->setBridgeLaneNo(iLane);	// bridge lanes in global lane numbering
 
 	// update pointer to local store and save
 	if(iLane > m_NoLanes)
-		cout << "***ERROR: Veh - lane: " << pVeh->getLocalLane()
-		<< " direction: " << pVeh->getDirection()
+		cout << "***ERROR: Veh - lane: " << pLocalVeh->getLocalLane()
+		<< " direction: " << pLocalVeh->getDirection()
 			 << " cannot be added as no. lanes is " << m_vLanes.size() << endl;
 	// Lanes are out of order due to sorting above
 	for (size_t i = 0; i < m_NoLanes; i++)
 	{
-		if (m_vLanes.at(i).getIndex() == pVeh->getBridgeLaneNo())
-			m_vLanes.at(i).AddVehicle(pVeh);
+		if (m_vLanes.at(i).getIndex() == pLocalVeh->getBridgeLaneNo())
+		{
+			m_vLanes.at(i).AddVehicle(std::move(pLocalVeh));
+			break;
+		}
 	}
 }
 
-std::vector<CVehicle_ptr> CBridge::AssembleVehicles(void)
+const std::vector<CVehicle_sp> CBridge::AssembleVehicles(void)
 {
-	std::vector<CVehicle_ptr> pVehs;
+	std::vector<CVehicle_sp> pVehs;
 	for (size_t i = 0; i < m_NoLanes; i++)
 	{
-		std::vector<CVehicle_ptr> pLaneVehs = m_vLanes[i].getVehicles();
+		std::vector<CVehicle_sp> pLaneVehs = m_vLanes[i].getVehicles();
 		pVehs.insert(pVehs.end(), pLaneVehs.begin(), pLaneVehs.end());
 	}
 	sort(pVehs.begin(),pVehs.end());

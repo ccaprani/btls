@@ -8,20 +8,20 @@
 #include <sstream>
 #include "ConfigData.h"
 
-extern CConfigData g_ConfigData;
+//extern CConfigData g_ConfigData;
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
 CVehicle::CVehicle() : m_Class(Classification(0, "default"))
 {
-	DAYS_PER_MT		= g_ConfigData.Time.DAYS_PER_MT;
-	MTS_PER_YR		= g_ConfigData.Time.MTS_PER_YR;
+	DAYS_PER_MT		= CConfigData::get().Time.DAYS_PER_MT;
+	MTS_PER_YR		= CConfigData::get().Time.MTS_PER_YR;
 	
-	HOURS_PER_DAY	= g_ConfigData.Time.HOURS_PER_DAY;
-	SECS_PER_HOUR	= g_ConfigData.Time.SECS_PER_HOUR;
-	MINS_PER_HOUR	= g_ConfigData.Time.MINS_PER_HOUR;
-	SECS_PER_MIN	= g_ConfigData.Time.SECS_PER_MIN;
+	HOURS_PER_DAY	= CConfigData::get().Time.HOURS_PER_DAY;
+	SECS_PER_HOUR	= CConfigData::get().Time.SECS_PER_HOUR;
+	MINS_PER_HOUR	= CConfigData::get().Time.MINS_PER_HOUR;
+	SECS_PER_MIN	= CConfigData::get().Time.SECS_PER_MIN;
 
 	KG100_TO_KN = 0.981;
 	KG_TO_KN	= 9.81 / 1000;

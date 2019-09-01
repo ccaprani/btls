@@ -15,20 +15,20 @@
 class CVehicleGenerator : public CGenerator  
 {
 public:
-	CVehicleGenerator(EVehicleModel vm, CVehicleModelData_ptr pVMD);
+	CVehicleGenerator(EVehicleModel vm, CVehicleModelData_sp pVMD);
 	virtual ~CVehicleGenerator();
 	
-	CVehicle_ptr Generate(int iHour);
-	virtual void update(CFlowModelData_ptr pFMD);
+	CVehicle_sp Generate(int iHour);
+	virtual void update(CFlowModelData_sp pFMD);
 
 protected:
-	virtual void GenerateVehicle(CVehicle_ptr pVeh) = 0;
+	virtual void GenerateVehicle(CVehicle_sp pVeh) = 0;
 	virtual size_t GenVehClass() = 0;
 	
-	void GenerateCar(CVehicle_ptr pVeh);
+	void GenerateCar(CVehicle_sp pVeh);
 	bool NextVehicleIsCar();	
 	
-	CVehicleModelData_ptr m_pVehModelData;
+	CVehicleModelData_sp m_pVehModelData;
 	EVehicleModel m_VehModel;
 	bool m_bModelHasCars;
 
@@ -39,9 +39,9 @@ protected:
 	double m_Time;
 	int m_CurHour;
 	
-	CVehicleClassification_ptr m_pVehClassification;
+	CVehicleClassification_sp m_pVehClassification;
 
 private:
 
 };
-typedef std::shared_ptr<CVehicleGenerator> CVehicleGenerator_ptr;
+typedef std::shared_ptr<CVehicleGenerator> CVehicleGenerator_sp;

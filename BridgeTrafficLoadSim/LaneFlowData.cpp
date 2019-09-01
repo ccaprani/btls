@@ -1,7 +1,7 @@
 #include "LaneFlowData.h"
 #include "ConfigData.h"
 
-extern CConfigData g_ConfigData;
+//extern CConfigData g_ConfigData;
 
 CLaneFlowData::CLaneFlowData()
 	: m_TruckClassCount(0),
@@ -21,7 +21,7 @@ CLaneFlowComposition CLaneFlowData::getLaneComp(size_t i) const
 
 void CLaneFlowData::ReadDataIn()
 {
-	ReadLaneFlow(g_ConfigData.Road.LANES_FILE);
+	ReadLaneFlow(CConfigData::get().Road.LANES_FILE);
 	SetRoadProperties();
 }
 

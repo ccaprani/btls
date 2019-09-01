@@ -5,21 +5,21 @@
 #include "EventManager.h"
 #include "ConfigData.h"
 
-extern CConfigData g_ConfigData;
+//extern CConfigData g_ConfigData;
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
 CEventManager::CEventManager()
 {
-	WRITE_TIME_HISTORY		= g_ConfigData.Output.WRITE_TIME_HISTORY;
-	WRITE_EACH_EVENT		= g_ConfigData.Output.WRITE_EACH_EVENT;
-	WRITE_EVENT_BUFFER_SIZE = g_ConfigData.Output.WRITE_EVENT_BUFFER_SIZE;
-	WRITE_FATIGUE_EVENT		= g_ConfigData.Output.WRITE_FATIGUE_EVENT;
+	WRITE_TIME_HISTORY		= CConfigData::get().Output.WRITE_TIME_HISTORY;
+	WRITE_EACH_EVENT		= CConfigData::get().Output.WRITE_EACH_EVENT;
+	WRITE_EVENT_BUFFER_SIZE = CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE;
+	WRITE_FATIGUE_EVENT		= CConfigData::get().Output.WRITE_FATIGUE_EVENT;
 
-	WRITE_BM	= g_ConfigData.Output.BlockMax.WRITE_BM;
-	WRITE_POT	= g_ConfigData.Output.POT.WRITE_POT;
-	WRITE_STATS = g_ConfigData.Output.Stats.WRITE_STATS;
+	WRITE_BM	= CConfigData::get().Output.BlockMax.WRITE_BM;
+	WRITE_POT	= CConfigData::get().Output.POT.WRITE_POT;
+	WRITE_STATS = CConfigData::get().Output.Stats.WRITE_STATS;
 
 	m_NoEvents = 0;
 	m_CurTime = 0.0;
@@ -65,7 +65,7 @@ void CEventManager::AddNewEvent(std::vector<CVehicle> vVehs, double curTime)
 	m_CurEvent.setStartTime(m_CurTime);
 }
 
-void CEventManager::AddNewEvent(std::vector<CVehicle_ptr> pVehs, double curTime)
+void CEventManager::AddNewEvent(const std::vector<CVehicle_sp> pVehs, double curTime)
 {
 	// form local copy of vehs
 	std::vector<CVehicle> vVehs;

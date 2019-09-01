@@ -8,20 +8,10 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CConfigData::CConfigData()
-{
-	m_CommentString = "//";
-	SetDefaults();
-}
-
-CConfigData::~CConfigData()
+CConfigData::CConfigData() : m_CommentString("//")
 {
 
 }
-
-// the global config data object
-
-CConfigData g_ConfigData;
 
 bool CConfigData::ReadData(std::string inFile)
 {
@@ -130,78 +120,6 @@ vector<double> CConfigData::GetVectorFromNextLine()
 	}
 
 	return vData;
-}
-
-void CConfigData::SetDefaults()
-{
-	Mode.PROGRAM_MODE = 1;
-
-	Gen.NO_DAYS = 2;
-	Gen.TRAFFIC_FOLDER = "C:\\Traffic\\Auxerre\\";
-	Traffic.HEADWAY_MODEL = 6;
-	Traffic.VEHICLE_MODEL = 0;	// Grave
-	Traffic.CLASSIFICATION = 0; // Axles
-	Road.LANES_FILE = "laneflow.csv";
-	Traffic.CONGESTED_SPACING = 5;
-	Traffic.CONGESTED_SPEED = 30;	// km/h
-	Traffic.CONGESTED_GAP_COEF_VAR = 0.05;
-	Gen.NO_OVERLAP_LENGTH = 100.0;
-	Gen.TRUCK_TRACK_WIDTH = 190.0; // cm
-
-	Read.GARAGE_FILE = "garage.txt";
-	Read.KERNEL_FILE = "kernel.csv";
-	Read.TRAFFIC_FILE = "input.txt";
-	Read.FILE_FORMAT = 1;
-	Read.USE_CONSTANT_SPEED = false;
-	Read.USE_AVE_SPEED = true;
-	Read.CONST_SPEED = 20;	// km/h
-
-	Sim.BRIDGE_FILE = "bridge.txt";
-	Sim.INFLINE_FILE = "";
-	Sim.INFSURF_FILE = "";
-	Sim.CALC_TIME_STEP = 0.1;
-	Sim.MIN_GVW = 35;
-	
-	Output.WRITE_TIME_HISTORY = 0;
-	Output.WRITE_EACH_EVENT = 0;
-	Output.WRITE_EVENT_BUFFER_SIZE = 10000;
-	Output.WRITE_FATIGUE_EVENT = 0;
-
-	Output.VehicleFile.WRITE_VEHICLE_FILE = 0;
-	Output.VehicleFile.FILE_FORMAT = 1;
-	Output.VehicleFile.VEHICLE_FILENAME = "BTLSvehicles.txt";
-	Output.VehicleFile.WRITE_VEHICLE_BUFFER_SIZE = 10000;
-	
-	Output.BlockMax.WRITE_BM = 1;
-	Output.BlockMax.WRITE_BM_VEHICLES = 0;
-	Output.BlockMax.WRITE_BM_SUMMARY = 1;
-	Output.BlockMax.WRITE_BM_MIXED = 1;
-	Output.BlockMax.BLOCK_SIZE_DAYS = 1;
-	Output.BlockMax.BLOCK_SIZE_SECS = 0;
-	Output.BlockMax.WRITE_BM_BUFFER_SIZE = 10000;
-
-	Output.POT.WRITE_POT = 1;
-	Output.POT.WRITE_POT_VEHICLES = 0;
-	Output.POT.WRITE_POT_SUMMARY = 1;
-	Output.POT.WRITE_POT_COUNTER = 1;
-	Output.POT.POT_COUNT_SIZE_DAYS = 1;
-	Output.POT.POT_COUNT_SIZE_SECS = 0;
-	Output.POT.WRITE_POT_BUFFER_SIZE = 10000;
-
-	Output.Stats.WRITE_STATS = 1;
-	Output.Stats.WRITE_SS_CUMULATIVE = 1;
-	Output.Stats.WRITE_SS_INTERVALS = 0;
-	Output.Stats.WRITE_SS_INTERVAL_SIZE = 3600;
-	Output.Stats.WRITE_SS_BUFFER_SIZE = 10000;
-
-	Time.DAYS_PER_MT	= 25;
-	Time.MTS_PER_YR		= 10;
-	Time.HOURS_PER_DAY	= 24;
-	Time.SECS_PER_HOUR	= 3600;
-	Time.MINS_PER_HOUR	= 60;
-	Time.SECS_PER_MIN	= 60;
-
-	doDerivedConstants();
 }
 
 void CConfigData::doDerivedConstants()

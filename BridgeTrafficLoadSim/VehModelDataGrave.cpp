@@ -1,9 +1,9 @@
 #include "VehModelDataGrave.h"
 #include "ConfigData.h"
 
-extern CConfigData g_ConfigData;
+//extern CConfigData g_ConfigData;
 
-CVehModelDataGrave::CVehModelDataGrave(CVehicleClassification_ptr pVC, CLaneFlowComposition lfc)
+CVehModelDataGrave::CVehModelDataGrave(CVehicleClassification_sp pVC, CLaneFlowComposition lfc)
 	: CVehicleModelData(eVM_Grave, pVC, lfc, 5) // MAGIC NUMBER - truck class count of the Grave Model
 {
 	ReadDataIn();
@@ -213,7 +213,7 @@ void CVehModelDataGrave::ReadFile_ATW()
 	{
 		std::cout << "*** Warning: Axle track width file not found, using default values" << std::endl;
 		CTriModalNormal tmn;
-		tmn.AddMode(1, g_ConfigData.Gen.TRUCK_TRACK_WIDTH, 0);	// deterministic width
+		tmn.AddMode(1, CConfigData::get().Gen.TRUCK_TRACK_WIDTH, 0);	// deterministic width
 		vector<CTriModalNormal> vTrack(2, tmn); // start off with 2 axles
 		m_TD.Add2AxleTrackWidth(vTrack); // add it
 		vTrack.push_back(tmn);	m_TD.Add3AxleTrackWidth(vTrack); // add another axle and store it

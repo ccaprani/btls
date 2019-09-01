@@ -60,9 +60,9 @@ void CBridgeLane::addLoadEffect(CInfluenceLine IL, double weight)
 }
 
 
-void CBridgeLane::AddVehicle(CVehicle_ptr pVeh)
+void CBridgeLane::AddVehicle(CVehicle_up pVeh)
 {
-	m_vVehicles.push_back(pVeh);
+	m_vVehicles.push_back(std::move(pVeh));
 	setAxleVector();	// set up axle vector
 	setTimeNextVehOff();
 }
@@ -74,7 +74,7 @@ void CBridgeLane::setAxleVector()
 	size_t iAxle = 0;
 	for(unsigned int i = 0; i < m_vVehicles.size(); i++)
 	{
-		CVehicle_ptr pVeh = m_vVehicles[i];
+		const CVehicle_sp& pVeh = m_vVehicles.at(i);
 
 		double speed = pVeh->getVelocity();
 		double timeAtRHSDatum = 0.0;
@@ -185,14 +185,15 @@ void CBridgeLane::setIndex(size_t indx)
 size_t CBridgeLane::purgeVehicles(double curTime)
 {
 	bool reset = false;
-	for(unsigned int i = 0; i < m_vVehicles.size(); i++)
+	for(size_t i = 0; i < m_vVehicles.size(); i++)
 	{
 		if( !m_vVehicles.at(i)->IsOnBridge(curTime) )
 		{
 			// delete object and remove pointer from vector
 			m_vVehicles.at(i) = nullptr;
 			m_vVehicles.erase( m_vVehicles.begin() + i );
-			--i;	// take one step back due to deletion
+			if(i > 0)
+				--i;	// take one step back due to deletion
 			reset = true;
 		}
 	}
@@ -205,7 +206,7 @@ size_t CBridgeLane::purgeVehicles(double curTime)
 }
 
 
-std::vector<CVehicle_ptr> CBridgeLane::getVehicles(void)
+const std::vector<CVehicle_sp> CBridgeLane::getVehicles(void)
 {
 	return m_vVehicles;
 }

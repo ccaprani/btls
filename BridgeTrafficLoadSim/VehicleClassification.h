@@ -5,7 +5,7 @@
 #include <memory>
 
 class CVehicle; // pre-defined
-typedef std::shared_ptr<CVehicle> CVehicle_ptr;
+typedef std::shared_ptr<CVehicle> CVehicle_sp;
 
 enum EClassificationSystem
 {
@@ -46,7 +46,7 @@ public:
 	CVehicleClassification();
 	virtual ~CVehicleClassification();
 
-	virtual void setClassification(CVehicle_ptr pVeh) = 0;
+	virtual void setClassification(CVehicle_sp pVeh) = 0;
 	size_t getNoClasses() { return m_nClasses; };
 	Classification getClass(size_t i);
 	size_t getClassID(Classification cl);
@@ -66,7 +66,7 @@ protected:
 	Classification m_DefaultClass;
 	Classification m_CarClass;
 };
-typedef std::shared_ptr<CVehicleClassification> CVehicleClassification_ptr;
+typedef std::shared_ptr<CVehicleClassification> CVehicleClassification_sp;
 
 class CVehClassAxle : public CVehicleClassification
 {
@@ -74,7 +74,7 @@ public:
 	CVehClassAxle();
 	~CVehClassAxle(){};
 
-	void setClassification(CVehicle_ptr pVeh);
+	void setClassification(CVehicle_sp pVeh);
 
 private:
 	Classification m_2axle;
@@ -82,7 +82,7 @@ private:
 	Classification m_4axle;
 	Classification m_5axle;
 };
-typedef std::shared_ptr<CVehClassAxle> CVehClassAxle_ptr;
+typedef std::shared_ptr<CVehClassAxle> CVehClassAxle_sp;
 
 class CVehClassPattern : public CVehicleClassification
 {
@@ -90,11 +90,11 @@ public:
 	CVehClassPattern();
 	~CVehClassPattern(){};
 
-	void setClassification(CVehicle_ptr pVeh);
+	void setClassification(CVehicle_sp pVeh);
 
 private:
-	std::string getPattern(CVehicle_ptr pVeh);
+	std::string getPattern(CVehicle_sp pVeh);
 
 	std::vector<std::string> m_vPatternStrings;
 };
-typedef std::shared_ptr<CVehClassPattern> CVehClassPattern_ptr;
+typedef std::shared_ptr<CVehClassPattern> CVehClassPattern_sp;

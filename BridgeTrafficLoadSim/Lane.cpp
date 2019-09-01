@@ -5,7 +5,7 @@
 #include "Lane.h"
 #include "ConfigData.h"
 
-extern CConfigData g_ConfigData;
+//extern CConfigData g_ConfigData;
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

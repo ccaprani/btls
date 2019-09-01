@@ -18,7 +18,7 @@ public:
 	void	setLaneNo(size_t LaneNo);
 	size_t	getLaneNo(void);
 	void	addLoadEffect(CInfluenceLine IL, double weight);
-	void	AddVehicle(CVehicle_ptr pVeh);
+	void	AddVehicle(CVehicle_up pVeh);
 	size_t	getIndex(void);
 	void	setIndex(size_t indx);
 	size_t	purgeVehicles(double curTime);
@@ -29,21 +29,19 @@ public:
 	double	getLoadEffect(size_t NoLE);
 	double	getLeadVehPosition(void);
 	size_t	getNoVehs(void);
-	std::vector<CVehicle_ptr> getVehicles(void);
+	const std::vector<CVehicle_sp> getVehicles(void);
 
 private:
 	void	setAxleVector();
-	//double	doAxleLoop(int nLE);
 
 	std::vector<CInfluenceLine> m_vInfLine;
-	std::vector<CVehicle_ptr>		m_vVehicles;
+	std::vector<CVehicle_sp>	m_vVehicles;
 	std::vector<CAxle>			m_vAxles;
 	size_t	m_LaneNo;
 	double	m_CurTime;
 	double	m_Length;
 	size_t	m_NoLE;
 	double	m_TimeNextVehOff;
-	//int		m_NoVehs;
 	size_t	m_Index;
 	double	m_LaneWidth;
 };

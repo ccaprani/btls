@@ -3,7 +3,7 @@
 #include "LaneFlowComposition.h"
 #include <memory>
 // forward declare
-class CVehicle; typedef std::shared_ptr<CVehicle> CVehicle_ptr;
+class CVehicle; typedef std::shared_ptr<CVehicle> CVehicle_sp;
 
 class CLaneFlowData : public CModelData
 {
@@ -37,6 +37,6 @@ private:
 
 	std::vector<CLaneFlowComposition> m_vLaneComp;
 
-	std::vector<CVehicle_ptr> m_vVehicles;
+	std::vector<CVehicle_sp> m_vVehicles;
 };
 

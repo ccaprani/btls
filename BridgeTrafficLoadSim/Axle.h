@@ -11,14 +11,14 @@
 
 #include <memory>
 // forward declare
-class CVehicle; typedef std::shared_ptr<CVehicle> CVehicle_ptr;
+class CVehicle; typedef std::shared_ptr<CVehicle> CVehicle_sp;
 
 class CAxle  
 {
 public:
 	CAxle();
 	CAxle(size_t i, double t, double v, double x, double w, double tw, int dirn);
-	CAxle(size_t i, size_t iAxle, double t, double x, CVehicle_ptr pVeh);
+	CAxle(size_t i, size_t iAxle, double t, double x, const CVehicle_sp pVeh);
 	virtual ~CAxle();
 	
 	void UpdatePosition(double time);
@@ -36,7 +36,7 @@ public:
 
 private:
 	int m_Sign;
-	//CVehicle_ptr m_pVeh;
+	//CVehicle_sp m_pVeh;
 };
 
 #endif // !defined(AFX_AXLE_H__9EEC5C84_8B3B_4D68_A004_465AAC0FD15A__INCLUDED_)

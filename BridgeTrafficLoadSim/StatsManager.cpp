@@ -1,16 +1,16 @@
 #include "StatsManager.h"
 #include "ConfigData.h"
 
-extern CConfigData g_ConfigData;
+//extern CConfigData g_ConfigData;
 
 CStatsManager::CStatsManager(void)
 {
 	m_FileStem = "SS";
 
-	WRITE_SS_CUMULATIVE		= g_ConfigData.Output.Stats.WRITE_SS_CUMULATIVE;
-	WRITE_SS_INTERVALS		= g_ConfigData.Output.Stats.WRITE_SS_INTERVALS;
-	WRITE_SS_INTERVAL_SIZE	= g_ConfigData.Output.Stats.WRITE_SS_INTERVAL_SIZE;
-	WRITE_BUFFER_SIZE		= g_ConfigData.Output.Stats.WRITE_SS_BUFFER_SIZE;
+	WRITE_SS_CUMULATIVE		= CConfigData::get().Output.Stats.WRITE_SS_CUMULATIVE;
+	WRITE_SS_INTERVALS		= CConfigData::get().Output.Stats.WRITE_SS_INTERVALS;
+	WRITE_SS_INTERVAL_SIZE	= CConfigData::get().Output.Stats.WRITE_SS_INTERVAL_SIZE;
+	WRITE_BUFFER_SIZE		= CConfigData::get().Output.Stats.WRITE_SS_BUFFER_SIZE;
 
 	// inhereted from base class, just set to false
 	WRITE_SUMMARY = false;

@@ -1,11 +1,10 @@
 #include "FlowGenerator.h"
 
-CFlowGenerator::CFlowGenerator(CFlowModelData_ptr pFMD, EFlowModel fm)
+CFlowGenerator::CFlowGenerator(CFlowModelData_sp pFMD, EFlowModel fm)
 	: m_CurBlock(0), m_FlowModel(fm), m_BufferGapSpace(1.0), m_BufferGapTime(0.1)
 	, m_TotalFlow(0.0), m_TruckFlow(0.0), m_BlockSize(3600), m_BlockCount(24)
+	, m_pFlowModelData(pFMD)
 {
-	m_pFlowModelData = pFMD;
-
 	m_pPrevVeh = nullptr;
 	m_pNextVeh = nullptr;
 
@@ -25,7 +24,7 @@ CFlowGenerator::~CFlowGenerator()
 {
 }
 
-void CFlowGenerator::prepareNextGen(double time, CVehicle_ptr pPrevVeh, CVehicle_ptr pNextVeh)
+void CFlowGenerator::prepareNextGen(double time, CVehicle_sp pPrevVeh, CVehicle_sp pNextVeh)
 {
 	m_pPrevVeh = pPrevVeh;
 	m_pNextVeh = pNextVeh;
@@ -117,7 +116,7 @@ void CFlowGenerator::setMinGap()
 
 //////////// CFlowGenNHM ///////////////
 
-CFlowGenNHM::CFlowGenNHM(CFlowModelDataNHM_ptr pFMD) : CFlowGenerator(pFMD, eFM_NHM)
+CFlowGenNHM::CFlowGenNHM(CFlowModelDataNHM_sp pFMD) : CFlowGenerator(pFMD, eFM_NHM)
 {
 	m_pFMD = std::dynamic_pointer_cast<CFlowModelDataNHM>(m_pFlowModelData);
 
@@ -189,7 +188,7 @@ void CFlowGenNHM::updateProperties()
 
 //////////// CFlowGenCongested ///////////////
 
-CFlowGenCongested::CFlowGenCongested(CFlowModelDataCongested_ptr pFMD) : CFlowGenerator(pFMD, eFM_Congested)
+CFlowGenCongested::CFlowGenCongested(CFlowModelDataCongested_sp pFMD) : CFlowGenerator(pFMD, eFM_Congested)
 {
 	m_pFMD = std::dynamic_pointer_cast<CFlowModelDataCongested>(m_pFlowModelData);
 
@@ -237,7 +236,7 @@ void CFlowGenCongested::updateProperties()
 
 ///////////// CFlowGenPoisson ///////////////
 
-CFlowGenPoisson::CFlowGenPoisson(CFlowModelDataPoisson_ptr pFDM) : CFlowGenerator(pFDM, eFM_Poisson)
+CFlowGenPoisson::CFlowGenPoisson(CFlowModelDataPoisson_sp pFDM) : CFlowGenerator(pFDM, eFM_Poisson)
 {
 	m_pFMD = std::dynamic_pointer_cast<CFlowModelDataPoisson>(m_pFlowModelData);
 

@@ -55,7 +55,7 @@ m_5axle(Classification(1, "5-axle"))
 	m_nClasses = m_vClasses.size();
 }
 
-void CVehClassAxle::setClassification(CVehicle_ptr pVeh)
+void CVehClassAxle::setClassification(CVehicle_sp pVeh)
 {
 	size_t nAxles = pVeh->getNoAxles();
 
@@ -104,7 +104,7 @@ CVehClassPattern::CVehClassPattern()
 	m_nClasses = m_vClasses.size();
 }
 
-void CVehClassPattern::setClassification(CVehicle_ptr pVeh)
+void CVehClassPattern::setClassification(CVehicle_sp pVeh)
 {
 	size_t nAxles = pVeh->getNoAxles();
 
@@ -130,7 +130,7 @@ void CVehClassPattern::setClassification(CVehicle_ptr pVeh)
 	}
 }
 
-std::string CVehClassPattern::getPattern(CVehicle_ptr pVeh)
+std::string CVehClassPattern::getPattern(CVehicle_sp pVeh)
 {
 	size_t nAxles = pVeh->getNoAxles();
 	double maxAS = 2.1; // MAGIC NUMBER - max axle spacing for a group

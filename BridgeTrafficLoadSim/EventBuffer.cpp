@@ -5,7 +5,7 @@
 #include "EventBuffer.h"
 #include "ConfigData.h"
 
-extern CConfigData g_ConfigData;
+//extern CConfigData g_ConfigData;
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -13,7 +13,7 @@ extern CConfigData g_ConfigData;
 
 CEventBuffer::CEventBuffer()
 {
-	m_BufferSize = g_ConfigData.Output.WRITE_EVENT_BUFFER_SIZE;
+	m_BufferSize = CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE;
 
 	SetBufferSize(m_BufferSize);
 	m_NoEvents = 0;
@@ -22,7 +22,7 @@ CEventBuffer::CEventBuffer()
 
 CEventBuffer::CEventBuffer(std::string OutFile)
 {
-	m_BufferSize = g_ConfigData.Output.WRITE_EVENT_BUFFER_SIZE;
+	m_BufferSize = CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE;
 
 	m_OutFile.open(OutFile.c_str(), std::ios::out);
 	SetBufferSize(m_BufferSize);

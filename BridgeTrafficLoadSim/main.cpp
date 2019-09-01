@@ -27,34 +27,50 @@
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
+#ifdef _DEBUG
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#define new DEBUG_NEW
+#endif
 
-extern CConfigData g_ConfigData;
+//extern CConfigData g_ConfigData;
 using namespace std;
 
-void GetGeneratorLanes(CVehicleClassification_ptr pVC, vector<CLane_ptr>& vpLanes, double& StartTime, double& EndTime);
-void GetTrafficFileLanes(CVehicleClassification_ptr pVC, vector<CLane_ptr>& vpLanes, double& StartTime, double& EndTime);
-vector<CBridge_ptr> PrepareBridges(double SimStartTime);
-void doSimulation(CVehicleClassification_ptr pVC, vector<CBridge_ptr> pBridges, vector<CLane_ptr> pLanes, double SimStartTime, double SimEndTime);
-inline bool lane_compare(const CLane_ptr pL1, const CLane_ptr pL2);
+void GetGeneratorLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLanes, const double& StartTime, double& EndTime);
+void GetTrafficFileLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLanes, double& StartTime, double& EndTime);
+vector<CBridge_sp> PrepareBridges(double SimStartTime);
+void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> pBridges, vector<CLane_sp> pLanes, double SimStartTime, double SimEndTime);
+inline bool lane_compare(const CLane_sp pL1, const CLane_sp pL2);
 
 void main()
 {
+	// For debugging memory leaks to the std::cout, but only after
+	// all other execution has finished, otherwise false reports of
+	// leaks occur (e.g. std::string)
+	// https://stackoverflow.com/questions/4748391/string-causes-a-memory-leak
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
+	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDOUT);
+	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDOUT);
+
 	cout << "---------------------------------------------" << endl;
 	cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
 	cout << "                Version 1.3.1                " << endl;
 	cout << "---------------------------------------------" << endl << endl;
 
-	if (!g_ConfigData.ReadData("BTLSin.txt") )
+	if (!CConfigData::get().ReadData("BTLSin.txt") )
 	{
 		cout << "BTLSin file could not be opened" << endl;
 		cout << "Using default values" << endl;
 	}
 
-	cout << "Program Mode: " << g_ConfigData.Mode.PROGRAM_MODE << endl;
+	cout << "Program Mode: " << CConfigData::get().Mode.PROGRAM_MODE << endl;
 	cout << endl;
 	
-	CVehicleClassification_ptr pVC;
-	switch (g_ConfigData.Traffic.CLASSIFICATION)
+	CVehicleClassification_sp pVC;
+	switch (CConfigData::get().Traffic.CLASSIFICATION)
 	{
 	case 1: // Pattern
 		pVC = std::make_shared<CVehClassPattern>(); break;
@@ -62,14 +78,14 @@ void main()
 		pVC = std::make_shared<CVehClassAxle>(); break;
 	}
 
-	double StartTime = 83000;// 0.0;
+	double StartTime = 0.0;
 	double EndTime = 0.0;
-	vector<CLane_ptr> vLanes;
-	if (g_ConfigData.Gen.GEN_TRAFFIC)	GetGeneratorLanes(pVC, vLanes, StartTime, EndTime);
-	if (g_ConfigData.Read.READ_FILE)	GetTrafficFileLanes(pVC, vLanes, StartTime, EndTime);
+	vector<CLane_sp> vLanes;
+	if (CConfigData::get().Gen.GEN_TRAFFIC)	GetGeneratorLanes(pVC, vLanes, StartTime, EndTime); 
+	if (CConfigData::get().Read.READ_FILE)	GetTrafficFileLanes(pVC, vLanes, StartTime, EndTime);
 	
-	vector<CBridge_ptr> vBridges;
-	if(g_ConfigData.Sim.CALC_LOAD_EFFECTS)
+	vector<CBridge_sp> vBridges;
+	if(CConfigData::get().Sim.CALC_LOAD_EFFECTS)
 		vBridges = PrepareBridges(StartTime);
 
 	clock_t start = clock();
@@ -79,94 +95,86 @@ void main()
 
 	clock_t end = clock();
 	cout << endl << "Duration of analysis: " << std::fixed << std::setprecision(3) 
-		<< (double)((end - start)/(double)CLOCKS_PER_SEC) << " s" << endl;
+		<< ((double)(end) - (double)(start))/((double)CLOCKS_PER_SEC) << " s" << endl;
 
-	// Tidy up
-	for (auto i : vLanes)
-		i = nullptr;
-	vLanes.clear();
-	pVC = nullptr;
-
-	_CrtDumpMemoryLeaks(); // for hunting memory leaks
 	//system("PAUSE");
 }
 
-vector<CBridge_ptr> PrepareBridges(double SimStartTime)
+vector<CBridge_sp> PrepareBridges(double SimStartTime)
 {
 	CReadILFile readIL;
-	CBridgeFile BridgeFile(g_ConfigData.Sim.BRIDGE_FILE,
-		readIL.getInfLines(g_ConfigData.Sim.INFLINE_FILE,0),	// discrete ILs
-		readIL.getInfLines(g_ConfigData.Sim.INFSURF_FILE,1),	// Influence Surfaces
+	CBridgeFile BridgeFile(CConfigData::get().Sim.BRIDGE_FILE,
+		readIL.getInfLines(CConfigData::get().Sim.INFLINE_FILE,0),	// discrete ILs
+		readIL.getInfLines(CConfigData::get().Sim.INFSURF_FILE,1),	// Influence Surfaces
 		SimStartTime);											// Tell Event mgrs the time
-	vector<CBridge_ptr> vpBridges = BridgeFile.getBridges();
-	g_ConfigData.Gen.NO_OVERLAP_LENGTH = BridgeFile.getMaxBridgeLength();
+	vector<CBridge_sp> vpBridges = BridgeFile.getBridges();
+	CConfigData::get().Gen.NO_OVERLAP_LENGTH = BridgeFile.getMaxBridgeLength();
 
 	for(unsigned int i = 0; i < vpBridges.size(); i++)
-		vpBridges.at(i)->setCalcTimeStep( g_ConfigData.Sim.CALC_TIME_STEP );
+		vpBridges.at(i)->setCalcTimeStep( CConfigData::get().Sim.CALC_TIME_STEP );
 
 	return vpBridges;
 }
 
-void GetGeneratorLanes(CVehicleClassification_ptr pVC, vector<CLane_ptr>& vpLanes, double& StartTime, double& EndTime)
+void GetGeneratorLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLanes, const double& StartTime, double& EndTime)
 {
 	// Useful debugging tool - set start time higher
-	StartTime = 0; // (double)(startday)*86400;
-	EndTime = (double)(g_ConfigData.Gen.NO_DAYS)*24*3600;
+	EndTime = (double)(CConfigData::get().Gen.NO_DAYS)*24*3600;
 	
 	CLaneFlowData LaneFlowData; 
 	LaneFlowData.ReadDataIn();
 	
-	g_ConfigData.Road.NO_LANES		= LaneFlowData.getNoLanes();
-	g_ConfigData.Road.NO_DIRS		= LaneFlowData.getNoDirn();
-	g_ConfigData.Road.NO_LANES_DIR1 = LaneFlowData.getNoLanesDir1();
-	g_ConfigData.Road.NO_LANES_DIR2 = LaneFlowData.getNoLanesDir2();
+	CConfigData::get().Road.NO_LANES		= LaneFlowData.getNoLanes();
+	CConfigData::get().Road.NO_DIRS			= LaneFlowData.getNoDirn();
+	CConfigData::get().Road.NO_LANES_DIR1	= LaneFlowData.getNoLanesDir1();
+	CConfigData::get().Road.NO_LANES_DIR2	= LaneFlowData.getNoLanesDir2();
 
 	for (size_t i = 0; i < LaneFlowData.getNoLanes(); ++i)
 	{
-		CLaneGenTraffic_ptr pLane = std::make_shared<CLaneGenTraffic>();
+		CLaneGenTraffic_sp pLane = std::make_shared<CLaneGenTraffic>();
 		pLane->setLaneData(pVC, LaneFlowData.getLaneComp(i), StartTime);
 		vpLanes.push_back(pLane);
 	}
 }
 
-void GetTrafficFileLanes(CVehicleClassification_ptr pVC, vector<CLane_ptr>& vpLanes, double& StartTime, double& EndTime)
+void GetTrafficFileLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLanes, double& StartTime, double& EndTime)
 {
-	CVehicleTrafficFile TrafficFile(pVC, g_ConfigData.Read.USE_CONSTANT_SPEED, 
-		g_ConfigData.Read.USE_AVE_SPEED, g_ConfigData.Read.CONST_SPEED);
+	CVehicleTrafficFile TrafficFile(pVC, CConfigData::get().Read.USE_CONSTANT_SPEED, 
+		CConfigData::get().Read.USE_AVE_SPEED, CConfigData::get().Read.CONST_SPEED);
 	cout << "Reading traffic file..." << endl;
-	TrafficFile.Read(g_ConfigData.Read.TRAFFIC_FILE,g_ConfigData.Read.FILE_FORMAT);
+	TrafficFile.Read(CConfigData::get().Read.TRAFFIC_FILE,CConfigData::get().Read.FILE_FORMAT);
 	
-	g_ConfigData.Gen.NO_DAYS		= TrafficFile.getNoDays();
-	g_ConfigData.Road.NO_LANES		= TrafficFile.getNoLanes();
-	g_ConfigData.Road.NO_DIRS		= TrafficFile.getNoDirn();
-	g_ConfigData.Road.NO_LANES_DIR1 = TrafficFile.getNoLanesDir1();
-	g_ConfigData.Road.NO_LANES_DIR2 = TrafficFile.getNoLanesDir2();
+	CConfigData::get().Gen.NO_DAYS		= TrafficFile.getNoDays();
+	CConfigData::get().Road.NO_LANES		= TrafficFile.getNoLanes();
+	CConfigData::get().Road.NO_DIRS		= TrafficFile.getNoDirn();
+	CConfigData::get().Road.NO_LANES_DIR1 = TrafficFile.getNoLanesDir1();
+	CConfigData::get().Road.NO_LANES_DIR2 = TrafficFile.getNoLanesDir2();
 
-	if(g_ConfigData.Gen.NO_DAYS == 0)	std::cout << "*** ERROR: No traffic in vehicle file" << std::endl;
-	if(g_ConfigData.Road.NO_LANES == 0)	std::cout << "*** ERROR: No lanes in vehicle file" << std::endl;
-	if(g_ConfigData.Road.NO_DIRS == 0)	std::cout << "*** ERROR: No directions in vehicle file" << std::endl;
-	if(g_ConfigData.Road.NO_DIRS == 2 && g_ConfigData.Road.NO_LANES == 1)	
+	if(CConfigData::get().Gen.NO_DAYS == 0)	std::cout << "*** ERROR: No traffic in vehicle file" << std::endl;
+	if(CConfigData::get().Road.NO_LANES == 0)	std::cout << "*** ERROR: No lanes in vehicle file" << std::endl;
+	if(CConfigData::get().Road.NO_DIRS == 0)	std::cout << "*** ERROR: No directions in vehicle file" << std::endl;
+	if(CConfigData::get().Road.NO_DIRS == 2 && CConfigData::get().Road.NO_LANES == 1)	
 		std::cout << "*** ERROR: Two directions and one lane detected" << std::endl;
 
 	for(unsigned int i = 0; i < TrafficFile.getNoLanes(); ++i)
 	{
-		CLaneFileTraffic_ptr pLane = std::make_shared<CLaneFileTraffic>();
+		CLaneFileTraffic_sp pLane = std::make_shared<CLaneFileTraffic>();
 		int dirn = i < TrafficFile.getNoLanesDir1() ? 1 : 2;
 		pLane->setLaneData(dirn,i); // direction and cumulative lane number
 		vpLanes.push_back(pLane);
 	}
 	for(unsigned int i = 0; i < TrafficFile.getNoVehicles(); ++i)
 	{
-		CVehicle_ptr pVeh = TrafficFile.getNextVehicle();
+		CVehicle_sp pVeh = TrafficFile.getNextVehicle();
 
 		// Map vehicle to lane using zero based cumulative lane no
-		size_t iLane = pVeh->getGlobalLane(g_ConfigData.Road.NO_LANES) - 1;
-		CLaneFileTraffic_ptr pLane = std::static_pointer_cast<CLaneFileTraffic>(vpLanes.at(iLane));
+		size_t iLane = pVeh->getGlobalLane(CConfigData::get().Road.NO_LANES) - 1;
+		CLaneFileTraffic_sp pLane = std::static_pointer_cast<CLaneFileTraffic>(vpLanes.at(iLane));
 		pLane->addVehicle(pVeh);
 	}
 	for(unsigned int i = 0; i < TrafficFile.getNoLanes(); ++i)
 	{
-		CLaneFileTraffic_ptr pLane = std::static_pointer_cast<CLaneFileTraffic>(vpLanes.at(i));
+		CLaneFileTraffic_sp pLane = std::static_pointer_cast<CLaneFileTraffic>(vpLanes.at(i));
 		if(pLane->GetNoVehicles() > 0)
 			pLane->setFirstArrivalTime();
 		else
@@ -177,7 +185,7 @@ void GetTrafficFileLanes(CVehicleClassification_ptr pVC, vector<CLane_ptr>& vpLa
 	EndTime = TrafficFile.getEndTime();
 }
 
-void doSimulation(CVehicleClassification_ptr pVC, vector<CBridge_ptr> vBridges, vector<CLane_ptr> vLanes, double SimStartTime, double SimEndTime)
+void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double SimStartTime, double SimEndTime)
 {
 	CVehicleBuffer VehBuff(pVC, SimStartTime);
 	size_t nLanes = vLanes.size();
@@ -200,9 +208,9 @@ void doSimulation(CVehicleClassification_ptr pVC, vector<CBridge_ptr> vBridges, 
 		double NextArrivalTime = vLanes[0]->GetNextArrivalTime();
 
 		// generate the next vehicle from the lane with the next arrival time		
-		CVehicle_ptr pVeh = vLanes[0]->GetNextVehicle();
+		CVehicle_sp& pVeh = vLanes[0]->GetNextVehicle();
 		VehBuff.AddVehicle(pVeh);
-		if (g_ConfigData.Sim.CALC_LOAD_EFFECTS)
+		if (CConfigData::get().Sim.CALC_LOAD_EFFECTS)
 		{
 //#pragma omp for
 			for (size_t i = 0; i < vBridges.size(); i++)
@@ -211,7 +219,7 @@ void doSimulation(CVehicleClassification_ptr pVC, vector<CBridge_ptr> vBridges, 
 				vBridges[i]->Update(NextArrivalTime, curTime);
 				//vBridges[i]->UpdateMT(NextArrivalTime, curTime);
 				// Add the next vehicle to the bridge, if it is not a car
-				if (pVeh != nullptr && pVeh->getGVW() > g_ConfigData.Sim.MIN_GVW)
+				if (pVeh != nullptr && pVeh->getGVW() > CConfigData::get().Sim.MIN_GVW)
 					vBridges[i]->AddVehicle(pVeh);
 			}
 			//for(unsigned int i = 0; i < vBridges.size(); i++)
@@ -239,7 +247,7 @@ void doSimulation(CVehicleClassification_ptr pVC, vector<CBridge_ptr> vBridges, 
 //	}
 	cout << endl;
 	
-	if(g_ConfigData.Sim.CALC_LOAD_EFFECTS)
+	if(CConfigData::get().Sim.CALC_LOAD_EFFECTS)
 	{
 		for(unsigned int i = 0; i < vBridges.size(); i++)
 			vBridges[i]->Finish();
@@ -248,7 +256,7 @@ void doSimulation(CVehicleClassification_ptr pVC, vector<CBridge_ptr> vBridges, 
 	VehBuff.FlushBuffer();
 }
 
-bool lane_compare(const CLane_ptr pL1, const CLane_ptr pL2)
+bool lane_compare(const CLane_sp pL1, const CLane_sp pL2)
 {
 	return pL1->GetNextArrivalTime() < pL2->GetNextArrivalTime();
 }

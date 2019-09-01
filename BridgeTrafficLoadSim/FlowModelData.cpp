@@ -1,7 +1,7 @@
 #include "FlowModelData.h"
 #include "ConfigData.h"
 
-extern CConfigData g_ConfigData;
+//extern CConfigData g_ConfigData;
 
 CFlowModelData::CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars)
 	: m_Model(fm), m_bModelHasCars(bCars)
@@ -98,9 +98,9 @@ void CFlowModelDataNHM::ReadFile_NHM()
 CFlowModelDataCongested::CFlowModelDataCongested(CLaneFlowComposition lfc)
 	: CFlowModelData(eFM_Congested, lfc, true) // Model has cars
 {
-	m_GapMean = g_ConfigData.Traffic.CONGESTED_GAP;
-	m_GapStd = g_ConfigData.Traffic.CONGESTED_GAP_COEF_VAR;
-	m_Speed = g_ConfigData.Traffic.CONGESTED_SPEED;
+	m_GapMean = CConfigData::get().Traffic.CONGESTED_GAP;
+	m_GapStd = CConfigData::get().Traffic.CONGESTED_GAP_COEF_VAR;
+	m_Speed = CConfigData::get().Traffic.CONGESTED_SPEED;
 }
 
 CFlowModelDataCongested::~CFlowModelDataCongested()

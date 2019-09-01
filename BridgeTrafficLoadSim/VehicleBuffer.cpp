@@ -6,23 +6,23 @@
 #include "VehicleBuffer.h"
 #include "ConfigData.h"
 
-extern CConfigData g_ConfigData;
+//extern CConfigData g_ConfigData;
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CVehicleBuffer::CVehicleBuffer(CVehicleClassification_ptr pVC, double starttime)
+CVehicleBuffer::CVehicleBuffer(CVehicleClassification_sp pVC, double starttime)
 {
 	//init(false, "", 0);
 
-	FILE_FORMAT					= g_ConfigData.Output.VehicleFile.FILE_FORMAT;
-	WRITE_VEHICLE_FILE			= g_ConfigData.Output.VehicleFile.WRITE_VEHICLE_FILE;
-	VEHICLE_FILENAME			= g_ConfigData.Output.VehicleFile.VEHICLE_FILENAME;
-	WRITE_VEHICLE_BUFFER_SIZE	= g_ConfigData.Output.VehicleFile.WRITE_VEHICLE_BUFFER_SIZE;
-	WRITE_FLOW_STATS			= g_ConfigData.Output.VehicleFile.WRITE_FLOW_STATS;
+	FILE_FORMAT					= CConfigData::get().Output.VehicleFile.FILE_FORMAT;
+	WRITE_VEHICLE_FILE			= CConfigData::get().Output.VehicleFile.WRITE_VEHICLE_FILE;
+	VEHICLE_FILENAME			= CConfigData::get().Output.VehicleFile.VEHICLE_FILENAME;
+	WRITE_VEHICLE_BUFFER_SIZE	= CConfigData::get().Output.VehicleFile.WRITE_VEHICLE_BUFFER_SIZE;
+	WRITE_FLOW_STATS			= CConfigData::get().Output.VehicleFile.WRITE_FLOW_STATS;
 
-	NO_LANES_DIR1	= g_ConfigData.Road.NO_LANES_DIR1;
-	NO_LANES_DIR2	= g_ConfigData.Road.NO_LANES_DIR2;
+	NO_LANES_DIR1	= CConfigData::get().Road.NO_LANES_DIR1;
+	NO_LANES_DIR2	= CConfigData::get().Road.NO_LANES_DIR2;
 	NO_LANES = NO_LANES_DIR1 + NO_LANES_DIR2;
 
 	m_pVehClassification = pVC;
@@ -50,19 +50,17 @@ CVehicleBuffer::~CVehicleBuffer()
 	writeFlowData();
 }
 
-void CVehicleBuffer::AddVehicle(CVehicle_ptr pVeh)
+void CVehicleBuffer::AddVehicle(const CVehicle_sp& pVeh)
 { 
 	if(pVeh == nullptr)
 		return;
 	if( !(WRITE_VEHICLE_FILE || WRITE_FLOW_STATS) )
 		return;
 
-	// copy it locally
-	CVehicle_ptr pV = std::make_shared<CVehicle>(*pVeh); //new CVehicle;
-	//*pV = *pVeh;
-
+	// copy it & store locally using move semantics
+	CVehicle_up pV = std::make_unique<CVehicle>(*pVeh);
+	m_vVehicles.push_back(std::move(pV));
 	m_NoVehicles++;
-	m_vVehicles.push_back(pV);
 	
 	updateFlowData();
 
@@ -78,11 +76,11 @@ void CVehicleBuffer::FlushBuffer()
 	size_t nVehs = m_vVehicles.size();
 	if(nVehs > 0)
 	{
-		CVehicle_ptr pVeh = m_vVehicles[nVehs-1];
+		CVehicle_up& pVeh = m_vVehicles.at(nVehs-1);
 		std::cout << std::endl  << "Flushing buffer of " << nVehs << " vehicles at " << pVeh->getTimeStr() <<  '\t';
 		
 		for (size_t i = 0; i < nVehs; i++)
-			m_OutFile << m_vVehicles[i]->Write(FILE_FORMAT) << '\n';
+			m_OutFile << m_vVehicles.at(i)->Write(FILE_FORMAT) << '\n';
 		
 		// clear the memory
 		for (unsigned int i = 0; i < nVehs; i++)
@@ -100,7 +98,7 @@ void CVehicleBuffer::updateFlowData()
 		return;
 
 	// get vehicle and see if in next hour
-	CVehicle_ptr pV = m_vVehicles.back();
+	CVehicle_up& pV = m_vVehicles.back();
 	double curRelTime = pV->getTime() - m_FirstHour*3600.0;
 	if (curRelTime > m_CurHour*3600.0)
 		flushFlowData();

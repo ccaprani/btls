@@ -15,26 +15,27 @@ public:
 	CLaneGenTraffic(void);
 	~CLaneGenTraffic(void);
 
-	virtual CVehicle_ptr GetNextVehicle();
+	virtual CVehicle_sp GetNextVehicle();
 	
-	void setLaneData(CVehicleClassification_ptr pVC, CLaneFlowComposition lfc, double starttime);
+	void setLaneData(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, 
+		const double starttime);
 
 private:
 	void	GenNextArrival();
 	void	GenNextTime();
 	void	GenNextVehicle();
 	
-	CVehicleGenerator_ptr m_pVehicleGen;
-	CVehicleModelData_ptr m_pVehModelData;
-	CFlowGenerator_ptr m_pFlowGen;
-	CFlowModelData_ptr m_pFlowModelData;
+	CVehicleGenerator_sp m_pVehicleGen;
+	CVehicleModelData_sp m_pVehModelData;
+	CFlowGenerator_sp m_pFlowGen;
+	CFlowModelData_sp m_pFlowModelData;
 
-	CVehicle_ptr m_pPrevVeh;
-	CVehicle_ptr m_pNextVeh;
+	CVehicle_sp m_pPrevVeh;
+	CVehicle_sp m_pNextVeh;
 	
 	int		HEADWAY_MODEL;
 	int		VEHICLE_MODEL;
 	size_t	NO_LANES;
 };
-typedef std::shared_ptr<CLaneGenTraffic> CLaneGenTraffic_ptr;
+typedef std::shared_ptr<CLaneGenTraffic> CLaneGenTraffic_sp;
 

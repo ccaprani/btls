@@ -1,7 +1,7 @@
 #include "LaneGenTraffic.h"
 #include "ConfigData.h"
 
-extern CConfigData g_ConfigData;
+//extern CConfigData g_ConfigData;
 
 CLaneGenTraffic::CLaneGenTraffic(void)
 {
@@ -12,10 +12,10 @@ CLaneGenTraffic::CLaneGenTraffic(void)
 	m_pPrevVeh			= nullptr;
 	m_pNextVeh			= nullptr;
 	
-	HEADWAY_MODEL			= g_ConfigData.Traffic.HEADWAY_MODEL;
-	VEHICLE_MODEL			= g_ConfigData.Traffic.VEHICLE_MODEL;
+	HEADWAY_MODEL			= CConfigData::get().Traffic.HEADWAY_MODEL;
+	VEHICLE_MODEL			= CConfigData::get().Traffic.VEHICLE_MODEL;
 
-	NO_LANES				= g_ConfigData.Road.NO_LANES;
+	NO_LANES				= CConfigData::get().Road.NO_LANES;
 }
 
 
@@ -28,7 +28,8 @@ CLaneGenTraffic::~CLaneGenTraffic(void)
 }
 
 
-void CLaneGenTraffic::setLaneData(CVehicleClassification_ptr pVC, CLaneFlowComposition lfc, double starttime)
+void CLaneGenTraffic::setLaneData(CVehicleClassification_sp pVC, 
+									CLaneFlowComposition lfc, const double starttime)
 {
 	m_NextArrivalTime = starttime;
 
@@ -43,6 +44,7 @@ void CLaneGenTraffic::setLaneData(CVehicleClassification_ptr pVC, CLaneFlowCompo
 	switch (VEHICLE_MODEL)
 	{
 	case 1:		// Constant
+		m_pVehModelData = nullptr;
 		m_pVehicleGen = std::make_shared<CVehicleGenConstant>();
 		break;
 	case 2:		// Garage
@@ -82,9 +84,9 @@ void CLaneGenTraffic::setLaneData(CVehicleClassification_ptr pVC, CLaneFlowCompo
 }
 
 
-CVehicle_ptr CLaneGenTraffic::GetNextVehicle()
+CVehicle_sp CLaneGenTraffic::GetNextVehicle()
 {
-	CVehicle_ptr pVeh = m_pNextVeh;	// temp store
+	CVehicle_sp pVeh = m_pNextVeh;	// temp store
 	GenNextArrival();				// prepare next vehicle	
 	return pVeh;					// send out last vehicle
 }

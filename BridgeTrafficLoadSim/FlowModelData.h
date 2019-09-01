@@ -41,7 +41,7 @@ protected:
 private:
 
 };
-typedef std::shared_ptr<CFlowModelData> CFlowModelData_ptr;
+typedef std::shared_ptr<CFlowModelData> CFlowModelData_sp;
 
 class CFlowModelDataNHM : public CFlowModelData
 {
@@ -59,7 +59,7 @@ private:
 	matrix m_vNHM;
 
 };
-typedef std::shared_ptr<CFlowModelDataNHM> CFlowModelDataNHM_ptr;
+typedef std::shared_ptr<CFlowModelDataNHM> CFlowModelDataNHM_sp;
 
 class CFlowModelDataCongested : public CFlowModelData
 {
@@ -77,7 +77,7 @@ private:
 	double m_GapMean;
 	double m_GapStd;
 };
-typedef std::shared_ptr<CFlowModelDataCongested> CFlowModelDataCongested_ptr;
+typedef std::shared_ptr<CFlowModelDataCongested> CFlowModelDataCongested_sp;
 
 class CFlowModelDataPoisson : public CFlowModelData
 {
@@ -87,5 +87,5 @@ public:
 
 	virtual void ReadDataIn();
 };
-typedef std::shared_ptr<CFlowModelDataPoisson> CFlowModelDataPoisson_ptr;
+typedef std::shared_ptr<CFlowModelDataPoisson> CFlowModelDataPoisson_sp;
 

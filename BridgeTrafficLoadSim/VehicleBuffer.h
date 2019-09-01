@@ -43,10 +43,10 @@ struct CFlowRateData
 class CVehicleBuffer  
 {
 public:
-	CVehicleBuffer(CVehicleClassification_ptr pVC, double starttime);
+	CVehicleBuffer(CVehicleClassification_sp pVC, double starttime);
 	virtual ~CVehicleBuffer();
 	
-	void AddVehicle(CVehicle_ptr pVeh);
+	void AddVehicle(const CVehicle_sp& pVeh);
 	void FlushBuffer();
 
 private:
@@ -56,7 +56,7 @@ private:
 	void flushFlowData();
 
 	std::ofstream m_OutFile;
-	std::vector<CVehicle_ptr> m_vVehicles;
+	std::vector<CVehicle_up> m_vVehicles;
 	size_t m_NoVehicles;
 	//int m_BufferSize;
 
@@ -74,7 +74,7 @@ private:
 	size_t NO_LANES_DIR2;
 	size_t NO_LANES;
 
-	CVehicleClassification_ptr m_pVehClassification;
+	CVehicleClassification_sp m_pVehClassification;
 
 	template <typename T> std::string to_string(T const& value);
 };

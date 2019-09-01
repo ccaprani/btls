@@ -15,17 +15,38 @@
 
 class CConfigData  
 {
+	// Using Singleton pattern here:
+	// https://stackoverflow.com/questions/1008019/c-singleton-design-pattern/1008289#1008289
 public:
-	CConfigData();
-	virtual ~CConfigData();
-	
-	void SetDefaults();	
+	static CConfigData& get()
+	{
+		static CConfigData instance;	// Guaranteed to be destroyed.
+		return instance;				// Instantiated on first use.
+	}
+
+private:
+	CConfigData();						// Constructor? (the {} brackets) are needed here.
+
+	// C++ 11
+	// =======
+	// We can use the better technique of deleting the methods
+	// we don't want.
+public:
+	CConfigData(CConfigData const&) = delete;
+	void operator=(CConfigData const&) = delete;
+	// Note: Scott Meyers mentions in his Effective Modern
+	//       C++ book, that deleted functions should generally
+	//       be public as it results in better error messages
+	//       due to the compilers behavior to check accessibility
+	//       before deleted status
+
+public:	
 	bool ReadData(std::string inFile);
 
 	struct Mode_Config
 	{
 		size_t PROGRAM_MODE;
-	} Mode;
+	} Mode = { 1 };
 
 	struct Road_Config
 	{
@@ -34,7 +55,7 @@ public:
 		size_t NO_LANES_DIR2;
 		size_t NO_LANES;
 		size_t NO_DIRS;
-	} Road;
+	} Road = {"laneflow.csv",1,1,2,2};
 
 	struct Gen_Config
 	{
@@ -44,19 +65,19 @@ public:
 		double TRUCK_TRACK_WIDTH;
 		double LANE_ECCENTRICITY_STD;
 		double NO_OVERLAP_LENGTH;
-	} Gen;
+	} Gen = { "C:\\Traffic\\Auxerre\\",true,1,190.0,0.0,100.0};
 
 	struct Read_Config
 	{
 		bool READ_FILE;
+		string TRAFFIC_FILE;
 		string GARAGE_FILE;
 		string KERNEL_FILE;
-		string TRAFFIC_FILE;
 		unsigned int FILE_FORMAT;
 		bool USE_CONSTANT_SPEED;
 		bool USE_AVE_SPEED;
 		double CONST_SPEED;
-	} Read;
+	} Read = {false,"traffic.txt","garage.txt","kernel.csv",4,true,false,24.0};
 
 	struct Traffic_Config
 	{
@@ -67,7 +88,7 @@ public:
 		double CONGESTED_SPEED;
 		double CONGESTED_GAP;
 		double CONGESTED_GAP_COEF_VAR;
-	} Traffic;
+	} Traffic = {1,1,1,5.0,30.0,5.0,0.05};
 
 	struct Sim_Config
 	{
@@ -77,7 +98,7 @@ public:
 		string INFSURF_FILE;
 		double CALC_TIME_STEP;
 		int MIN_GVW;
-	} Sim;
+	} Sim = {true,"bridges.txt","IL.txt","IS.csv",0.1,35};
 
 	struct Output_Config
 	{
@@ -126,7 +147,11 @@ public:
 			int  WRITE_SS_BUFFER_SIZE;
 		} Stats;
 
-	} Output;
+	} Output = {false, false, 1000, false,
+				{false,4,"vehicles.txt",1000,true}, // VehicleFile_Config
+				{true,false,false,false,1,0,1000},	// BlockMax_Config
+				{false,false,false,false,1,0,1000},	// POT_Config
+				{true,true,false,3600,1000} };		// Stats_Config
 
 	struct Time_Config
 	{
@@ -136,7 +161,7 @@ public:
 		int		SECS_PER_HOUR;
 		int		MINS_PER_HOUR;
 		int		SECS_PER_MIN;
-	} Time;
+	} Time = {25,10,24,3600,60,60};
 
 private:
 	
@@ -150,5 +175,8 @@ private:
 	vector<double> GetVectorFromNextLine();
 
 };
+
+// the global config data object
+//CConfigData g_ConfigData;
 
 #endif // !defined(AFX_CONFIGDATA_H__066A62BB_724D_469B_B540_6710541CE832__INCLUDED_)

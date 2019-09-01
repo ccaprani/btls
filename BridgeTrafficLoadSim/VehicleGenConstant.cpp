@@ -11,7 +11,7 @@ CVehicleGenConstant::~CVehicleGenConstant()
 {
 }
 
-void CVehicleGenConstant::GenerateVehicle(CVehicle_ptr pVeh)
+void CVehicleGenConstant::GenerateVehicle(CVehicle_sp pVeh)
 {
 	// assign general properties
 	pVeh->setLaneEccentricity(0.0);

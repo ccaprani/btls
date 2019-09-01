@@ -6,7 +6,7 @@
 #include <sstream>
 #include "ConfigData.h"
 
-extern CConfigData g_ConfigData;
+//extern CConfigData g_ConfigData;
 using namespace std;
 
 //////////////////////////////////////////////////////////////////////
@@ -46,15 +46,15 @@ bool CEvent::operator<(const CEvent& x)
 
 void CEvent::setDefaults()
 {
-	DAYS_PER_MT		= g_ConfigData.Time.DAYS_PER_MT;
-	MTS_PER_YR		= g_ConfigData.Time.MTS_PER_YR;
+	DAYS_PER_MT		= CConfigData::get().Time.DAYS_PER_MT;
+	MTS_PER_YR		= CConfigData::get().Time.MTS_PER_YR;
 	
-	HOURS_PER_DAY	= g_ConfigData.Time.HOURS_PER_DAY;
-	SECS_PER_HOUR	= g_ConfigData.Time.SECS_PER_HOUR;
-	MINS_PER_HOUR	= g_ConfigData.Time.MINS_PER_HOUR;
-	SECS_PER_MIN	= g_ConfigData.Time.SECS_PER_MIN;
+	HOURS_PER_DAY	= CConfigData::get().Time.HOURS_PER_DAY;
+	SECS_PER_HOUR	= CConfigData::get().Time.SECS_PER_HOUR;
+	MINS_PER_HOUR	= CConfigData::get().Time.MINS_PER_HOUR;
+	SECS_PER_MIN	= CConfigData::get().Time.SECS_PER_MIN;
 
-	FILE_FORMAT = g_ConfigData.Output.VehicleFile.FILE_FORMAT;
+	FILE_FORMAT = CConfigData::get().Output.VehicleFile.FILE_FORMAT;
 
 	m_CurEffect = 0;
 	m_StartTime = 0;

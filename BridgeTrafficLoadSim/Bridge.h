@@ -17,7 +17,7 @@
 #include "CalcEffect.h"
 #include <memory>
 
-class CBridge;  typedef std::shared_ptr<CBridge> CBridge_ptr;
+class CBridge;  typedef std::shared_ptr<CBridge> CBridge_sp;
 
 class CBridge  
 {
@@ -27,7 +27,7 @@ public:
 	virtual ~CBridge();
 
 	void setCurrentSimTime(double curTime);
-	void AddVehicle(CVehicle_ptr pVeh);
+	void AddVehicle(const CVehicle_sp& pVeh);
 	void setCalcTimeStep(double calcTimeStep);
 	void setLength(double length);
 	void Update(double NextArrivalTime, double curTime);
@@ -51,7 +51,7 @@ private:
 	bool	lane_compare(const CBridgeLane* pL1, const CBridgeLane* pL2);
 	double	TimeNextVehOffBridge();
 	double	EventEndTime();	
-	std::vector<CVehicle_ptr> AssembleVehicles(void);
+	const std::vector<CVehicle_sp> AssembleVehicles(void);
 	
 	CEventManager				m_EventMgr;
 	CCalcEffect					m_CalcEff;

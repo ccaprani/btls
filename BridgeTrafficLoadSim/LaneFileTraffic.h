@@ -8,15 +8,15 @@ public:
 	CLaneFileTraffic(void);
 	~CLaneFileTraffic(void);
 
-	virtual CVehicle_ptr GetNextVehicle();
+	virtual CVehicle_sp GetNextVehicle();
 
 	void setLaneData(int dirn, int laneNo);
-	void addVehicle(CVehicle_ptr pVeh);
+	void addVehicle(CVehicle_sp pVeh);
 	void setFirstArrivalTime();
 
 	size_t GetNoVehicles() { return m_vVehicles.size(); };
 
 private:
-	std::vector<CVehicle_ptr> m_vVehicles;
+	std::vector<CVehicle_sp> m_vVehicles;
 };
-typedef std::shared_ptr<CLaneFileTraffic> CLaneFileTraffic_ptr;
+typedef std::shared_ptr<CLaneFileTraffic> CLaneFileTraffic_sp;
