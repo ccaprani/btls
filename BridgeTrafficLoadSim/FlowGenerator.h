@@ -35,6 +35,7 @@ protected:
 	size_t m_BlockSize;		// Typically 3600 secs - an hour
 	size_t m_BlockCount;	// Typically 24 blocks (hours)
 
+	double m_MaxBridgeLength;
 	double m_BufferGapSpace;
 	double m_BufferGapTime;
 

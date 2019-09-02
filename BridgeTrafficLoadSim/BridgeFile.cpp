@@ -5,21 +5,18 @@ using namespace std;
 CBridgeFile::CBridgeFile(void)
 {
 	m_CommentString = "//";
-	m_SimStartTime = 0.0;
 }
 
-CBridgeFile::CBridgeFile(std::string file, std::vector<CInfluenceLine> vDiscreteIL, double SimStartTime)
+CBridgeFile::CBridgeFile(std::string file, std::vector<CInfluenceLine> vDiscreteIL)
 {
 	m_CommentString = "//";
-	m_SimStartTime = SimStartTime;
 	vector<CInfluenceLine> vInfSurf; // create blank vector
 	ReadBridges(file, vDiscreteIL, vInfSurf);
 }
 
-CBridgeFile::CBridgeFile(std::string file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf, double SimStartTime)
+CBridgeFile::CBridgeFile(std::string file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf)
 {
 	m_CommentString = "//";
-	m_SimStartTime = SimStartTime;
 	ReadBridges(file, vDiscreteIL, vInfSurf);
 }
 
@@ -63,7 +60,6 @@ void CBridgeFile::ReadBridges(string file, vector<CInfluenceLine> vDiscreteIL, s
 			vThresholds.at(i) = ReadLoadEffect(pBridge, vDiscreteIL, vInfSurf);
 	
 		pBridge->setThresholds(vThresholds);
-		pBridge->InitializeDataMgr(m_SimStartTime);	// this needs to come after thresholds are set
 
 		m_vpBridge.push_back(pBridge);
 	} // end of while loop
@@ -244,7 +240,7 @@ double CBridgeFile::getMaxBridgeLength(void)
 	for(unsigned int i = 0; i < m_vpBridge.size(); ++i)
 	{
 		double L = m_vpBridge.at(i)->getLength();
-		if(maxL > L) maxL = L;
+		if(L > maxL) maxL = L;
 	}
 	return maxL;
 }

@@ -5,9 +5,7 @@
 
 CFlowModelData::CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars)
 	: m_Model(fm), m_bModelHasCars(bCars)
-	// MAGIC NUMBER - internal gap buffer 
-	// If RHS datum, then e.g. tyre diameter 
-	// If mixed datum, then maximum bridge length
+	// MAGIC NUMBERs - internal gap buffer e.g. tyre diameter, and a min driving gap
 	, m_BufferGapSpace(1.0), m_BufferGapTime(0.1)
 {
 	m_vTotalFlow = lfc.getTotalFlow();
@@ -34,8 +32,9 @@ void CFlowModelData::getSpeedParams(size_t i, Normal& speed)
 	speed = m_vSpeed.at(i);
 }
 
-void CFlowModelData::getGapBuffers(double& space, double& time)
+void CFlowModelData::getGapLimits(double& bridge, double& space, double& time)
 {
+	bridge = CConfigData::get().Gen.NO_OVERLAP_LENGTH;
 	space = m_BufferGapSpace;
 	time = m_BufferGapTime;
 }

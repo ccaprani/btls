@@ -13,7 +13,7 @@ public:
 	vec		getCarPercent() const { return m_vCarPercent; };
 	void	getFlow(size_t i, double& totalFlow, double& truckFlow);
 	void	getSpeedParams(size_t i, Normal& speed);
-	void	getGapBuffers(double& space, double& time);
+	void	getGapLimits(double& bridge, double& space, double& time);
 
 	EFlowModel getModel() const { return m_Model; };
 	const bool getModelHasCars() const { return m_bModelHasCars; };
@@ -35,8 +35,8 @@ protected:
 	double m_SpeedMean;
 	double m_SpeedStd;
 
-	double m_BufferGapSpace;
-	double m_BufferGapTime;
+	const double m_BufferGapSpace;
+	const double m_BufferGapTime;
 
 private:
 

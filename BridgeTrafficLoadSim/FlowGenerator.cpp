@@ -11,7 +11,7 @@ CFlowGenerator::CFlowGenerator(CFlowModelData_sp pFMD, EFlowModel fm)
 
 	if (m_pFlowModelData != nullptr) // some models may not use data
 	{
-		m_pFlowModelData->getGapBuffers(m_BufferGapSpace, m_BufferGapTime);
+		m_pFlowModelData->getGapLimits(m_MaxBridgeLength, m_BufferGapSpace, m_BufferGapTime);
 		m_pFlowModelData->getBlockInfo(m_BlockSize, m_BlockCount);
 	}
 
@@ -96,21 +96,35 @@ void CFlowGenerator::setMinGap()
 	if (m_pPrevVeh == nullptr)
 		return;
 
-	double Vii = m_pPrevVeh->getVelocity();
-	double Vi = m_pNextVeh->getVelocity();
-	double Lii = m_pPrevVeh->getLength();
+	double Va = m_pPrevVeh->getVelocity();
+	double Vb = m_pNextVeh->getVelocity();
+	double La = m_pPrevVeh->getLength();
 
-	if (Vi <= Vii)
-		m_MinGap = (Lii + m_BufferGapSpace) / Vii;	// so no overlap of vehicles
+	// required time gap at the end of the bridge
+	double Tg = (La + m_BufferGapSpace) / Vb + m_BufferGapTime;
+	if (Vb <= Va)
+		m_MinGap = Tg;
 	else
 	{
-		double deltaV = Vi - Vii;
-		double Tno = m_BufferGapTime + (m_BufferGapSpace + Lii) / Vii;	// time of no overlap allowed
-		double DistClose = deltaV * Tno;
-		double DistStart = DistClose + Lii + m_BufferGapSpace;			// no overlap distance gap
-
-		m_MinGap = DistStart / Vi;	// no overlap time gap
+		m_MinGap = (Tg * Vb + m_MaxBridgeLength) / Va - m_MaxBridgeLength / Vb;
+		if (m_MinGap < m_BufferGapTime)
+		{
+			m_MinGap = m_BufferGapTime;
+			std::cout << std::endl << "*** Warning: MinGap - unusual vehicle velocities or buffers" << std::endl;
+		}
 	}
+
+	//if (Vi <= Vii)
+	//	m_MinGap = (Lii + m_BufferGapSpace) / Vii;	// so no overlap of vehicles
+	//else
+	//{
+	//	double deltaV = Vi - Vii;
+	//	double Tno = m_BufferGapTime + (m_BufferGapSpace + Lii) / Vii;	// time of no overlap allowed
+	//	double DistClose = deltaV * Tno;
+	//	double DistStart = DistClose + Lii + m_BufferGapSpace;			// no overlap distance gap
+
+	//	m_MinGap = DistStart / Vi;	// no overlap time gap
+	//}
 }
 
 //////////// CFlowGenNHM ///////////////

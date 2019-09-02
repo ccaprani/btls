@@ -37,7 +37,7 @@ using namespace std;
 
 void GetGeneratorLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLanes, const double& StartTime, double& EndTime);
 void GetTrafficFileLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLanes, double& StartTime, double& EndTime);
-vector<CBridge_sp> PrepareBridges(double SimStartTime);
+vector<CBridge_sp> PrepareBridges();
 void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> pBridges, vector<CLane_sp> pLanes, double SimStartTime, double SimEndTime);
 inline bool lane_compare(const CLane_sp pL1, const CLane_sp pL2);
 
@@ -57,7 +57,7 @@ void main()
 
 	cout << "---------------------------------------------" << endl;
 	cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
-	cout << "                Version 1.3.3			      " << endl;
+	cout << "                Version 1.3.4			      " << endl;
 	cout << "---------------------------------------------" << endl << endl;
 
 	if (!CConfigData::get().ReadData("BTLSin.txt") )
@@ -80,14 +80,21 @@ void main()
 
 	double StartTime = 0.0;
 	double EndTime = 0.0;
+
+	// Bridges are read in first, to set max bridge length, needed for flow generators
+	vector<CBridge_sp> vBridges;
+	if(CConfigData::get().Sim.CALC_LOAD_EFFECTS)
+		vBridges = PrepareBridges();
+
+	// Now read generator info for lanes
 	vector<CLane_sp> vLanes;
 	if (CConfigData::get().Gen.GEN_TRAFFIC)	GetGeneratorLanes(pVC, vLanes, StartTime, EndTime); 
 	if (CConfigData::get().Read.READ_FILE)	GetTrafficFileLanes(pVC, vLanes, StartTime, EndTime);
-	
-	vector<CBridge_sp> vBridges;
-	if(CConfigData::get().Sim.CALC_LOAD_EFFECTS)
-		vBridges = PrepareBridges(StartTime);
 
+	// Now we know the time, we can tell bridge data managers when to start
+	for (auto& it : vBridges)
+		it->InitializeDataMgr(StartTime);
+	
 	clock_t start = clock();
 	doSimulation(pVC, vBridges, vLanes, StartTime, EndTime);
 
@@ -100,13 +107,13 @@ void main()
 	//system("PAUSE");
 }
 
-vector<CBridge_sp> PrepareBridges(double SimStartTime)
+vector<CBridge_sp> PrepareBridges()
 {
 	CReadILFile readIL;
 	CBridgeFile BridgeFile(CConfigData::get().Sim.BRIDGE_FILE,
 		readIL.getInfLines(CConfigData::get().Sim.INFLINE_FILE,0),	// discrete ILs
-		readIL.getInfLines(CConfigData::get().Sim.INFSURF_FILE,1),	// Influence Surfaces
-		SimStartTime);											// Tell Event mgrs the time
+		readIL.getInfLines(CConfigData::get().Sim.INFSURF_FILE,1));	// Influence Surfaces
+
 	vector<CBridge_sp> vpBridges = BridgeFile.getBridges();
 	CConfigData::get().Gen.NO_OVERLAP_LENGTH = BridgeFile.getMaxBridgeLength();
 
