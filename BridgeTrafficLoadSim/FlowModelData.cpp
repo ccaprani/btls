@@ -5,10 +5,11 @@
 
 CFlowModelData::CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars)
 	: m_Model(fm), m_bModelHasCars(bCars)
+	// MAGIC NUMBER - internal gap buffer 
+	// If RHS datum, then e.g. tyre diameter 
+	// If mixed datum, then maximum bridge length
+	, m_BufferGapSpace(1.0), m_BufferGapTime(0.1)
 {
-	m_BufferGapSpace = 1.0; // MAGIC NUMBER - internal gap buffer (e.g. tyre diameter)
-	m_BufferGapTime = 0.1;
-
 	m_vTotalFlow = lfc.getTotalFlow();
 	m_vTruckFlow = lfc.getTruckFlow();
 	m_vCarPercent = lfc.getCarPercent();
@@ -71,8 +72,11 @@ void CFlowModelDataNHM::ReadDataIn()
 void CFlowModelDataNHM::ReadFile_NHM()
 {
 	string file = m_Path + "NHM.csv";
-	m_CSV.OpenFile(file, ",");
-
+	if (!m_CSV.OpenFile(file, ","))
+	{
+		std::cout << "**** ERROR: Cannot read NHM.csv file" << std::endl;
+		return;
+	}
 	int noRows = 0;
 	string line;
 

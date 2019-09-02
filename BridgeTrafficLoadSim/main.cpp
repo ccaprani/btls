@@ -57,7 +57,7 @@ void main()
 
 	cout << "---------------------------------------------" << endl;
 	cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
-	cout << "                Version 1.3.2			      " << endl;
+	cout << "                Version 1.3.3			      " << endl;
 	cout << "---------------------------------------------" << endl << endl;
 
 	if (!CConfigData::get().ReadData("BTLSin.txt") )
@@ -200,8 +200,8 @@ void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, ve
 //	{
 	while (curTime <= SimEndTime)
 	{
-		//		if(curTime >= 195725062.20)
-		//			cout << "here" << endl;
+		//if(curTime >= 74821.73)
+		//	cout << "here" << endl;
 
 		// find the next arrival lane and the time
 		sort(vLanes.begin(), vLanes.end(), lane_compare);

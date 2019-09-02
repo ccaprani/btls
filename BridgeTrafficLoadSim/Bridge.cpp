@@ -87,7 +87,7 @@ void CBridge::Update(double NextArrivalTime, double curTime)
 
 	while(m_CurTime < NextArrivalTime && m_NoVehs > 0)
 	{	
-		//if(m_CurTime > 29378.40)
+		//if(m_CurTime > 74822.0)
 		//	cout << "Hi";
 		m_EventMgr.AddNewEvent(AssembleVehicles(), m_CurTime);
 

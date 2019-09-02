@@ -1,4 +1,6 @@
 #include "BridgeLane.h"
+#include <algorithm>
+#include <iostream>
 
 using namespace std;
 
@@ -184,25 +186,39 @@ void CBridgeLane::setIndex(size_t indx)
 
 size_t CBridgeLane::purgeVehicles(double curTime)
 {
-	bool reset = false;
-	for(size_t i = 0; i < m_vVehicles.size(); i++)
+	size_t nBefore = m_vVehicles.size();
+
+	if (nBefore > 1)
 	{
-		if( !m_vVehicles.at(i)->IsOnBridge(curTime) )
+		// Let's check for overlaps
+		const double threshold = 0.1; // MAGIC_NUMBER warning threshold gap in sec
+		double gap = 1e300; // MAGIC NUMBER - really big number
+		for (size_t i = 1; i < nBefore; ++i)
+			gap = __min(gap, m_vVehicles.at(i)->getTimeOffBridge() - m_vVehicles.at(i - 1)->getTimeOffBridge());
+		if (gap < threshold)
 		{
-			// delete object and remove pointer from vector
-			m_vVehicles.at(i) = nullptr;
-			m_vVehicles.erase( m_vVehicles.begin() + i );
-			if(i > 0)
-				--i;	// take one step back due to deletion
-			reset = true;
+			std::cout << std::endl;
+			std::cout << "**** WARNING: Potential overlap: Time: " << curTime << " s: gap: " << gap << " s. ";
+			std::cout << "Bridge length: " << m_Length << " m; Lane: " << m_LaneNo;
+			std::cout << std::endl;
 		}
 	}
-	if(reset)
+
+	// Potentially multiple vehicles leaving bridge during each time step
+	// https://stackoverflow.com/questions/17270837/stdvector-removing-elements-which-fulfill-some-conditions
+	m_vVehicles.erase(std::remove_if(
+		m_vVehicles.begin(), m_vVehicles.end(),
+		[&](const CVehicle_sp& pVeh) {
+			return !pVeh->IsOnBridge(curTime); // put your condition here
+		}), m_vVehicles.end());
+
+	size_t nAfter = m_vVehicles.size();
+	if(nAfter > 0 && nAfter < nBefore)
 	{
 		setTimeNextVehOff();
 		setAxleVector();
 	}
-	return m_vVehicles.size();
+	return nAfter;
 }
 
 

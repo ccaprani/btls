@@ -21,10 +21,10 @@ C:\Users\ccapr\Google Drive\~Research\Workings\Traffic\Auxerre
 0
 // Vehicle Generation Model to be used
 // (0 - Grave, 1 - Test(Constant), 2 - Garage)
-1
+2
 // Headway model to be used:
 // (0 - Auxerre NHM, 1 - Test(Constant), 5 - Congestion (w/ or w/out cars), 6 - free-flow, cars included)
-1
+6
 // Traffic Classification System to be used:
 // (0 - No. of Axles, 1 - Axle Pattern)
 1
@@ -90,7 +90,7 @@ IS.txt
 // ---------------------------------------------
 // Write vehicle file (1 or 0)
 // WARNING: a large file may result in long-run simulations
-1
+0
 // Traffic output file format (CASTOR - 1, BeDIT - 2, DITIS - 3, MON - 4):
 4
 // Vehicle file name

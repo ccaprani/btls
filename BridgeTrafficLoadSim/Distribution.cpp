@@ -27,7 +27,7 @@ CDistribution::~CDistribution()
 
 }
 
-// Initialise static member of class
+// Initialise static member of class - must be in source file
 MTRand CDistribution::m_RNG;
 //MTRand CDistribution::m_RNG(100); // MAGIC NUMBER - constant seed for debugging
 

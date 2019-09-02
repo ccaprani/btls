@@ -1,9 +1,8 @@
 #include "FlowGenerator.h"
 
 CFlowGenerator::CFlowGenerator(CFlowModelData_sp pFMD, EFlowModel fm)
-	: m_CurBlock(0), m_FlowModel(fm), m_BufferGapSpace(1.0), m_BufferGapTime(0.1)
-	, m_TotalFlow(0.0), m_TruckFlow(0.0), m_BlockSize(3600), m_BlockCount(24)
-	, m_pFlowModelData(pFMD)
+	: m_CurBlock(0), m_FlowModel(fm), m_TotalFlow(0.0), m_TruckFlow(0.0)
+	, m_BlockSize(3600), m_BlockCount(24), m_pFlowModelData(pFMD)
 {
 	m_pPrevVeh = nullptr;
 	m_pNextVeh = nullptr;
@@ -106,7 +105,7 @@ void CFlowGenerator::setMinGap()
 	else
 	{
 		double deltaV = Vi - Vii;
-		double Tno = (m_BufferGapTime + m_BufferGapSpace + Lii) / Vii;	// time of no overlap allowed
+		double Tno = m_BufferGapTime + (m_BufferGapSpace + Lii) / Vii;	// time of no overlap allowed
 		double DistClose = deltaV * Tno;
 		double DistStart = DistClose + Lii + m_BufferGapSpace;			// no overlap distance gap
 
