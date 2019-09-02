@@ -27,7 +27,8 @@ void CLaneFlowData::ReadDataIn()
 
 void CLaneFlowData::ReadLaneFlow(std::string file)
 {
-	m_CSV.OpenFile(file, ",");
+	if (!m_CSV.OpenFile(file, ","))
+		return;
 	string line;
 
 	// get first line and check if it the old file type or the new file type

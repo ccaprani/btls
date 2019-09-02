@@ -14,9 +14,8 @@
 CVehicleBuffer::CVehicleBuffer(CVehicleClassification_sp pVC, double starttime)
 {
 	//init(false, "", 0);
-
-	FILE_FORMAT					= CConfigData::get().Output.VehicleFile.FILE_FORMAT;
 	WRITE_VEHICLE_FILE			= CConfigData::get().Output.VehicleFile.WRITE_VEHICLE_FILE;
+	FILE_FORMAT					= CConfigData::get().Output.VehicleFile.FILE_FORMAT;	
 	VEHICLE_FILENAME			= CConfigData::get().Output.VehicleFile.VEHICLE_FILENAME;
 	WRITE_VEHICLE_BUFFER_SIZE	= CConfigData::get().Output.VehicleFile.WRITE_VEHICLE_BUFFER_SIZE;
 	WRITE_FLOW_STATS			= CConfigData::get().Output.VehicleFile.WRITE_FLOW_STATS;
@@ -57,12 +56,18 @@ void CVehicleBuffer::AddVehicle(const CVehicle_sp& pVeh)
 	if( !(WRITE_VEHICLE_FILE || WRITE_FLOW_STATS) )
 		return;
 
-	// copy it & store locally using move semantics
-	CVehicle_up pV = std::make_unique<CVehicle>(*pVeh);
-	m_vVehicles.push_back(std::move(pV));
-	m_NoVehicles++;
-	
-	updateFlowData();
+	if (WRITE_FLOW_STATS)
+	{
+		updateFlowData(pVeh);
+	}
+
+	if (WRITE_VEHICLE_FILE)
+	{
+		// copy it & store locally using move semantics
+		CVehicle_up pV = std::make_unique<CVehicle>(*pVeh);
+		m_vVehicles.push_back(std::move(pV));
+		m_NoVehicles++;
+	}
 
 	if(m_NoVehicles >= WRITE_VEHICLE_BUFFER_SIZE)
 		FlushBuffer();
@@ -77,7 +82,8 @@ void CVehicleBuffer::FlushBuffer()
 	if(nVehs > 0)
 	{
 		CVehicle_up& pVeh = m_vVehicles.at(nVehs-1);
-		std::cout << std::endl  << "Flushing buffer of " << nVehs << " vehicles at " << pVeh->getTimeStr() <<  '\t';
+		std::cout << std::endl  << "Flushing buffer of " 
+			<< nVehs << " vehicles at " << pVeh->getTimeStr() <<  std::endl;
 		
 		for (size_t i = 0; i < nVehs; i++)
 			m_OutFile << m_vVehicles.at(i)->Write(FILE_FORMAT) << '\n';
@@ -92,13 +98,11 @@ void CVehicleBuffer::FlushBuffer()
 	m_vVehicles.reserve(WRITE_VEHICLE_BUFFER_SIZE);
 }
 
-void CVehicleBuffer::updateFlowData()
+void CVehicleBuffer::updateFlowData(const CVehicle_sp& pV)
 {
 	if(!WRITE_FLOW_STATS)
 		return;
 
-	// get vehicle and see if in next hour
-	CVehicle_up& pV = m_vVehicles.back();
 	double curRelTime = pV->getTime() - m_FirstHour*3600.0;
 	if (curRelTime > m_CurHour*3600.0)
 		flushFlowData();

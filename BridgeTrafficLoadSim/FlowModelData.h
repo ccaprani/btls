@@ -89,3 +89,13 @@ public:
 };
 typedef std::shared_ptr<CFlowModelDataPoisson> CFlowModelDataPoisson_sp;
 
+class CFlowModelDataConstant : public CFlowModelData
+{
+public:
+	CFlowModelDataConstant(CLaneFlowComposition lfc);
+	virtual ~CFlowModelDataConstant();
+
+	virtual void ReadDataIn();
+};
+typedef std::shared_ptr<CFlowModelDataConstant> CFlowModelDataConstant_sp;
+

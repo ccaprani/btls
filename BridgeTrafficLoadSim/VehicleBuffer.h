@@ -52,7 +52,7 @@ public:
 private:
 //	void SetBufferSize(int size);
 	void writeFlowData();
-	void updateFlowData();
+	void updateFlowData(const CVehicle_sp& pVeh);
 	void flushFlowData();
 
 	std::ofstream m_OutFile;

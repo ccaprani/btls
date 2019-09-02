@@ -332,5 +332,11 @@
     <None Include="ClassDiagram1.cd" />
     <None Include="ClassDiagram2.cd" />
     <None Include="Manual\BTLS - User Manual.docx" />
+    <None Include="Working\kernels.csv" />
+    <None Include="Working\LaneFlowData_80.csv" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Working\BTLSin.txt" />
+    <Text Include="Working\garage.txt" />
   </ItemGroup>
 </Project>

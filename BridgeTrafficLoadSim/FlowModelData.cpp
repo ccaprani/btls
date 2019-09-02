@@ -137,3 +137,21 @@ void CFlowModelDataPoisson::ReadDataIn()
 	// Read in related files for this model
 }
 
+//////////// CFlowModelDataConstant //////////////
+
+CFlowModelDataConstant::CFlowModelDataConstant(CLaneFlowComposition lfc)
+	: CFlowModelData(eFM_Constant, lfc, true) // Model has cars
+{
+
+}
+
+CFlowModelDataConstant::~CFlowModelDataConstant()
+{
+
+}
+
+void CFlowModelDataConstant::ReadDataIn()
+{
+	// Read in related files for this model
+}
+
