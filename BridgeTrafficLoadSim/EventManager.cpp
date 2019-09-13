@@ -80,7 +80,6 @@ void CEventManager::AddNewEvent(const std::vector<CVehicle_sp> pVehs, double cur
 void CEventManager::UpdateEffects(std::vector<double> vEffs, double position, double time)
 {
 	m_CurTime = time;
-	std::vector<double> temp(m_NoLoadEffects, 0.0);
 	
 	// Detect maxima as matter of course
 	for (size_t k = 0; k < m_NoLoadEffects; k++)
@@ -95,9 +94,6 @@ void CEventManager::UpdateEffects(std::vector<double> vEffs, double position, do
 			Eff.setPosition(position);		// the position of the first axle on the bridge
 			Eff.AddVehicles(m_vVehicles);
 		}
-		
-		if(WRITE_TIME_HISTORY)
-			temp[k] = curVal;
 	}
 	
 	// Only detect minima if a fatigue analysis is being done
@@ -118,8 +114,9 @@ void CEventManager::UpdateEffects(std::vector<double> vEffs, double position, do
 		}
 	}
 
-	if(WRITE_TIME_HISTORY)
-		DoTimeHistory(2, temp);
+	if (WRITE_TIME_HISTORY)
+		DoTimeHistory(2, vEffs);
+
 }
 
 // called to end the current event and process results
@@ -137,8 +134,7 @@ void CEventManager::EndEvent()
 	if(WRITE_STATS) m_StatsManager.Update(m_CurEvent);
 
 	// reset for next event - must be last thing done
-	CEvent temp;
-	m_CurEvent = temp;
+	m_CurEvent = CEvent();
 }
 
 // called at the end of the simulation

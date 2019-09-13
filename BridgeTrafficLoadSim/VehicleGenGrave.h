@@ -14,9 +14,9 @@ protected:
 	virtual size_t GenVehClass();
 
 private:
-	void GenerateTruck23(CVehicle_sp pVeh, int nAxles);
-	void GenerateTruck45(CVehicle_sp pVeh, int nAxles);
-	void GenerateCommonProps(CVehicle_sp pVeh, int nAxles);
+	void GenerateTruck23(CVehicle_sp pVeh, size_t nAxles);
+	void GenerateTruck45(CVehicle_sp pVeh, size_t nAxles);
+	void GenerateCommonProps(CVehicle_sp pVeh, size_t nAxles);
 
 	CVehModelDataGrave_sp m_pVMD;
 };

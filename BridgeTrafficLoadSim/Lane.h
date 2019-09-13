@@ -26,8 +26,8 @@ public:
 	double GetNextArrivalTime() const;
 
 protected:
-	int		m_LaneIndex;
-	int		m_Direction;
+	size_t	m_LaneIndex;
+	size_t	m_Direction;
 	double	m_NextArrivalTime;
 	
 	CVehicle_sp m_pNextVeh;

@@ -29,7 +29,7 @@ void CVehicleGenGrave::GenerateVehicle(CVehicle_sp pVeh)
 		GenerateCar(pVeh);
 	else
 	{
-		int nAxles = GenVehClass();
+		size_t nAxles = GenVehClass();
 		if (nAxles > 3)
 			GenerateTruck45(pVeh, nAxles);
 		else
@@ -55,7 +55,7 @@ size_t CVehicleGenGrave::GenVehClass()
 	return nAxles;
 }
 
-void CVehicleGenGrave::GenerateTruck23(CVehicle_sp pVeh, int nAxles)
+void CVehicleGenGrave::GenerateTruck23(CVehicle_sp pVeh, size_t nAxles)
 {
 	GenerateCommonProps(pVeh, nAxles);
 
@@ -79,7 +79,7 @@ void CVehicleGenGrave::GenerateTruck23(CVehicle_sp pVeh, int nAxles)
 
 }
 
-void CVehicleGenGrave::GenerateTruck45(CVehicle_sp pVeh, int nAxles)
+void CVehicleGenGrave::GenerateTruck45(CVehicle_sp pVeh, size_t nAxles)
 {
 	GenerateCommonProps(pVeh, nAxles);
 
@@ -112,7 +112,7 @@ void CVehicleGenGrave::GenerateTruck45(CVehicle_sp pVeh, int nAxles)
 		pVeh->setAW(i, vAW[i]);
 }
 
-void CVehicleGenGrave::GenerateCommonProps(CVehicle_sp pVeh, int nAxles)
+void CVehicleGenGrave::GenerateCommonProps(CVehicle_sp pVeh, size_t nAxles)
 {
 	pVeh->setNoAxles(nAxles);
 

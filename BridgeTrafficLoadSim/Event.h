@@ -29,7 +29,7 @@ public:
 	CEffect&	getMaxEffect(size_t effNo);
 	CEffect&	getMinEffect(size_t effNo);
 	size_t		getNoVehicles();
-	size_t		getNoTrucks();
+	size_t		getNoTrucks() const;
 	size_t		getID();
 	double		getMaxTime();
 	double		getMaxEffectTime();

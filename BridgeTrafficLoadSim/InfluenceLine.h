@@ -21,8 +21,8 @@ public:
 	void setIL(std::vector<double> vDis,std::vector<double> vOrd);
 	void setIL(CInfluenceSurface IS);
 	double getLength(void);
-	void setIndex(int n);
-	int getIndex(void);
+	void setIndex(size_t n);
+	size_t getIndex(void);
 	void setWeight(double weight);
 
 private:

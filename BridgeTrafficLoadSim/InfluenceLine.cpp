@@ -98,12 +98,12 @@ double CInfluenceLine::getLength(void)
 }
 
 
-void CInfluenceLine::setIndex(int n)
+void CInfluenceLine::setIndex(size_t n)
 {
 	m_Index = n;
 }
 
-int CInfluenceLine::getIndex(void)
+size_t CInfluenceLine::getIndex(void)
 {
 	return m_Index;
 }

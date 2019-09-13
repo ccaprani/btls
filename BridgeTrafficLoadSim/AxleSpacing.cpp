@@ -29,7 +29,7 @@ CTriModalNormal CAxleSpacing::GetSpacingDist(int iTruck, int iSpace)
 			return m_v3AxleData[iSpace-1];
 		case 4:
 			return m_v4AxleData[iSpace-1];
-		case 5:
+		default: // case 5
 			return m_v5AxleData[iSpace-1];
 	}
 }

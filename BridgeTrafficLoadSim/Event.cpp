@@ -109,7 +109,7 @@ size_t CEvent::getNoVehicles()
 	return m_vMaxEffects[0].m_NoVehicles;
 }
 
-size_t CEvent::getNoTrucks()
+size_t CEvent::getNoTrucks() const
 {
 	size_t n = 0;
 	for (size_t i = 0; i < m_vMaxEffects[0].m_NoVehicles; i++)
