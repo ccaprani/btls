@@ -17,11 +17,11 @@ public:
 	CTrafficData();
 	virtual ~CTrafficData();
 
-	std::vector<double>		GetGVWRange(int iTruck, int iRange);
-	CTriModalNormal			GetSpacingDist(int iTruck, int iSpace);
-	CTriModalNormal			GetAxleWeightDist(int iTruck, int iAxle);
-	CTriModalNormal			GetTrackWidthDist(int iTruck, int iAxle);
-	CTriModalNormal			GetGVW(int dir, int iTruck);
+	std::vector<double>		GetGVWRange(size_t iTruck, size_t iRange);
+	CTriModalNormal			GetSpacingDist(size_t iTruck, size_t iSpace);
+	CTriModalNormal			GetAxleWeightDist(size_t iTruck, size_t iAxle);
+	CTriModalNormal			GetTrackWidthDist(size_t iTruck, size_t iAxle);
+	CTriModalNormal			GetGVW(size_t dir, size_t iTruck);
 
 	void Add2AxleSpacings(std::vector<CTriModalNormal> vSpace);
 	void Add3AxleSpacings(std::vector<CTriModalNormal> vSpace);
@@ -35,13 +35,13 @@ public:
 
 	void Add2AxleWeight(std::vector<CTriModalNormal> vAxle);
 	void Add3AxleWeight(std::vector<CTriModalNormal> vAxle);
-	void Add45AxleWeight(std::vector<double> data, int iTruck, int iRange);
+	void Add45AxleWeight(std::vector<double> data, size_t iTruck, size_t iRange);
 	
 	void AddGVW(int dir, std::vector<CTriModalNormal> vGVW);
 	
 	// Speed is kept here as part of the class modelling
 	void AddSpeed(std::vector<CTriModalNormal> vSpeed);	
-	CTriModalNormal			GetSpeed(int dir);
+	CTriModalNormal			GetSpeed(size_t dir);
 	
 private:
 	std::vector<CTriModalNormal> m_v2AxleSpacings;

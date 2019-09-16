@@ -19,8 +19,8 @@ public:
 	CLane();
 	virtual ~CLane();
 	
-	int GetLaneID();
-	int GetDirection();
+	size_t GetLaneID();
+	size_t GetDirection();
 
 	virtual CVehicle_sp GetNextVehicle() = 0;
 	double GetNextArrivalTime() const;

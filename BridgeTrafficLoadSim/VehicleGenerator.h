@@ -18,7 +18,7 @@ public:
 	CVehicleGenerator(EVehicleModel vm, CVehicleModelData_sp pVMD);
 	virtual ~CVehicleGenerator();
 	
-	CVehicle_sp Generate(int iHour);
+	CVehicle_sp Generate(size_t iHour);
 	virtual void update(CFlowModelData_sp pFMD);
 
 protected:
@@ -37,7 +37,7 @@ protected:
 	size_t m_CurLane;
 	size_t m_CurDirection;
 	double m_Time;
-	int m_CurHour;
+	size_t m_CurHour;
 	
 	CVehicleClassification_sp m_pVehClassification;
 

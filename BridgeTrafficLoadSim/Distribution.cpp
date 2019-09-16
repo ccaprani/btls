@@ -8,6 +8,25 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+// Initialise static member of class - must be in source file
+//MTRand CRNGWrapper::m_RNG;
+//MTRand CRNGWrapper::m_RNG(100); // MAGIC NUMBER - constant seed for debugging
+
+std::uniform_real_distribution<double> CRNGWrapper::m_RNG(0.0, 1.0);
+//std::mt19937 CRNGWrapper::m_MTgen(100);
+std::mt19937 CRNGWrapper::m_MTgen(std::random_device{}());
+
+inline double CRNGWrapper::rand() 
+{
+	//static unsigned n = 0;
+	//if (n == 10)
+	//	std::cout << "RNG check (is not 0.624312?): " << m_RNG(m_MTgen) << std::endl;
+	//n++;
+
+	//return m_RNG.rand(); // Old way
+	return m_RNG(m_MTgen); // C++11 way
+};
+
 CDistribution::CDistribution():PI(3.14159265359)
 {
 	m_Location = 10.0;
@@ -26,10 +45,6 @@ CDistribution::~CDistribution()
 {
 
 }
-
-// Initialise static member of class - must be in source file
-MTRand CDistribution::m_RNG;
-//MTRand CDistribution::m_RNG(100); // MAGIC NUMBER - constant seed for debugging
 
 double CDistribution::getLocation() const
 {

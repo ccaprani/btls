@@ -57,7 +57,7 @@ void main()
 
 	cout << "---------------------------------------------" << endl;
 	cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
-	cout << "                Version 1.3.4			      " << endl;
+	cout << "                Version 1.3.5			      " << endl;
 	cout << "---------------------------------------------" << endl << endl;
 
 	if (!CConfigData::get().ReadData("BTLSin.txt") )
@@ -198,7 +198,7 @@ void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, ve
 	size_t nLanes = vLanes.size();
 	double curTime = SimStartTime;
 	double nextTime = 0.0;
-	int curDay = (int)(SimStartTime/(3600*24));
+	int curDay = (int)(SimStartTime/86400);
 	
 	cout << "Starting simulation..." << endl;
 	cout << "Day complete..." << endl;

@@ -29,7 +29,7 @@ void CVehicleGenerator::update(CFlowModelData_sp pFMD)
 	m_vCarPercent = pFMD->getCarPercent();
 }
 
-CVehicle_sp CVehicleGenerator::Generate(int iHour)
+CVehicle_sp CVehicleGenerator::Generate(size_t iHour)
 {
 	// Must generate a new CVehicle because once off the bridge
 	// the object is deleted

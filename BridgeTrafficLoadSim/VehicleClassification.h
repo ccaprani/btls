@@ -36,7 +36,7 @@ struct Classification
 	{
 		return tie() == other.tie();
 	};
-	std::tuple<int, std::string, std::string> tie() const 
+	std::tuple<size_t, std::string, std::string> tie() const 
 	{ return std::tie(m_ID, m_String, m_Desc); }
 };
 

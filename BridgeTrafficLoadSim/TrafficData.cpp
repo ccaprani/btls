@@ -22,7 +22,7 @@ CTrafficData::~CTrafficData()
 
 ////////// THE GETS ////////////////
 
-CTriModalNormal CTrafficData::GetSpacingDist(int iTruck, int iSpace)
+CTriModalNormal CTrafficData::GetSpacingDist(size_t iTruck, size_t iSpace)
 {
 	switch( iTruck )
 	{
@@ -37,7 +37,7 @@ CTriModalNormal CTrafficData::GetSpacingDist(int iTruck, int iSpace)
 	}
 }
 
-CTriModalNormal CTrafficData::GetAxleWeightDist(int iTruck, int iAxle)
+CTriModalNormal CTrafficData::GetAxleWeightDist(size_t iTruck, size_t iAxle)
 {
 	if( iTruck == 2 )
 		return m_v2AxleWeight[iAxle];
@@ -45,7 +45,7 @@ CTriModalNormal CTrafficData::GetAxleWeightDist(int iTruck, int iAxle)
 		return m_v3AxleWeight[iAxle];
 }
 
-CTriModalNormal	CTrafficData::GetTrackWidthDist(int iTruck, int iAxle)
+CTriModalNormal	CTrafficData::GetTrackWidthDist(size_t iTruck, size_t iAxle)
 {
 	switch( iTruck )
 	{
@@ -60,7 +60,7 @@ CTriModalNormal	CTrafficData::GetTrackWidthDist(int iTruck, int iAxle)
 	}
 }
 
-std::vector<double> CTrafficData::GetGVWRange(int iTruck, int iRange)
+std::vector<double> CTrafficData::GetGVWRange(size_t iTruck, size_t iRange)
 {
 	std::vector<double> data;
 	GVWRange range;
@@ -81,7 +81,7 @@ std::vector<double> CTrafficData::GetGVWRange(int iTruck, int iRange)
 	return data;
 }
 
-CTriModalNormal CTrafficData::GetGVW(int dir, int iTruck)
+CTriModalNormal CTrafficData::GetGVW(size_t dir, size_t iTruck)
 {
 	if(dir == 1)
 		return m_vDir1GVW[iTruck - 2];
@@ -89,7 +89,7 @@ CTriModalNormal CTrafficData::GetGVW(int dir, int iTruck)
 		return m_vDir2GVW[iTruck - 2];
 }	
 
-CTriModalNormal CTrafficData::GetSpeed(int dir)
+CTriModalNormal CTrafficData::GetSpeed(size_t dir)
 {
 	if (dir == 1)
 		return m_vSpeed[0];
@@ -149,7 +149,7 @@ void CTrafficData::Add3AxleWeight(std::vector<CTriModalNormal> vAxle)
 	m_v3AxleWeight = vAxle;
 }
 
-void CTrafficData::Add45AxleWeight(std::vector<double> data, int iTruck, int iRange)
+void CTrafficData::Add45AxleWeight(std::vector<double> data, size_t iTruck, size_t iRange)
 {
 	GVWRange range;
 	range.W1.Mean = data[0];

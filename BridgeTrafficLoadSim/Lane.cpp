@@ -27,12 +27,12 @@ double CLane::GetNextArrivalTime() const
 	return m_NextArrivalTime;
 }
 
-int CLane::GetLaneID()
+size_t CLane::GetLaneID()
 {
 	return m_LaneIndex;
 }
 
-int CLane::GetDirection()
+size_t CLane::GetDirection()
 {
 	return m_Direction;
 }

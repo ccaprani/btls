@@ -11,13 +11,21 @@
 
 #include "MersenneTwister.h"
 #include "TriModalNormal.h"
+#include <random>
+
+class CRNGWrapper
+{
+	//static MTRand m_RNG;
+	static std::mt19937 m_MTgen;
+	static std::uniform_real_distribution<double> m_RNG;
+
+public:
+	double rand();
+};
 
 class CDistribution  
 {
 public:
-	double GenerateNormal(double mean, double stdev);
-	double GenerateTriModalNormal(CTriModalNormal TMN);
-	double GenerateUniform();
 	CDistribution();
 	CDistribution(double loc, double sc, double sh);
 	virtual ~CDistribution();
@@ -29,19 +37,23 @@ public:
 	double getShape() const;
 	double getScale() const;
 	double getLocation() const;
-	
+
+	double GenerateUniform();
+	double GenerateNormal();	
+	double GenerateNormal(double mean, double stdev);
+	double GenerateTriModalNormal(CTriModalNormal TMN);
 	double GenerateExponential();
 	double GenerateLogNormal();
 	double GenerateGamma();
 	double GenerateGumbel();
 	double GeneratePoisson();
-	double GenerateGEV();
-	double GenerateNormal();
+	double GenerateGEV();	
 
 private:
 	double BoxMuller();
 	
-	static MTRand m_RNG;
+	CRNGWrapper m_RNG;
+
 	const double PI;
 
 	double m_Location;

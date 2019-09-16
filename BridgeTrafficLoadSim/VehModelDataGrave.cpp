@@ -14,31 +14,31 @@ CVehModelDataGrave::~CVehModelDataGrave()
 
 }
 
-std::vector<double>	CVehModelDataGrave::GetGVWRange(int iTruck, int iRange)
+std::vector<double>	CVehModelDataGrave::GetGVWRange(size_t iTruck, size_t iRange)
 {
 	return m_TD.GetGVWRange(iTruck, iRange);
 }
 
 
-CTriModalNormal	CVehModelDataGrave::GetSpacingDist(int iTruck, int iSpace)
+CTriModalNormal	CVehModelDataGrave::GetSpacingDist(size_t iTruck, size_t iSpace)
 {
 	return m_TD.GetSpacingDist(iTruck, iSpace);
 }
 
 
-CTriModalNormal	CVehModelDataGrave::GetAxleWeightDist(int iTruck, int iAxle)
+CTriModalNormal	CVehModelDataGrave::GetAxleWeightDist(size_t iTruck, size_t iAxle)
 {
 	return m_TD.GetAxleWeightDist(iTruck, iAxle);
 }
 
 
-CTriModalNormal	CVehModelDataGrave::GetTrackWidthDist(int iTruck, int iAxle)
+CTriModalNormal	CVehModelDataGrave::GetTrackWidthDist(size_t iTruck, size_t iAxle)
 {
 	return m_TD.GetTrackWidthDist(iTruck, iAxle);
 }
 
 
-CTriModalNormal	CVehModelDataGrave::GetGVW(int dir, int iTruck)
+CTriModalNormal	CVehModelDataGrave::GetGVW(size_t dir, size_t iTruck)
 {
 	return m_TD.GetGVW(dir, iTruck);
 }

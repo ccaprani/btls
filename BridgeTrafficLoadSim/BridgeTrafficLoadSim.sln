@@ -6,13 +6,13 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BridgeTrafficLoadSim", "BridgeTrafficLoadSim.vcxproj", "{13EB83D2-367B-A5F8-2C34-8A74990B1449}"
 EndProject
 Global
+	GlobalSection(SubversionScc) = preSolution
+		Svn-Managed = True
+		Manager = AnkhSVN - Subversion Support for Visual Studio
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64
-		Linux x64|Win32 = Linux x64|Win32
-		Linux x64|x64 = Linux x64|x64
-		Release x64|Win32 = Release x64|Win32
-		Release x64|x64 = Release x64|x64
 		Release|Win32 = Release|Win32
 		Release|x64 = Release|x64
 	EndGlobalSection
@@ -21,14 +21,6 @@ Global
 		{13EB83D2-367B-A5F8-2C34-8A74990B1449}.Debug|Win32.Build.0 = Debug|Win32
 		{13EB83D2-367B-A5F8-2C34-8A74990B1449}.Debug|x64.ActiveCfg = Debug|x64
 		{13EB83D2-367B-A5F8-2C34-8A74990B1449}.Debug|x64.Build.0 = Debug|x64
-		{13EB83D2-367B-A5F8-2C34-8A74990B1449}.Linux x64|Win32.ActiveCfg = Linux x64|Win32
-		{13EB83D2-367B-A5F8-2C34-8A74990B1449}.Linux x64|Win32.Build.0 = Linux x64|Win32
-		{13EB83D2-367B-A5F8-2C34-8A74990B1449}.Linux x64|x64.ActiveCfg = Linux x64|x64
-		{13EB83D2-367B-A5F8-2C34-8A74990B1449}.Linux x64|x64.Build.0 = Linux x64|x64
-		{13EB83D2-367B-A5F8-2C34-8A74990B1449}.Release x64|Win32.ActiveCfg = Release x64|x64
-		{13EB83D2-367B-A5F8-2C34-8A74990B1449}.Release x64|Win32.Build.0 = Release x64|x64
-		{13EB83D2-367B-A5F8-2C34-8A74990B1449}.Release x64|x64.ActiveCfg = Release x64|x64
-		{13EB83D2-367B-A5F8-2C34-8A74990B1449}.Release x64|x64.Build.0 = Release x64|x64
 		{13EB83D2-367B-A5F8-2C34-8A74990B1449}.Release|Win32.ActiveCfg = Release|Win32
 		{13EB83D2-367B-A5F8-2C34-8A74990B1449}.Release|Win32.Build.0 = Release|Win32
 		{13EB83D2-367B-A5F8-2C34-8A74990B1449}.Release|x64.ActiveCfg = Release|x64
@@ -39,9 +31,5 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {266F8A88-9BEB-4657-9AA3-721503081175}
-	EndGlobalSection
-	GlobalSection(SubversionScc) = preSolution
-		Svn-Managed = True
-		Manager = AnkhSVN - Subversion Support for Visual Studio
 	EndGlobalSection
 EndGlobal

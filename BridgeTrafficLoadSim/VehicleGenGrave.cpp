@@ -61,7 +61,7 @@ void CVehicleGenGrave::GenerateTruck23(CVehicle_sp pVeh, size_t nAxles)
 
 	// Generate Axle Weights
 	std::vector<double> vAW(nAxles, 0.0);
-	for (int i = 0; i < nAxles; ++i)
+	for (size_t i = 0; i < nAxles; ++i)
 	{
 		double val = -1.0;
 		while (val < 15 || val > 500)
