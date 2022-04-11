@@ -1,8 +1,10 @@
 #pragma once
 #include <string>
+#include <sstream>
 #include <vector>
 #include <tuple>
 #include <memory>
+#include <algorithm>
 
 class CVehicle; // pre-defined
 typedef std::shared_ptr<CVehicle> CVehicle_sp;

@@ -13,6 +13,7 @@
 #include <sstream>
 #include <string>
 #include <memory>
+#include <math.h>
 #include "VehicleClassification.h"
 
 class CVehicle  

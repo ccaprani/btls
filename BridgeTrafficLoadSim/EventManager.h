@@ -9,7 +9,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "Math.h"
+#include "math.h"
 #include <vector>
 #include <string>
 #include <fstream>

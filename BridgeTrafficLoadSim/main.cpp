@@ -26,7 +26,6 @@
 // for tracking memory leaks
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
-#include <crtdbg.h>
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -39,21 +38,14 @@ void GetGeneratorLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLanes,
 void GetTrafficFileLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLanes, double& StartTime, double& EndTime);
 vector<CBridge_sp> PrepareBridges();
 void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> pBridges, vector<CLane_sp> pLanes, double SimStartTime, double SimEndTime);
-inline bool lane_compare(const CLane_sp pL1, const CLane_sp pL2);
+inline bool lane_compare(const CLane_sp& pL1, const CLane_sp& pL2);
 
-void main()
+int main()
 {
 	// For debugging memory leaks to the std::cout, but only after
 	// all other execution has finished, otherwise false reports of
 	// leaks occur (e.g. std::string)
 	// https://stackoverflow.com/questions/4748391/string-causes-a-memory-leak
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
-	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
-	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
-	_CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDOUT);
-	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
-	_CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDOUT);
 
 	cout << "---------------------------------------------" << endl;
 	cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
@@ -105,6 +97,7 @@ void main()
 		<< ((double)(end) - (double)(start))/((double)CLOCKS_PER_SEC) << " s" << endl;
 
 	//system("PAUSE");
+	return 0;
 }
 
 vector<CBridge_sp> PrepareBridges()
@@ -214,8 +207,9 @@ void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, ve
 		sort(vLanes.begin(), vLanes.end(), lane_compare);
 		double NextArrivalTime = vLanes[0]->GetNextArrivalTime();
 
-		// generate the next vehicle from the lane with the next arrival time		
-		CVehicle_sp& pVeh = vLanes[0]->GetNextVehicle();
+		// generate the next vehicle from the lane with the next arrival time	
+		// see https://stackoverflow.com/questions/18565167/non-const-lvalue-references	
+		const CVehicle_sp& pVeh = vLanes[0]->GetNextVehicle();
 		VehBuff.AddVehicle(pVeh);
 		if (CConfigData::get().Sim.CALC_LOAD_EFFECTS)
 		{
@@ -238,7 +232,7 @@ void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, ve
 		if (pVeh != nullptr)
 		{
 			curTime = pVeh->getTime();
-			pVeh = nullptr;
+			CVehicle_sp *pVeh = nullptr;
 		}
 		else	// finish
 			curTime = SimEndTime + 1.0;
@@ -263,7 +257,7 @@ void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, ve
 	VehBuff.FlushBuffer();
 }
 
-bool lane_compare(const CLane_sp pL1, const CLane_sp pL2)
+bool lane_compare(const CLane_sp& pL1, const CLane_sp& pL2)
 {
 	return pL1->GetNextArrivalTime() < pL2->GetNextArrivalTime();
 }

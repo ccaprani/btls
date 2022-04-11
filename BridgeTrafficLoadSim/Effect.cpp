@@ -95,5 +95,6 @@ CVehicle CEffect::giveVehicle(size_t i) const
 
 void CEffect::sortVehicles()
 {
-	std::sort(m_vVehicles.begin(), m_vVehicles.end());
+	std::sort(m_vVehicles.begin(), m_vVehicles.end(), [](const CVehicle& front, const CVehicle& behind) {return front.getTime() < behind.getTime();}
+);
 }

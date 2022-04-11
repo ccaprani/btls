@@ -91,11 +91,11 @@ void CBridge::Update(double NextArrivalTime, double curTime)
 		//	cout << "Hi";
 		m_EventMgr.AddNewEvent(AssembleVehicles(), m_CurTime);
 
-		sort(m_vLanes.begin(), m_vLanes.end());
+		sort(m_vLanes.begin(), m_vLanes.end(), [](const CBridgeLane& front, const CBridgeLane& behind) {return front.getTimeNextVehOff() < behind.getTimeNextVehOff();});
 		int lead_lane = 0;	// the lane of the leading vehicle
 		while(m_vLanes[lead_lane].getNoVehs() == 0) lead_lane++; // ignore lanes with no vehs
 		double NextTimeOff = TimeNextVehOffBridge(); //m_vLanes[lead_lane].getTimeNextVehOff();
-		double EventEndTime = __min(NextArrivalTime,NextTimeOff);
+		double EventEndTime = min(NextArrivalTime,NextTimeOff);
 
 		if(EventEndTime < m_CurTime)
 			std::cout <<"***Error: Repeating event from the past" << endl;
@@ -190,7 +190,7 @@ const std::vector<CVehicle_sp> CBridge::AssembleVehicles(void)
 		std::vector<CVehicle_sp> pLaneVehs = m_vLanes[i].getVehicles();
 		pVehs.insert(pVehs.end(), pLaneVehs.begin(), pLaneVehs.end());
 	}
-	sort(pVehs.begin(),pVehs.end());
+	sort(pVehs.begin(), pVehs.end());
 	return pVehs;
 }
 

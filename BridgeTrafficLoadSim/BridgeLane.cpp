@@ -194,7 +194,7 @@ size_t CBridgeLane::purgeVehicles(double curTime)
 		const double threshold = 0.1; // MAGIC_NUMBER warning threshold gap in sec
 		double gap = 1e300; // MAGIC NUMBER - really big number
 		for (size_t i = 1; i < nBefore; ++i)
-			gap = __min(gap, m_vVehicles.at(i)->getTimeOffBridge() - m_vVehicles.at(i - 1)->getTimeOffBridge());
+			gap = min(gap, m_vVehicles.at(i)->getTimeOffBridge() - m_vVehicles.at(i - 1)->getTimeOffBridge());
 		if (gap < threshold)
 		{
 			std::cout << std::endl;

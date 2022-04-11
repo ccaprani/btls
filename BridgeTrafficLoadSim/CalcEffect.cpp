@@ -85,7 +85,7 @@ double CCalcEffect::giveEffect(int j, double Xpos, double AxleWeight, int lane =
 		{
 			if(lane == 1)
 				ordinate = give_effectA1(Xpos);
-			else if(lane = 2)
+			else if(lane == 2)
 				ordinate = give_effectA2(Xpos);
 			else
 				ordinate = 0;
@@ -95,7 +95,7 @@ double CCalcEffect::giveEffect(int j, double Xpos, double AxleWeight, int lane =
 		{
 			if(lane == 1)
 				ordinate = give_effectB1(Xpos);
-			else if(lane = 2)
+			else if(lane == 2)
 				ordinate = give_effectB2(Xpos);
 			else
 				ordinate = 0;
@@ -105,7 +105,7 @@ double CCalcEffect::giveEffect(int j, double Xpos, double AxleWeight, int lane =
 		{
 			if(lane == 1)
 				ordinate = give_effectC1(Xpos);
-			else if(lane = 2)
+			else if(lane == 2)
 				ordinate = give_effectC2(Xpos);
 			else
 				ordinate = 0;
@@ -123,7 +123,7 @@ double CCalcEffect::giveEffect(int j, double Xpos, double AxleWeight, int lane =
 		{
 			if(lane == 1)
 				ordinate = give_Beam1(Xpos);
-			else if(lane = 2)
+			else if(lane == 2)
 				ordinate = 1.1974*give_Beam5(Xpos);
 			else
 				ordinate = 0;
@@ -133,7 +133,7 @@ double CCalcEffect::giveEffect(int j, double Xpos, double AxleWeight, int lane =
 		{
 			if(lane == 1)
 				ordinate = give_Beam2(Xpos);
-			else if(lane = 2)
+			else if(lane == 2)
 				ordinate = 1.0516*give_Beam4(Xpos);
 			else
 				ordinate = 0;
@@ -143,7 +143,7 @@ double CCalcEffect::giveEffect(int j, double Xpos, double AxleWeight, int lane =
 		{
 			if(lane == 1)
 				ordinate = give_Beam3(Xpos);
-			else if(lane = 2)
+			else if(lane == 2)
 				ordinate = 1.0159*give_Beam3(Xpos);
 			else
 				ordinate = 0;
@@ -153,7 +153,7 @@ double CCalcEffect::giveEffect(int j, double Xpos, double AxleWeight, int lane =
 		{
 			if(lane == 1)
 				ordinate = give_Beam4(Xpos);
-			else if(lane = 2)
+			else if(lane == 2)
 				ordinate = 0.9692*give_Beam2(Xpos);
 			else
 				ordinate = 0;
@@ -163,7 +163,7 @@ double CCalcEffect::giveEffect(int j, double Xpos, double AxleWeight, int lane =
 		{
 			if(lane == 1)
 				ordinate = give_Beam5(Xpos);
-			else if(lane = 2)
+			else if(lane == 2)
 				ordinate = 0.9624*give_Beam1(Xpos);
 			else
 				ordinate = 0;
