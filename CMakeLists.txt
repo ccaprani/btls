@@ -17,11 +17,13 @@ endif()
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+#[[
 if(Win)
   add_subdirectory()
   list(APPEND EXTRA_LIBS )
   list(APPEND EXTRA_INCLUDES "${PROJECT_SOURCE_DIR}/")
 endif()
+]]
 
 add_subdirectory(src)
 
