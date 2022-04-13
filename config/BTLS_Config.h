@@ -1,0 +1,2 @@
+#define Mac
+#define Win

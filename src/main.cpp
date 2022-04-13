@@ -10,6 +10,7 @@
 #include <string>
 #include <algorithm>
 #include <time.h>
+#include <stdlib.h>
 #include "ConfigData.h"
 #include "TrafficFiles.h"
 #include "Lane.h"
@@ -23,9 +24,13 @@
 #include "BridgeFile.h"
 #include "Bridge.h"
 #include "LaneFlowData.h"
+
+#ifdef Win
 // for tracking memory leaks
 #define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
+#include <crtdbg.h>
+#endif
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -42,10 +47,19 @@ inline bool lane_compare(const CLane_sp& pL1, const CLane_sp& pL2);
 
 int main()
 {
+	#ifdef Win
 	// For debugging memory leaks to the std::cout, but only after
 	// all other execution has finished, otherwise false reports of
 	// leaks occur (e.g. std::string)
 	// https://stackoverflow.com/questions/4748391/string-causes-a-memory-leak
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
+	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDOUT);
+	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDOUT);
+	#endif
 
 	cout << "---------------------------------------------" << endl;
 	cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
