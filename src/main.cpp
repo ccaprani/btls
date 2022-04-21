@@ -5,7 +5,6 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <stdlib.h> 
 #include <math.h>
 #include <string>
 #include <algorithm>
@@ -24,6 +23,7 @@
 #include "BridgeFile.h"
 #include "Bridge.h"
 #include "LaneFlowData.h"
+#include "BTLS_Config.h"
 
 #ifdef Win
 // for tracking memory leaks
@@ -36,6 +36,11 @@
 #define new DEBUG_NEW
 #endif
 
+#ifdef Py
+#include "pybind11/pybind11.h"
+namespace py = pybind11;
+#endif
+
 //extern CConfigData g_ConfigData;
 using namespace std;
 
@@ -45,6 +50,7 @@ vector<CBridge_sp> PrepareBridges();
 void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> pBridges, vector<CLane_sp> pLanes, double SimStartTime, double SimEndTime);
 inline bool lane_compare(const CLane_sp& pL1, const CLane_sp& pL2);
 
+#ifdef Build
 int main()
 {
 	#ifdef Win
@@ -66,7 +72,12 @@ int main()
 	cout << "                Version 1.3.5			      " << endl;
 	cout << "---------------------------------------------" << endl << endl;
 
-	if (!CConfigData::get().ReadData("BTLSin.txt") )
+	string input_data;
+	cout << "Please give the input data: ";
+	cin >> input_data; 
+	cout << endl; 
+
+	if (!CConfigData::get().ReadData(input_data) )
 	{
 		cout << "BTLSin file could not be opened" << endl;
 		cout << "Using default values" << endl;
@@ -113,6 +124,7 @@ int main()
 	//system("PAUSE");
 	return 0;
 }
+#endif
 
 vector<CBridge_sp> PrepareBridges()
 {
@@ -275,3 +287,81 @@ bool lane_compare(const CLane_sp& pL1, const CLane_sp& pL2)
 {
 	return pL1->GetNextArrivalTime() < pL2->GetNextArrivalTime();
 }
+
+#ifdef Py
+int assemble(string input_data)
+{
+	#ifdef Win
+	// For debugging memory leaks to the std::cout, but only after
+	// all other execution has finished, otherwise false reports of
+	// leaks occur (e.g. std::string)
+	// https://stackoverflow.com/questions/4748391/string-causes-a-memory-leak
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
+	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDOUT);
+	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDOUT);
+	#endif
+
+	cout << "---------------------------------------------" << endl;
+	cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
+	cout << "                Version 1.3.5			      " << endl;
+	cout << "---------------------------------------------" << endl << endl;
+
+	if (!CConfigData::get().ReadData(input_data) )
+	{
+		cout << "BTLSin file could not be opened" << endl;
+		cout << "Using default values" << endl;
+	}
+
+	cout << "Program Mode: " << CConfigData::get().Mode.PROGRAM_MODE << endl;
+	cout << endl;
+	
+	CVehicleClassification_sp pVC;
+	switch (CConfigData::get().Traffic.CLASSIFICATION)
+	{
+	case 1: // Pattern
+		pVC = std::make_shared<CVehClassPattern>(); break;
+	default: // Axle count
+		pVC = std::make_shared<CVehClassAxle>(); break;
+	}
+
+	double StartTime = 0.0;
+	double EndTime = 0.0;
+
+	// Bridges are read in first, to set max bridge length, needed for flow generators
+	vector<CBridge_sp> vBridges;
+	if(CConfigData::get().Sim.CALC_LOAD_EFFECTS)
+		vBridges = PrepareBridges();
+
+	// Now read generator info for lanes
+	vector<CLane_sp> vLanes;
+	if (CConfigData::get().Gen.GEN_TRAFFIC)	GetGeneratorLanes(pVC, vLanes, StartTime, EndTime); 
+	if (CConfigData::get().Read.READ_FILE)	GetTrafficFileLanes(pVC, vLanes, StartTime, EndTime);
+
+	// Now we know the time, we can tell bridge data managers when to start
+	for (auto& it : vBridges)
+		it->InitializeDataMgr(StartTime);
+	
+	clock_t start = clock();
+	doSimulation(pVC, vBridges, vLanes, StartTime, EndTime);
+
+	cout << endl << "Simulation complete" << endl;
+
+	clock_t end = clock();
+	cout << endl << "Duration of analysis: " << std::fixed << std::setprecision(3) 
+		<< ((double)(end) - (double)(start))/((double)CLOCKS_PER_SEC) << " s" << endl;
+
+	//system("PAUSE");
+	return 0;
+}
+#endif
+
+#ifdef Py
+PYBIND11_MODULE(BtlsPy, m) {
+	m.doc() = "BtlsPy is for short-span bridge traffic analysis.";
+	m.def("main", &assemble, "Run main() to start simulation.", py::arg("input_data"));
+}
+#endif

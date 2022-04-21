@@ -36,7 +36,7 @@ void CInfluenceSurface::setLanes(std::vector<double> ylanes)
 	m_NoLanes = m_Ylanes.size();
 }
 
-double CInfluenceSurface::getLaneWidth(size_t iLane)
+double CInfluenceSurface::getLaneWidth(std::size_t iLane)
 {
 	double width = m_Ylanes.at(iLane+1)-m_Ylanes.at(iLane);
 	return width;
@@ -44,22 +44,22 @@ double CInfluenceSurface::getLaneWidth(size_t iLane)
 
 void CInfluenceSurface::setIS(std::vector< std::vector<double> > ISmat)
 {
-	size_t nr = ISmat.size();
-	size_t nc = ISmat.at(0).size();
+	std::size_t nr = ISmat.size();
+	std::size_t nc = ISmat.at(0).size();
 
 	// get x-coords
-	for(size_t i = 1; i < nr; i++)
+	for(std::size_t i = 1; i < nr; i++)
 		m_X.push_back(ISmat.at(i).at(0));
 
 	// get y-coords
-	for(size_t j = 1; j < nc; j++)
+	for(std::size_t j = 1; j < nc; j++)
 		m_Y.push_back(ISmat.at(0).at(j));
 
 	// Fill IS ordinates
-	for(size_t i = 1; i < nr; i++)
+	for(std::size_t i = 1; i < nr; i++)
 	{
 		std::vector<double> vec;
-		for(size_t j = 1; j < nc; j++)
+		for(std::size_t j = 1; j < nc; j++)
 			vec.push_back( ISmat.at(i).at(j) );
 		m_ISords.push_back(vec);
 	}
@@ -74,7 +74,7 @@ void CInfluenceSurface::setIS(std::vector< std::vector<double> > ISmat)
 	m_Length = m_Xmax - m_Xmin;
 }
 
-double CInfluenceSurface::giveOrdinate(double x, double laneEccentricity, size_t iLane)
+double CInfluenceSurface::giveOrdinate(double x, double laneEccentricity, std::size_t iLane)
 {
 	// x is the position along the length of the bridge
 	// ylocal is the transverse position within lane number iLane
@@ -90,8 +90,8 @@ double CInfluenceSurface::giveOrdinate(double x, double laneEccentricity, size_t
 	if(y < m_Ymin - buffer || y > m_Ymax + buffer)
 		return 0.0;
 
-	size_t iX = 1;
-	size_t iY = 1;
+	std::size_t iX = 1;
+	std::size_t iY = 1;
 	
 	// find the indices
 	while(x >= m_X.at(iX) && iX < m_NoX-1) iX++;

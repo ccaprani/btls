@@ -1,6 +1,7 @@
 aux_source_directory(. SRC_LIST)
 
 include_directories(../include)
+include_directories(../config)
 
 add_executable(BTLS ${SRC_LIST})
 

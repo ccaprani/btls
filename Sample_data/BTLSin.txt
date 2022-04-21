@@ -14,7 +14,7 @@
 // No. of days of traffic simulation:
 20
 // Location of Traffic folders
-C:\Users\ccapr\Google Drive\~Research\Workings\Traffic\Auxerre
+../Traffic
 // Default truck track width (cm)
 190.0
 // Standard deviation of eccentricity in lane (cm) (about 20 cm usually)
@@ -29,7 +29,7 @@ C:\Users\ccapr\Google Drive\~Research\Workings\Traffic\Auxerre
 // (0 - No. of Axles, 1 - Axle Pattern)
 1
 // Lane and flow definition file:
-LaneFlowData_80.csv
+../Sample_data/LaneFlowData_80.csv
 // Nominal congested spacing, front to back (m):
 5
 // Congested speed (km/h):
@@ -40,9 +40,9 @@ LaneFlowData_80.csv
 // TRAFFIC GARAGE PARAMETERS
 // ---------------------------------------------
 // Garage file as basis for generation (in "Traffic input file format" below):
-garage.txt
+../Sample_data/garage.txt
 // Kernels (mean, std) file for randomizing the garage vehicles (lines in order GVW, AW, AS)
-kernels.csv
+../Sample_data/kernels.csv
 //
 // TRAFFIC INPUT FILE PARAMETERS
 // ---------------------------------------------
@@ -60,9 +60,9 @@ WGBSlowLanes_Jul.txt
 // LOAD EFFECT CALCULATION PARAMETERS
 // ---------------------------------------------
 // Bridge definition file:
-1-ABT6111Bridges.txt
+../Sample_data/1-ABT6111Bridges.txt
 // Influence Line definition file:
-1-ABT6111ILS.txt
+../Sample_data/1-ABT6111ILS.txt
 // Influence Surface definition file:
 IS.txt
 // Time step (s):

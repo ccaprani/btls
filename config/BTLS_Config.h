@@ -1,2 +1,3 @@
-#define Mac
-#define Win
+/* #undef Win */
+/* #undef Py */
+#define Build
