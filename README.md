@@ -22,4 +22,11 @@ To create a Python package from this project (for Linux and MacOS):
 3. Run `cmake .. -DPy=ON` for a Python Package; 
 4. Run `make`. 
 
+To create a Python package from this project (for Windows): 
+1. Download and install `Visual Studio 2019`;
+2. Run `mkdir ./build`; 
+3. Run `cd ./build`; 
+4. Run `cmake .. -DPy=ON -G "Visual Studio 16 2019" -A x64` for a Python Package; 
+5. Run `MSBuild ./BtlsPy.sln`. 
+
 Finish! You can import BtlsPy in Python now!

@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.4...3.22)
 project(BtlsPy VERSION 2.0.0)
 
-# option(Mac "|To build on MacOS|" OFF)
-option(Win "|To build on Windows|" OFF)
+if(WIN32)
+  option(Win "|To build on Windows|" ON)
+endif()
 option(Py "|To generate a Python package|" OFF)
 option(Build "|To build an executable file|" OFF)
 
@@ -11,16 +12,11 @@ configure_file (
   "${PROJECT_SOURCE_DIR}/config/BTLS_Config.h"
 )
 
-# if(Mac)
-#   set(CMAKE_C_COMPILER "/opt/homebrew/Cellar/llvm/13.0.1_1/bin/clang")
-#   set(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/llvm/13.0.1_1/bin/clang++")
-# endif()
-
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 if(Win)
-  # Please build based on Visual Studio
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
 endif()
 
 if(Py)
