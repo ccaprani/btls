@@ -45,10 +45,10 @@ struct Classification
 class CVehicleClassification
 {
 public:
-	CVehicleClassification();
+	CVehicleClassification();  // It seems this constructor should be deleted since it has a pure virtual func. 
 	virtual ~CVehicleClassification();
 
-	virtual void setClassification(CVehicle_sp pVeh) = 0;
+	virtual void setClassification(CVehicle_sp pVeh) = 0;  // https://stackoverflow.com/questions/2523203/c-header-file-and-function-declaration-ending-in-0
 	size_t getNoClasses() { return m_nClasses; };
 	Classification getClass(size_t i);
 	size_t getClassID(Classification cl);
@@ -76,7 +76,7 @@ public:
 	CVehClassAxle();
 	~CVehClassAxle(){};
 
-	void setClassification(CVehicle_sp pVeh);
+	void setClassification(CVehicle_sp pVeh) override;
 
 private:
 	Classification m_2axle;
@@ -92,7 +92,7 @@ public:
 	CVehClassPattern();
 	~CVehClassPattern(){};
 
-	void setClassification(CVehicle_sp pVeh);
+	void setClassification(CVehicle_sp pVeh) override;
 
 private:
 	std::string getPattern(CVehicle_sp pVeh);

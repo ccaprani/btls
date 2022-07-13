@@ -20,4 +20,4 @@ private:
 
 	CVehModelDataGrave_sp m_pVMD;
 };
-
+typedef std::shared_ptr<CVehicleGenGrave> CVehicleGenGrave_sp;

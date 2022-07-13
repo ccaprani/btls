@@ -17,4 +17,4 @@ protected:
 	CModelData* m_pModelData;
 	CDistribution m_RNG;
 };
-
+typedef std::shared_ptr<CGenerator> CGenerator_sp;

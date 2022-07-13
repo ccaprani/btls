@@ -1,3 +1,3 @@
 /* #undef Win */
-/* #undef Py */
-#define Build
+#define Py
+/* #undef Build */

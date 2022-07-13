@@ -39,4 +39,4 @@ private:
 
 	std::vector<CVehicle_sp> m_vVehicles;
 };
-
+typedef std::shared_ptr<CLaneFlowData> CLaneFlowData_sp;

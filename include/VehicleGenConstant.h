@@ -11,4 +11,4 @@ protected:
 	virtual void GenerateVehicle(CVehicle_sp pVeh);
 	virtual size_t GenVehClass();
 };
-
+typedef std::shared_ptr<CVehicleGenConstant> CVehicleGenConstant_sp;

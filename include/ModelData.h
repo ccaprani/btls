@@ -49,4 +49,4 @@ protected:
 	std::string m_Path;
 	CCSVParse m_CSV;
 };
-
+typedef std::shared_ptr<CModelData> CModelData_sp;

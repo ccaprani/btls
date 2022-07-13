@@ -239,7 +239,7 @@ mark_as_advanced(PYTHON_LIBRARY PYTHON_INCLUDE_DIR)
 # cache entries because they are meant to specify the location of a single
 # library. We now set the variables listed by the documentation for this
 # module.
-set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
+set(PYTHON_INCLUDE_DIRS "/opt/anaconda3/include/python3.9")
 set(PYTHON_LIBRARIES "${PYTHON_LIBRARY}")
 if(NOT PYTHON_DEBUG_LIBRARY)
   set(PYTHON_DEBUG_LIBRARY "")

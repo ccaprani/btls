@@ -8,7 +8,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CConfigData::CConfigData() : m_CommentString("//")
+CConfigData::CConfigData(): m_CommentString("//")
 {
 
 }

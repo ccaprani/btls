@@ -14,6 +14,7 @@ configure_file (
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64 -arch x86_64")
 
 if(Win)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
@@ -28,7 +29,11 @@ if(Py)
 endif()
 
 if(Build)
-  add_subdirectory(src)
+  aux_source_directory(./src SRC_LIST)
+  include_directories(./include)
+  include_directories(./config)
+  add_executable(BTLS ${SRC_LIST})
+  set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
   include(CTest)
   enable_testing()
