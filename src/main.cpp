@@ -392,7 +392,7 @@ PYBIND11_MODULE(BtlsPy, m) {
 	m.doc() = "BtlsPy is for short-span bridge traffic analysis.";
 	py::class_<BTLS> btls(m, "BTLS");
 		btls.def(py::init<string>())
-			.def("run", &BTLS::run, "To run the entire BTLS procedure.", py::arg("file_BTLSin"))
+			.def("run", &BTLS::run, "To run the entire BTLS procedure.")
 			.def("get_vehicle_classification", &BTLS::get_vehicle_classification, py::return_value_policy::reference)
 			.def("get_bridges", &BTLS::get_bridges, py::return_value_policy::reference)
 			.def("get_generator_lanes", &BTLS::get_generator_lanes, py::return_value_policy::reference)

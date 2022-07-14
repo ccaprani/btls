@@ -14,7 +14,9 @@ configure_file (
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64 -arch x86_64")
+if(APPLE OR UNIX)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64 -arch x86_64")
+endif()
 
 if(Win)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
