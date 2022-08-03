@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include "ModelData.h"
 #include "Distribution.h"
 

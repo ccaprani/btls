@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include "Generator.h"
 #include "FlowModelData.h"
 #include "Vehicle.h"

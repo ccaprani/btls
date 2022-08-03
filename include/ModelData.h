@@ -4,6 +4,7 @@
 #include <fstream>
 #include <stdlib.h>
 #include <vector>
+#include <memory>
 #include "CSVParse.h"
 #include "TriModalNormal.h"
 
