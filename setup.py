@@ -1,14 +1,7 @@
-import glob
-import os.path
+from glob import glob
 from distutils.core import setup
 
 __version__ = "2.0.0"
-
-# make sure the working directory is BASE_DIR
-BASE_DIR = os.path.dirname(__file__)
-os.chdir(BASE_DIR)
-
-ext_modules = []
 
 try:
     from pybind11.setup_helpers import Pybind11Extension, ParallelCompile, naive_recompile
@@ -19,7 +12,7 @@ try:
 
     # could only be relative paths, otherwise the `build` command would fail if you use a MANIFEST.in to distribute your package
     # only source files (.cpp, .c, .cc) are needed
-    source_files = glob.glob("./src/*.cpp", recursive=True)
+    source_files = sorted(glob("src/*.cpp"))
 
     # If any libraries are used, e.g. libabc.so
     include_dirs = ["./include"]
