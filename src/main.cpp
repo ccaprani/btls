@@ -22,24 +22,10 @@
 #include "BridgeFile.h"
 #include "Bridge.h"
 #include "LaneFlowData.h"
-#include "BTLS_Config.h"
 
-#ifdef Win
-// for tracking memory leaks
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
-
-#ifdef _DEBUG
-#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#define new DEBUG_NEW
-#endif
-
-#ifdef Py
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 namespace py = pybind11;
-#endif
 
 //extern CConfigData g_ConfigData;
 using namespace std;
@@ -49,82 +35,6 @@ void GetTrafficFileLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLane
 vector<CBridge_sp> PrepareBridges();
 void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> pBridges, vector<CLane_sp> pLanes, double SimStartTime, double SimEndTime);
 inline bool lane_compare(const CLane_sp& pL1, const CLane_sp& pL2);
-
-#ifdef Build
-int main()
-{
-	#ifdef Win
-	// For debugging memory leaks to the std::cout, but only after
-	// all other execution has finished, otherwise false reports of
-	// leaks occur (e.g. std::string)
-	// https://stackoverflow.com/questions/4748391/string-causes-a-memory-leak
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
-	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
-	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
-	_CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDOUT);
-	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
-	_CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDOUT);
-	#endif
-
-	cout << "---------------------------------------------" << endl;
-	cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
-	cout << "                Version 1.3.5			      " << endl;
-	cout << "---------------------------------------------" << endl << endl;
-
-	string input_data;
-	cout << "Please give the input data: ";
-	cin >> input_data; 
-	cout << endl; 
-
-	if (!CConfigData::get().ReadData(input_data) )
-	{
-		cout << "BTLSin file could not be opened" << endl;
-		cout << "Using default values" << endl;
-	}
-
-	cout << "Program Mode: " << CConfigData::get().Mode.PROGRAM_MODE << endl;
-	cout << endl;
-	
-	CVehicleClassification_sp pVC;
-	switch (CConfigData::get().Traffic.CLASSIFICATION)
-	{
-	case 1: // Pattern
-		pVC = std::make_shared<CVehClassPattern>(); break;
-	default: // Axle count
-		pVC = std::make_shared<CVehClassAxle>(); break;
-	}
-
-	double StartTime = 0.0;
-	double EndTime = 0.0;
-
-	// Bridges are read in first, to set max bridge length, needed for flow generators
-	vector<CBridge_sp> vBridges;
-	if(CConfigData::get().Sim.CALC_LOAD_EFFECTS)
-		vBridges = PrepareBridges();
-
-	// Now read generator info for lanes
-	vector<CLane_sp> vLanes;
-	if (CConfigData::get().Gen.GEN_TRAFFIC)	GetGeneratorLanes(pVC, vLanes, StartTime, EndTime); 
-	if (CConfigData::get().Read.READ_FILE)	GetTrafficFileLanes(pVC, vLanes, StartTime, EndTime);
-
-	// Now we know the time, we can tell bridge data managers when to start
-	for (auto& it : vBridges)
-		it->InitializeDataMgr(StartTime);
-	
-	clock_t start = clock();
-	doSimulation(pVC, vBridges, vLanes, StartTime, EndTime);
-
-	cout << endl << "Simulation complete" << endl;
-
-	clock_t end = clock();
-	cout << endl << "Duration of analysis: " << std::fixed << std::setprecision(3) 
-		<< ((double)(end) - (double)(start))/((double)CLOCKS_PER_SEC) << " s" << endl;
-
-	// system("PAUSE");
-	return 0;
-}
-#endif
 
 vector<CBridge_sp> PrepareBridges()
 {
@@ -288,18 +198,11 @@ bool lane_compare(const CLane_sp& pL1, const CLane_sp& pL2)
 	return pL1->GetNextArrivalTime() < pL2->GetNextArrivalTime();
 }
 
-#ifdef Py
 class BTLS {
 public:
-	BTLS (string file_BTLSin = "BTLSin.txt") {
+	BTLS () {
 		this->get_info();
-		if (!CConfigData::get().ReadData(file_BTLSin) )
-		{
-			cout << "BTLSin file could not be opened" << endl;
-			cout << "Using default values" << endl;
-		}
-		cout << "Program Mode: " << CConfigData::get().Mode.PROGRAM_MODE << endl;
-		cout << endl;
+		CConfigData::get();
 		this->StartTime = 0.0;
 	 	this->EndTime = 0.0;
 	};
@@ -383,10 +286,19 @@ public:
 			}
 		CConfigData::get().Traffic.CONGESTED_SPEED = CConfigData::get().Traffic.CONGESTED_SPEED/3.6;	// km/h to m/s
 		CConfigData::get().Traffic.CONGESTED_GAP = CConfigData::get().Traffic.CONGESTED_SPACING/CConfigData::get().Traffic.CONGESTED_SPEED;
-		cout << "Program Mode has been changed to: Mode " << CConfigData::get().Mode.PROGRAM_MODE << endl;
+		cout << "Program Mode: " << CConfigData::get().Mode.PROGRAM_MODE << endl << endl;
 	};
 
-	void run() {
+	void run (string file_BTLSin = "BTLSin.txt") {
+
+		// Load configs from BTLSin.txt.
+		if (!CConfigData::get().ReadData(file_BTLSin) )
+		{
+			cout << "BTLSin file could not be opened" << endl;
+			cout << "Using default values" << endl;
+		}
+		cout << "Program Mode: " << CConfigData::get().Mode.PROGRAM_MODE << endl << endl;
+
 		CVehicleClassification_sp pVC = this->get_vehicle_classification();
 
 		// Bridges are read in first, to set max bridge length, needed for flow generators.
@@ -452,7 +364,7 @@ public:
 PYBIND11_MODULE(BtlsPy, m) {
 	m.doc() = "BtlsPy is for short-span bridge traffic analysis.";
 	py::class_<BTLS> btls(m, "BTLS");
-		btls.def(py::init<string>(), py::arg("file_BTLSin")="BTLSin.txt")
+		btls.def(py::init<>())
 			.def("set_road_config", &BTLS::set_road_config)
 			.def("set_gen_config", &BTLS::set_gen_config)
 			.def("set_read_config", &BTLS::set_read_config)
@@ -465,7 +377,7 @@ PYBIND11_MODULE(BtlsPy, m) {
 			.def("set_output_stats_config", &BTLS::set_output_stats_config)
 			.def("set_time_config", &BTLS::set_time_config)
 			.def("set_program_mode", &BTLS::set_program_mode)
-			.def("run", &BTLS::run, "To run the entire BTLS procedure.")
+			.def("run", &BTLS::run, "To run the entire BTLS procedure.", py::arg("file_BTLSin")="BTLSin.txt")
 			.def("get_vehicle_classification", &BTLS::get_vehicle_classification, py::return_value_policy::reference)
 			.def("get_bridges", &BTLS::get_bridges, py::return_value_policy::reference)
 			.def("get_lanes", &BTLS::get_lanes, py::return_value_policy::reference)
@@ -624,4 +536,3 @@ PYBIND11_MODULE(BtlsPy, m) {
 	// py::enum_<EFlowModel>(m, "EFlowModel").export_values();
 	// py::enum_<EVehicleModel>(m, "EVehicleModel").export_values();
 };
-#endif

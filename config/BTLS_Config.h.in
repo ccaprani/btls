@@ -1,3 +1,0 @@
-#cmakedefine Win
-#cmakedefine Py
-#cmakedefine Build
