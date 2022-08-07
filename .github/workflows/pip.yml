@@ -2,10 +2,10 @@ name: Pip
 
 on:
   workflow_dispatch:
-  pull_request:
-  push:
-    branches:
-      - BtlsPy
+  # pull_request:
+  # push:
+  #   branches:
+  #     - BtlsPy
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -66,5 +66,5 @@ jobs:
       # error: --plat-name must be one of ('win32', 'win-amd64', 'win-arm32', 'win-arm64')
       run: pip install --no-build-isolation .
 
-    - name: Test
-      run: python tests/test.py
+    # - name: Test
+    #   run: python tests/test.py

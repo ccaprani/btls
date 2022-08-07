@@ -1,0 +1,30 @@
+Metadata-Version: 2.1
+Name: BtlsPy
+Version: 0.2.0
+Summary: A package for short-to-mid span bridge traffic loading simulation
+Home-page: 
+Author: Colin Caprani
+Author-email: colin.caprani@monash.edu
+License: GNU GPL v3
+Project-URL: Documentation, 
+Project-URL: Source, 
+Project-URL: Tracker, 
+Classifier: Development Status :: 1 - Alpha
+Classifier: Topic :: Scientific/Engineering
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Science/Research
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: License :: OSI Approved :: GNU GPL v3 License
+Classifier: Natural Language :: English
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Provides-Extra: test
+License-File: LICENSE

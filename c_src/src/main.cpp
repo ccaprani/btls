@@ -25,7 +25,7 @@
 
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
-namespace py = pybind11;
+
 
 //extern CConfigData g_ConfigData;
 using namespace std;
@@ -360,9 +360,9 @@ public:
 	double EndTime;
 };
 
-
-PYBIND11_MODULE(BtlsPy, m) {
-	m.doc() = "BtlsPy is for short-span bridge traffic analysis.";
+namespace py = pybind11;
+PYBIND11_MODULE(_core, m) {
+	m.doc() = "BtlsPy is for short-to-mid span bridge traffic loading simulation.";
 	py::class_<BTLS> btls(m, "BTLS");
 		btls.def(py::init<>())
 			.def("set_road_config", &BTLS::set_road_config)

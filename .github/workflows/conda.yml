@@ -2,10 +2,10 @@ name: Conda
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - BtlsPy
-  pull_request:
+  # push:
+  #   branches:
+  #     - BtlsPy
+  # pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
