@@ -9,11 +9,11 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "math.h"
 #include <vector>
 #include <string>
 #include <fstream>
 #include <iomanip>
+#include <math.h>
 #include "Event.h"
 #include "Effect.h"
 #include "Vehicle.h"

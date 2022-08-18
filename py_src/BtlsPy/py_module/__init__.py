@@ -1,1 +1,1 @@
-from module1 import *
+from BtlsPy.py_module.module_SN_fatigue import FatigueCalculation

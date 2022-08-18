@@ -1,11 +1,11 @@
 #pragma once
 
-#include "math.h"
 #include <vector>
 #include <string>
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+#include <math.h>
 #include "Event.h"
 #include "Effect.h"
 #include "Vehicle.h"
