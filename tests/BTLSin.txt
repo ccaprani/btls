@@ -1,0 +1,152 @@
+// ---------------------------------------------
+// START OF BRIDGE TRAFFIC LOAD SIMULATION INPUT
+// ---------------------------------------------
+//
+// ---------------------------------------------
+//        *** INPUT SPECIFICATIONS ***
+// ---------------------------------------------
+//
+// Program Mode (1 - Gen & Sim, 2 - Gen, 3 - Read & Sim)
+1
+//
+// TRAFFIC GENERATION PARAMETERS
+// ---------------------------------------------
+// No. of days of traffic simulation:
+3
+// Location of Traffic folders
+../Traffic
+// Default truck track width (cm)
+190.0
+// Standard deviation of eccentricity in lane (cm) (about 20 cm usually)
+0
+// Vehicle Generation Model to be used
+// (0 - Grave, 1 - Test(Constant), 2 - Garage)
+2
+// Headway model to be used:
+// (0 - Auxerre NHM, 1 - Test(Constant), 5 - Congestion (w/ or w/out cars), 6 - free-flow, cars included)
+6
+// Traffic Classification System to be used:
+// (0 - No. of Axles, 1 - Axle Pattern)
+1
+// Lane and flow definition file:
+../Sample_data/LaneFlowData_80.csv
+// Nominal congested spacing, front to back (m):
+5
+// Congested speed (km/h):
+30
+// Congested gaps coefficient of variation:
+0.05
+//
+// TRAFFIC GARAGE PARAMETERS
+// ---------------------------------------------
+// Garage file as basis for generation (in "Traffic input file format" below):
+../Sample_data/garage.txt
+// Kernels (mean, std) file for randomizing the garage vehicles (lines in order GVW, AW, AS)
+../Sample_data/kernels.csv
+//
+// TRAFFIC INPUT FILE PARAMETERS
+// ---------------------------------------------
+// Traffic input file to be analysed:
+WGBSlowLanes_Jul.txt
+// Traffic input file format (CASTOR - 1, BeDIT - 2, DITIS - 3, MON - 4):
+4
+// Impose constant speed on all vehicles (1 or 0):
+0
+// Use average speed of vehicles in file if constant speed imposed (1 or 0)
+1
+// Constant speed of vehicles if not average used (km/h):
+80
+//
+// LOAD EFFECT CALCULATION PARAMETERS
+// ---------------------------------------------
+// Bridge definition file:
+../Sample_data/1-ABT6111Bridges.txt
+// Influence Line definition file:
+../Sample_data/1-ABT6111ILS.txt
+// Influence Surface definition file:
+IS.txt
+// Time step (s):
+0.1
+// Minimum GVW for inclusion in calculations (t/10):
+0
+//
+// ---------------------------------------------
+//        *** OUTPUT SPECIFICATIONS ***
+// ---------------------------------------------
+//
+// MISC. OUTPUT PARAMETERS
+// ---------------------------------------------
+//
+// Write full time history - slow & large file (1 or 0):
+0
+// Write each loading event value (1 or 0):
+0
+// Write each event buffer size:
+10000
+// Write a fatigue event file (1 or 0)
+1
+//
+// VEHICLE FILE
+// ---------------------------------------------
+// Write vehicle file (1 or 0)
+// WARNING: a large file may result in long-run simulations
+0
+// Traffic output file format (CASTOR - 1, BeDIT - 2, DITIS - 3, MON - 4):
+4
+// Vehicle file name
+NewVehicles.txt
+// Vehicle file buffer size
+100000
+// Write vehicle file flow statistics (1 or 0)
+1
+//
+// BLOCK MAXIMUM LOAD EFFECTS
+// ---------------------------------------------
+// Analyse for Block Max (overrides remaining params) (1 or 0)
+0
+// Block size for maxima (days):
+1
+// Block size for maxima (seconds):
+0
+// Write block max separated vehicle files (1 or 0):
+1
+// Write block max summary files (1 or 0):
+1
+// Do and write block max mixed vehicle analysis (1 or 0):
+0
+// Write block max buffer size:
+2
+//
+// PEAKS OVER THRESHOLD LOAD EFFECTS
+// ---------------------------------------------
+// Analyse for POT (overrides remaining params) (1 or 0)
+0
+// Write POT vehicle files (1 or 0):
+0
+// Write POT summary files (1 or 0):
+1
+// Write POT counter files (1 or 0):
+1
+// POT counter size (days):
+1
+// POT counter (seconds):
+0
+// Write POT buffer size:
+10000
+//
+// LOAD EFFECT STATISTICS OUTPUT
+// ---------------------------------------------
+// Analyse for Statistics (overrides remaining params) (1 or 0)
+1
+// Write cumulative statistics file (1 or 0)
+1
+// Write statistics at intervals files (1 or 0)
+0
+// Interval size for statistics output (seconds)
+3600
+// Write interval statistics buffer size:
+10000
+//
+// ---------------------------------------------
+// END OF BRIDGE TRAFFIC LOAD SIMULATION INPUT
+// ---------------------------------------------
