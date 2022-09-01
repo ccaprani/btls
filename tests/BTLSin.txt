@@ -12,7 +12,7 @@
 // TRAFFIC GENERATION PARAMETERS
 // ---------------------------------------------
 // No. of days of traffic simulation:
-3
+1
 // Location of Traffic folders
 ../Traffic
 // Default truck track width (cm)
@@ -84,6 +84,8 @@ IS.txt
 // Write each event buffer size:
 10000
 // Write a fatigue event file (1 or 0)
+0
+// Conduct Rainflow algorithm (1 or 0)
 1
 //
 // VEHICLE FILE

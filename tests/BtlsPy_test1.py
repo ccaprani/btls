@@ -18,7 +18,9 @@ def test():
     assert btls.do_simulation(pVC,vBridges,vLanes,btls.StartTime,btls.EndTime) == 1
 
     ## Test RN-curve fatigue method
-    assert isinstance(BtlsPy.FatigueCalculation(False,"BL_4.6_Fatigue.txt",1,"SN_4.6_Eff1.csv",2,False,1.6).fatigue_index,float)
+    fatigue_test = BtlsPy.FatigueCalculation()
+    assert isinstance(fatigue_test.sim_and_analyse(["SN_test.txt","SN_test.txt","SN_test.txt","SN_test.txt","SN_test.txt"],False,[[1,1],[1,1],[1,1],[1,1],[1,1]]),list)
+    assert isinstance(fatigue_test.read_and_analyse("TH_4.6.txt","SN_test.txt",False,[1.8],[1]),list)
 
     print("Tests were all passed!")
 

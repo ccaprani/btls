@@ -19,6 +19,7 @@ CBridge::CBridge()
 	NO_LANES_DIR1		= CConfigData::get().Road.NO_LANES_DIR1;
 	NO_DIRS				= CConfigData::get().Road.NO_DIRS;
 	NO_LANES			= CConfigData::get().Road.NO_LANES;
+	FATIGUE_RAINFLOW	= CConfigData::get().Output.FATIGUE_RAINFLOW;
 }
 
 CBridge::CBridge(double length, double calcTimeStep, int n, double curTime)
@@ -100,6 +101,7 @@ void CBridge::Update(double NextArrivalTime, double curTime)
 		if(EventEndTime < m_CurTime)
 			std::cout <<"***Error: Repeating event from the past" << endl;
 		
+		m_vRecordEffectValues = vector<vector<double>>(m_NoLoadEffects);
 		// while loop until a vehicle leaves or comes on
 		while(m_CurTime < EventEndTime)
 		{
@@ -113,6 +115,12 @@ void CBridge::Update(double NextArrivalTime, double curTime)
 			for (size_t i = 0; i < m_NoLoadEffects; i++)
 				for (size_t j = 0; j < m_NoLanes; j++)
 					m_vEffectValues[i] += m_vLanes[j].getLoadEffect(i);
+			// record the event for fatigue rainflow
+			if (FATIGUE_RAINFLOW) {
+				for (size_t i = 0; i < m_NoLoadEffects; i++) {
+					m_vRecordEffectValues[i].push_back(m_vEffectValues[i]);
+				}
+			}
 			// update the event
 			m_EventMgr.UpdateEffects(m_vEffectValues, m_vLanes[lead_lane].getLeadVehPosition(), m_CurTime);
 			m_CurTime += m_CalcTimeStep;
@@ -194,24 +202,20 @@ const std::vector<CVehicle_sp> CBridge::AssembleVehicles(void)
 	return pVehs;
 }
 
-
 size_t CBridge::getIndex(void)
 {
 	return m_Index;
 }
-
 
 void CBridge::setIndex(size_t index)
 {
 	m_Index = index;
 }
 
-
 double CBridge::getLength(void)
 {
 	return m_Length;
 }
-
 
 CBridgeLane& CBridge::getBridgeLane(size_t iLane)
 {
@@ -229,8 +233,11 @@ void CBridge::setNoLoadEffects(size_t nLE)
 	m_NoLoadEffects = nLE;
 }
 
-
 size_t CBridge::getNoLoadEffects(void)
 {
 	return m_NoLoadEffects;
+}
+
+vector<vector<double>>& CBridge::getEffectValues() {
+	return m_vRecordEffectValues;
 }

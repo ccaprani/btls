@@ -37,4 +37,3 @@ private:
 
 	size_t m_MaxNoTrucksInEvent;
 };
-

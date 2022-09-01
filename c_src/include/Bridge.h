@@ -46,6 +46,7 @@ public:
 	void InitializeDataMgr(double SimStartTime);
 	CBridgeLane& getBridgeLane(size_t iLane);
 	size_t getNoLanes();
+	std::vector<std::vector<double>>& getEffectValues();
 
 private:
 	bool	lane_compare(const CBridgeLane* pL1, const CBridgeLane* pL2);
@@ -58,6 +59,8 @@ private:
 	std::vector<double>			m_vEffectValues;
 	std::vector<double>			m_vThresholds;
 	std::vector<CBridgeLane>	m_vLanes;
+	std::vector<std::vector<double>> m_vRecordEffectValues;
+	bool FATIGUE_RAINFLOW;
 
 	double	m_CurTime;
 	double	m_CalcTimeStep;

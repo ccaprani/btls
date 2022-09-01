@@ -1,6 +1,7 @@
 // py_main.cpp
 // the main file for the BtlsPy Build
 
+#include <map>
 #include "PrepareSim.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
@@ -8,6 +9,131 @@
 
 //extern CConfigData g_ConfigData;
 using namespace std;
+namespace py = pybind11;
+
+
+void doRainflow(vector<vector<vector<double>>>& signal_data, vector<vector<map<double, double>>>& rainflow_out_count);
+void countRainflow(vector<vector<double>> rainflow_out, size_t i, size_t j, size_t no_load_effect, vector<vector<map<double, double>>>& rainflow_out_count);
+void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double SimStartTime, double SimEndTime, vector<vector<map<double, double>>>& rainflow_out_count);
+
+
+// run rainflow for each load event (from all bridges, all load effects)
+void doRainflow(vector<vector<vector<double>>>& signal_data, vector<vector<map<double, double>>>& rainflow_out_count) {
+	size_t no_bridge = signal_data.size();
+	size_t no_load_effect;
+	if (rainflow_out_count.size() < no_bridge) {
+		rainflow_out_count = vector<vector<map<double, double>>>(no_bridge);
+	}
+	py::object count_cycles = py::module_::import("rainflow").attr("count_cycles");
+	vector<vector<double>> rainflow_out;
+	for (size_t i = 0; i < no_bridge; i++) {
+		no_load_effect = signal_data[i].size();
+		for (size_t j = 0; j < no_load_effect; j++) {
+			rainflow_out = count_cycles(signal_data[i][j],py::arg("ndigits")=1).cast<vector<vector<double>>>();
+			countRainflow(rainflow_out,i,j,no_load_effect,rainflow_out_count);
+		}
+	}
+	return;
+}
+
+// count the rainflow output from doRainflow() (from all bridges, all load effects)
+void countRainflow(vector<vector<double>> rainflow_out, size_t i, size_t j, size_t no_load_effect, vector<vector<map<double, double>>>& rainflow_out_count) {
+	if (rainflow_out_count[i].size() < no_load_effect) {
+		rainflow_out_count[i] = vector<map<double, double>>(no_load_effect);
+	}
+	for (size_t k = 0; k < rainflow_out.size(); k++) {
+		if (rainflow_out_count[i][j].count(rainflow_out[k][0]) == 0) {
+			rainflow_out_count[i][j][rainflow_out[k][0]] = rainflow_out[k][1];
+		}
+		else {
+			rainflow_out_count[i][j][rainflow_out[k][0]] += rainflow_out[k][1];
+		}
+	}
+	return;
+}
+
+void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double SimStartTime, double SimEndTime, vector<vector<map<double, double>>>& rainflow_out_count)
+{
+	CVehicleBuffer VehBuff(pVC, SimStartTime);
+	size_t nLanes = vLanes.size();
+	double curTime = SimStartTime;
+	double nextTime = 0.0;
+	int curDay = (int)(SimStartTime/86400);
+	
+	cout << "Starting simulation..." << endl;
+	cout << "Day complete..." << endl;
+
+//#pragma omp parallel
+//	{
+	while (curTime <= SimEndTime)
+	{
+		//if(curTime >= 74821.73)
+		//	cout << "here" << endl;
+
+		// find the next arrival lane and the time
+		sort(vLanes.begin(), vLanes.end(), [](const CLane_sp& pL1, const CLane_sp& pL2){
+			return pL1->GetNextArrivalTime() < pL2->GetNextArrivalTime();
+			});
+		double NextArrivalTime = vLanes[0]->GetNextArrivalTime();
+
+		// generate the next vehicle from the lane with the next arrival time	
+		// see https://stackoverflow.com/questions/18565167/non-const-lvalue-references	
+		const CVehicle_sp& pVeh = vLanes[0]->GetNextVehicle();
+		VehBuff.AddVehicle(pVeh);
+		if (CConfigData::get().Sim.CALC_LOAD_EFFECTS)
+		{
+//#pragma omp for
+			vector<vector<vector<double>>> vRecordEffectValues;
+			for (size_t i = 0; i < vBridges.size(); i++)
+			{
+				// update each bridge until the next vehicle comes on
+				vBridges[i]->Update(NextArrivalTime, curTime);
+				// record the event for fatigue rainflow
+				if (CConfigData::get().Output.FATIGUE_RAINFLOW) {
+					vRecordEffectValues.push_back(vBridges[i]->getEffectValues());
+				}
+				//vBridges[i]->UpdateMT(NextArrivalTime, curTime);
+				// Add the next vehicle to the bridge, if it is not a car
+				if (pVeh != nullptr && pVeh->getGVW() > CConfigData::get().Sim.MIN_GVW)
+					vBridges[i]->AddVehicle(pVeh);
+			}
+			//for(unsigned int i = 0; i < vBridges.size(); i++)
+			//	vBridges[i]->join();
+			// run the rainflow algorithm
+			if (CConfigData::get().Output.FATIGUE_RAINFLOW) {
+				doRainflow(vRecordEffectValues,rainflow_out_count);
+			}
+		}
+
+		// update the current time to that of the vehicle just added
+		// and delete it
+		if (pVeh != nullptr)
+		{
+			curTime = pVeh->getTime();
+			CVehicle_sp *pVeh = nullptr;
+		}
+		else	// finish
+			curTime = SimEndTime + 1.0;
+
+		// Keep informing the user
+		if (curTime > (double)(86400)*(curDay + 1))
+		{
+			curDay += 1;
+			cout << curDay;
+			curDay % 10 == 0 ? cout << endl : cout << '\t';
+		}
+	}
+//	}
+	cout << endl;
+	
+	if(CConfigData::get().Sim.CALC_LOAD_EFFECTS)
+	{
+		for(unsigned int i = 0; i < vBridges.size(); i++)
+			vBridges[i]->Finish();
+	}
+
+	VehBuff.FlushBuffer();
+}
 
 class BTLS {
 public:
@@ -45,11 +171,12 @@ public:
 		CConfigData::get().Sim = sim_config;
 	};
 
-	void set_output_general_config (bool WRITE_TIME_HISTORY, bool WRITE_EACH_EVENT, int WRITE_EVENT_BUFFER_SIZE, bool WRITE_FATIGUE_EVENT) {
+	void set_output_general_config (bool WRITE_TIME_HISTORY, bool WRITE_EACH_EVENT, int WRITE_EVENT_BUFFER_SIZE, bool WRITE_FATIGUE_EVENT, bool FATIGUE_RAINFLOW) {
 		CConfigData::get().Output.WRITE_TIME_HISTORY = WRITE_TIME_HISTORY;
 		CConfigData::get().Output.WRITE_EACH_EVENT = WRITE_EACH_EVENT;
 		CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE = WRITE_EVENT_BUFFER_SIZE;
 		CConfigData::get().Output.WRITE_FATIGUE_EVENT = WRITE_FATIGUE_EVENT;
+		CConfigData::get().Output.FATIGUE_RAINFLOW = FATIGUE_RAINFLOW;
 	};
 
 	void set_output_vehiclefile_config (CConfigData::Output_Config::VehicleFile_Config& output_vehiclefile_config) {
@@ -119,7 +246,7 @@ public:
 		vector<CLane_sp> vLanes = this->get_lanes(pVC);
 		
 		// Now we know the time, we can tell bridge data managers when to start.
-		this->do_simulation(pVC, vBridges, vLanes, this->StartTime, this->EndTime);
+		this->do_simulation(pVC, vBridges, vLanes, this->StartTime, this->EndTime, this->rainflow_out_count);
 
 		// Reset the Times.
 		this->StartTime = 0.0;
@@ -158,23 +285,29 @@ public:
 		return vLanes;
 	};
 
-	int do_simulation (CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double StartTime, double EndTime) {
+	int do_simulation (CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double StartTime, double EndTime, vector<vector<map<double, double>>>& rainflow_out_count) {
 		for (auto& it : vBridges) {
 			it->InitializeDataMgr(StartTime);
 			}
 		clock_t start = clock();
-		doSimulation(pVC, vBridges, vLanes, StartTime, EndTime);
+		doSimulation(pVC, vBridges, vLanes, StartTime, EndTime, rainflow_out_count);
 		cout << endl << "Simulation complete" << endl;
 		clock_t end = clock();
 		cout << endl << "Duration of analysis: " << std::fixed << std::setprecision(3) << ((double)(end) - (double)(start))/((double)CLOCKS_PER_SEC) << " s" << endl;
 		return 1;
 	};
 
+	vector<vector<map<double, double>>> get_rainflow_out_count() {
+		return rainflow_out_count;
+	};
+
 	double StartTime;
 	double EndTime;
+
+private:
+	vector<vector<map<double, double>>> rainflow_out_count;
 };
 
-namespace py = pybind11;
 PYBIND11_MODULE(_core, m) {
 	m.doc() = "BtlsPy is for short-to-mid span bridge traffic loading simulation.";
 	py::class_<BTLS> btls(m, "BTLS");
@@ -196,6 +329,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("get_bridges", &BTLS::get_bridges, py::return_value_policy::reference)
 			.def("get_lanes", &BTLS::get_lanes, py::return_value_policy::reference)
 			.def("do_simulation", &BTLS::do_simulation)
+			.def("get_rainflow_result", &BTLS::get_rainflow_out_count)
 			.def_readwrite("StartTime", &BTLS::StartTime)
 			.def_readwrite("EndTime", &BTLS::EndTime);
 	py::class_<CConfigData> cconfigdata(m, "CConfigData");
@@ -241,11 +375,12 @@ PYBIND11_MODULE(_core, m) {
 				.def_readwrite("CALC_TIME_STEP", &CConfigData::Sim_Config::CALC_TIME_STEP)
 				.def_readwrite("MIN_GVW", &CConfigData::Sim_Config::MIN_GVW);
 		py::class_<CConfigData::Output_Config> output_config(cconfigdata, "Output_Config");
-			output_config.def(py::init<bool, bool, int, bool, CConfigData::Output_Config::VehicleFile_Config, CConfigData::Output_Config::BlockMax_Config, CConfigData::Output_Config::POT_Config, CConfigData::Output_Config::Stats_Config>())
+			output_config.def(py::init<bool, bool, int, bool, bool, CConfigData::Output_Config::VehicleFile_Config, CConfigData::Output_Config::BlockMax_Config, CConfigData::Output_Config::POT_Config, CConfigData::Output_Config::Stats_Config>())
 				.def_readwrite("WRITE_TIME_HISTORY", &CConfigData::Output_Config::WRITE_TIME_HISTORY)
 				.def_readwrite("WRITE_EACH_EVENT", &CConfigData::Output_Config::WRITE_EACH_EVENT)
 				.def_readwrite("WRITE_EVENT_BUFFER_SIZE", &CConfigData::Output_Config::WRITE_EVENT_BUFFER_SIZE)
 				.def_readwrite("WRITE_FATIGUE_EVENT", &CConfigData::Output_Config::WRITE_FATIGUE_EVENT)
+				.def_readwrite("FATIGUE_RAINFLOW", &CConfigData::Output_Config::FATIGUE_RAINFLOW)
 				.def_readwrite("VehicleFile", &CConfigData::Output_Config::VehicleFile)
 				.def_readwrite("BlockMax", &CConfigData::Output_Config::BlockMax)
 				.def_readwrite("POT", &CConfigData::Output_Config::POT)
