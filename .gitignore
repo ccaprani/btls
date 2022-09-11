@@ -1,0 +1,7 @@
+.DS_Store
+.vscode/*
+bin/*
+build/*
+back_up/*
+dev_functions/*
+Sample_data/*

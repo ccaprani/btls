@@ -3,6 +3,7 @@
 
 #include <map>
 #include "PrepareSim.h"
+#include "CRainflow.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
@@ -12,24 +13,24 @@ using namespace std;
 namespace py = pybind11;
 
 
-void doRainflow(vector<vector<vector<double>>>& signal_data, vector<vector<map<double, double>>>& rainflow_out_count);
-void countRainflow(vector<vector<double>> rainflow_out, size_t i, size_t j, size_t no_load_effect, vector<vector<map<double, double>>>& rainflow_out_count);
-void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double SimStartTime, double SimEndTime, vector<vector<map<double, double>>>& rainflow_out_count);
+void doRainflow(vector< vector< vector<double> > >& signal_data, vector< vector< map<double, double> > >& rainflow_out_count);
+void countRainflow(vector< pair<double, double> >& rainflow_out, size_t i, size_t j, size_t no_load_effect, vector< vector< map<double, double> > >& rainflow_out_count);
+void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double SimStartTime, double SimEndTime, vector< vector< map<double, double> > >& rainflow_out_count);
 
 
 // run rainflow for each load event (from all bridges, all load effects)
-void doRainflow(vector<vector<vector<double>>>& signal_data, vector<vector<map<double, double>>>& rainflow_out_count) {
+void doRainflow(vector< vector< vector<double> > >& signal_data, vector< vector< map<double, double> > >& rainflow_out_count) {
 	size_t no_bridge = signal_data.size();
 	size_t no_load_effect;
 	if (rainflow_out_count.size() < no_bridge) {
 		rainflow_out_count = vector<vector<map<double, double>>>(no_bridge);
 	}
-	py::object count_cycles = py::module_::import("rainflow").attr("count_cycles");
-	vector<vector<double>> rainflow_out;
+	Rainflow rainflow_alg = Rainflow();
+	vector< pair<double, double> > rainflow_out;
 	for (size_t i = 0; i < no_bridge; i++) {
 		no_load_effect = signal_data[i].size();
 		for (size_t j = 0; j < no_load_effect; j++) {
-			rainflow_out = count_cycles(signal_data[i][j],py::arg("ndigits")=1).cast<vector<vector<double>>>();
+			rainflow_out = rainflow_alg.count_cycles(signal_data[i][j], 1);
 			countRainflow(rainflow_out,i,j,no_load_effect,rainflow_out_count);
 		}
 	}
@@ -37,22 +38,17 @@ void doRainflow(vector<vector<vector<double>>>& signal_data, vector<vector<map<d
 }
 
 // count the rainflow output from doRainflow() (from all bridges, all load effects)
-void countRainflow(vector<vector<double>> rainflow_out, size_t i, size_t j, size_t no_load_effect, vector<vector<map<double, double>>>& rainflow_out_count) {
+void countRainflow(vector< pair<double, double> >& rainflow_out, size_t i, size_t j, size_t no_load_effect, vector< vector< map<double, double> > >& rainflow_out_count) {
 	if (rainflow_out_count[i].size() < no_load_effect) {
 		rainflow_out_count[i] = vector<map<double, double>>(no_load_effect);
 	}
 	for (size_t k = 0; k < rainflow_out.size(); k++) {
-		if (rainflow_out_count[i][j].count(rainflow_out[k][0]) == 0) {
-			rainflow_out_count[i][j][rainflow_out[k][0]] = rainflow_out[k][1];
-		}
-		else {
-			rainflow_out_count[i][j][rainflow_out[k][0]] += rainflow_out[k][1];
-		}
+			rainflow_out_count[i][j][rainflow_out[k].first] += rainflow_out[k].second;
 	}
 	return;
 }
 
-void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double SimStartTime, double SimEndTime, vector<vector<map<double, double>>>& rainflow_out_count)
+void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double SimStartTime, double SimEndTime, vector< vector< map<double, double> > >& rainflow_out_count)
 {
 	CVehicleBuffer VehBuff(pVC, SimStartTime);
 	size_t nLanes = vLanes.size();
@@ -89,7 +85,7 @@ void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, ve
 				// update each bridge until the next vehicle comes on
 				vBridges[i]->Update(NextArrivalTime, curTime);
 				// record the event for fatigue rainflow
-				if (CConfigData::get().Output.FATIGUE_RAINFLOW) {
+				if (CConfigData::get().Output.DO_FATIGUE_RAINFLOW) {
 					vRecordEffectValues.push_back(vBridges[i]->getEffectValues());
 				}
 				//vBridges[i]->UpdateMT(NextArrivalTime, curTime);
@@ -100,7 +96,7 @@ void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, ve
 			//for(unsigned int i = 0; i < vBridges.size(); i++)
 			//	vBridges[i]->join();
 			// run the rainflow algorithm
-			if (CConfigData::get().Output.FATIGUE_RAINFLOW) {
+			if (CConfigData::get().Output.DO_FATIGUE_RAINFLOW) {
 				doRainflow(vRecordEffectValues,rainflow_out_count);
 			}
 		}
@@ -171,12 +167,12 @@ public:
 		CConfigData::get().Sim = sim_config;
 	};
 
-	void set_output_general_config (bool WRITE_TIME_HISTORY, bool WRITE_EACH_EVENT, int WRITE_EVENT_BUFFER_SIZE, bool WRITE_FATIGUE_EVENT, bool FATIGUE_RAINFLOW) {
+	void set_output_general_config (bool WRITE_TIME_HISTORY, bool WRITE_EACH_EVENT, int WRITE_EVENT_BUFFER_SIZE, bool WRITE_FATIGUE_EVENT, bool DO_FATIGUE_RAINFLOW) {
 		CConfigData::get().Output.WRITE_TIME_HISTORY = WRITE_TIME_HISTORY;
 		CConfigData::get().Output.WRITE_EACH_EVENT = WRITE_EACH_EVENT;
 		CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE = WRITE_EVENT_BUFFER_SIZE;
 		CConfigData::get().Output.WRITE_FATIGUE_EVENT = WRITE_FATIGUE_EVENT;
-		CConfigData::get().Output.FATIGUE_RAINFLOW = FATIGUE_RAINFLOW;
+		CConfigData::get().Output.DO_FATIGUE_RAINFLOW = DO_FATIGUE_RAINFLOW;
 	};
 
 	void set_output_vehiclefile_config (CConfigData::Output_Config::VehicleFile_Config& output_vehiclefile_config) {
@@ -310,6 +306,7 @@ private:
 
 PYBIND11_MODULE(_core, m) {
 	m.doc() = "BtlsPy is for short-to-mid span bridge traffic loading simulation.";
+	m.def("test_c_rainflow", [](vector<double>& series, int ndigits = -1){Rainflow rainflow_alg = Rainflow(); return rainflow_alg.count_cycles(series,ndigits);}, py::arg("series"), py::arg("ndigits")=-1);
 	py::class_<BTLS> btls(m, "BTLS");
 		btls.def(py::init<>())
 			.def("set_road_config", &BTLS::set_road_config)
@@ -380,7 +377,7 @@ PYBIND11_MODULE(_core, m) {
 				.def_readwrite("WRITE_EACH_EVENT", &CConfigData::Output_Config::WRITE_EACH_EVENT)
 				.def_readwrite("WRITE_EVENT_BUFFER_SIZE", &CConfigData::Output_Config::WRITE_EVENT_BUFFER_SIZE)
 				.def_readwrite("WRITE_FATIGUE_EVENT", &CConfigData::Output_Config::WRITE_FATIGUE_EVENT)
-				.def_readwrite("FATIGUE_RAINFLOW", &CConfigData::Output_Config::FATIGUE_RAINFLOW)
+				.def_readwrite("DO_FATIGUE_RAINFLOW", &CConfigData::Output_Config::DO_FATIGUE_RAINFLOW)
 				.def_readwrite("VehicleFile", &CConfigData::Output_Config::VehicleFile)
 				.def_readwrite("BlockMax", &CConfigData::Output_Config::BlockMax)
 				.def_readwrite("POT", &CConfigData::Output_Config::POT)

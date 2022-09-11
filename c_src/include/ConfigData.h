@@ -106,7 +106,7 @@ public:
 		bool WRITE_EACH_EVENT;
 		int  WRITE_EVENT_BUFFER_SIZE;
 		bool WRITE_FATIGUE_EVENT;	
-		bool FATIGUE_RAINFLOW;
+		bool DO_FATIGUE_RAINFLOW;
 		
 		struct VehicleFile_Config
 		{

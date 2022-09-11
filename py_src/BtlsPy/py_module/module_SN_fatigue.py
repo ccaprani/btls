@@ -1,4 +1,3 @@
-import csv
 import math
 import rainflow
 from BtlsPy.c_module import BTLS
@@ -93,7 +92,7 @@ class FatigueCalculation():
 
     # To apply the rainflow algorithm to stress
     def rainflow_algorithm(self, fatigue_loads:list, ndigits:int=1) -> list:
-        if not isinstance(fatigue_loads[0],list):
+        if not isinstance(fatigue_loads[0],list):  # just run rainflow for one load effect's history [data]
             fatigue_loads_rainflow = rainflow.count_cycles(fatigue_loads,ndigits)
             for i in range(0,len(fatigue_loads_rainflow)):
                 fatigue_loads_rainflow[i] = list(fatigue_loads_rainflow[i])
@@ -102,7 +101,7 @@ class FatigueCalculation():
             fatigue_loads_rainflow = []
             while len(fatigue_loads_rainflow) < len(fatigue_loads):
                 fatigue_loads_rainflow.append([])
-            for i in range(len(fatigue_loads_rainflow)):
+            for i in range(0,len(fatigue_loads_rainflow)):
                 fatigue_loads_rainflow[i] = rainflow.count_cycles(fatigue_loads[i],ndigits)
                 for j in range(0,len(fatigue_loads_rainflow[i])):
                     fatigue_loads_rainflow[i][j] = list(fatigue_loads_rainflow[i][j])

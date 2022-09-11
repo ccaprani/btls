@@ -19,7 +19,7 @@ CBridge::CBridge()
 	NO_LANES_DIR1		= CConfigData::get().Road.NO_LANES_DIR1;
 	NO_DIRS				= CConfigData::get().Road.NO_DIRS;
 	NO_LANES			= CConfigData::get().Road.NO_LANES;
-	FATIGUE_RAINFLOW	= CConfigData::get().Output.FATIGUE_RAINFLOW;
+	DO_FATIGUE_RAINFLOW	= CConfigData::get().Output.DO_FATIGUE_RAINFLOW;
 }
 
 CBridge::CBridge(double length, double calcTimeStep, int n, double curTime)
@@ -116,7 +116,7 @@ void CBridge::Update(double NextArrivalTime, double curTime)
 				for (size_t j = 0; j < m_NoLanes; j++)
 					m_vEffectValues[i] += m_vLanes[j].getLoadEffect(i);
 			// record the event for fatigue rainflow
-			if (FATIGUE_RAINFLOW) {
+			if (DO_FATIGUE_RAINFLOW) {
 				for (size_t i = 0; i < m_NoLoadEffects; i++) {
 					m_vRecordEffectValues[i].push_back(m_vEffectValues[i]);
 				}
