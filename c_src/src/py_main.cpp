@@ -167,6 +167,10 @@ public:
 		CConfigData::get().Sim = sim_config;
 	};
 
+	void set_output_config (CConfigData::Output_Config& output_config) {
+		CConfigData::get().Output = output_config;
+	};
+
 	void set_output_general_config (bool WRITE_TIME_HISTORY, bool WRITE_EACH_EVENT, int WRITE_EVENT_BUFFER_SIZE, bool WRITE_FATIGUE_EVENT, bool DO_FATIGUE_RAINFLOW) {
 		CConfigData::get().Output.WRITE_TIME_HISTORY = WRITE_TIME_HISTORY;
 		CConfigData::get().Output.WRITE_EACH_EVENT = WRITE_EACH_EVENT;
@@ -223,7 +227,7 @@ public:
 		cout << "Program Mode: " << CConfigData::get().Mode.PROGRAM_MODE << endl << endl;
 	};
 
-	int run (string file_BTLSin = "BTLSin.txt") {
+	int run (string file_BTLSin) {
 
 		// Load configs from BTLSin.txt.
 		if (!CConfigData::get().ReadData(file_BTLSin) )
@@ -231,6 +235,28 @@ public:
 			cout << "BTLSin file could not be opened" << endl;
 			cout << "Using default values" << endl;
 		}
+		cout << "Program Mode: " << CConfigData::get().Mode.PROGRAM_MODE << endl << endl;
+
+		CVehicleClassification_sp pVC = this->get_vehicle_classification();
+
+		// Bridges are read in first, to set max bridge length, needed for flow generators.
+		vector<CBridge_sp> vBridges = this->get_bridges();
+
+		// Now read generator info for lanes.
+		vector<CLane_sp> vLanes = this->get_lanes(pVC);
+		
+		// Now we know the time, we can tell bridge data managers when to start.
+		this->do_simulation(pVC, vBridges, vLanes, this->StartTime, this->EndTime, this->rainflow_out_count);
+
+		// Reset the Times.
+		this->StartTime = 0.0;
+		this->EndTime = 0.0;
+
+		return 1;
+	};
+
+	int run () {
+
 		cout << "Program Mode: " << CConfigData::get().Mode.PROGRAM_MODE << endl << endl;
 
 		CVehicleClassification_sp pVC = this->get_vehicle_classification();
@@ -314,6 +340,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("set_read_config", &BTLS::set_read_config)
 			.def("set_traffic_config", &BTLS::set_traffic_config)
 			.def("set_sim_config", &BTLS::set_sim_config)
+			.def("set_output_config", &BTLS::set_output_config)
 			.def("set_output_general_config", &BTLS::set_output_general_config)
 			.def("set_output_vehiclefile_config", &BTLS::set_output_vehiclefile_config)
 			.def("set_output_blockmax_config", &BTLS::set_output_blockmax_config)
@@ -321,7 +348,8 @@ PYBIND11_MODULE(_core, m) {
 			.def("set_output_stats_config", &BTLS::set_output_stats_config)
 			.def("set_time_config", &BTLS::set_time_config)
 			.def("set_program_mode", &BTLS::set_program_mode)
-			.def("run", &BTLS::run, "To run the entire BTLS procedure.", py::arg("file_BTLSin")="BTLSin.txt")
+			.def("run", py::overload_cast<string>(&BTLS::run), "To run BTLS by BTLSin.txt.", py::arg("file_BTLSin"))
+			.def("run", py::overload_cast<>(&BTLS::run), "To run BTLS.")
 			.def("get_vehicle_classification", &BTLS::get_vehicle_classification, py::return_value_policy::reference)
 			.def("get_bridges", &BTLS::get_bridges, py::return_value_policy::reference)
 			.def("get_lanes", &BTLS::get_lanes, py::return_value_policy::reference)
