@@ -128,7 +128,7 @@ vector<Rainflow::ExtractCycleOut> Rainflow::extract_cycles (vector<double>& seri
     return format_output_out;
 };
 
-vector< pair<double, double> > Rainflow::count_cycles (vector<double>& series, int ndigits) {
+vector< pair<double, double> > Rainflow::count_cycles (vector<double>& series, int ndigits, int nbins, double binsize) {
     /*Count cycles in the series.
 
     Parameters
@@ -152,9 +152,33 @@ vector< pair<double, double> > Rainflow::count_cycles (vector<double>& series, i
     correspond to the right (high) edge of a bin.
     */
     map<double, double> counts;
+    if (nbins > 0 && binsize > 0.0) {
+        cout << "Arguments nbins and binsize are mutually exclusive!" << endl;
+        return map_to_vector(counts);
+    }
     vector<ExtractCycleOut> cycles = extract_cycles(series);
     // cout << cycles.size() << endl;
-    if (ndigits != -1) {
+    if (nbins > 0) {
+        double maxValue = *max_element(series.begin(),series.end()); 
+        double minValue = *min_element(series.begin(),series.end());
+        binsize = (maxValue-minValue)/nbins;
+    }
+    if (binsize > 0) {
+        int nmax = 0;
+        for (size_t i = 0; i < cycles.size(); i++) {
+            double quotient = cycles[i].rng/binsize;
+            int n = (int)ceil(quotient);
+            if (nbins > 0 && n > nbins) {
+                n -= 1;
+            }
+            counts[(double)n*binsize] += cycles[i].count;
+            nmax = max(n,nmax);
+        }
+        for (int i = 1; i < nmax; i++) {
+            counts[(double)i*binsize] += 0.0;
+        }
+    }
+    else if (ndigits >= 0) {
         for (size_t i = 0; i < cycles.size(); i++) {
             counts[get_round_function(cycles[i].rng,ndigits)] += cycles[i].count;
         }
@@ -170,4 +194,3 @@ vector< pair<double, double> > Rainflow::count_cycles (vector<double>& series, i
 vector< pair<double, double> > Rainflow::map_to_vector (const map<double, double>& map) {
         return vector< pair<double, double> >(map.begin(), map.end());
 }
-

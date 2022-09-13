@@ -13,5 +13,5 @@ test-skip = "*universal2:arm64"
 [tool.pytest.ini_options]
 minversion = "6.0"
 testpaths = [
-    "test"
+    "tests"
 ]

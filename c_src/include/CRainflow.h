@@ -4,10 +4,12 @@ according to section 5.4.4 in ASTM E1049-85 (2011).
 */
 #pragma once
 
+#include <algorithm>
 #include <deque>
 #include <iostream>
 #include <map>
 #include <math.h>
+#include <utility>
 #include <vector>
 
 using namespace std;
@@ -24,7 +26,7 @@ public:
         size_t i2;
     };
     vector<Rainflow::ExtractCycleOut> extract_cycles (vector<double>& series);
-    vector< pair<double, double> > count_cycles (vector<double>& series, int ndigits = -1);
+    vector< pair<double, double> > count_cycles (vector<double>& series, int ndigits = -1, int nbins = -1, double binsize = -1.0);
 
 private:
     double get_round_function (double x, int ndigits = -1);

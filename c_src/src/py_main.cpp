@@ -332,7 +332,7 @@ private:
 
 PYBIND11_MODULE(_core, m) {
 	m.doc() = "BtlsPy is for short-to-mid span bridge traffic loading simulation.";
-	m.def("test_c_rainflow", [](vector<double>& series, int ndigits = -1){Rainflow rainflow_alg = Rainflow(); return rainflow_alg.count_cycles(series,ndigits);}, py::arg("series"), py::arg("ndigits")=-1);
+	m.def("test_c_rainflow", [](vector<double>& series, int ndigits = -1, int nbins = -1, double binsize = -1.0){Rainflow rainflow_alg = Rainflow(); return rainflow_alg.count_cycles(series,ndigits,nbins,binsize);}, py::arg("series"), py::arg("ndigits")=-1, py::arg("nbins")=-1, py::arg("binsize")=-1.0);
 	py::class_<BTLS> btls(m, "BTLS");
 		btls.def(py::init<>())
 			.def("set_road_config", &BTLS::set_road_config)
