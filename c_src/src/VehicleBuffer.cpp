@@ -153,7 +153,7 @@ void CVehicleBuffer::writeFlowData()
 			oStr.width(20);
 			oStr << std::right << str;
 		}
-		oStr << std::ends;
+		// oStr << std::ends;
 		outFile << oStr.str() << '\n';
 		oStr.str(""); //clears the stringstream
 
@@ -169,7 +169,7 @@ void CVehicleBuffer::writeFlowData()
 			{
 				oStr.width(20); oStr << std::right << data.m_vClassCount.at(j);
 			}
-			oStr << std::ends;
+			// oStr << std::ends;
 			outFile << oStr.str() << '\n';
 			oStr.str("");
 		}

@@ -226,8 +226,8 @@ void CEvent::writeEffect(size_t k, string file, bool trucks)
 	oStr.width(15);		oStr << std::fixed << std::setprecision(1) << time;	
 	oStr.width(10);		oStr << std::fixed << std::setprecision(2) << dist;
 	oStr.width(4);		nTks = m_vMaxEffects[k].m_NoVehicles;	
-	oStr << nTks << ends;
-	oStr << ends;
+	oStr << nTks;// << ends;
+	// oStr << ends;
 	
 	outFile << oStr.str() << endl;
 	if(trucks)

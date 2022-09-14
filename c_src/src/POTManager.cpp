@@ -176,7 +176,7 @@ void CPOTManager::WriteSummaryFiles()
 			oStr.width(15);		oStr << std::fixed << std::setprecision(1) << Ev.getMaxEffectTime();
 			oStr.width(4);		oStr << Ev.getMaxEffect(iLE).m_NoVehicles;
 			oStr.width(10);		oStr << std::fixed << std::setprecision(1) << Ev.getMaxEffect(iLE).getValue();	
-			oStr << ends;
+			// oStr << ends;
 	
 			outFile << oStr.str() << endl;
 		}

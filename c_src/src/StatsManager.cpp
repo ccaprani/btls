@@ -109,7 +109,7 @@ void CStatsManager::WriteSummaryFiles()
 			std::ostringstream oStr;
 			oStr.width(6);		oStr << s.m_ID;
 			oStr.width(15);		oStr << std::fixed << std::setprecision(1) << WRITE_SS_INTERVAL_SIZE*s.m_ID;
-			oStr << std::ends;
+			// oStr << std::ends;
 	
 			outFile << oStr.str() << s.outputString() << std::endl;
 		}
@@ -141,7 +141,7 @@ void CStatsManager::WriteCumulativeFile()
 		s = m_vCumulativeStats.at(iLE);
 
 		std::ostringstream oStr;
-		oStr.width(6);		oStr << iLE+1 << std::ends;
+		oStr.width(6);		oStr << iLE+1;
 	
 		outFile << oStr.str() << s.outputString() << std::endl;
 	}

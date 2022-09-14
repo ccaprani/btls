@@ -98,25 +98,22 @@ std::string CEventStatistics::outputString()
 		oStr << std::fixed << std::setprecision(2) << m_vNoTrucksInEvent.at(i);
 		oStr.width(10);
 	}
-
-	oStr << std::ends;
 	return oStr.str();
 };
 
 std::string CEventStatistics::headingsString()
 {
 	std::ostringstream oStr;
-	oStr.width(10);		oStr << "#Events";
-	oStr.width(10);		oStr << "#Ev Vehs";
-	oStr.width(10);		oStr << "#Ev Trucks";
-	oStr.width(10);		oStr << "Min";
-	oStr.width(10);		oStr << "Max";
-	oStr.width(10);		oStr << "Mean";
-	oStr.width(10);		oStr << "StdDev";
+	oStr.width(9);		oStr << "#Events";
+	oStr.width(11);		oStr << "#Ev Vehs";
+	oStr.width(11);		oStr << "#Ev Trucks";
+	oStr.width(7);		oStr << "Min";
+	oStr.width(9);		oStr << "Max";
+	oStr.width(12);		oStr << "Mean";
+	oStr.width(11);		oStr << "StdDev";
 	oStr.width(15);		oStr << "Variance";
-	oStr.width(10);		oStr << "Skewness";
+	oStr.width(11);		oStr << "Skewness";
 	oStr.width(10);		oStr << "Kurtosis";
-	oStr.width(25);		oStr << "Truck Presence Counts";
-	oStr << std::ends;
+	oStr.width(26);		oStr << "Truck Presence Counts";
 	return oStr.str();
 };

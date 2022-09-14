@@ -419,7 +419,7 @@ std::string CVehicle::writeCASTORData()
 		j = 3;
 	}
 
-	oFile << std::ends;
+	// oFile << std::ends;
 
 	return oFile.str();
 }
@@ -473,7 +473,7 @@ std::string CVehicle::writeBEDITData()
 		oFile.width(len);	oFile << "0";
 	}
 
-	oFile << std::ends;
+	// oFile << std::ends;
 
 	return oFile.str();
 }
@@ -531,7 +531,7 @@ std::string CVehicle::writeDITISData()
 		oFile.width(len);	oFile << "0";
 	}
 */
-	oFile << std::ends;
+	// oFile << std::ends;
 
 	return oFile.str();
 }
@@ -584,7 +584,7 @@ std::string CVehicle::writeMONData()
 		oFile.width(len);	oFile << "0";
 	}
 
-	oFile << std::ends;
+	// oFile << std::ends;
 
 	return oFile.str();
 }
