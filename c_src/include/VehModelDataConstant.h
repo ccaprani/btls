@@ -11,7 +11,7 @@ public:
 	virtual void ReadDataIn();
 
     void getCoVs(double& CoV_AS, double& CoV_AW);
-    CVehicle_sp getNominalVehicle() {return m_pNominalVehicle};
+    CVehicle_sp getNominalVehicle() {return m_pNominalVehicle;};
 
 private:
 	void readConstant();

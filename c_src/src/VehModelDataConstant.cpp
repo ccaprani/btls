@@ -24,6 +24,7 @@ void CVehModelDataConstant::ReadDataIn()
 void CVehModelDataConstant::readConstant()
 {
 	if (!m_CSV.OpenFile(CConfigData::get().Read.CONSTANT_FILE, ","))
+    {
 		std::cerr << "***WARNING: Constant Vehicle file could not be opened, using defaults" << endl;
 
         //Constant vehicle defaults
@@ -36,7 +37,7 @@ void CVehModelDataConstant::readConstant()
         i++;		m_pNominalVehicle->setAS(i, 1.2); m_pNominalVehicle->setAW(i, 90); m_pNominalVehicle->setAT(i, 2.4);
         i++;		m_pNominalVehicle->setAS(i, 0.0); m_pNominalVehicle->setAW(i, 90); m_pNominalVehicle->setAT(i, 2.4);
         m_pNominalVehicle->setLength(13.9);
-
+    }
 	else
 	{
 		string line;
@@ -50,7 +51,7 @@ void CVehModelDataConstant::readConstant()
         unsigned int i = 0;
         std::vector<double> vAS;
         std::vector<double> vAW;
-        while(m_CSV.getline(line)
+        while(m_CSV.getline(line))
         {
             vAS.push_back(m_CSV.stringToDouble(m_CSV.getfield(0)));
             vAW.push_back(m_CSV.stringToDouble(m_CSV.getfield(1)));
@@ -58,6 +59,7 @@ void CVehModelDataConstant::readConstant()
         }
         m_pNominalVehicle->setNoAxles(i);
         double length = 0.0;
+        double weight = 0.0;
         double gvw = 0.0;
         for(unsigned int j = 0; j< i; j++)
         {
@@ -72,7 +74,7 @@ void CVehModelDataConstant::readConstant()
     }
 }
 
-void CVehModelDataConstant::makeNominalVehicle();
+void CVehModelDataConstant::makeNominalVehicle()
 {
     m_pNominalVehicle = std::make_shared<CVehicle>(); //new CVehicle;
 

@@ -2,14 +2,12 @@
 
 
 CVehicleGenConstant::CVehicleGenConstant(CVehModelDataConstant_sp pVMD)	
-	: CVehicleGenerator(eVM_Constant, pVMD), m_MinimumCOV(1e-3)
+	: CVehicleGenerator(eVM_Constant, pVMD), m_NominalVehicle(nullptr), m_MinimumCOV(1e-3)
 {
 	m_pVMD = std::dynamic_pointer_cast<CVehModelDataConstant>(m_pVehModelData);
 
 	m_pVehClassification = m_pVMD->getVehClassification();
-
 	m_NominalVehicle = m_pVMD->getNominalVehicle();
-
 }
 
 

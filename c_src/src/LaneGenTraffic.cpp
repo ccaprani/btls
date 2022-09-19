@@ -45,7 +45,7 @@ void CLaneGenTraffic::setLaneData(CVehicleClassification_sp pVC,
 	{
 	case 1:		// Constant
 		m_pVehModelData = nullptr;
-		m_pVehicleGen = std::make_shared<CVehicleGenConstant>();
+		m_pVehicleGen = std::make_shared<CVehicleGenConstant>(std::dynamic_pointer_cast<CVehModelDataConstant>(m_pVehModelData));
 		break;
 	case 2:		// Garage
 		m_pVehModelData = std::make_shared<CVehModelDataGarage>(pVC, lfc);

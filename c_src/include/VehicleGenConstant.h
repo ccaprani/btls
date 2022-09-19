@@ -16,6 +16,7 @@ private:
 	void randomize(CVehicle_sp pVeh);
 
 	CVehModelDataConstant_sp m_pVMD;
+	CVehicle_sp m_NominalVehicle;
 	const double m_MinimumCOV;
 };
 typedef std::shared_ptr<CVehicleGenConstant> CVehicleGenConstant_sp;
