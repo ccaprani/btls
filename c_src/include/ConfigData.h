@@ -73,11 +73,12 @@ public:
 		string TRAFFIC_FILE;
 		string GARAGE_FILE;
 		string KERNEL_FILE;
+		string CONSTANT_FILE;
 		unsigned int FILE_FORMAT;
 		bool USE_CONSTANT_SPEED;
 		bool USE_AVE_SPEED;
 		double CONST_SPEED;
-	} Read = {false,"traffic.txt","garage.txt","kernel.csv",4,true,false,24.0};
+	} Read = {false,"traffic.txt","garage.txt","kernel.csv","constant_vehicle.csv",4,true,false,24.0};
 
 	struct Traffic_Config
 	{

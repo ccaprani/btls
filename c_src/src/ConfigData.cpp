@@ -43,6 +43,7 @@ void CConfigData::ExtractData()
 
 	str = GetNextDataLine();	Read.GARAGE_FILE				= str;
 	str = GetNextDataLine();	Read.KERNEL_FILE				= str;
+	str = GetNextDataLine();	Read.CONSTANT_FILE				= str;
 	str = GetNextDataLine();	Read.TRAFFIC_FILE				= str;	
 	str = GetNextDataLine();	Read.FILE_FORMAT				= m_CSV.stringToInt(	str);
 	str = GetNextDataLine();	Read.USE_CONSTANT_SPEED			= m_CSV.stringToBool(	str);
