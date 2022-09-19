@@ -19,7 +19,13 @@ void CVehicleGenConstant::GenerateVehicle(CVehicle_sp pVeh)
 {
 	// determine type of vehicle
 	if (NextVehicleIsCar())
+	{
+		// General properties fpr Nominal Vehicle already assigned
+		pVeh->setLaneEccentricity(0.0);
+		pVeh->setTrns(0.0); // m 0 for generated vehicles
+		pVeh->setHead(1001);
 		GenerateCar(pVeh);
+	}
 	else
 	{
 		// Copy properties over
@@ -42,7 +48,7 @@ void CVehicleGenConstant::randomize(CVehicle_sp pVeh)
 	if(covAS>m_MinimumCOV) 
 	{		
 		vec vAS(nAxles, 0.0);
-		for (size_t i = 0; i < nAxles - 1; ++i)	// ignore last-axle spacing
+		for (size_t i = 0; i < nAxles; ++i)	// ignore last-axle spacing
 		{
 			val = pVeh->getAS(i);
 			val = m_RNG.GenerateNormal(val, val*covAS);

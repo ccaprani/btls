@@ -60,7 +60,7 @@ void CConfigData::ExtractData()
 	str = GetNextDataLine();	Output.WRITE_EACH_EVENT			= m_CSV.stringToBool(	str);	
 	str = GetNextDataLine();	Output.WRITE_EVENT_BUFFER_SIZE	= m_CSV.stringToInt(	str);
 	str = GetNextDataLine();	Output.WRITE_FATIGUE_EVENT		= m_CSV.stringToBool(	str);
-	str = GetNextDataLine();	Output.DO_FATIGUE_RAINFLOW			= m_CSV.stringToBool(	str);
+	str = GetNextDataLine();	Output.DO_FATIGUE_RAINFLOW		= m_CSV.stringToBool(	str);
 	
 	str = GetNextDataLine();	Output.VehicleFile.WRITE_VEHICLE_FILE		= m_CSV.stringToBool(	str);
 	str = GetNextDataLine();	Output.VehicleFile.FILE_FORMAT				= m_CSV.stringToInt(	str);

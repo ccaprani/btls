@@ -59,13 +59,12 @@ void CVehModelDataConstant::readConstant()
         }
         m_pNominalVehicle->setNoAxles(i);
         double length = 0.0;
-        double weight = 0.0;
         double gvw = 0.0;
         for(unsigned int j = 0; j< i; j++)
         {
             length += vAS[j];
             m_pNominalVehicle->setAS(j, vAS[j]);
-            weight += vAW[j];
+            gvw += vAW[j];
             m_pNominalVehicle->setAW(j, vAW[j]); 
             m_pNominalVehicle->setAT(j, 2.4);
         }

@@ -7,12 +7,12 @@
 // ---------------------------------------------
 //
 // Program Mode (1 - Gen & Sim, 2 - Gen, 3 - Read & Sim)
-1
+2
 //
 // TRAFFIC GENERATION PARAMETERS
 // ---------------------------------------------
 // No. of days of traffic simulation:
-1
+11
 // Location of Traffic folders
 ../Traffic
 // Default truck track width (cm)
@@ -20,29 +20,34 @@
 // Standard deviation of eccentricity in lane (cm) (about 20 cm usually)
 0
 // Vehicle Generation Model to be used
-// (0 - Grave, 1 - Test(Constant), 2 - Garage)
-2
+// (0 - Grave, 1 - Constant, 2 - Garage)
+1
 // Headway model to be used:
-// (0 - Auxerre NHM, 1 - Test(Constant), 5 - Congestion (w/ or w/out cars), 6 - free-flow, cars included)
-6
+// (0 - Auxerre NHM, 1 - Constant, 5 - Congestion (w/ or w/out cars), 6 - free-flow, cars included)
+5
 // Traffic Classification System to be used:
 // (0 - No. of Axles, 1 - Axle Pattern)
 1
 // Lane and flow definition file:
-../Sample_data/LaneFlowData_80.csv
+LaneFlowData_80.csv
 // Nominal congested spacing, front to back (m):
-5
+26.1
 // Congested speed (km/h):
-30
+49.7
 // Congested gaps coefficient of variation:
 0.05
 //
 // TRAFFIC GARAGE PARAMETERS
 // ---------------------------------------------
 // Garage file as basis for generation (in "Traffic input file format" below):
-../Sample_data/garage.txt
+garage.txt
 // Kernels (mean, std) file for randomizing the garage vehicles (lines in order GVW, AW, AS)
-../Sample_data/kernels.csv
+kernels.csv
+//
+// CONSTANT TRAFFIC PARAMETERS
+// ---------------------------------------------
+// Garage file as basis for generation (in "Traffic input file format" below):
+constant_vehicle.csv
 //
 // TRAFFIC INPUT FILE PARAMETERS
 // ---------------------------------------------
@@ -60,9 +65,9 @@ WGBSlowLanes_Jul.txt
 // LOAD EFFECT CALCULATION PARAMETERS
 // ---------------------------------------------
 // Bridge definition file:
-../Sample_data/1-ABT6111Bridges.txt
+1-ABT6111Bridges.txt
 // Influence Line definition file:
-../Sample_data/1-ABT6111ILS.txt
+1-ABT6111ILS.txt
 // Influence Surface definition file:
 IS.txt
 // Time step (s):
@@ -94,9 +99,9 @@ IS.txt
 // WARNING: a large file may result in long-run simulations
 0
 // Traffic output file format (CASTOR - 1, BeDIT - 2, DITIS - 3, MON - 4):
-4
+2
 // Vehicle file name
-NewVehicles.txt
+VehiclesForJustin.txt
 // Vehicle file buffer size
 100000
 // Write vehicle file flow statistics (1 or 0)
