@@ -374,12 +374,14 @@ PYBIND11_MODULE(_core, m) {
 				.def_readwrite("LANE_ECCENTRICITY_STD", &CConfigData::Gen_Config::LANE_ECCENTRICITY_STD)
 				.def_readwrite("NO_OVERLAP_LENGTH", &CConfigData::Gen_Config::NO_OVERLAP_LENGTH);
 		py::class_<CConfigData::Read_Config> read_config(cconfigdata, "Read_Config");
-			read_config.def(py::init<bool, string, string, string, unsigned int, bool, bool, double>())
+			read_config.def(py::init<bool, string, string, string, string, unsigned int, bool, bool, double>())
 				.def_readwrite("READ_FILE", &CConfigData::Read_Config::READ_FILE)
 				.def_readwrite("TRAFFIC_FILE", &CConfigData::Read_Config::TRAFFIC_FILE)
 				.def_readwrite("GARAGE_FILE", &CConfigData::Read_Config::GARAGE_FILE)
 				.def_readwrite("KERNEL_FILE", &CConfigData::Read_Config::KERNEL_FILE)
+				.def_readwrite("CONSTANT_FILE", &CConfigData::Read_Config::CONSTANT_FILE)
 				.def_readwrite("FILE_FORMAT", &CConfigData::Read_Config::FILE_FORMAT)
+				.def_readwrite("USE_CONSTANT_SPEED", &CConfigData::Read_Config::USE_CONSTANT_SPEED)
 				.def_readwrite("USE_AVE_SPEED", &CConfigData::Read_Config::USE_AVE_SPEED)
 				.def_readwrite("CONST_SPEED", &CConfigData::Read_Config::CONST_SPEED);
 		py::class_<CConfigData::Traffic_Config> traffic_config(cconfigdata, "Traffic_Config");
@@ -504,6 +506,7 @@ PYBIND11_MODULE(_core, m) {
 	py::class_<CVehicleGenGrave, CVehicleGenerator, CVehicleGenGrave_sp> cvehiclegengrave(m, "CVehicleGenGrave");
 	py::class_<CVehicleModelData, CModelData, CVehicleModelData_sp> cvehiclemodeldata(m, "CVehicleModelData");
 	py::class_<CVehicleTrafficFile> cvehicletrafficfile(m, "CVehicleTrafficFile");
+	py::class_<CVehModelDataConstant, CVehicleModelData, CVehModelDataConstant_sp> cvehmodeldataconstant(m, "CVehModelDataConstant");
 	py::class_<CVehModelDataGarage, CVehicleModelData, CVehModelDataGarage_sp> cvehmodeldatagarage(m, "CVehModelDataGarage");
 	py::class_<CVehModelDataGrave, CVehicleModelData, CVehModelDataGrave_sp> cvehmodeldatagrave(m, "CVehModelDataGrave");
 	// py::class_<Normal> normal(m, "Normal");

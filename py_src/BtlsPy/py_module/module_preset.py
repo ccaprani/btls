@@ -8,14 +8,20 @@ class Settings:
     @classmethod
     def gen_and_sim(cls, bridge_file:str, lane_file:str, traffic_folder:str, no_days:int, buffer_size:int=100000, infline_file:str="", infsurf_file:str="") -> dict:
         if len(infline_file) + len(infsurf_file) == 0:
-            raise ValueError("Must give influence line of surface!")
+            raise ValueError("Must give influence line or surface!")
         road_setting = CConfigData.Road_Config(lane_file,1,1,2,2)
         gen_setting = CConfigData.Gen_Config(traffic_folder,True,no_days,190.0,0.0,100.0)
         traffic_setting = CConfigData.Traffic_Config(2,6,1,5.0,30.0,5.0,0.05)
+        if traffic_setting.VEHICLE_MODEL == 2:
+            garage_file = input("Please specify the garage_file path: ")
+            file_format = int(input("Please specify the garage_file format: "))
+            kernal_file = input("Please specify the kernal_file path: ")
+            constant_file = input("Please specify the constant_file path: ")
+        read_setting = CConfigData.Read_Config(False," ",garage_file,kernal_file,constant_file,file_format,False,False,0.0)
         sim_setting = CConfigData.Sim_Config(True,bridge_file,infline_file,infsurf_file,0.1,0)
         output_request = input("Please request the output files (in a list): ['BlockMax','POT','Stats','Fatigue'].")
         output_setting = cls.write_output(output_request, buffer_size)
-        settings_return = {"road_setting":road_setting,"gen_setting":gen_setting,"traffic_setting":traffic_setting,"sim_setting":sim_setting,"output_setting":output_setting}
+        settings_return = {"road_setting":road_setting,"gen_setting":gen_setting,"traffic_setting":traffic_setting,"read_setting":read_setting,"sim_setting":sim_setting,"output_setting":output_setting}
         return settings_return
 
     @classmethod
@@ -23,26 +29,27 @@ class Settings:
         road_setting = CConfigData.Road_Config(lane_file,1,1,2,2)
         gen_setting = CConfigData.Gen_Config(traffic_folder,True,no_days,190.0,0.0,100.0)
         traffic_setting = CConfigData.Traffic_Config(2,6,1,5.0,30.0,5.0,0.05)
-        settings_return = {"road_setting":road_setting,"gen_setting":gen_setting,"traffic_setting":traffic_setting}
+        if traffic_setting.VEHICLE_MODEL == 2:
+            garage_file = input("Please specify the garage_file path: ")
+            file_format = int(input("Please specify the garage_file format: "))
+            kernal_file = input("Please specify the kernal_file path: ")
+            constant_file = input("Please specify the constant_file path: ")
+        read_setting = CConfigData.Read_Config(False," ",garage_file,kernal_file,constant_file,file_format,False,False,0.0)
+        settings_return = {"road_setting":road_setting,"gen_setting":gen_setting,"traffic_setting":traffic_setting,"read_setting":read_setting}
         return settings_return
 
     @classmethod
-    def read_and_sim(cls, bridge_file:str, traffic_file:str, file_format:int, use_constant_speed:bool=False, use_ave_speed:bool=False, garage_file:str="", kernal_file:str="", buffer_size:int=100000, infline_file:str="", infsurf_file:str="") -> dict:
-        if len(garage_file) + len(kernal_file) == 0:
-            raise ValueError("Must give garage_file or kernal_file!")
-        if use_constant_speed == use_ave_speed:
-            raise ValueError("Use either constant speed or average speed!")
-        if len(infline_file) + len(infsurf_file) == 0:
-            raise ValueError("Must give influence line of surface!")
+    def read_and_sim(cls, bridge_file:str, traffic_file:str, file_format:int, use_constant_speed:bool=False, use_ave_speed:bool=False, buffer_size:int=100000, infline_file:str="", infsurf_file:str="") -> dict:
         const_speed = 0.0
-        if use_constant_speed:
+        if use_constant_speed and not use_ave_speed:
             const_speed = float(input("Please input the constant speed (km/h): "))
-        read_setting = CConfigData.Read_Config(True,traffic_file,garage_file,kernal_file,file_format,use_constant_speed,use_ave_speed,const_speed)
-        traffic_setting = CConfigData.Traffic_Config(2,6,1,5.0,30.0,5.0,0.05)
+        if len(infline_file) + len(infsurf_file) == 0:
+            raise ValueError("Must give influence line or surface!")
+        read_setting = CConfigData.Read_Config(True,traffic_file," "," "," ",file_format,use_constant_speed,use_ave_speed,const_speed)
         sim_setting = CConfigData.Sim_Config(True,bridge_file,infline_file,infsurf_file,0.1,0)
         output_request = input("Please request the output files (in a list): ['BlockMax','POT','Stats','Fatigue'].")
         output_setting = cls.write_output(output_request, buffer_size)
-        settings_return = {"read_setting":read_setting,"traffic_setting":traffic_setting,"sim_setting":sim_setting,"output_setting":output_setting}
+        settings_return = {"read_setting":read_setting,"sim_setting":sim_setting,"output_setting":output_setting}
         return settings_return
 
     @classmethod
