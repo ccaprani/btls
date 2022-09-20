@@ -6,66 +6,55 @@ class Settings:
         pass
     
     @classmethod
-    def gen_and_sim(cls, bridge_file:str, lane_file:str, traffic_folder:str, no_days:int, buffer_size:int=100000, infline_file:str="", infsurf_file:str="") -> dict:
+    def gen_only(cls, lane_file:str, traffic_folder:str, no_days:int, file_format:int = 10, garage_file:str="", kernal_file:str="", constant_file:str="") -> dict:
+        road_config = CConfigData.Road_Config(lane_file,1,1,2,2)
+        gen_config = CConfigData.Gen_Config(traffic_folder,True,no_days,190.0,0.0,100.0)
+        traffic_config = CConfigData.Traffic_Config(1,6,1,5.0,30.0,5.0,0.05)
+        if traffic_config.VEHICLE_MODEL == 1 and len(constant_file) == 0:
+            raise ValueError("Must give constant_file!")
+        if traffic_config.VEHICLE_MODEL == 2 and (len(garage_file) == 0 or len(kernal_file) == 0) and file_format == 10:
+            raise ValueError("Must give garage_file, kernal_file, and file_format!")
+        read_config = CConfigData.Read_Config(False,"",garage_file,kernal_file,constant_file,file_format,False,False,0.0)
+        configs_return = {"road_config":road_config,"gen_config":gen_config,"traffic_config":traffic_config,"read_config":read_config}
+        return configs_return
+
+    @classmethod
+    def gen_and_sim(cls, bridge_file:str, lane_file:str, traffic_folder:str, no_days:int, file_format:int = 10, garage_file:str="", kernal_file:str="", constant_file:str="", buffer_size:int=100000, infline_file:str="", infsurf_file:str="", BlockMax:bool = False, POT:bool = False, Stats:bool = False, Fatigue:bool = False) -> dict:
+        configs_return = cls.gen_only(lane_file,traffic_folder,no_days,file_format,garage_file,kernal_file,constant_file)
         if len(infline_file) + len(infsurf_file) == 0:
             raise ValueError("Must give influence line or surface!")
-        road_setting = CConfigData.Road_Config(lane_file,1,1,2,2)
-        gen_setting = CConfigData.Gen_Config(traffic_folder,True,no_days,190.0,0.0,100.0)
-        traffic_setting = CConfigData.Traffic_Config(2,6,1,5.0,30.0,5.0,0.05)
-        if traffic_setting.VEHICLE_MODEL == 2:
-            garage_file = input("Please specify the garage_file path: ")
-            file_format = int(input("Please specify the garage_file format: "))
-            kernal_file = input("Please specify the kernal_file path: ")
-            constant_file = input("Please specify the constant_file path: ")
-        read_setting = CConfigData.Read_Config(False," ",garage_file,kernal_file,constant_file,file_format,False,False,0.0)
-        sim_setting = CConfigData.Sim_Config(True,bridge_file,infline_file,infsurf_file,0.1,0)
-        output_request = input("Please request the output files (in a list): ['BlockMax','POT','Stats','Fatigue'].")
-        output_setting = cls.write_output(output_request, buffer_size)
-        settings_return = {"road_setting":road_setting,"gen_setting":gen_setting,"traffic_setting":traffic_setting,"read_setting":read_setting,"sim_setting":sim_setting,"output_setting":output_setting}
-        return settings_return
+        sim_config = CConfigData.Sim_Config(True,bridge_file,infline_file,infsurf_file,0.1,0)
+        output_config = cls.write_output(BlockMax, POT, Stats, Fatigue, buffer_size)
+        configs_return.update({"sim_config":sim_config,"output_config":output_config})
+        return configs_return
 
     @classmethod
-    def gen_only(cls, lane_file:str, traffic_folder:str, no_days:int, buffer_size:int=100000) -> dict:
-        road_setting = CConfigData.Road_Config(lane_file,1,1,2,2)
-        gen_setting = CConfigData.Gen_Config(traffic_folder,True,no_days,190.0,0.0,100.0)
-        traffic_setting = CConfigData.Traffic_Config(2,6,1,5.0,30.0,5.0,0.05)
-        if traffic_setting.VEHICLE_MODEL == 2:
-            garage_file = input("Please specify the garage_file path: ")
-            file_format = int(input("Please specify the garage_file format: "))
-            kernal_file = input("Please specify the kernal_file path: ")
-            constant_file = input("Please specify the constant_file path: ")
-        read_setting = CConfigData.Read_Config(False," ",garage_file,kernal_file,constant_file,file_format,False,False,0.0)
-        settings_return = {"road_setting":road_setting,"gen_setting":gen_setting,"traffic_setting":traffic_setting,"read_setting":read_setting}
-        return settings_return
-
-    @classmethod
-    def read_and_sim(cls, bridge_file:str, traffic_file:str, file_format:int, use_constant_speed:bool=False, use_ave_speed:bool=False, buffer_size:int=100000, infline_file:str="", infsurf_file:str="") -> dict:
+    def read_and_sim(cls, bridge_file:str, traffic_file:str, file_format:int, use_constant_speed:bool=False, use_ave_speed:bool=False, buffer_size:int=100000, infline_file:str="", infsurf_file:str="", BlockMax:bool = False, POT:bool = False, Stats:bool = False, Fatigue:bool = False) -> dict:
         const_speed = 0.0
         if use_constant_speed and not use_ave_speed:
             const_speed = float(input("Please input the constant speed (km/h): "))
         if len(infline_file) + len(infsurf_file) == 0:
             raise ValueError("Must give influence line or surface!")
-        read_setting = CConfigData.Read_Config(True,traffic_file," "," "," ",file_format,use_constant_speed,use_ave_speed,const_speed)
-        sim_setting = CConfigData.Sim_Config(True,bridge_file,infline_file,infsurf_file,0.1,0)
-        output_request = input("Please request the output files (in a list): ['BlockMax','POT','Stats','Fatigue'].")
-        output_setting = cls.write_output(output_request, buffer_size)
-        settings_return = {"read_setting":read_setting,"sim_setting":sim_setting,"output_setting":output_setting}
-        return settings_return
+        read_config = CConfigData.Read_Config(True,traffic_file,"","","",file_format,use_constant_speed,use_ave_speed,const_speed)
+        sim_config = CConfigData.Sim_Config(True,bridge_file,infline_file,infsurf_file,0.1,0)
+        output_config = cls.write_output(BlockMax, POT, Stats, Fatigue, buffer_size)
+        configs_return = {"read_config":read_config,"sim_config":sim_config,"output_config":output_config}
+        return configs_return
 
     @classmethod
-    def write_output(cls, output_request:list, buffer_size:int=100000):
-        output_setting_VehicleFile = CConfigData.Output_Config.VehicleFile_Config(False,4,"vehicles.txt",buffer_size,True)
-        output_setting_BlockMax = CConfigData.Output_Config.BlockMax_Config(False,True,True,True,1,0,buffer_size)
-        output_setting_POT = CConfigData.Output_Config.POT_Config(False,True,True,True,1,0,buffer_size)
-        output_setting_Stats = CConfigData.Output_Config.Stats_Config(False,True,True,3600,buffer_size)
-        if 'BlockMax' in output_request:
-            output_setting_BlockMax.WRITE_BM = True
-        if 'POT' in output_request:
-            output_setting_POT.WRITE_POT = True
-        if 'Stats' in output_request:
-            output_setting_Stats.WRITE_STATS = True
-        output_setting = CConfigData.Output_Config(False,False,buffer_size,False,False,output_setting_VehicleFile,output_setting_BlockMax,output_setting_POT,output_setting_Stats)
-        if 'Fatigue' in output_request:
-            output_setting.WRITE_TIME_HISTORY = True
-            output_setting.DO_FATIGUE_RAINFLOW = True
-        return output_setting
+    def write_output(cls, BlockMax:bool = False, POT:bool = False, Stats:bool = False, Fatigue:bool = False, buffer_size:int=100000):
+        output_config_VehicleFile = CConfigData.Output_Config.VehicleFile_Config(False,4,"vehicles.txt",buffer_size,True)
+        output_config_BlockMax = CConfigData.Output_Config.BlockMax_Config(False,True,True,True,1,0,buffer_size)
+        output_config_POT = CConfigData.Output_Config.POT_Config(False,True,True,True,1,0,buffer_size)
+        output_config_Stats = CConfigData.Output_Config.Stats_Config(False,True,True,3600,buffer_size)
+        if BlockMax:
+            output_config_BlockMax.WRITE_BM = True
+        if POT:
+            output_config_POT.WRITE_POT = True
+        if Stats:
+            output_config_Stats.WRITE_STATS = True
+        output_config = CConfigData.Output_Config(False,False,buffer_size,False,False,output_config_VehicleFile,output_config_BlockMax,output_config_POT,output_config_Stats)
+        if Fatigue:
+            output_config.WRITE_TIME_HISTORY = True
+            output_config.DO_FATIGUE_RAINFLOW = True
+        return output_config

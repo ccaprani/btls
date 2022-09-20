@@ -11,14 +11,14 @@ def test(test_no:int):
 
     if test_no == 2:
         ## Test run separately
-        settings = BtlsPy.Settings.gen_and_sim("./1-ABT6111Bridges.txt","./LaneFlowData_80.csv","../Traffic/Auxerre/",no_days=20,infline_file="./1-ABT6111ILS.txt")
-        btls.set_road_config(settings["road_setting"])
-        btls.set_gen_config(settings["gen_setting"])
-        # settings["set_gen_config"].xxx = xxx
-        btls.set_traffic_config(settings["traffic_setting"])
-        btls.set_read_config(settings["read_setting"])
-        btls.set_sim_config(settings["sim_setting"])
-        btls.set_output_config(settings["output_setting"])
+        configs = BtlsPy.configs.gen_and_sim("./1-ABT6111Bridges.txt","./LaneFlowData_80.csv","../Traffic/Auxerre/",no_days=20,infline_file="./1-ABT6111ILS.txt", constant_file="./constant_vehicle.csv")
+        btls.set_road_config(configs["road_config"])
+        btls.set_gen_config(configs["gen_config"])
+        # configs["set_gen_config"].xxx = xxx
+        btls.set_traffic_config(configs["traffic_config"])
+        btls.set_read_config(configs["read_config"])
+        btls.set_sim_config(configs["sim_config"])
+        btls.set_output_config(configs["output_config"])
         btls.set_program_mode(1)
 
         # pVC = btls.get_vehicle_classification()
