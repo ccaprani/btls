@@ -12,8 +12,11 @@ configure_file (
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-if(APPLE OR UNIX)
+if(APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64 -arch x86_64")
+endif()
+if(UNIX)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif()
 
 aux_source_directory(${PROJECT_SOURCE_DIR}/c_src/src SRC_LIST)

@@ -114,12 +114,7 @@ int main()
 	cout << "                Version 1.3.5			      " << endl;
 	cout << "---------------------------------------------" << endl << endl;
 
-	string input_data;
-	cout << "Please give the input data: ";
-	cin >> input_data; 
-	cout << endl; 
-
-	if (!CConfigData::get().ReadData(input_data) )
+	if (!CConfigData::get().ReadData("BTLSin.txt") )
 	{
 		cout << "BTLSin file could not be opened" << endl;
 		cout << "Using default values" << endl;

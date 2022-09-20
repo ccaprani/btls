@@ -43,6 +43,7 @@ void CConfigData::ExtractData()
 
 	str = GetNextDataLine();	Read.GARAGE_FILE				= str;
 	str = GetNextDataLine();	Read.KERNEL_FILE				= str;
+	str = GetNextDataLine();	Read.CONSTANT_FILE				= str;
 	str = GetNextDataLine();	Read.TRAFFIC_FILE				= str;	
 	str = GetNextDataLine();	Read.FILE_FORMAT				= m_CSV.stringToInt(	str);
 	str = GetNextDataLine();	Read.USE_CONSTANT_SPEED			= m_CSV.stringToBool(	str);
@@ -59,7 +60,7 @@ void CConfigData::ExtractData()
 	str = GetNextDataLine();	Output.WRITE_EACH_EVENT			= m_CSV.stringToBool(	str);	
 	str = GetNextDataLine();	Output.WRITE_EVENT_BUFFER_SIZE	= m_CSV.stringToInt(	str);
 	str = GetNextDataLine();	Output.WRITE_FATIGUE_EVENT		= m_CSV.stringToBool(	str);
-	str = GetNextDataLine();	Output.DO_FATIGUE_RAINFLOW			= m_CSV.stringToBool(	str);
+	str = GetNextDataLine();	Output.DO_FATIGUE_RAINFLOW		= m_CSV.stringToBool(	str);
 	
 	str = GetNextDataLine();	Output.VehicleFile.WRITE_VEHICLE_FILE		= m_CSV.stringToBool(	str);
 	str = GetNextDataLine();	Output.VehicleFile.FILE_FORMAT				= m_CSV.stringToInt(	str);

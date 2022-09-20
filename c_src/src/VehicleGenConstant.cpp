@@ -1,9 +1,13 @@
 #include "VehicleGenConstant.h"
 
 
-CVehicleGenConstant::CVehicleGenConstant()	: CVehicleGenerator(eVM_Constant, nullptr)
+CVehicleGenConstant::CVehicleGenConstant(CVehModelDataConstant_sp pVMD)	
+	: CVehicleGenerator(eVM_Constant, pVMD), m_NominalVehicle(nullptr), m_MinimumCOV(1e-3)
 {
-	m_pVehClassification = nullptr;
+	m_pVMD = std::dynamic_pointer_cast<CVehModelDataConstant>(m_pVehModelData);
+
+	m_pVehClassification = m_pVMD->getVehClassification();
+	m_NominalVehicle = m_pVMD->getNominalVehicle();
 }
 
 
@@ -13,31 +17,59 @@ CVehicleGenConstant::~CVehicleGenConstant()
 
 void CVehicleGenConstant::GenerateVehicle(CVehicle_sp pVeh)
 {
-	// assign general properties
-	pVeh->setLaneEccentricity(0.0);
-	pVeh->setTrns(0.0); // m 0 for generated vehicles
-	pVeh->setHead(1001);
-
 	// determine type of vehicle
 	if (NextVehicleIsCar())
+	{
+		// General properties fpr Nominal Vehicle already assigned
+		pVeh->setLaneEccentricity(0.0);
+		pVeh->setTrns(0.0); // m 0 for generated vehicles
+		pVeh->setHead(1001);
 		GenerateCar(pVeh);
+	}
 	else
 	{
-		pVeh->setGVW(460);
-		pVeh->setNoAxles(6);
-		int i = 0;	pVeh->setAS(i, 3.5); pVeh->setAW(i, 70); pVeh->setAT(i, 2.4);
-		i++;		pVeh->setAS(i, 2.0); pVeh->setAW(i, 60); pVeh->setAT(i, 2.4);
-		i++;		pVeh->setAS(i, 6.0); pVeh->setAW(i, 60); pVeh->setAT(i, 2.4);
-		i++;		pVeh->setAS(i, 1.2); pVeh->setAW(i, 90); pVeh->setAT(i, 2.4);
-		i++;		pVeh->setAS(i, 1.2); pVeh->setAW(i, 90); pVeh->setAT(i, 2.4);
-		i++;		pVeh->setAS(i, 0.0); pVeh->setAW(i, 90); pVeh->setAT(i, 2.4);
-		pVeh->setLength(13.9);
+		// Copy properties over
+		*pVeh = *m_NominalVehicle; 
+
+		// Now randomize the vehicle
+		randomize(pVeh);
 	}
 	pVeh->setClass(Classification(1, "Constant"));
 }
 
-size_t CVehicleGenConstant::GenVehClass()
+void CVehicleGenConstant::randomize(CVehicle_sp pVeh)
 {
-	// all of the same class
-	return 1;
+	double val = 0.0;
+	double covAS, covAW;
+	m_pVMD->getCoVs(covAS, covAW);	
+	size_t nAxles = pVeh->getNoAxles();
+
+	// Axle Spacings
+	if(covAS>m_MinimumCOV) 
+	{		
+		vec vAS(nAxles, 0.0);
+		for (size_t i = 0; i < nAxles; ++i)	// ignore last-axle spacing
+		{
+			val = pVeh->getAS(i);
+			val = m_RNG.GenerateNormal(val, val*covAS);
+			vAS.at(i) = val;
+			pVeh->setAS(i, val);
+		}
+		pVeh->setLength(SumVector(vAS));
+	}
+	
+	// Axle Weights
+	if(covAW>m_MinimumCOV) 
+	{	
+		// Generate and temporarily store new AWs
+		vec vAW(nAxles, 0.0);
+		for (size_t i = 0; i < nAxles; ++i)
+		{
+			val = pVeh->getAW(i);
+			val = m_RNG.GenerateNormal(val, val*covAW);
+			vAW.at(i) = val;
+			pVeh->setAW(i, val);
+		}
+		pVeh->setGVW(SumVector(vAW));
+	}
 }
