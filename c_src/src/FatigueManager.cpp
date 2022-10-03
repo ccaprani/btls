@@ -31,9 +31,9 @@ void CFatigueManager::doRainflow(std::vector< std::vector<double> >& signal_data
 
 // count the rainflow output from doRainflow() (from all bridges, all load effects)
 void CFatigueManager::countRainflow(std::vector< std::pair<double, double> >& rainflow_out, size_t i) {
-	for (size_t j = 0; j < rainflow_out.size(); j++) {
-			m_RainflowOutCount[i][rainflow_out[j].first] += rainflow_out[j].second;
-	}
+    for (size_t j = 0; j < rainflow_out.size(); j++) {
+        m_RainflowOutCount[i][rainflow_out[j].first] += rainflow_out[j].second;
+    }
 }
 
 void CFatigueManager::CheckBuffer(bool bForceOutput)
