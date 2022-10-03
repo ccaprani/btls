@@ -21,6 +21,7 @@
 #include "BlockMaxManager.h"
 #include "POTManager.h"
 #include "StatsManager.h"
+#include "FatigueManager.h"
 
 class CEventManager  
 {
@@ -43,8 +44,10 @@ private:
 	CBlockMaxManager	m_BlockMaxManager;
 	CPOTManager			m_POTManager;
 	CStatsManager		m_StatsManager;
+	CFatigueManager		m_FatigueManager;
 	
 	std::vector<CVehicle> m_vVehicles;
+	std::vector< std::vector<double> > m_vCurEvents;
 	
 	std::ofstream		m_TimeHistoryFile;
 	CEvent				m_CurEvent;
@@ -70,6 +73,7 @@ private:
 	bool	WRITE_BM;
 	bool	WRITE_POT;
 	bool	WRITE_STATS;
+	bool	DO_FATIGUE_RAINFLOW;
 
 	template <typename T> std::string to_string(T const& value);
 	template <typename T> std::string to_string(T const& value, int nDigits);

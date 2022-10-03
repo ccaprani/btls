@@ -1,9 +1,9 @@
-# include "CRainflow.h"
+# include "Rainflow.h"
 
 
-Rainflow::Rainflow () {};
+CRainflow::CRainflow () {};
 
-double Rainflow::get_round_function (double x, int ndigits) {
+double CRainflow::getRoundFunction (double x, int ndigits) {
     if (ndigits < 0) {
         return x;
     }
@@ -12,7 +12,7 @@ double Rainflow::get_round_function (double x, int ndigits) {
     }
 };
 
-vector< pair<size_t, double> > Rainflow::reversals (vector<double>& series) {
+std::vector< std::pair<size_t, double> > CRainflow::reversals (std::vector<double>& series) {
     /*Iterate reversal points in the series.
 
     A reversal point is a point in the series at which the first derivative
@@ -28,12 +28,12 @@ vector< pair<size_t, double> > Rainflow::reversals (vector<double>& series) {
     ------
     Reversal points as tuples (index, value).
     */
-    vector< pair<size_t, double> > reversals_out;
+    std::vector< std::pair<size_t, double> > reversals_out;
     // cout << series.size() << endl;
     double x_last = series[0];
     double x = series[1];
     double d_last = (x-x_last);
-    reversals_out.push_back(make_pair(0,x_last));
+    reversals_out.push_back(std::make_pair(0,x_last));
     size_t index = 0;
     double x_next;
     for (size_t i = 2; i < series.size(); i++) {
@@ -44,19 +44,19 @@ vector< pair<size_t, double> > Rainflow::reversals (vector<double>& series) {
         }
         double d_next = x_next - x;
         if (d_last * d_next < 0) {
-            reversals_out.push_back(make_pair(index,x));
+            reversals_out.push_back(std::make_pair(index,x));
         }
         x_last = x;
         x = x_next;
         d_last = d_next;
     }
     if (index != 0) {
-        reversals_out.push_back(make_pair(index+1,x_next));
+        reversals_out.push_back(std::make_pair(index+1,x_next));
     }
     return reversals_out;
 };
 
-Rainflow::ExtractCycleOut Rainflow::format_output (pair<size_t, double> point1, pair<size_t, double> point2, double count) {
+CRainflow::ExtractCycleOut CRainflow::formatOutput (std::pair<size_t, double> point1, std::pair<size_t, double> point2, double count) {
     ExtractCycleOut format_output_return;
     double x1 = point1.second;
     double x2 = point2.second;
@@ -68,7 +68,7 @@ Rainflow::ExtractCycleOut Rainflow::format_output (pair<size_t, double> point1, 
     return format_output_return;
 };
 
-vector<Rainflow::ExtractCycleOut> Rainflow::extract_cycles (vector<double>& series) {
+std::vector<CRainflow::ExtractCycleOut> CRainflow::extractCycles (std::vector<double>& series) {
     /*Iterate cycles in the series.
 
     Parameters
@@ -81,9 +81,9 @@ vector<Rainflow::ExtractCycleOut> Rainflow::extract_cycles (vector<double>& seri
         Each tuple contains (range, mean, count, start index, end index).
         Count equals to 1.0 for full cycles and 0.5 for half cycles.
     */
-    vector< pair<size_t, double> > reversals_out = reversals(series);
-    deque< pair<size_t, double> > points;
-    vector<ExtractCycleOut> format_output_out;
+    std::vector< std::pair<size_t, double> > reversals_out = reversals(series);
+    std::deque< std::pair<size_t, double> > points;
+    std::vector<ExtractCycleOut> format_output_out;
     double x1;
     double x2;
     double x3;
@@ -107,13 +107,13 @@ vector<Rainflow::ExtractCycleOut> Rainflow::extract_cycles (vector<double>& seri
             else if (points.size() == 3) {
                 // Y contains the starting point
                 // Count Y as one-half cycle and discard the first point
-                format_output_out.push_back(format_output(points[0],points[1],0.5));
+                format_output_out.push_back(formatOutput(points[0],points[1],0.5));
                 points.pop_front();
             }
             else {
                 // Count Y as one cycle and discard the peak and the valley of Y
-                format_output_out.push_back(format_output(points.at(points.size()-3),points.at(points.size()-2),1.0));
-                pair<size_t ,double> last = points.back();
+                format_output_out.push_back(formatOutput(points.at(points.size()-3),points.at(points.size()-2),1.0));
+                std::pair<size_t ,double> last = points.back();
                 points.pop_back();
                 points.pop_back();
                 points.pop_back();
@@ -122,13 +122,13 @@ vector<Rainflow::ExtractCycleOut> Rainflow::extract_cycles (vector<double>& seri
         }
     }
     while (points.size() > 1) {
-        format_output_out.push_back(format_output(points[0],points[1],0.5));
+        format_output_out.push_back(formatOutput(points[0],points[1],0.5));
         points.pop_front();
     }
     return format_output_out;
 };
 
-vector< pair<double, double> > Rainflow::count_cycles (vector<double>& series, int ndigits, int nbins, double binsize) {
+std::vector< std::pair<double, double> > CRainflow::countCycles (std::vector<double>& series, int ndigits, int nbins, double binsize) {
     /*Count cycles in the series.
 
     Parameters
@@ -151,12 +151,12 @@ vector< pair<double, double> > Rainflow::count_cycles (vector<double>& series, i
     algorithm may produce half-cycles. If binning is used then ranges
     correspond to the right (high) edge of a bin.
     */
-    map<double, double> counts;
+    std::map<double, double> counts;
     if (nbins > 0 && binsize > 0.0) {
-        cout << "Arguments nbins and binsize are mutually exclusive!" << endl;
-        return map_to_vector(counts);
+        std::cout << "Arguments nbins and binsize are mutually exclusive!" << std::endl;
+        return mapToVector(counts);
     }
-    vector<ExtractCycleOut> cycles = extract_cycles(series);
+    std::vector<ExtractCycleOut> cycles = extractCycles(series);
     // cout << cycles.size() << endl;
     if (nbins > 0) {
         double maxValue = *max_element(series.begin(),series.end()); 
@@ -172,7 +172,7 @@ vector< pair<double, double> > Rainflow::count_cycles (vector<double>& series, i
                 n -= 1;
             }
             counts[(double)n*binsize] += cycles[i].count;
-            nmax = max(n,nmax);
+            nmax = (std::max)(n,nmax);
         }
         for (int i = 1; i < nmax; i++) {
             counts[(double)i*binsize] += 0.0;
@@ -180,7 +180,7 @@ vector< pair<double, double> > Rainflow::count_cycles (vector<double>& series, i
     }
     else if (ndigits >= 0) {
         for (size_t i = 0; i < cycles.size(); i++) {
-            counts[get_round_function(cycles[i].rng,ndigits)] += cycles[i].count;
+            counts[getRoundFunction(cycles[i].rng,ndigits)] += cycles[i].count;
         }
     }
     else {
@@ -188,9 +188,10 @@ vector< pair<double, double> > Rainflow::count_cycles (vector<double>& series, i
             counts[cycles[i].rng] += cycles[i].count;
         }
     }
-    return map_to_vector(counts);
+    return mapToVector(counts);
 };
 
-vector< pair<double, double> > Rainflow::map_to_vector (const map<double, double>& map) {
-        return vector< pair<double, double> >(map.begin(), map.end());
+template <typename T>
+std::vector< std::pair<T, T> > CRainflow::mapToVector (const std::map<T, T>& map) {
+        return std::vector< std::pair<T, T> >(map.begin(), map.end());
 }

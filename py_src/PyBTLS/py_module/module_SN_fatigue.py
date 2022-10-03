@@ -1,6 +1,6 @@
 import math
 import rainflow
-from BtlsPy.c_module import BTLS
+from PyBTLS.c_module import BTLS
 
 
 class FatigueCalculation():
@@ -8,27 +8,27 @@ class FatigueCalculation():
         print("\t"+"Sim and analyse, or Read and analyse.")
     
     # Analyse all the sim outcomes
-    def sim_and_analyse(self, SN_file_name:str, SN_file_log:bool, section_class:list) -> list:
-        btls = BTLS()
-        btls.run()
-        rainflow_result = btls.get_rainflow_result()
-        # For SN file
-        SN_curves, SN_number = self.read_SN_file(SN_file_name,SN_file_log)
-        # Calculate the fatigue index
-        fatigue_index = []
-        for i in range(0,len(rainflow_result)):
-            fatigue_index.append([])
-            for j in range(0,len(rainflow_result[i])):
-                fatigue_index[i].append([])
-                load_effect = rainflow_result[i][j]
-                fatigue_load_rainflow = []
-                load_value = [float(k) for k in list(load_effect)]
-                load_cycle_num = list(load_effect.values())
-                for k in range(1,len(load_effect)):  # The first value could be zero, causing log10() error. 
-                    fatigue_load_rainflow.append([self.__to_common_logarithm(load_value[k]),load_cycle_num[k]])
-                SN_curves_in_use = self.__select_SN_curve(SN_curves[i][j],section_class[i][j],SN_number[i][j])
-                fatigue_index[i][j].append(self.__miners_rule(fatigue_load_rainflow,SN_curves_in_use,section_class[i][j]))
-        return fatigue_index
+    # def sim_and_analyse(self, SN_file_name:str, SN_file_log:bool, section_class:list) -> list:
+    #     btls = BTLS()
+    #     btls.run()
+    #     rainflow_result = btls.get_rainflow_result()
+    #     # For SN file
+    #     SN_curves, SN_number = self.read_SN_file(SN_file_name,SN_file_log)
+    #     # Calculate the fatigue index
+    #     fatigue_index = []
+    #     for i in range(0,len(rainflow_result)):
+    #         fatigue_index.append([])
+    #         for j in range(0,len(rainflow_result[i])):
+    #             fatigue_index[i].append([])
+    #             load_effect = rainflow_result[i][j]
+    #             fatigue_load_rainflow = []
+    #             load_value = [float(k) for k in list(load_effect)]
+    #             load_cycle_num = list(load_effect.values())
+    #             for k in range(1,len(load_effect)):  # The first value could be zero, causing log10() error. 
+    #                 fatigue_load_rainflow.append([self.__to_common_logarithm(load_value[k]),load_cycle_num[k]])
+    #             SN_curves_in_use = self.__select_SN_curve(SN_curves[i][j],section_class[i][j],SN_number[i][j])
+    #             fatigue_index[i][j].append(self.__miners_rule(fatigue_load_rainflow,SN_curves_in_use,section_class[i][j]))
+    #     return fatigue_index
 
     # For one bridge per analysis
     def read_and_analyse(self, fatigue_file_name:str, SN_file_name:str, SN_file_log:bool, section_class:list, select_load_effect:list=[]) -> list:

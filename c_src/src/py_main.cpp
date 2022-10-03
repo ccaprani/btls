@@ -1,9 +1,7 @@
 // py_main.cpp
-// the main file for the BtlsPy Build
+// the main file for the PyBTLS Build
 
-#include <map>
 #include "PrepareSim.h"
-#include "CRainflow.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
@@ -12,124 +10,6 @@
 using namespace std;
 namespace py = pybind11;
 
-
-void doRainflow(vector< vector< vector<double> > >& signal_data, vector< vector< map<double, double> > >& rainflow_out_count);
-void countRainflow(vector< pair<double, double> >& rainflow_out, size_t i, size_t j, size_t no_load_effect, vector< vector< map<double, double> > >& rainflow_out_count);
-void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double SimStartTime, double SimEndTime, vector< vector< map<double, double> > >& rainflow_out_count);
-
-
-// run rainflow for each load event (from all bridges, all load effects)
-void doRainflow(vector< vector< vector<double> > >& signal_data, vector< vector< map<double, double> > >& rainflow_out_count) {
-	size_t no_bridge = signal_data.size();
-	size_t no_load_effect;
-	if (rainflow_out_count.size() < no_bridge) {
-		rainflow_out_count = vector<vector<map<double, double>>>(no_bridge);
-	}
-	Rainflow rainflow_alg = Rainflow();
-	vector< pair<double, double> > rainflow_out;
-	for (size_t i = 0; i < no_bridge; i++) {
-		no_load_effect = signal_data[i].size();
-		for (size_t j = 0; j < no_load_effect; j++) {
-			rainflow_out = rainflow_alg.count_cycles(signal_data[i][j], 1);
-			countRainflow(rainflow_out,i,j,no_load_effect,rainflow_out_count);
-		}
-	}
-	return;
-}
-
-// count the rainflow output from doRainflow() (from all bridges, all load effects)
-void countRainflow(vector< pair<double, double> >& rainflow_out, size_t i, size_t j, size_t no_load_effect, vector< vector< map<double, double> > >& rainflow_out_count) {
-	if (rainflow_out_count[i].size() < no_load_effect) {
-		rainflow_out_count[i] = vector<map<double, double>>(no_load_effect);
-	}
-	for (size_t k = 0; k < rainflow_out.size(); k++) {
-			rainflow_out_count[i][j][rainflow_out[k].first] += rainflow_out[k].second;
-	}
-	return;
-}
-
-void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double SimStartTime, double SimEndTime, vector< vector< map<double, double> > >& rainflow_out_count)
-{
-	CVehicleBuffer VehBuff(pVC, SimStartTime);
-	size_t nLanes = vLanes.size();
-	double curTime = SimStartTime;
-	double nextTime = 0.0;
-	int curDay = (int)(SimStartTime/86400);
-	
-	cout << "Starting simulation..." << endl;
-	cout << "Day complete..." << endl;
-
-//#pragma omp parallel
-//	{
-	while (curTime <= SimEndTime)
-	{
-		//if(curTime >= 74821.73)
-		//	cout << "here" << endl;
-
-		// find the next arrival lane and the time
-		sort(vLanes.begin(), vLanes.end(), [](const CLane_sp& pL1, const CLane_sp& pL2){
-			return pL1->GetNextArrivalTime() < pL2->GetNextArrivalTime();
-			});
-		double NextArrivalTime = vLanes[0]->GetNextArrivalTime();
-
-		// generate the next vehicle from the lane with the next arrival time	
-		// see https://stackoverflow.com/questions/18565167/non-const-lvalue-references	
-		const CVehicle_sp& pVeh = vLanes[0]->GetNextVehicle();
-		VehBuff.AddVehicle(pVeh);
-		if (CConfigData::get().Sim.CALC_LOAD_EFFECTS)
-		{
-//#pragma omp for
-			vector<vector<vector<double>>> vRecordEffectValues;
-			for (size_t i = 0; i < vBridges.size(); i++)
-			{
-				// update each bridge until the next vehicle comes on
-				vBridges[i]->Update(NextArrivalTime, curTime);
-				// record the event for fatigue rainflow
-				if (CConfigData::get().Output.DO_FATIGUE_RAINFLOW) {
-					vRecordEffectValues.push_back(vBridges[i]->getEffectValues());
-				}
-				//vBridges[i]->UpdateMT(NextArrivalTime, curTime);
-				// Add the next vehicle to the bridge, if it is not a car
-				if (pVeh != nullptr && pVeh->getGVW() > CConfigData::get().Sim.MIN_GVW)
-					vBridges[i]->AddVehicle(pVeh);
-			}
-			//for(unsigned int i = 0; i < vBridges.size(); i++)
-			//	vBridges[i]->join();
-			// run the rainflow algorithm
-			if (CConfigData::get().Output.DO_FATIGUE_RAINFLOW) {
-				doRainflow(vRecordEffectValues,rainflow_out_count);
-			}
-		}
-
-		// update the current time to that of the vehicle just added
-		// and delete it
-		if (pVeh != nullptr)
-		{
-			curTime = pVeh->getTime();
-			CVehicle_sp *pVeh = nullptr;
-		}
-		else	// finish
-			curTime = SimEndTime + 1.0;
-
-		// Keep informing the user
-		if (curTime > (double)(86400)*(curDay + 1))
-		{
-			curDay += 1;
-			cout << curDay;
-			curDay % 10 == 0 ? cout << endl : cout << '\t';
-		}
-	}
-//	}
-	cout << endl;
-	
-	if(CConfigData::get().Sim.CALC_LOAD_EFFECTS)
-	{
-		for(unsigned int i = 0; i < vBridges.size(); i++)
-			vBridges[i]->Finish();
-	}
-
-	VehBuff.FlushBuffer();
-}
 
 class BTLS {
 public:
@@ -246,7 +126,7 @@ public:
 		vector<CLane_sp> vLanes = this->get_lanes(pVC);
 		
 		// Now we know the time, we can tell bridge data managers when to start.
-		this->do_simulation(pVC, vBridges, vLanes, this->StartTime, this->EndTime, this->rainflow_out_count);
+		this->do_simulation(pVC, vBridges, vLanes, this->StartTime, this->EndTime);
 
 		// Reset the Times.
 		this->StartTime = 0.0;
@@ -268,7 +148,7 @@ public:
 		vector<CLane_sp> vLanes = this->get_lanes(pVC);
 		
 		// Now we know the time, we can tell bridge data managers when to start.
-		this->do_simulation(pVC, vBridges, vLanes, this->StartTime, this->EndTime, this->rainflow_out_count);
+		this->do_simulation(pVC, vBridges, vLanes, this->StartTime, this->EndTime);
 
 		// Reset the Times.
 		this->StartTime = 0.0;
@@ -307,32 +187,25 @@ public:
 		return vLanes;
 	};
 
-	int do_simulation (CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double StartTime, double EndTime, vector<vector<map<double, double>>>& rainflow_out_count) {
+	int do_simulation (CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double StartTime, double EndTime) {
 		for (auto& it : vBridges) {
 			it->InitializeDataMgr(StartTime);
 			}
 		clock_t start = clock();
-		doSimulation(pVC, vBridges, vLanes, StartTime, EndTime, rainflow_out_count);
+		doSimulation(pVC, vBridges, vLanes, StartTime, EndTime);
 		cout << endl << "Simulation complete" << endl;
 		clock_t end = clock();
 		cout << endl << "Duration of analysis: " << std::fixed << std::setprecision(3) << ((double)(end) - (double)(start))/((double)CLOCKS_PER_SEC) << " s" << endl;
 		return 1;
 	};
 
-	vector<vector<map<double, double>>> get_rainflow_out_count() {
-		return rainflow_out_count;
-	};
-
 	double StartTime;
 	double EndTime;
-
-private:
-	vector<vector<map<double, double>>> rainflow_out_count;
 };
 
 PYBIND11_MODULE(_core, m) {
-	m.doc() = "BtlsPy is for short-to-mid span bridge traffic loading simulation.";
-	m.def("test_c_rainflow", [](vector<double>& series, int ndigits = -1, int nbins = -1, double binsize = -1.0){Rainflow rainflow_alg = Rainflow(); return rainflow_alg.count_cycles(series,ndigits,nbins,binsize);}, py::arg("series"), py::arg("ndigits")=-1, py::arg("nbins")=-1, py::arg("binsize")=-1.0);
+	m.doc() = "PyBTLS is for short-to-mid span bridge traffic loading simulation.";
+	// m.def("test_c_rainflow", [](vector<double>& series, int ndigits = -1, int nbins = -1, double binsize = -1.0){CRainflow rainflow_alg = CRainflow(); return rainflow_alg.countCycles(series,ndigits,nbins,binsize);}, py::arg("series"), py::arg("ndigits")=-1, py::arg("nbins")=-1, py::arg("binsize")=-1.0);
 	py::class_<BTLS> btls(m, "BTLS");
 		btls.def(py::init<>())
 			.def("set_road_config", &BTLS::set_road_config)
@@ -354,10 +227,9 @@ PYBIND11_MODULE(_core, m) {
 			.def("get_bridges", &BTLS::get_bridges, py::return_value_policy::reference)
 			.def("get_lanes", &BTLS::get_lanes, py::return_value_policy::reference)
 			.def("do_simulation", &BTLS::do_simulation)
-			.def("get_rainflow_result", &BTLS::get_rainflow_out_count)
 			.def_readwrite("StartTime", &BTLS::StartTime)
 			.def_readwrite("EndTime", &BTLS::EndTime);
-	py::class_<CConfigData> cconfigdata(m, "CConfigData");
+	py::class_<CConfigData> cconfigdata(m, "ConfigData");
 		py::class_<CConfigData::Road_Config> road_config(cconfigdata, "Road_Config");
 			road_config.def(py::init<string, size_t, size_t, size_t, size_t>())
 				.def_readwrite("LANES_FILE", &CConfigData::Road_Config::LANES_FILE)
@@ -452,63 +324,64 @@ PYBIND11_MODULE(_core, m) {
 				.def_readwrite("SECS_PER_HOUR", &CConfigData::Time_Config::SECS_PER_HOUR)
 				.def_readwrite("MINS_PER_HOUR", &CConfigData::Time_Config::MINS_PER_HOUR)
 				.def_readwrite("SECS_PER_MIN", &CConfigData::Time_Config::SECS_PER_MIN);
-	py::class_<CVehicle, CVehicle_sp> cvehicle(m, "CVehicle");
+	py::class_<CVehicle, CVehicle_sp> cvehicle(m, "Vehicle");
 	py::class_<Classification> classification(m, "Classification");
-	py::class_<CVehicleClassification, CVehicleClassification_sp> cvehicleclassification(m, "CVehicleClassification");
-	py::class_<CVehClassAxle, CVehicleClassification, CVehClassAxle_sp> cvehclassaxle(m, "CVehClassAxle");
-	py::class_<CVehClassPattern, CVehicleClassification, CVehClassPattern_sp> cvehclasspattern(m, "CVehClassPattern");
-	py::class_<CBridge, CBridge_sp> cbridge(m, "CBridge");
-	py::class_<CBridgeLane> cbridgelane(m, "CBridgeLane");
-	py::class_<CInfluenceLine> cinfluenceline(m, "CInfluenceLine");
-	py::class_<CInfluenceSurface> cinfluencesurface(m, "CInfluenceSurface");
-	py::class_<CAxle> caxle(m, "CAxle");
-	py::class_<CLane, CLane_sp> clane(m, "CLane");
-	py::class_<CLaneFileTraffic, CLane, CLaneFileTraffic_sp> clanefiletraffic(m, "CLaneFileTraffic");
-	py::class_<CLaneGenTraffic, CLane, CLaneGenTraffic_sp> clanegentraffic(m, "CLaneGenTraffic");
-	py::class_<CVehicleBuffer> cvehiclebuffer(m, "CVehicleBuffer");
-	py::class_<CReadILFile> creadilfile(m, "CReadILFile");
-	py::class_<CCSVParse> ccsvparse(m, "CCSVParse");
-	py::class_<CBridgeFile> cbridgefile(m, "CBridgeFile");
-	py::class_<CLaneFlowComposition> claneflowcomposition(m, "CLaneFlowComposition");
-	py::class_<CBlockMaxEvent> cblockmaxevent(m, "CBlockMaxEvent");
-	py::class_<COutputManagerBase> coutputmanagerbase(m, "COutputManagerBase");
-	py::class_<CBlockMaxManager, COutputManagerBase> cblockmaxmanager(m, "CBlockMaxManager");
-	py::class_<CPOTManager, COutputManagerBase> cpotmanager(m, "CPOTManager");
-	py::class_<CCalcEffect> ccalceffect(m, "CCalcEffect");
-	py::class_<CRNGWrapper> crngwrapper(m, "CRNGWrapper");
-	py::class_<CDistribution> cdistribution(m, "CDistribution");
-	py::class_<CEffect> ceffect(m, "CEffect");
-	py::class_<CEvent> cevent(m, "CEvent");
-	py::class_<CEventBuffer> ceventbuffer(m, "CEventBuffer");
-	py::class_<CEventManager> ceventmanager(m, "CEventManager");
-	py::class_<CEventStatistics> ceventstatistics(m, "CEventStatistics");
-	py::class_<CGenerator, CGenerator_sp> cgenerator(m, "CGenerator");
-	py::class_<CFlowGenerator, CGenerator, CFlowGenerator_sp> cflowgenerator(m, "CFlowGenerator");
-	py::class_<CFlowGenNHM, CFlowGenerator, CFlowGenNHM_sp> cflowgennhm(m, "CFlowGenNHM");
-	py::class_<CFlowGenCongested, CFlowGenerator, CFlowGenCongested_sp> cflowgencongested(m, "CFlowGenCongested");
-	py::class_<CFlowGenPoisson, CFlowGenerator, CFlowGenPoisson_sp> cflowgenpoisson(m, "CFlowGenPoisson");
-	py::class_<CFlowGenConstant, CFlowGenerator, CFlowGenConstant_sp> cflowgenconstant(m, "CFlowGenConstant");
-	py::class_<CModelData, CModelData_sp> cmodeldata(m, "CModelData");
-	py::class_<CLaneFlowData, CModelData, CLaneFlowData_sp> claneflowdata(m, "CLaneFlowData");
-	py::class_<CFlowModelData, CModelData, CFlowModelData_sp> cflowmodeldata(m, "CFlowModelData");
-	py::class_<CFlowModelDataNHM, CFlowModelData, CFlowModelDataNHM_sp> cflowmodeldatanhm(m, "CFlowModelDataNHM");
-	py::class_<CFlowModelDataCongested, CFlowModelData, CFlowModelDataCongested_sp> cflowmodeldatacongested(m, "CFlowModelDataCongested");
-	py::class_<CFlowModelDataPoisson, CFlowModelData, CFlowModelDataPoisson_sp> cflowmodeldatapoisson(m, "CFlowModelDataPoisson");
-	py::class_<CFlowModelDataConstant, CFlowModelData, CFlowModelDataConstant_sp> cflowmodeldataconstant(m, "CFlowModelDataConstant");
-	py::class_<CStatsManager> cstatsmanager(m, "CStatsManager");
-	py::class_<CTrafficData> ctrafficdata(m, "CTrafficData");
-	py::class_<CTrafficFiles> ctrafficfiles(m, "CTrafficFiles");
-	py::class_<CTriModalNormal> ctrimodalnormal(m, "CTriModalNormal");
-	py::class_<CFlowRateData> cflowratedata(m, "CFlowRateData");
-	py::class_<CVehicleGenerator, CGenerator, CVehicleGenerator_sp> cvehiclegenerator(m, "CVehicleGenerator");
-	py::class_<CVehicleGenConstant, CVehicleGenerator, CVehicleGenConstant_sp> cvehiclegenconstant(m, "CVehicleGenConstant");
-	py::class_<CVehicleGenGarage, CVehicleGenerator, CVehicleGenGarage_sp> cvehiclegengarage(m, "CVehicleGenGarage");
-	py::class_<CVehicleGenGrave, CVehicleGenerator, CVehicleGenGrave_sp> cvehiclegengrave(m, "CVehicleGenGrave");
-	py::class_<CVehicleModelData, CModelData, CVehicleModelData_sp> cvehiclemodeldata(m, "CVehicleModelData");
-	py::class_<CVehicleTrafficFile> cvehicletrafficfile(m, "CVehicleTrafficFile");
-	py::class_<CVehModelDataConstant, CVehicleModelData, CVehModelDataConstant_sp> cvehmodeldataconstant(m, "CVehModelDataConstant");
-	py::class_<CVehModelDataGarage, CVehicleModelData, CVehModelDataGarage_sp> cvehmodeldatagarage(m, "CVehModelDataGarage");
-	py::class_<CVehModelDataGrave, CVehicleModelData, CVehModelDataGrave_sp> cvehmodeldatagrave(m, "CVehModelDataGrave");
+	py::class_<CVehicleClassification, CVehicleClassification_sp> cvehicleclassification(m, "VehicleClassification");
+	py::class_<CVehClassAxle, CVehicleClassification, CVehClassAxle_sp> cvehclassaxle(m, "VehClassAxle");
+	py::class_<CVehClassPattern, CVehicleClassification, CVehClassPattern_sp> cvehclasspattern(m, "VehClassPattern");
+	py::class_<CBridge, CBridge_sp> cbridge(m, "Bridge");
+	py::class_<CBridgeLane> cbridgelane(m, "BridgeLane");
+	py::class_<CInfluenceLine> cinfluenceline(m, "InfluenceLine");
+	py::class_<CInfluenceSurface> cinfluencesurface(m, "InfluenceSurface");
+	py::class_<CAxle> caxle(m, "Axle");
+	py::class_<CLane, CLane_sp> clane(m, "Lane");
+	py::class_<CLaneFileTraffic, CLane, CLaneFileTraffic_sp> clanefiletraffic(m, "LaneFileTraffic");
+	py::class_<CLaneGenTraffic, CLane, CLaneGenTraffic_sp> clanegentraffic(m, "LaneGenTraffic");
+	py::class_<CVehicleBuffer> cvehiclebuffer(m, "VehicleBuffer");
+	py::class_<CReadILFile> creadilfile(m, "ReadILFile");
+	py::class_<CCSVParse> ccsvparse(m, "CSVParse");
+	py::class_<CBridgeFile> cbridgefile(m, "BridgeFile");
+	py::class_<CLaneFlowComposition> claneflowcomposition(m, "LaneFlowComposition");
+	py::class_<CBlockMaxEvent> cblockmaxevent(m, "BlockMaxEvent");
+	py::class_<COutputManagerBase> coutputmanagerbase(m, "OutputManagerBase");
+	py::class_<CBlockMaxManager, COutputManagerBase> cblockmaxmanager(m, "BlockMaxManager");
+	py::class_<CPOTManager, COutputManagerBase> cpotmanager(m, "POTManager");
+	py::class_<CFatigueManager, COutputManagerBase> cfatiguemanager(m, "FatigueManager");
+	py::class_<CCalcEffect> ccalceffect(m, "CalcEffect");
+	py::class_<CRNGWrapper> crngwrapper(m, "RNGWrapper");
+	py::class_<CDistribution> cdistribution(m, "Distribution");
+	py::class_<CEffect> ceffect(m, "Effect");
+	py::class_<CEvent> cevent(m, "Event");
+	py::class_<CEventBuffer> ceventbuffer(m, "EventBuffer");
+	py::class_<CEventManager> ceventmanager(m, "EventManager");
+	py::class_<CEventStatistics> ceventstatistics(m, "EventStatistics");
+	py::class_<CGenerator, CGenerator_sp> cgenerator(m, "Generator");
+	py::class_<CFlowGenerator, CGenerator, CFlowGenerator_sp> cflowgenerator(m, "FlowGenerator");
+	py::class_<CFlowGenNHM, CFlowGenerator, CFlowGenNHM_sp> cflowgennhm(m, "FlowGenNHM");
+	py::class_<CFlowGenCongested, CFlowGenerator, CFlowGenCongested_sp> cflowgencongested(m, "FlowGenCongested");
+	py::class_<CFlowGenPoisson, CFlowGenerator, CFlowGenPoisson_sp> cflowgenpoisson(m, "FlowGenPoisson");
+	py::class_<CFlowGenConstant, CFlowGenerator, CFlowGenConstant_sp> cflowgenconstant(m, "FlowGenConstant");
+	py::class_<CModelData, CModelData_sp> cmodeldata(m, "ModelData");
+	py::class_<CLaneFlowData, CModelData, CLaneFlowData_sp> claneflowdata(m, "LaneFlowData");
+	py::class_<CFlowModelData, CModelData, CFlowModelData_sp> cflowmodeldata(m, "FlowModelData");
+	py::class_<CFlowModelDataNHM, CFlowModelData, CFlowModelDataNHM_sp> cflowmodeldatanhm(m, "FlowModelDataNHM");
+	py::class_<CFlowModelDataCongested, CFlowModelData, CFlowModelDataCongested_sp> cflowmodeldatacongested(m, "FlowModelDataCongested");
+	py::class_<CFlowModelDataPoisson, CFlowModelData, CFlowModelDataPoisson_sp> cflowmodeldatapoisson(m, "FlowModelDataPoisson");
+	py::class_<CFlowModelDataConstant, CFlowModelData, CFlowModelDataConstant_sp> cflowmodeldataconstant(m, "FlowModelDataConstant");
+	py::class_<CStatsManager> cstatsmanager(m, "StatsManager");
+	py::class_<CTrafficData> ctrafficdata(m, "TrafficData");
+	py::class_<CTrafficFiles> ctrafficfiles(m, "TrafficFiles");
+	py::class_<CTriModalNormal> ctrimodalnormal(m, "TriModalNormal");
+	py::class_<CFlowRateData> cflowratedata(m, "FlowRateData");
+	py::class_<CVehicleGenerator, CGenerator, CVehicleGenerator_sp> cvehiclegenerator(m, "VehicleGenerator");
+	py::class_<CVehicleGenConstant, CVehicleGenerator, CVehicleGenConstant_sp> cvehiclegenconstant(m, "VehicleGenConstant");
+	py::class_<CVehicleGenGarage, CVehicleGenerator, CVehicleGenGarage_sp> cvehiclegengarage(m, "VehicleGenGarage");
+	py::class_<CVehicleGenGrave, CVehicleGenerator, CVehicleGenGrave_sp> cvehiclegengrave(m, "VehicleGenGrave");
+	py::class_<CVehicleModelData, CModelData, CVehicleModelData_sp> cvehiclemodeldata(m, "VehicleModelData");
+	py::class_<CVehicleTrafficFile> cvehicletrafficfile(m, "VehicleTrafficFile");
+	py::class_<CVehModelDataConstant, CVehicleModelData, CVehModelDataConstant_sp> cvehmodeldataconstant(m, "VehModelDataConstant");
+	py::class_<CVehModelDataGarage, CVehicleModelData, CVehModelDataGarage_sp> cvehmodeldatagarage(m, "VehModelDataGarage");
+	py::class_<CVehModelDataGrave, CVehicleModelData, CVehModelDataGrave_sp> cvehmodeldatagrave(m, "VehModelDataGrave");
 	// py::class_<Normal> normal(m, "Normal");
 	// py::enum_<EFlowModel>(m, "EFlowModel").export_values();
 	// py::enum_<EVehicleModel>(m, "EVehicleModel").export_values();

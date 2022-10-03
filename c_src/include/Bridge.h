@@ -59,8 +59,6 @@ private:
 	std::vector<double>			m_vEffectValues;
 	std::vector<double>			m_vThresholds;
 	std::vector<CBridgeLane>	m_vLanes;
-	std::vector<std::vector<double>> m_vRecordEffectValues;
-	bool DO_FATIGUE_RAINFLOW;
 
 	double	m_CurTime;
 	double	m_CalcTimeStep;
