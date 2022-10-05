@@ -5,7 +5,7 @@ on:
   # pull_request:
   # push:
   #   branches:
-  #    - BtlsPy
+  #    - PyBTLS
   release:
     types:
       - published

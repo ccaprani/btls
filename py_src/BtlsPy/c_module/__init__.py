@@ -1,1 +1,0 @@
-from BtlsPy.c_module._core import *

@@ -20,6 +20,7 @@ CEventManager::CEventManager()
 	WRITE_BM	= CConfigData::get().Output.BlockMax.WRITE_BM;
 	WRITE_POT	= CConfigData::get().Output.POT.WRITE_POT;
 	WRITE_STATS = CConfigData::get().Output.Stats.WRITE_STATS;
+	DO_FATIGUE_RAINFLOW = CConfigData::get().Output.DO_FATIGUE_RAINFLOW;
 
 	m_NoEvents = 0;
 	m_CurTime = 0.0;
@@ -45,6 +46,7 @@ void CEventManager::Initialize(double BridgeLength, std::vector<double> vThresho
 	if (WRITE_BM) m_BlockMaxManager.Initialize(m_BridgeLength, m_NoLoadEffects, SimStartTime);
 	if (WRITE_POT) m_POTManager.Initialize(m_BridgeLength, m_vThresholds, SimStartTime);
 	if (WRITE_STATS) m_StatsManager.Initialize(m_BridgeLength, m_NoLoadEffects, SimStartTime);
+	if (DO_FATIGUE_RAINFLOW) m_FatigueManager.Initialize(m_BridgeLength, m_NoLoadEffects);
 
 	if(WRITE_TIME_HISTORY)
 	{
@@ -117,6 +119,10 @@ void CEventManager::UpdateEffects(std::vector<double> vEffs, double position, do
 	if (WRITE_TIME_HISTORY)
 		DoTimeHistory(2, vEffs);
 
+	// record the events of load effects for rainflow counting of fatigue
+	if (DO_FATIGUE_RAINFLOW) {
+		m_FatigueManager.addLoadEffectValues(vEffs);
+	}
 }
 
 // called to end the current event and process results
@@ -132,6 +138,7 @@ void CEventManager::EndEvent()
 	if(WRITE_BM) m_BlockMaxManager.Update(m_CurEvent);
 	if(WRITE_POT) m_POTManager.Update(m_CurEvent);
 	if(WRITE_STATS) m_StatsManager.Update(m_CurEvent);
+	if(DO_FATIGUE_RAINFLOW) m_FatigueManager.Update();
 
 	// reset for next event - must be last thing done
 	m_CurEvent = CEvent();
@@ -149,6 +156,7 @@ void CEventManager::Finish()
 	if(WRITE_BM) m_BlockMaxManager.Finish();
 	if(WRITE_POT) m_POTManager.Finish();
 	if(WRITE_STATS) m_StatsManager.Finish();
+	if(DO_FATIGUE_RAINFLOW) m_FatigueManager.Finish();
 }
 
 void CEventManager::DoTimeHistory(int i, std::vector<double>& vEff)

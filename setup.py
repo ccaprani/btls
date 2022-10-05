@@ -11,7 +11,10 @@ ParallelCompile("NPY_NUM_BUILD_JOBS", needs_recompile=naive_recompile, default=4
 # could only be relative paths, otherwise the `build` command would fail if you use a MANIFEST.in to distribute your package
 # only source files (.cpp, .c, .cc) are needed
 source_files = sorted(glob("./c_src/src/*.cpp", recursive=True))
-source_files.remove("./c_src/src/main.cpp")
+try:
+    source_files.remove("./c_src/src/main.cpp")  # for MacOS and Linux
+except ValueError:
+    source_files.remove("./c_src/src\\main.cpp")  # for Windows
 
 # If any libraries are used, e.g. libabc.so
 include_dirs = ["./c_src/include"]
@@ -24,7 +27,7 @@ include_dirs = ["./c_src/include"]
 
 ext_modules = [
     Pybind11Extension(
-        name="BtlsPy.c_module._core", # depends on the structure of your package
+        name="PyBTLS.c_module._core", # depends on the structure of your package
         sources=source_files,
         # Example: passing in the version to the compiled code
         # define_macros=[("VERSION_INFO", __version__)],

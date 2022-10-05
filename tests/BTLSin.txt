@@ -7,21 +7,21 @@
 // ---------------------------------------------
 //
 // Program Mode (1 - Gen & Sim, 2 - Gen, 3 - Read & Sim)
-2
+1
 //
 // TRAFFIC GENERATION PARAMETERS
 // ---------------------------------------------
 // No. of days of traffic simulation:
-11
+3
 // Location of Traffic folders
-../Traffic
+../Traffic/Auxerre/
 // Default truck track width (cm)
 190.0
 // Standard deviation of eccentricity in lane (cm) (about 20 cm usually)
 0
 // Vehicle Generation Model to be used
 // (0 - Grave, 1 - Constant, 2 - Garage)
-1
+2
 // Headway model to be used:
 // (0 - Auxerre NHM, 1 - Constant, 5 - Congestion (w/ or w/out cars), 6 - free-flow, cars included)
 5
@@ -71,7 +71,7 @@ WGBSlowLanes_Jul.txt
 // Influence Surface definition file:
 IS.txt
 // Time step (s):
-0.1
+0.02
 // Minimum GVW for inclusion in calculations (t/10):
 0
 //
