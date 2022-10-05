@@ -1,8 +1,10 @@
 #include "FatigueManager.h"
+#include "ConfigData.h"
 
 
-CFatigueManager::CFatigueManager(void)
-{
+CFatigueManager::CFatigueManager(void) {
+    m_noDecimal = CConfigData::get().Output.RAINFLOW_DECIMAL;
+    m_cutOffValue = CConfigData::get().Output.RAINFLOW_CUTOFF;
 }
 
 CFatigueManager::~CFatigueManager(void)
@@ -36,7 +38,7 @@ void CFatigueManager::Update()
 // run rainflow for each load event of the bridge
 void CFatigueManager::doRainflow(std::vector< std::vector<double> >& signalData) {
     for (size_t i = 0; i < m_NoLoadEffects; i++) {
-        std::vector< std::pair<double, double> > rainflowOut = m_RainflowAlg.countCycles(signalData[i], 3);  // ndigits = 3
+        std::vector< std::pair<double, double> > rainflowOut = m_RainflowAlg.countCycles(signalData[i], m_noDecimal);
         countRainflow(rainflowOut,i);
     }
 }
@@ -44,7 +46,9 @@ void CFatigueManager::doRainflow(std::vector< std::vector<double> >& signalData)
 // count the rainflow output from doRainflow()
 void CFatigueManager::countRainflow(std::vector< std::pair<double, double> >& rainflowOut, size_t i) {
     for (size_t j = 0; j < rainflowOut.size(); j++) {
-        m_RainflowOutCount[i][rainflowOut[j].first] += rainflowOut[j].second;
+        if (rainflowOut[j].first >= m_cutOffValue) {
+            m_RainflowOutCount[i][rainflowOut[j].first] += rainflowOut[j].second;
+        }
     }
 }
 
@@ -64,7 +68,7 @@ void CFatigueManager::WriteFiles () {
 
         m_RainflowOutFile << "Amplitude" << "\t\t" << "No. Cycles" << "\n";
         for (iter = m_RainflowOutCount[i].begin(); iter != m_RainflowOutCount[i].end(); iter++) {
-            m_RainflowOutFile << std::fixed << std::setprecision(3) << iter->first << "\t\t\t" << std::setprecision(1) << iter->second << "\n";
+            m_RainflowOutFile << std::fixed << std::setprecision(m_noDecimal) << iter->first << "\t\t\t" << std::setprecision(1) << iter->second << "\n";
         }
         m_RainflowOutFile.close();
     }

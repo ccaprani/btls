@@ -51,12 +51,14 @@ public:
 		CConfigData::get().Output = output_config;
 	};
 
-	void set_output_general_config (bool WRITE_TIME_HISTORY, bool WRITE_EACH_EVENT, int WRITE_EVENT_BUFFER_SIZE, bool WRITE_FATIGUE_EVENT, bool DO_FATIGUE_RAINFLOW) {
+	void set_output_general_config (bool WRITE_TIME_HISTORY, bool WRITE_EACH_EVENT, int WRITE_EVENT_BUFFER_SIZE, bool WRITE_FATIGUE_EVENT, bool DO_FATIGUE_RAINFLOW, int RAINFLOW_DECIMAL, double RAINFLOW_CUTOFF) {
 		CConfigData::get().Output.WRITE_TIME_HISTORY = WRITE_TIME_HISTORY;
 		CConfigData::get().Output.WRITE_EACH_EVENT = WRITE_EACH_EVENT;
 		CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE = WRITE_EVENT_BUFFER_SIZE;
 		CConfigData::get().Output.WRITE_FATIGUE_EVENT = WRITE_FATIGUE_EVENT;
 		CConfigData::get().Output.DO_FATIGUE_RAINFLOW = DO_FATIGUE_RAINFLOW;
+		CConfigData::get().Output.RAINFLOW_DECIMAL = RAINFLOW_DECIMAL;
+		CConfigData::get().Output.RAINFLOW_CUTOFF = RAINFLOW_CUTOFF;
 	};
 
 	void set_output_vehiclefile_config (CConfigData::Output_Config::VehicleFile_Config& output_vehiclefile_config) {
@@ -274,12 +276,14 @@ PYBIND11_MODULE(_core, m) {
 				.def_readwrite("CALC_TIME_STEP", &CConfigData::Sim_Config::CALC_TIME_STEP)
 				.def_readwrite("MIN_GVW", &CConfigData::Sim_Config::MIN_GVW);
 		py::class_<CConfigData::Output_Config> output_config(cconfigdata, "Output_Config");
-			output_config.def(py::init<bool, bool, int, bool, bool, CConfigData::Output_Config::VehicleFile_Config, CConfigData::Output_Config::BlockMax_Config, CConfigData::Output_Config::POT_Config, CConfigData::Output_Config::Stats_Config>())
+			output_config.def(py::init<bool, bool, int, bool, bool, int, double, CConfigData::Output_Config::VehicleFile_Config, CConfigData::Output_Config::BlockMax_Config, CConfigData::Output_Config::POT_Config, CConfigData::Output_Config::Stats_Config>())
 				.def_readwrite("WRITE_TIME_HISTORY", &CConfigData::Output_Config::WRITE_TIME_HISTORY)
 				.def_readwrite("WRITE_EACH_EVENT", &CConfigData::Output_Config::WRITE_EACH_EVENT)
 				.def_readwrite("WRITE_EVENT_BUFFER_SIZE", &CConfigData::Output_Config::WRITE_EVENT_BUFFER_SIZE)
 				.def_readwrite("WRITE_FATIGUE_EVENT", &CConfigData::Output_Config::WRITE_FATIGUE_EVENT)
 				.def_readwrite("DO_FATIGUE_RAINFLOW", &CConfigData::Output_Config::DO_FATIGUE_RAINFLOW)
+				.def_readwrite("RAINFLOW_DECIMAL", &CConfigData::Output_Config::RAINFLOW_DECIMAL)
+				.def_readwrite("RAINFLOW_CUTOFF", &CConfigData::Output_Config::RAINFLOW_CUTOFF)
 				.def_readwrite("VehicleFile", &CConfigData::Output_Config::VehicleFile)
 				.def_readwrite("BlockMax", &CConfigData::Output_Config::BlockMax)
 				.def_readwrite("POT", &CConfigData::Output_Config::POT)

@@ -108,6 +108,8 @@ public:
 		int  WRITE_EVENT_BUFFER_SIZE;
 		bool WRITE_FATIGUE_EVENT;	
 		bool DO_FATIGUE_RAINFLOW;
+		int RAINFLOW_DECIMAL;
+		double RAINFLOW_CUTOFF;
 		
 		struct VehicleFile_Config
 		{
@@ -149,7 +151,7 @@ public:
 			int  WRITE_SS_BUFFER_SIZE;
 		} Stats;
 
-	} Output = {false, false, 1000, false, false,
+	} Output = {false, false, 1000, false, false, -1, 0.0,
 				{false,4,"vehicles.txt",1000,true}, // VehicleFile_Config
 				{true,false,false,false,1,0,1000},	// BlockMax_Config
 				{false,false,false,false,1,0,1000},	// POT_Config

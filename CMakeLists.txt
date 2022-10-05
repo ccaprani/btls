@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.4...3.22)
-project(BTLS VERSION 0.2.0)
+project(BTLS VERSION 0.2.1)
 
 # set macro
 if(WIN32)

@@ -53,7 +53,7 @@ class Settings:
             output_config_POT.WRITE_POT = True
         if Stats:
             output_config_Stats.WRITE_STATS = True
-        output_config = ConfigData.Output_Config(False,False,buffer_size,False,False,output_config_VehicleFile,output_config_BlockMax,output_config_POT,output_config_Stats)
+        output_config = ConfigData.Output_Config(False,False,buffer_size,False,False,3,0.0,output_config_VehicleFile,output_config_BlockMax,output_config_POT,output_config_Stats)
         if Fatigue:
             output_config.WRITE_TIME_HISTORY = True
             output_config.DO_FATIGUE_RAINFLOW = True
