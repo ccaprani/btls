@@ -28,7 +28,7 @@ private:
     std::vector< std::vector<double> >  m_LoadEffectValues;
     std::vector< std::map<double, double> > m_RainflowOutCount;
     CRainflow m_RainflowAlg;
-    int noDecimal;
-    double cutOffValue;
+    int m_noDecimal;
+    double m_cutOffValue;
 };
 
