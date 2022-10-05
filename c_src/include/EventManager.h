@@ -47,7 +47,6 @@ private:
 	CFatigueManager		m_FatigueManager;
 	
 	std::vector<CVehicle> m_vVehicles;
-	std::vector< std::vector<double> > m_vCurEvents;
 	
 	std::ofstream		m_TimeHistoryFile;
 	CEvent				m_CurEvent;

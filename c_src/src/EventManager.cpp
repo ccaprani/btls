@@ -65,8 +65,6 @@ void CEventManager::AddNewEvent(std::vector<CVehicle> vVehs, double curTime)
 	m_CurEvent.setID(m_NoEvents);
 	m_CurEvent.setNoEffects(m_NoLoadEffects);
 	m_CurEvent.setStartTime(m_CurTime);
-
-	m_vCurEvents = vector< vector<double> >(m_NoLoadEffects);
 }
 
 void CEventManager::AddNewEvent(const std::vector<CVehicle_sp> pVehs, double curTime)
@@ -123,9 +121,7 @@ void CEventManager::UpdateEffects(std::vector<double> vEffs, double position, do
 
 	// record the events of load effects for rainflow counting of fatigue
 	if (DO_FATIGUE_RAINFLOW) {
-		for (size_t i = 0; i < m_NoLoadEffects; i++) {
-			m_vCurEvents[i].push_back(vEffs[i]);
-		}
+		m_FatigueManager.addLoadEffectValues(vEffs);
 	}
 }
 
@@ -142,7 +138,7 @@ void CEventManager::EndEvent()
 	if(WRITE_BM) m_BlockMaxManager.Update(m_CurEvent);
 	if(WRITE_POT) m_POTManager.Update(m_CurEvent);
 	if(WRITE_STATS) m_StatsManager.Update(m_CurEvent);
-	if(DO_FATIGUE_RAINFLOW) m_FatigueManager.Update(m_vCurEvents);
+	if(DO_FATIGUE_RAINFLOW) m_FatigueManager.Update();
 
 	// reset for next event - must be last thing done
 	m_CurEvent = CEvent();

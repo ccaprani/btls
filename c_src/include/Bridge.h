@@ -46,7 +46,6 @@ public:
 	void InitializeDataMgr(double SimStartTime);
 	CBridgeLane& getBridgeLane(size_t iLane);
 	size_t getNoLanes();
-	std::vector<std::vector<double>>& getEffectValues();
 
 private:
 	bool	lane_compare(const CBridgeLane* pL1, const CBridgeLane* pL2);
