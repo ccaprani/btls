@@ -12,19 +12,19 @@
 // TRAFFIC GENERATION PARAMETERS
 // ---------------------------------------------
 // No. of days of traffic simulation:
-11
+1
 // Location of Traffic folders
-../Traffic/Auxerre/
+../Traffic/Auxerre
 // Default truck track width (cm)
 190.0
 // Standard deviation of eccentricity in lane (cm) (about 20 cm usually)
 0
 // Vehicle Generation Model to be used
 // (0 - Grave, 1 - Constant, 2 - Garage)
-2
+0
 // Headway model to be used:
 // (0 - Auxerre NHM, 1 - Constant, 5 - Congestion (w/ or w/out cars), 6 - free-flow, cars included)
-5
+0
 // Traffic Classification System to be used:
 // (0 - No. of Axles, 1 - Axle Pattern)
 1
@@ -148,7 +148,7 @@ Vehicle.txt
 // LOAD EFFECT STATISTICS OUTPUT
 // ---------------------------------------------
 // Analyse for Statistics (overrides remaining params) (1 or 0)
-0
+1
 // Write cumulative statistics file (1 or 0)
 1
 // Write statistics at intervals files (1 or 0)

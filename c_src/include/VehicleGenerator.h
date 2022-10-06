@@ -10,7 +10,6 @@
 #include "Vehicle.h"
 #include "VehicleModelData.h"
 #include "FlowModelData.h"
-#include "TrafficData.h"
 
 class CVehicleGenerator : public CGenerator  
 {

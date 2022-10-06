@@ -41,6 +41,8 @@ int main()
 	cout << "                Version 1.3.7			      " << endl;
 	cout << "---------------------------------------------" << endl << endl;
 
+	cout << "CWD: " << filesystem::current_path() << endl << endl;
+
 	if (!CConfigData::get().ReadData("BTLSin.txt") )
 	{
 		cout << "BTLSin file could not be opened" << endl;

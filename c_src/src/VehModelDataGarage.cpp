@@ -44,7 +44,9 @@ void CVehModelDataGarage::readKernels()
 {
 	filesystem::path file = CConfigData::get().Read.KERNEL_FILE;
 	if (!m_CSV.OpenFile(file.string(), ","))
-		std::cerr << "***WARNING: Kernel file could not be opened, using defaults" << endl;
+		std::cerr << "***WARNING: Kernel file " 
+				  << std::filesystem::weakly_canonical(file) 
+				  << " could not be opened, using defaults" << endl;
 	else
 	{
 		string line;

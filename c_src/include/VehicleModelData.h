@@ -1,6 +1,5 @@
 #pragma once
 #include "ModelData.h"
-#include "TrafficData.h"
 #include "VehicleClassification.h"
 #include "LaneFlowComposition.h"
 

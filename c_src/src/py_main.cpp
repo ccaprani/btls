@@ -373,8 +373,6 @@ PYBIND11_MODULE(_core, m) {
 	py::class_<CFlowModelDataPoisson, CFlowModelData, CFlowModelDataPoisson_sp> cflowmodeldatapoisson(m, "FlowModelDataPoisson");
 	py::class_<CFlowModelDataConstant, CFlowModelData, CFlowModelDataConstant_sp> cflowmodeldataconstant(m, "FlowModelDataConstant");
 	py::class_<CStatsManager> cstatsmanager(m, "StatsManager");
-	py::class_<CTrafficData> ctrafficdata(m, "TrafficData");
-	py::class_<CTrafficFiles> ctrafficfiles(m, "TrafficFiles");
 	py::class_<CTriModalNormal> ctrimodalnormal(m, "TriModalNormal");
 	py::class_<CFlowRateData> cflowratedata(m, "FlowRateData");
 	py::class_<CVehicleGenerator, CGenerator, CVehicleGenerator_sp> cvehiclegenerator(m, "VehicleGenerator");
