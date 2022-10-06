@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.4...3.22)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
 project(BTLS VERSION 0.2.0)
 
 # set macro
