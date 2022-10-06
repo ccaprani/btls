@@ -1,4 +1,4 @@
-# Ziyi's file
+# Build
 .DS_Store
 .vscode
 bin
@@ -21,3 +21,5 @@ BM_*.txt
 SS_*.txt
 RC_*.txt
 FlowData_*.txt
+
+BridgeTrafficLoadSim

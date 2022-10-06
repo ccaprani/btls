@@ -73,7 +73,7 @@ void CFlowModelDataNHM::ReadFile_NHM()
 	filesystem::path file = m_Path / "NHM.csv";
 	if (!m_CSV.OpenFile(file.string(), ","))
 	{
-		std::cout << "**** ERROR: Cannot read NHM.csv file" << std::endl;
+		std::cout << "**** ERROR: Cannot read " << std::filesystem::weakly_canonical(file) << std::endl;
 		return;
 	}
 	int noRows = 0;
