@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.4...3.22)
-project(BTLS VERSION 0.2.0)
+project(BTLS VERSION 0.2.2)
 
 # set macro
 if(WIN32)
@@ -18,8 +18,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 if(WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 elseif(APPLE)
-  set(MACOSX_DEPLOYMENT_TARGET "10.15")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64 -arch x86_64")
+  set(MACOSX_DEPLOYMENT_TARGET "10.15")
 elseif(UNIX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 endif()

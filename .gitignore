@@ -1,15 +1,20 @@
+# Ziyi's file
 .DS_Store
-.vscode/*
-bin/*
-build/*
-back_up/*
-dev_functions/*
-Sample_data/*
+.vscode
+bin
+build
+back_up
+dev_functions
+Sample_data
 
+# CMake
 CMakeFiles/*
 CMakeCache.txt
 cmake_install.cmake
 Makefile
+
+# pytest
+.pytest_cache
 
 # BTLS output files
 BM_*.txt
