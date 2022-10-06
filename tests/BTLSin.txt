@@ -12,7 +12,7 @@
 // TRAFFIC GENERATION PARAMETERS
 // ---------------------------------------------
 // No. of days of traffic simulation:
-3
+11
 // Location of Traffic folders
 ../Traffic/Auxerre/
 // Default truck track width (cm)
@@ -71,7 +71,7 @@ WGBSlowLanes_Jul.txt
 // Influence Surface definition file:
 IS.txt
 // Time step (s):
-0.02
+0.05
 // Minimum GVW for inclusion in calculations (t/10):
 0
 //
@@ -90,8 +90,12 @@ IS.txt
 10000
 // Write a fatigue event file (1 or 0)
 0
-// Conduct Rainflow algorithm (1 or 0)
+// Conduct Rainflow algorithm for fatigue (1 or 0)
 1
+// Number of decimal left for Rainflow algorithm
+3
+// Cutoff value for Fatigue
+5.0
 //
 // VEHICLE FILE
 // ---------------------------------------------
@@ -101,11 +105,11 @@ IS.txt
 // Traffic output file format (CASTOR - 1, BeDIT - 2, DITIS - 3, MON - 4):
 2
 // Vehicle file name
-VehiclesForJustin.txt
+Vehicle.txt
 // Vehicle file buffer size
 100000
 // Write vehicle file flow statistics (1 or 0)
-1
+0
 //
 // BLOCK MAXIMUM LOAD EFFECTS
 // ---------------------------------------------
@@ -144,7 +148,7 @@ VehiclesForJustin.txt
 // LOAD EFFECT STATISTICS OUTPUT
 // ---------------------------------------------
 // Analyse for Statistics (overrides remaining params) (1 or 0)
-1
+0
 // Write cumulative statistics file (1 or 0)
 1
 // Write statistics at intervals files (1 or 0)
