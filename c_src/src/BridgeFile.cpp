@@ -7,17 +7,18 @@ CBridgeFile::CBridgeFile(void)
 	m_CommentString = "//";
 }
 
-CBridgeFile::CBridgeFile(std::string file, std::vector<CInfluenceLine> vDiscreteIL)
+CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL)
 {
 	m_CommentString = "//";
 	vector<CInfluenceLine> vInfSurf; // create blank vector
 	ReadBridges(file, vDiscreteIL, vInfSurf);
 }
 
-CBridgeFile::CBridgeFile(std::string file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf)
+CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf)
 {
 	m_CommentString = "//";
-	ReadBridges(file, vDiscreteIL, vInfSurf);
+	filesystem::path filep = file;
+	ReadBridges(filep, vDiscreteIL, vInfSurf);
 }
 
 

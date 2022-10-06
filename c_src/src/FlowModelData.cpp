@@ -70,7 +70,7 @@ void CFlowModelDataNHM::ReadDataIn()
 
 void CFlowModelDataNHM::ReadFile_NHM()
 {
-	string file = m_Path + "NHM.csv";
+	filesystem::path file = m_Path / "NHM.csv";
 	if (!m_CSV.OpenFile(file, ","))
 	{
 		std::cout << "**** ERROR: Cannot read NHM.csv file" << std::endl;

@@ -7,13 +7,13 @@ CReadILFile::CReadILFile(void)
 {
 }
 
-CReadILFile::CReadILFile(string file)
+CReadILFile::CReadILFile(filesystem::path file)
 	: m_NoInfLines(0)
 {
 	ReadILFile(file);
 }
 
-CReadILFile::CReadILFile(std::string file, unsigned int mode)
+CReadILFile::CReadILFile(filesystem::path file, unsigned int mode)
 	: m_NoInfLines(0)
 {
 	if(mode == 1)	// read an influence surface
@@ -103,7 +103,7 @@ vector<CInfluenceLine> CReadILFile::getInfLines()
 	return m_vInfLine;
 }
 
-std::vector<CInfluenceLine> CReadILFile::getInfLines(std::string file,unsigned int mode)
+std::vector<CInfluenceLine> CReadILFile::getInfLines(std::filesystem::path file, unsigned int mode)
 {
 	m_vInfLine.clear();	// dump whatever we have
 	m_NoInfLines = 0;

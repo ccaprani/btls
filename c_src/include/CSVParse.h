@@ -29,6 +29,7 @@ class CCSVParse {	// read and parse comma-separated values
 
   public:
 	void CloseFile();
+	// Is overloaded by a filesystem::path
 	bool OpenFile(string inFile, string sep);
 	CCSVParse();
 	virtual ~CCSVParse();

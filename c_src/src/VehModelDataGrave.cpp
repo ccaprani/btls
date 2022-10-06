@@ -95,8 +95,7 @@ vNHM[see paper/manual]
 
 void CVehModelDataGrave::ReadFile_AW23()
 {
-	//string file = m_PathW + "AW2&3.csv";
-	string file = m_Path + "AW2&3.csv";
+	filesystem::path file = m_Path / "AW2&3.csv";
 	m_CSV.OpenFile(file, ",");
 
 	for (int iTruck = 2; iTruck <= 3; iTruck++)	// for each truck type
@@ -132,8 +131,7 @@ void CVehModelDataGrave::ReadFile_AW23()
 
 void CVehModelDataGrave::ReadFile_AW45()
 {
-	string file = m_Path + "AW4&5.csv";
-	//string file = m_PathW + "AW4&5.csv";
+	filesystem::path file = m_Path / "AW4&5.csv";
 	m_CSV.OpenFile(file, ",");
 
 	for (int iTruck = 4; iTruck <= 5; iTruck++)	// for each truck type
@@ -159,8 +157,7 @@ void CVehModelDataGrave::ReadFile_AW45()
 
 void CVehModelDataGrave::ReadFile_AS()
 {
-	string file = m_Path + "ASall.csv";
-	//string file = m_PathW + "ASall.csv";
+	filesystem::path  file = m_Path / "ASall.csv";
 	m_CSV.OpenFile(file, ",");
 
 	for (int iTruck = 2; iTruck <= 5; iTruck++)	// for each truck type
@@ -208,7 +205,7 @@ void CVehModelDataGrave::ReadFile_AS()
 
 void CVehModelDataGrave::ReadFile_ATW()
 {
-	string file = m_Path + "ATW.csv";
+	filesystem::path  file = m_Path / "ATW.csv";
 	if (!m_CSV.OpenFile(file, ","))
 	{
 		std::cout << "*** Warning: Axle track width file not found, using default values" << std::endl;
@@ -268,7 +265,7 @@ void CVehModelDataGrave::ReadFile_ATW()
 
 void CVehModelDataGrave::ReadFile_GVW()
 {
-	string file = m_Path + "GVWpdf.csv";
+	filesystem::path  file = m_Path / "GVWpdf.csv";
 	m_CSV.OpenFile(file, ",");
 
 	string line;

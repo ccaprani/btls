@@ -12,7 +12,7 @@ configure_file (
 )
 
 # extra parameters to compiler
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 if(WIN32)

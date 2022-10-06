@@ -50,7 +50,8 @@ void GetTrafficFileLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLane
 	CVehicleTrafficFile TrafficFile(pVC, CConfigData::get().Read.USE_CONSTANT_SPEED, 
 		CConfigData::get().Read.USE_AVE_SPEED, CConfigData::get().Read.CONST_SPEED);
 	cout << "Reading traffic file..." << endl;
-	TrafficFile.Read(CConfigData::get().Read.TRAFFIC_FILE,CConfigData::get().Read.FILE_FORMAT);
+	filesystem::path file = CConfigData::get().Read.TRAFFIC_FILE;
+	TrafficFile.Read(file,CConfigData::get().Read.FILE_FORMAT);
 	
 	CConfigData::get().Gen.NO_DAYS		= TrafficFile.getNoDays();
 	CConfigData::get().Road.NO_LANES		= TrafficFile.getNoLanes();

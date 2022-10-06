@@ -5,3 +5,14 @@ build/*
 back_up/*
 dev_functions/*
 Sample_data/*
+
+CMakeFiles/*
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# BTLS output files
+BM_*.txt
+SS_*.txt
+RC_*.txt
+FlowData_*.txt
