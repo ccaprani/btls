@@ -31,7 +31,7 @@ void CVehModelDataGarage::readGarage()
 	CVehicleTrafficFile TrafficFile(m_pVehClassification, false, false, 0.0);
 	std::cout << "Reading traffic garage file..." << std::endl;
 	filesystem::path file = CConfigData::get().Read.GARAGE_FILE;
-	TrafficFile.Read(file, CConfigData::get().Read.FILE_FORMAT);
+	TrafficFile.Read(file.string(), CConfigData::get().Read.FILE_FORMAT);
 
 	m_NoVehicles = TrafficFile.getNoVehicles();
 	if (m_NoVehicles == 0)
@@ -43,7 +43,7 @@ void CVehModelDataGarage::readGarage()
 void CVehModelDataGarage::readKernels()
 {
 	filesystem::path file = CConfigData::get().Read.KERNEL_FILE;
-	if (!m_CSV.OpenFile(file, ","))
+	if (!m_CSV.OpenFile(file.string(), ","))
 		std::cerr << "***WARNING: Kernel file could not be opened, using defaults" << endl;
 	else
 	{

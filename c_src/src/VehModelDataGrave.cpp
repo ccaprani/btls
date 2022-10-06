@@ -96,7 +96,7 @@ vNHM[see paper/manual]
 void CVehModelDataGrave::ReadFile_AW23()
 {
 	filesystem::path file = m_Path / "AW2&3.csv";
-	m_CSV.OpenFile(file, ",");
+	m_CSV.OpenFile(file.string(), ",");
 
 	for (int iTruck = 2; iTruck <= 3; iTruck++)	// for each truck type
 	{
@@ -132,7 +132,7 @@ void CVehModelDataGrave::ReadFile_AW23()
 void CVehModelDataGrave::ReadFile_AW45()
 {
 	filesystem::path file = m_Path / "AW4&5.csv";
-	m_CSV.OpenFile(file, ",");
+	m_CSV.OpenFile(file.string(), ",");
 
 	for (int iTruck = 4; iTruck <= 5; iTruck++)	// for each truck type
 	{
@@ -158,7 +158,7 @@ void CVehModelDataGrave::ReadFile_AW45()
 void CVehModelDataGrave::ReadFile_AS()
 {
 	filesystem::path  file = m_Path / "ASall.csv";
-	m_CSV.OpenFile(file, ",");
+	m_CSV.OpenFile(file.string(), ",");
 
 	for (int iTruck = 2; iTruck <= 5; iTruck++)	// for each truck type
 	{
@@ -206,7 +206,7 @@ void CVehModelDataGrave::ReadFile_AS()
 void CVehModelDataGrave::ReadFile_ATW()
 {
 	filesystem::path  file = m_Path / "ATW.csv";
-	if (!m_CSV.OpenFile(file, ","))
+	if (!m_CSV.OpenFile(file.string(), ","))
 	{
 		std::cout << "*** Warning: Axle track width file not found, using default values" << std::endl;
 		CTriModalNormal tmn;
@@ -266,7 +266,7 @@ void CVehModelDataGrave::ReadFile_ATW()
 void CVehModelDataGrave::ReadFile_GVW()
 {
 	filesystem::path  file = m_Path / "GVWpdf.csv";
-	m_CSV.OpenFile(file, ",");
+	m_CSV.OpenFile(file.string(), ",");
 
 	string line;
 	CTriModalNormal temp;

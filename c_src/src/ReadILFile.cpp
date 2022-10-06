@@ -10,16 +10,16 @@ CReadILFile::CReadILFile(void)
 CReadILFile::CReadILFile(filesystem::path file)
 	: m_NoInfLines(0)
 {
-	ReadILFile(file);
+	ReadILFile(file.string());
 }
 
 CReadILFile::CReadILFile(filesystem::path file, unsigned int mode)
 	: m_NoInfLines(0)
 {
 	if(mode == 1)	// read an influence surface
-		ReadInfSurfFile(file);
+		ReadInfSurfFile(file.string());
 	else
-		ReadILFile(file);
+		ReadILFile(file.string());
 }
 
 CReadILFile::~CReadILFile(void)
@@ -111,13 +111,13 @@ std::vector<CInfluenceLine> CReadILFile::getInfLines(std::filesystem::path file,
 	if (mode == 1)	// read an influence surface
 	{
 		cout << "Reading influence surface file: " << file.c_str() << endl;
-		ReadInfSurfFile(file);
+		ReadInfSurfFile(file.string());
 	}
 
 	else
 	{
 		cout << "Reading influence line file: " << file.c_str() << endl;
-		ReadILFile(file);
+		ReadILFile(file.string());
 	}
 	
 	return m_vInfLine;

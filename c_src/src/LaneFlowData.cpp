@@ -22,7 +22,7 @@ CLaneFlowComposition CLaneFlowData::getLaneComp(size_t i) const
 void CLaneFlowData::ReadDataIn()
 {
 	filesystem::path file = CConfigData::get().Road.LANES_FILE;
-	ReadLaneFlow(file);
+	ReadLaneFlow(file.string());
 	SetRoadProperties();
 }
 

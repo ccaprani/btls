@@ -11,14 +11,13 @@ CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine>
 {
 	m_CommentString = "//";
 	vector<CInfluenceLine> vInfSurf; // create blank vector
-	ReadBridges(file, vDiscreteIL, vInfSurf);
+	ReadBridges(file.string(), vDiscreteIL, vInfSurf);
 }
 
 CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf)
 {
 	m_CommentString = "//";
-	filesystem::path filep = file;
-	ReadBridges(filep, vDiscreteIL, vInfSurf);
+	ReadBridges(file.string(), vDiscreteIL, vInfSurf);
 }
 
 
