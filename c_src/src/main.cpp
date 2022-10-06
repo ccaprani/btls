@@ -38,7 +38,7 @@ int main()
 
 	cout << "---------------------------------------------" << endl;
 	cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
-	cout << "                Version 1.3.5			      " << endl;
+	cout << "                Version 1.3.7			      " << endl;
 	cout << "---------------------------------------------" << endl << endl;
 
 	if (!CConfigData::get().ReadData("BTLSin.txt") )

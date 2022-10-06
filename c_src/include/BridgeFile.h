@@ -1,9 +1,7 @@
 #pragma once
 
-//#include <iostream>
 #include <string>
-//#include <fstream>
-//#include <stdlib.h>
+#include <filesystem>
 #include <vector>
 #include "Bridge.h"
 #include "InfluenceLine.h"
@@ -13,8 +11,8 @@ class CBridgeFile
 {
 public:
 	CBridgeFile(void);
-	CBridgeFile(std::string file, std::vector<CInfluenceLine> vDiscreteIL);
-	CBridgeFile(std::string file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf);
+	CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL);
+	CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf);
 	~CBridgeFile(void);
 	void ReadBridges(std::string file);
 	void ReadBridges(std::string file, std::vector<CInfluenceLine> vDiscreteIL,std::vector<CInfluenceLine> vInfSurf);

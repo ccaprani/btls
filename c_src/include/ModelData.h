@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <filesystem>
 #include <fstream>
 #include <stdlib.h>
 #include <vector>
@@ -47,7 +48,7 @@ public:
 	virtual void ReadDataIn() = 0;
 
 protected:
-	std::string m_Path;
+	std::filesystem::path m_Path;
 	CCSVParse m_CSV;
 };
 typedef std::shared_ptr<CModelData> CModelData_sp;

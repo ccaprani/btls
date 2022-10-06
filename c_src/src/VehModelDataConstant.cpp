@@ -23,7 +23,8 @@ void CVehModelDataConstant::ReadDataIn()
 
 void CVehModelDataConstant::readConstant()
 {
-	if (!m_CSV.OpenFile(CConfigData::get().Read.CONSTANT_FILE, ","))
+    filesystem::path file = CConfigData::get().Read.CONSTANT_FILE;
+	if (!m_CSV.OpenFile(file.string(), ","))
     {
 		std::cerr << "***WARNING: Constant Vehicle file could not be opened, using defaults" << endl;
 
