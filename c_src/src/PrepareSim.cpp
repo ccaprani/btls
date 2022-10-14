@@ -143,10 +143,12 @@ void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, ve
 		if (pVeh != nullptr)
 		{
 			curTime = pVeh->getTime();
-			CVehicle_sp *pVeh = nullptr;
+			// pVeh = nullptr;
 		}
 		else	// finish
+		{
 			curTime = SimEndTime + 1.0;
+		}
 
 		// Keep informing the user
 		if (curTime > (double)(86400)*(curDay + 1))

@@ -19,14 +19,26 @@ CVehicleGenGarage::~CVehicleGenGarage()
 
 void CVehicleGenGarage::GenerateVehicle(CVehicle_sp pVeh)
 {
-	// Randomly pick a vehicle from the garage
-	double u = m_RNG.GenerateUniform();
-	size_t i = static_cast<size_t>(static_cast<double>(m_GarageCount) * u);
-	CVehicle_sp pGarageVeh = m_pVMD->getVehicle(i);
-	*pVeh = *pGarageVeh; // Copy properties over
+	// determine type of vehicle
+	if (NextVehicleIsCar())
+	{
+		// General properties fpr Nominal Vehicle already assigned
+		pVeh->setLaneEccentricity(0.0);
+		pVeh->setTrns(0.0); // m 0 for generated vehicles
+		pVeh->setHead(1001);
+		GenerateCar(pVeh);
+	}
+	else
+	{
+		// Randomly pick a vehicle from the garage
+		double u = m_RNG.GenerateUniform();
+		size_t i = static_cast<size_t>(static_cast<double>(m_GarageCount) * u);
+		CVehicle_sp pGarageVeh = m_pVMD->getVehicle(i);
+		*pVeh = *pGarageVeh; // Copy properties over
 
-	// Now randomize the vehicle
-	randomize(pVeh);
+		// Now randomize the vehicle
+		randomize(pVeh);
+	}
 }
 
 void CVehicleGenGarage::randomize(CVehicle_sp pVeh)
