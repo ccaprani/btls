@@ -541,13 +541,13 @@ std::string CVehicle::writeDITISData()
 std::string CVehicle::writeMONData()
 {
 	// Reinstate time to min 2010
-	// Vel = vel / 3.6 for metres/second to km/h
+	// Vel = vel * 3.6 for metres/second to km/h
 	// GVW *100 / 0.981 for kN to kg 
 	// Length = length*1000 for meters to mm
 	// Trns = trns/1000 for metres to mm
 
 	size_t year = m_Year + MON_BASE_YEAR;
-	size_t velocity = Round(m_Velocity / 3.6);
+	size_t velocity = Round(m_Velocity * 3.6);
 	size_t grossWeight = Round(m_GVW * 100 / KG100_TO_KN);
 	size_t length = Round(m_Length * 1000);
 	size_t transPos = Round(m_Trns * 1000);
