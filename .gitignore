@@ -6,6 +6,7 @@ build
 back_up
 dev_functions
 Sample_data
+PyBTLS.egg*
 
 # CMake
 CMakeFiles/*
@@ -23,3 +24,6 @@ RC_*.txt
 FlowData_*.txt
 
 BridgeTrafficLoadSim
+
+# Memory check
+memory_check

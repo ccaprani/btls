@@ -109,7 +109,7 @@ Vehicle.txt
 // Vehicle file buffer size
 100000
 // Write vehicle file flow statistics (1 or 0)
-0
+1
 //
 // BLOCK MAXIMUM LOAD EFFECTS
 // ---------------------------------------------
