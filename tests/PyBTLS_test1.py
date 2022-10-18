@@ -14,7 +14,7 @@ def test(test_no:int):
         configs = PyBTLS.Settings.gen_and_sim("./1-ABT6111Bridges.txt","./LaneFlowData_80.csv","../Traffic/Auxerre/",no_days=20,infline_file="./1-ABT6111ILS.txt", constant_file="./constant_vehicle.csv")
         btls.set_road_config(configs["road_config"])
         btls.set_gen_config(configs["gen_config"])
-        # configs["set_gen_config"].xxx = xxx
+        # configs["gen_config"].xxx = xxx
         btls.set_traffic_config(configs["traffic_config"])
         btls.set_read_config(configs["read_config"])
         btls.set_sim_config(configs["sim_config"])
