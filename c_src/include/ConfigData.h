@@ -2,12 +2,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_CONFIGDATA_H__066A62BB_724D_469B_B540_6710541CE832__INCLUDED_)
-#define AFX_CONFIGDATA_H__066A62BB_724D_469B_B540_6710541CE832__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include "CSVParse.h"
 #include <vector>
@@ -107,9 +102,6 @@ public:
 		bool WRITE_EACH_EVENT;
 		int  WRITE_EVENT_BUFFER_SIZE;
 		bool WRITE_FATIGUE_EVENT;	
-		bool DO_FATIGUE_RAINFLOW;
-		int RAINFLOW_DECIMAL;
-		double RAINFLOW_CUTOFF;
 		
 		struct VehicleFile_Config
 		{
@@ -151,11 +143,20 @@ public:
 			int  WRITE_SS_BUFFER_SIZE;
 		} Stats;
 
-	} Output = {false, false, 1000, false, false, -1, 0.0,
+		struct Fatigue_Config
+		{
+			bool DO_FATIGUE_RAINFLOW;
+			int RAINFLOW_DECIMAL;
+			double RAINFLOW_CUTOFF;
+			int WRITE_RAINFLOW_BUFFER_SIZE;
+		} Fatigue;
+
+	} Output = {false, false, 1000, false,
 				{false,4,"vehicles.txt",1000,true}, // VehicleFile_Config
 				{true,false,false,false,1,0,1000},	// BlockMax_Config
 				{false,false,false,false,1,0,1000},	// POT_Config
-				{true,true,false,3600,1000} };		// Stats_Config
+				{true,true,false,3600,1000}, 		// Stats_Config
+				{false,-1,0.0,1000}};				// Fatigue_Config
 
 	struct Time_Config
 	{
@@ -179,8 +180,3 @@ private:
 	vector<double> GetVectorFromNextLine();
 
 };
-
-// the global config data object
-//CConfigData g_ConfigData;
-
-#endif // !defined(AFX_CONFIGDATA_H__066A62BB_724D_469B_B540_6710541CE832__INCLUDED_)

@@ -1,12 +1,4 @@
-// py_main.cpp
-// the main file for the PyBTLS Build
-
 #include "PrepareSim.h"
-
-
-//extern CConfigData g_ConfigData;
-using namespace std;
-
 
 vector<CBridge_sp> PrepareBridges()
 {
@@ -102,11 +94,9 @@ void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, ve
 	double nextTime = 0.0;
 	int curDay = (int)(SimStartTime/86400);
 	
-	cout << "Starting simulation..." << endl;
-	cout << "Day complete..." << endl;
+	std::cout << "Starting simulation..." << endl;
+	std::cout << "Day complete..." << endl;
 
-//#pragma omp parallel
-//	{
 	while (curTime <= SimEndTime)
 	{
 		//if(curTime >= 74821.73)
@@ -118,33 +108,24 @@ void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, ve
 			});
 		double NextArrivalTime = vLanes[0]->GetNextArrivalTime();
 
-		// generate the next vehicle from the lane with the next arrival time	
-		// see https://stackoverflow.com/questions/18565167/non-const-lvalue-references	
+		// generate the next vehicle from the lane with the next arrival time
 		const CVehicle_sp& pVeh = vLanes[0]->GetNextVehicle();
 		VehBuff.AddVehicle(pVeh);
 		if (CConfigData::get().Sim.CALC_LOAD_EFFECTS)
 		{
-//#pragma omp for
 			for (size_t i = 0; i < vBridges.size(); i++)
 			{
 				// update each bridge until the next vehicle comes on
 				vBridges[i]->Update(NextArrivalTime, curTime);
-				//vBridges[i]->UpdateMT(NextArrivalTime, curTime);
 				// Add the next vehicle to the bridge, if it is not a car
 				if (pVeh != nullptr && pVeh->getGVW() > CConfigData::get().Sim.MIN_GVW)
 					vBridges[i]->AddVehicle(pVeh);
 			}
-			//for(unsigned int i = 0; i < vBridges.size(); i++)
-			//	vBridges[i]->join();
 		}
 
 		// update the current time to that of the vehicle just added
-		// and delete it
 		if (pVeh != nullptr)
-		{
 			curTime = pVeh->getTime();
-			CVehicle_sp *pVeh = nullptr;
-		}
 		else	// finish
 			curTime = SimEndTime + 1.0;
 
@@ -152,12 +133,11 @@ void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, ve
 		if (curTime > (double)(86400)*(curDay + 1))
 		{
 			curDay += 1;
-			cout << curDay;
-			curDay % 10 == 0 ? cout << endl : cout << '\t';
+			std::cout << curDay;
+			curDay % 10 == 0 ? std::cout << std::endl : std::cout << '\t';
 		}
 	}
-//	}
-	cout << endl;
+	std::cout << std::endl;
 	
 	if(CConfigData::get().Sim.CALC_LOAD_EFFECTS)
 	{
@@ -167,8 +147,3 @@ void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, ve
 
 	VehBuff.FlushBuffer();
 }
-
-// bool lane_compare(const CLane_sp& pL1, const CLane_sp& pL2)
-// {
-// 	return pL1->GetNextArrivalTime() < pL2->GetNextArrivalTime();
-// }

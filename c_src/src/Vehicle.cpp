@@ -612,7 +612,7 @@ void CVehicle::setLocalLane(size_t lane)
 void CVehicle::setGlobalLane(size_t l, size_t nRoadLanes)
 {
 	// The passed in lane index is in 1-based cumulative lane numbering
-	// so comvert to local direction lane numbering
+	// so convert to local direction lane numbering
 	m_Lane = m_Dir == 1 ? l : nRoadLanes - l + 1;
 }
 

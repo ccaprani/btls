@@ -51,14 +51,11 @@ public:
 		CConfigData::get().Output = output_config;
 	};
 
-	void set_output_general_config (bool WRITE_TIME_HISTORY, bool WRITE_EACH_EVENT, int WRITE_EVENT_BUFFER_SIZE, bool WRITE_FATIGUE_EVENT, bool DO_FATIGUE_RAINFLOW, int RAINFLOW_DECIMAL, double RAINFLOW_CUTOFF) {
+	void set_output_general_config (bool WRITE_TIME_HISTORY, bool WRITE_EACH_EVENT, int WRITE_EVENT_BUFFER_SIZE, bool WRITE_FATIGUE_EVENT) {
 		CConfigData::get().Output.WRITE_TIME_HISTORY = WRITE_TIME_HISTORY;
 		CConfigData::get().Output.WRITE_EACH_EVENT = WRITE_EACH_EVENT;
 		CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE = WRITE_EVENT_BUFFER_SIZE;
 		CConfigData::get().Output.WRITE_FATIGUE_EVENT = WRITE_FATIGUE_EVENT;
-		CConfigData::get().Output.DO_FATIGUE_RAINFLOW = DO_FATIGUE_RAINFLOW;
-		CConfigData::get().Output.RAINFLOW_DECIMAL = RAINFLOW_DECIMAL;
-		CConfigData::get().Output.RAINFLOW_CUTOFF = RAINFLOW_CUTOFF;
 	};
 
 	void set_output_vehiclefile_config (CConfigData::Output_Config::VehicleFile_Config& output_vehiclefile_config) {
@@ -75,6 +72,10 @@ public:
 
 	void set_output_stats_config (CConfigData::Output_Config::Stats_Config& output_stats_config) {
 		CConfigData::get().Output.Stats = output_stats_config;
+	};
+
+	void set_output_fatigue_config (CConfigData::Output_Config::Fatigue_Config& output_fatigue_config) {
+		CConfigData::get().Output.Fatigue = output_fatigue_config;
 	};
 
 	void set_time_config (CConfigData::Time_Config& time_config) {
@@ -221,6 +222,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("set_output_blockmax_config", &BTLS::set_output_blockmax_config)
 			.def("set_output_pot_config", &BTLS::set_output_pot_config)
 			.def("set_output_stats_config", &BTLS::set_output_stats_config)
+			.def("set_output_fatigue_config", &BTLS::set_output_fatigue_config)
 			.def("set_time_config", &BTLS::set_time_config)
 			.def("set_program_mode", &BTLS::set_program_mode)
 			.def("run", py::overload_cast<string>(&BTLS::run), "To run BTLS by BTLSin.txt.", py::arg("file_BTLSin"))
@@ -276,18 +278,16 @@ PYBIND11_MODULE(_core, m) {
 				.def_readwrite("CALC_TIME_STEP", &CConfigData::Sim_Config::CALC_TIME_STEP)
 				.def_readwrite("MIN_GVW", &CConfigData::Sim_Config::MIN_GVW);
 		py::class_<CConfigData::Output_Config> output_config(cconfigdata, "Output_Config");
-			output_config.def(py::init<bool, bool, int, bool, bool, int, double, CConfigData::Output_Config::VehicleFile_Config, CConfigData::Output_Config::BlockMax_Config, CConfigData::Output_Config::POT_Config, CConfigData::Output_Config::Stats_Config>())
+			output_config.def(py::init<bool, bool, int, bool, CConfigData::Output_Config::VehicleFile_Config, CConfigData::Output_Config::BlockMax_Config, CConfigData::Output_Config::POT_Config, CConfigData::Output_Config::Stats_Config, CConfigData::Output_Config::Fatigue_Config>())
 				.def_readwrite("WRITE_TIME_HISTORY", &CConfigData::Output_Config::WRITE_TIME_HISTORY)
 				.def_readwrite("WRITE_EACH_EVENT", &CConfigData::Output_Config::WRITE_EACH_EVENT)
 				.def_readwrite("WRITE_EVENT_BUFFER_SIZE", &CConfigData::Output_Config::WRITE_EVENT_BUFFER_SIZE)
 				.def_readwrite("WRITE_FATIGUE_EVENT", &CConfigData::Output_Config::WRITE_FATIGUE_EVENT)
-				.def_readwrite("DO_FATIGUE_RAINFLOW", &CConfigData::Output_Config::DO_FATIGUE_RAINFLOW)
-				.def_readwrite("RAINFLOW_DECIMAL", &CConfigData::Output_Config::RAINFLOW_DECIMAL)
-				.def_readwrite("RAINFLOW_CUTOFF", &CConfigData::Output_Config::RAINFLOW_CUTOFF)
 				.def_readwrite("VehicleFile", &CConfigData::Output_Config::VehicleFile)
 				.def_readwrite("BlockMax", &CConfigData::Output_Config::BlockMax)
 				.def_readwrite("POT", &CConfigData::Output_Config::POT)
-				.def_readwrite("Stats", &CConfigData::Output_Config::Stats);
+				.def_readwrite("Stats", &CConfigData::Output_Config::Stats)
+				.def_readwrite("Fatigue", &CConfigData::Output_Config::Fatigue);
 			py::class_<CConfigData::Output_Config::VehicleFile_Config> vehiclefile_config(output_config, "VehicleFile_Config");
 				vehiclefile_config.def(py::init<bool, unsigned int, string, int, bool>())
 					.def_readwrite("WRITE_VEHICLE_FILE", &CConfigData::Output_Config::VehicleFile_Config::WRITE_VEHICLE_FILE)
@@ -320,6 +320,12 @@ PYBIND11_MODULE(_core, m) {
 					.def_readwrite("WRITE_SS_INTERVALS", &CConfigData::Output_Config::Stats_Config::WRITE_SS_INTERVALS)
 					.def_readwrite("WRITE_SS_INTERVAL_SIZE", &CConfigData::Output_Config::Stats_Config::WRITE_SS_INTERVAL_SIZE)
 					.def_readwrite("WRITE_SS_BUFFER_SIZE", &CConfigData::Output_Config::Stats_Config::WRITE_SS_BUFFER_SIZE);
+			py::class_<CConfigData::Output_Config::Fatigue_Config> fatigue_config(output_config, "Fatigue_Config");
+				fatigue_config.def(py::init<bool, int, double, int>())
+					.def_readwrite("DO_FATIGUE_RAINFLOW", &CConfigData::Output_Config::Fatigue_Config::DO_FATIGUE_RAINFLOW)
+					.def_readwrite("RAINFLOW_DECIMAL", &CConfigData::Output_Config::Fatigue_Config::RAINFLOW_DECIMAL)
+					.def_readwrite("RAINFLOW_CUTOFF", &CConfigData::Output_Config::Fatigue_Config::RAINFLOW_CUTOFF)
+					.def_readwrite("WRITE_RAINFLOW_BUFFER_SIZE", &CConfigData::Output_Config::Fatigue_Config::WRITE_RAINFLOW_BUFFER_SIZE);
 		py::class_<CConfigData::Time_Config> time_config(cconfigdata, "Time_Config");
 			time_config.def(py::init<int, int, int, int, int, int>())
 				.def_readwrite("DAYS_PER_MT", &CConfigData::Time_Config::DAYS_PER_MT)

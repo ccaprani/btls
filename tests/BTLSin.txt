@@ -12,7 +12,7 @@
 // TRAFFIC GENERATION PARAMETERS
 // ---------------------------------------------
 // No. of days of traffic simulation:
-1
+3
 // Location of Traffic folders
 ../Traffic/Auxerre
 // Default truck track width (cm)
@@ -21,10 +21,10 @@
 0
 // Vehicle Generation Model to be used
 // (0 - Grave, 1 - Constant, 2 - Garage)
-0
+2
 // Headway model to be used:
 // (0 - Auxerre NHM, 1 - Constant, 5 - Congestion (w/ or w/out cars), 6 - free-flow, cars included)
-0
+6
 // Traffic Classification System to be used:
 // (0 - No. of Axles, 1 - Axle Pattern)
 1
@@ -90,12 +90,16 @@ IS.txt
 10000
 // Write a fatigue event file (1 or 0)
 0
+// FATIGUE RAINFLOW FILE
+// ---------------------------------------------
 // Conduct Rainflow algorithm for fatigue (1 or 0)
 1
-// Number of decimal left for Rainflow algorithm
-3
+// Number of decimals left for Rainflow algorithm
+5
 // Cutoff value for Fatigue
-5.0
+2.0
+// Rainflow-out file buffer size
+100000
 //
 // VEHICLE FILE
 // ---------------------------------------------
@@ -103,13 +107,13 @@ IS.txt
 // WARNING: a large file may result in long-run simulations
 0
 // Traffic output file format (CASTOR - 1, BeDIT - 2, DITIS - 3, MON - 4):
-2
+4
 // Vehicle file name
 Vehicle.txt
 // Vehicle file buffer size
 100000
 // Write vehicle file flow statistics (1 or 0)
-0
+1
 //
 // BLOCK MAXIMUM LOAD EFFECTS
 // ---------------------------------------------

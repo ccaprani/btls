@@ -78,12 +78,7 @@ void CVehModelDataConstant::readConstant()
 
 void CVehModelDataConstant::makeNominalVehicle()
 {
-    m_pNominalVehicle = std::make_shared<CVehicle>(); //new CVehicle;
-
-    // assign general properties
-    m_pNominalVehicle->setLaneEccentricity(0.0);
-    m_pNominalVehicle->setTrns(0.0); // m 0 for generated vehicles
-    m_pNominalVehicle->setHead(1001);
+    m_pNominalVehicle = std::make_shared<CVehicle>();
 }
 
 void CVehModelDataConstant::getCoVs(double& CoV_AS, double& CoV_AW)

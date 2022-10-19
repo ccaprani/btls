@@ -18,11 +18,7 @@ CVehicleGenGrave::~CVehicleGenGrave()
 
 void CVehicleGenGrave::GenerateVehicle(CVehicle_sp pVeh)
 {
-	// assign general properties
-	double ecc = m_RNG.GenerateNormal(0.0, m_pVMD->getLaneEccStd());
-	pVeh->setLaneEccentricity(ecc);
-	pVeh->setTrns(0.0); // m 0 for generated vehicles
-	pVeh->setHead(1001);
+	CVehicleGenerator::GenerateVehicle(pVeh);
 
 	// determine type of vehicle
 	if (NextVehicleIsCar())

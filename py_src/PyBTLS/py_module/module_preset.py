@@ -47,14 +47,14 @@ class Settings:
         output_config_BlockMax = ConfigData.Output_Config.BlockMax_Config(False,True,True,True,1,0,buffer_size)
         output_config_POT = ConfigData.Output_Config.POT_Config(False,True,True,True,1,0,buffer_size)
         output_config_Stats = ConfigData.Output_Config.Stats_Config(False,True,True,3600,buffer_size)
+        output_config_Fatigue = ConfigData.Output_Config.Fatigue_Config(False,3,0.0,buffer_size)
         if BlockMax:
             output_config_BlockMax.WRITE_BM = True
         if POT:
             output_config_POT.WRITE_POT = True
         if Stats:
             output_config_Stats.WRITE_STATS = True
-        output_config = ConfigData.Output_Config(False,False,buffer_size,False,False,3,0.0,output_config_VehicleFile,output_config_BlockMax,output_config_POT,output_config_Stats)
         if Fatigue:
-            output_config.WRITE_TIME_HISTORY = True
-            output_config.DO_FATIGUE_RAINFLOW = True
+            output_config_Fatigue.DO_FATIGUE_RAINFLOW = True
+        output_config = ConfigData.Output_Config(False,False,buffer_size,False,output_config_VehicleFile,output_config_BlockMax,output_config_POT,output_config_Stats,output_config_Fatigue)
         return output_config

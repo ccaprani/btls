@@ -5,8 +5,6 @@
 #include "VehicleGenerator.h"
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -39,6 +37,15 @@ CVehicle_sp CVehicleGenerator::Generate(size_t iHour)
 	GenerateVehicle(pVeh);
 
 	return pVeh;
+}
+
+void CVehicleGenerator::GenerateVehicle(CVehicle_sp pVeh)
+{
+	// assign general properties, the same for all Vehicle Models
+	double ecc = m_RNG.GenerateNormal(0.0, m_pVehModelData->getLaneEccStd());
+	pVeh->setLaneEccentricity(ecc);
+	pVeh->setTrns(0.0); // m 0 for generated vehicles
+	pVeh->setHead(1001);
 }
 
 bool CVehicleGenerator::NextVehicleIsCar()
