@@ -32,7 +32,7 @@ private:
     bool m_WriteHeadLine;
     size_t m_EventCount;
     
-    size_t RAINFLOW_DECIMAL;
+    int RAINFLOW_DECIMAL;
     double RAINFLOW_CUTOFF;
 };
 
