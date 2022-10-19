@@ -21,7 +21,7 @@ public:
 	virtual void update(CFlowModelData_sp pFMD);
 
 protected:
-	virtual void GenerateVehicle(CVehicle_sp pVeh) = 0;
+	virtual void GenerateVehicle(CVehicle_sp pVeh);
 	virtual size_t GenVehClass() = 0;
 	
 	void GenerateCar(CVehicle_sp pVeh);

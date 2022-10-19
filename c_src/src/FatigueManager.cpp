@@ -3,10 +3,11 @@
 
 
 CFatigueManager::CFatigueManager(void) {
-    m_noDecimal = CConfigData::get().Output.Fatigue.RAINFLOW_DECIMAL;
-    m_cutOffValue = CConfigData::get().Output.Fatigue.RAINFLOW_CUTOFF;
-    WRITE_BUFFER_SIZE = CConfigData::get().Output.Fatigue.WRITE_RAINFLOW_BUFFER_SIZE;
-    m_writeHeadLine = true;
+    RAINFLOW_DECIMAL    = CConfigData::get().Output.Fatigue.RAINFLOW_DECIMAL;
+    RAINFLOW_CUTOFF     = CConfigData::get().Output.Fatigue.RAINFLOW_CUTOFF;
+    WRITE_BUFFER_SIZE   = CConfigData::get().Output.Fatigue.WRITE_RAINFLOW_BUFFER_SIZE;
+
+    m_WriteHeadLine = true;
     m_EventCount = 0;
 }
 
@@ -47,7 +48,7 @@ void CFatigueManager::Update()
 // run rainflow for each load event of the bridge
 void CFatigueManager::doRainflow(std::vector< std::vector<double> >& signalData) {
     for (size_t i = 0; i < m_NoLoadEffects; i++) {
-        std::vector< std::pair<double, double> > rainflowOut = m_RainflowAlg.countCycles(signalData[i], m_noDecimal);
+        std::vector< std::pair<double, double> > rainflowOut = m_RainflowAlg.countCycles(signalData[i], RAINFLOW_DECIMAL);
         countRainflow(rainflowOut,i);
     }
     m_EventCount++;
@@ -56,7 +57,7 @@ void CFatigueManager::doRainflow(std::vector< std::vector<double> >& signalData)
 // count the rainflow output from doRainflow()
 void CFatigueManager::countRainflow(std::vector< std::pair<double, double> >& rainflowOut, size_t i) {
     for (size_t j = 0; j < rainflowOut.size(); j++) {
-        if (rainflowOut[j].first >= m_cutOffValue) {
+        if (rainflowOut[j].first >= RAINFLOW_CUTOFF) {
             m_RainflowOutCount[i][rainflowOut[j].first] += rainflowOut[j].second;
         }
     }
@@ -75,7 +76,7 @@ void CFatigueManager::WriteBuffer() {
         std::string file;
         file = "RC_" + to_string(m_BridgeLength) + "_" + to_string(i+1) + ".txt";
         std::ostringstream oStr;
-        if (m_writeHeadLine) {
+        if (m_WriteHeadLine) {
             m_RainflowOutFile.open(file.c_str(),std::ios::out);
             oStr.width(15);   oStr << "Amplitude";
             oStr.width(15);   oStr << "No. Cycles"; 
@@ -86,13 +87,13 @@ void CFatigueManager::WriteBuffer() {
             m_RainflowOutFile.open(file.c_str(),std::ios::app);
         }
         for (iter = m_RainflowOutCount[i].begin(); iter != m_RainflowOutCount[i].end(); iter++) {
-            oStr.width(15);   oStr << std::fixed << std::setprecision(m_noDecimal) << iter->first;
+            oStr.width(15);   oStr << std::fixed << std::setprecision(RAINFLOW_DECIMAL) << iter->first;
             oStr.width(10);   oStr << std::fixed << std::setprecision(1) << iter->second;
             m_RainflowOutFile << oStr.str() << '\n';
             oStr.str("");  // clear the stringstream
         }
         m_RainflowOutFile.close();
     }
-    m_writeHeadLine = false;
+    m_WriteHeadLine = false;
     cleanRainflowOutCountValues();
 }

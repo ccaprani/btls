@@ -2,12 +2,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_CONFIGDATA_H__066A62BB_724D_469B_B540_6710541CE832__INCLUDED_)
-#define AFX_CONFIGDATA_H__066A62BB_724D_469B_B540_6710541CE832__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include "CSVParse.h"
 #include <vector>
@@ -185,8 +180,3 @@ private:
 	vector<double> GetVectorFromNextLine();
 
 };
-
-// the global config data object
-//CConfigData g_ConfigData;
-
-#endif // !defined(AFX_CONFIGDATA_H__066A62BB_724D_469B_B540_6710541CE832__INCLUDED_)

@@ -20,6 +20,7 @@ CEventManager::CEventManager()
 	WRITE_BM	= CConfigData::get().Output.BlockMax.WRITE_BM;
 	WRITE_POT	= CConfigData::get().Output.POT.WRITE_POT;
 	WRITE_STATS = CConfigData::get().Output.Stats.WRITE_STATS;
+	
 	DO_FATIGUE_RAINFLOW = CConfigData::get().Output.Fatigue.DO_FATIGUE_RAINFLOW;
 
 	m_NoEvents = 0;

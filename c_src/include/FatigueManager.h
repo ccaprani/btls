@@ -25,13 +25,14 @@ private:
     void doRainflow(std::vector< std::vector<double> >& signalData);
     void countRainflow(std::vector< std::pair<double, double> >& rainflowOut, size_t i);
 
+    CRainflow m_RainflowAlg;
     std::ofstream m_RainflowOutFile;
     std::vector< std::vector<double> >  m_LoadEffectValues;
     std::vector< std::map<double, double> > m_RainflowOutCount;
-    CRainflow m_RainflowAlg;
-    int m_noDecimal;
-    double m_cutOffValue;
-    bool m_writeHeadLine;
-    int m_EventCount;
+    bool m_WriteHeadLine;
+    size_t m_EventCount;
+    
+    size_t RAINFLOW_DECIMAL;
+    double RAINFLOW_CUTOFF;
 };
 

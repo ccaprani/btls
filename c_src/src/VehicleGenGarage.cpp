@@ -19,15 +19,11 @@ CVehicleGenGarage::~CVehicleGenGarage()
 
 void CVehicleGenGarage::GenerateVehicle(CVehicle_sp pVeh)
 {
+	CVehicleGenerator::GenerateVehicle(pVeh);
+	
 	// determine type of vehicle
 	if (NextVehicleIsCar())
-	{
-		// General properties fpr Nominal Vehicle already assigned
-		pVeh->setLaneEccentricity(0.0);
-		pVeh->setTrns(0.0); // m 0 for generated vehicles
-		pVeh->setHead(1001);
 		GenerateCar(pVeh);
-	}
 	else
 	{
 		// Randomly pick a vehicle from the garage
