@@ -97,23 +97,23 @@ class _ListLike():
         return "ERROR: One or more values supplied is not of acceptable type: " + self.__setitem_acceptable_type__.__qualname__
 
     def __delitem__(self, key):
-        del self._lane_flow[key]
+        del eval("self." + self.__primarykey__)[key]
 
     def __getitem__(self, key):
         return eval("self." + self.__primarykey__)[key]
 
-    def __setitem__(self, key, lane_flow):
-        if not isinstance(lane_flow, self.__setitem_acceptable_type__):
+    def __setitem__(self, key, value):
+        if not isinstance(value, self.__setitem_acceptable_type__):
             raise TypeError(self.__setitem_err_msg__)
-        self._lane_flow[key] = lane_flow
+        eval("self." + self.__primarykey__)[key] = value
 
     def __str__(self):
         qualname = type(self).__qualname__
-        return f"{len(self._lane_flow)} {self.__str_quantifier__} {qualname} object at {hex(id(self))}"
+        return f"{len(eval('self.' + self.__primarykey__))} {self.__str_quantifier__} {qualname} object at {hex(id(self))}"
 
     def __repr__(self):
         qualname = type(self).__qualname__
-        name = [lf.__str__() for lf in self.lane_flow]
+        name = [attr.__str__() for attr in eval('self.' + self.__primarykey__)]
         name =  name.__str__().replace(',', ',\n').replace("'", "")
 
-        return f"{len(self._lane_flow)} {self.__str_quantifier__} {qualname} object at {hex(id(self))}\n{name}"
+        return f"{len(eval('self.' + self.__primarykey__))} {self.__str_quantifier__} {qualname} object at {hex(id(self))}\n{name}"

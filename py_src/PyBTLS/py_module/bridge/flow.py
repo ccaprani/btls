@@ -168,3 +168,14 @@ class BridgeFlow(_ListLike):
     @property
     def __str_quantifier__(self):
         return "lane(s)"
+
+    def __str__(self):
+        qualname = type(self).__qualname__
+        return f"{len(self._lane_flow)} {self.__str_quantifier__} {qualname} object at {hex(id(self))}"
+
+    def __repr__(self):
+        qualname = type(self).__qualname__
+        name = [lf.__str__() for lf in self.lane_flow]
+        name =  name.__str__().replace(',', ',\n').replace("'", "")
+
+        return f"{len(self._lane_flow)} {self.__str_quantifier__} {qualname} object at {hex(id(self))}\n{name}"
