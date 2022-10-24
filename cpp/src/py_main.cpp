@@ -390,9 +390,11 @@ PYBIND11_MODULE(_core, m) {
 			.def_readwrite("m_Desc", &Classification::m_Desc);
 	py::class_<CVehicleClassification, CVehicleClassification_sp> cvehicleclassification(m, "VehicleClassification");
 	py::class_<CVehClassAxle, CVehicleClassification, CVehClassAxle_sp> cvehclassaxle(m, "VehClassAxle");
-		cvehclassaxle.def(py::init<>());
+		cvehclassaxle.def(py::init<>())
+			.def("set_classification", &CVehClassAxle::setClassification, py::arg("vehicle"));
 	py::class_<CVehClassPattern, CVehicleClassification, CVehClassPattern_sp> cvehclasspattern(m, "VehClassPattern");
-		cvehclasspattern.def(py::init<>());
+		cvehclasspattern.def(py::init<>())
+			.def("set_classification", &CVehClassPattern::setClassification, py::arg("vehicle"));
 	py::class_<CBridge, CBridge_sp> cbridge(m, "Bridge");
 	py::class_<CBridgeLane> cbridgelane(m, "BridgeLane");
 	py::class_<CInfluenceLine> cinfluenceline(m, "InfluenceLine");
