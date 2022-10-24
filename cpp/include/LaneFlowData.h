@@ -12,6 +12,7 @@ public:
 	virtual ~CLaneFlowData();
 
 	virtual void ReadDataIn();
+	virtual void ReadDataIn(std::string lanes_file);
 	
 	CLaneFlowComposition getLaneComp(size_t i) const;
 

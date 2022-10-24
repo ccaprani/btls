@@ -427,6 +427,9 @@ PYBIND11_MODULE(_core, m) {
 	py::class_<CFlowGenConstant, CFlowGenerator, CFlowGenConstant_sp> cflowgenconstant(m, "FlowGenConstant");
 	py::class_<CModelData, CModelData_sp> cmodeldata(m, "ModelData");
 	py::class_<CLaneFlowData, CModelData, CLaneFlowData_sp> claneflowdata(m, "LaneFlowData");
+		claneflowdata.def(py::init<>())
+			.def("read_data_in", py::overload_cast<string>(&CLaneFlowData::ReadDataIn), py::arg("lanes_file"))
+			.def("get_lane_composition", &CLaneFlowData::getLaneComp, py::arg("lane_index"));
 	py::class_<CFlowModelData, CModelData, CFlowModelData_sp> cflowmodeldata(m, "FlowModelData");
 	py::class_<CFlowModelDataNHM, CFlowModelData, CFlowModelDataNHM_sp> cflowmodeldatanhm(m, "FlowModelDataNHM");
 	py::class_<CFlowModelDataCongested, CFlowModelData, CFlowModelDataCongested_sp> cflowmodeldatacongested(m, "FlowModelDataCongested");
@@ -438,6 +441,8 @@ PYBIND11_MODULE(_core, m) {
 	py::class_<CVehicleGenerator, CGenerator, CVehicleGenerator_sp> cvehiclegenerator(m, "VehicleGenerator");
 	py::class_<CVehicleGenConstant, CVehicleGenerator, CVehicleGenConstant_sp> cvehiclegenconstant(m, "VehicleGenConstant");
 	py::class_<CVehicleGenGarage, CVehicleGenerator, CVehicleGenGarage_sp> cvehiclegengarage(m, "VehicleGenGarage");
+		cvehiclegengarage.def(py::init<CVehModelDataGarage_sp>(), py::arg("vehicle_model_data"))
+			.def("generator", &CVehicleGenGarage::Generate, py::arg("lane_block"));
 	py::class_<CVehicleGenGrave, CVehicleGenerator, CVehicleGenGrave_sp> cvehiclegengrave(m, "VehicleGenGrave");
 	py::class_<CVehicleModelData, CModelData, CVehicleModelData_sp> cvehiclemodeldata(m, "VehicleModelData");
 	py::class_<CVehicleTrafficFile> cvehicletrafficfile(m, "VehicleTrafficFile");
@@ -447,6 +452,10 @@ PYBIND11_MODULE(_core, m) {
 			.def("get_vehicles", &CVehicleTrafficFile::getVehicles);
 	py::class_<CVehModelDataConstant, CVehicleModelData, CVehModelDataConstant_sp> cvehmodeldataconstant(m, "VehModelDataConstant");
 	py::class_<CVehModelDataGarage, CVehicleModelData, CVehModelDataGarage_sp> cvehmodeldatagarage(m, "VehModelDataGarage");
+			cvehmodeldatagarage.def(py::init<CVehicleClassification_sp, CLaneFlowComposition>(), py::arg("vehicle_classification"), py::arg("lane_flow_composition"))
+			.def("read_garage", py::overload_cast<string>(&CVehModelDataGarage::readGarage), py::arg("garage_file"))
+			.def("assign_garage", &CVehModelDataGarage::assignGarage, py::arg("vehicle_list"))
+			.def("read_kernel", py::overload_cast<string>(&CVehModelDataGarage::readKernels), py::arg("kernel_file"));
 	py::class_<CVehModelDataGrave, CVehicleModelData, CVehModelDataGrave_sp> cvehmodeldatagrave(m, "VehModelDataGrave");
 	// py::class_<Normal> normal(m, "Normal");
 	// py::enum_<EFlowModel>(m, "EFlowModel").export_values();

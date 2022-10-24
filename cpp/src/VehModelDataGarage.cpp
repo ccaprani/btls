@@ -28,9 +28,19 @@ void CVehModelDataGarage::ReadDataIn()
 
 void CVehModelDataGarage::readGarage()
 {
+	filesystem::path file = CConfigData::get().Read.GARAGE_FILE;
+	extractGarage(file);
+}
+
+void CVehModelDataGarage::readGarage(std::string garage_file)
+{
+	filesystem::path file = garage_file;
+	extractGarage(file);
+}
+
+void CVehModelDataGarage::extractGarage(filesystem::path file) {
 	CVehicleTrafficFile TrafficFile(m_pVehClassification, false, false, 0.0);
 	std::cout << "Reading traffic garage file..." << std::endl;
-	filesystem::path file = CConfigData::get().Read.GARAGE_FILE;
 	TrafficFile.Read(file.string(), CConfigData::get().Read.FILE_FORMAT);
 
 	m_NoVehicles = TrafficFile.getNoVehicles();
@@ -40,12 +50,31 @@ void CVehModelDataGarage::readGarage()
 	m_vVehicles = TrafficFile.getVehicles();
 }
 
+void CVehModelDataGarage::assignGarage(std::vector<CVehicle_sp> vVehicles)
+{
+	m_NoVehicles = vVehicles.size();
+	if (m_NoVehicles == 0)
+		std::cout << "****ERROR: no vehicles in traffic garage file" << std::endl;
+
+	m_vVehicles = vVehicles;
+}
+
 void CVehModelDataGarage::readKernels()
 {
 	filesystem::path file = CConfigData::get().Read.KERNEL_FILE;
-	if (!m_CSV.OpenFile(file.string(), ","))
+	extractKernels(file);
+}
+
+void CVehModelDataGarage::readKernels(std::string kernel_file)
+{
+	filesystem::path file = kernel_file;
+	extractKernels(file);
+}
+
+void CVehModelDataGarage::extractKernels(filesystem::path kernel_file) {
+	if (!m_CSV.OpenFile(kernel_file.string(), ","))
 		std::cerr << "***WARNING: Kernel file " 
-				  << std::filesystem::weakly_canonical(file) 
+				  << std::filesystem::weakly_canonical(kernel_file) 
 				  << " could not be opened, using defaults" << endl;
 	else
 	{

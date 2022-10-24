@@ -26,6 +26,13 @@ void CLaneFlowData::ReadDataIn()
 	SetRoadProperties();
 }
 
+void CLaneFlowData::ReadDataIn(std::string lanes_file)
+{
+	filesystem::path file = lanes_file;
+	ReadLaneFlow(file.string());
+	SetRoadProperties();
+}
+
 void CLaneFlowData::ReadLaneFlow(std::string file)
 {
 	if (!m_CSV.OpenFile(file, ","))
