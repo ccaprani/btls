@@ -335,10 +335,64 @@ PYBIND11_MODULE(_core, m) {
 				.def_readwrite("MINS_PER_HOUR", &CConfigData::Time_Config::MINS_PER_HOUR)
 				.def_readwrite("SECS_PER_MIN", &CConfigData::Time_Config::SECS_PER_MIN);
 	py::class_<CVehicle, CVehicle_sp> cvehicle(m, "Vehicle");
+		cvehicle.def(py::init<>())
+			.def("is_car", &CVehicle::IsCar)
+			.def("__lt__", &CVehicle::operator<, py::arg("another_vehicle"))
+			.def("set_head", &CVehicle::setHead, py::arg("head"))
+			.def("write", &CVehicle::Write, py::arg("file_type"))
+			.def("create", &CVehicle::create, py::arg("str"), py::arg("format"))
+			.def("set_time", &CVehicle::setTime, py::arg("time"))
+			.def("set_length", &CVehicle::setLength, py::arg("length"))
+			.def("set_velocity", &CVehicle::setVelocity, py::arg("velocity"))
+			.def("set_local_lane", &CVehicle::setLocalLane, py::arg("lane_index"))
+			.def("set_global_lane", &CVehicle::setGlobalLane, py::arg("lane_index"), py::arg("no_road_lanes"))
+			.def("set_direction", &CVehicle::setDirection, py::arg("direction"))
+			.def("set_gvw", &CVehicle::setGVW, py::arg("weight"))
+			.def("set_no_axles", &CVehicle::setNoAxles, py::arg("no_axles"))
+			.def("set_axle_weight", &CVehicle::setAW, py::arg("axle_index"), py::arg("weight"))
+			.def("set_axle_spacing", &CVehicle::setAS, py::arg("axle_index"), py::arg("spacing"))
+			.def("set_axle_width", &CVehicle::setAT, py::arg("axle_index"), py::arg("width"))
+			.def("set_trans", &CVehicle::setTrns, py::arg("trans_position"))
+			.def("set_bridge_times", &CVehicle::setBridgeTimes, py::arg("bridge_length"))
+			.def("set_time_on_bridge", &CVehicle::setTimeOnBridge, py::arg("bridge_length"))
+			.def("set_no_bridge_lanes", &CVehicle::setBridgeLaneNo, py::arg("mp_bridge_lanes"))
+			.def("set_track_width", &CVehicle::setTrackWidth, py::arg("truck_width"))
+			.def("set_lane_eccentricity", &CVehicle::setLaneEccentricity, py::arg("eccentricity"))
+			.def("set_class", &CVehicle::setClass, py::arg("vehicle_class"))
+			.def("get_time_str", &CVehicle::getTimeStr)
+			.def("get_head", &CVehicle::getHead)
+			.def("get_time", &CVehicle::getTime)
+			.def("get_length", &CVehicle::getLength)
+			.def("get_velocity", &CVehicle::getVelocity)
+			.def("get_local_lane", &CVehicle::getLocalLane)
+			.def("get_global_lane", &CVehicle::getGlobalLane, py::arg("no_road_lanes"))
+			.def("get_direction", &CVehicle::getDirection)
+			.def("get_gvw", &CVehicle::getGVW)
+			.def("get_no_axles", &CVehicle::getNoAxles)
+			.def("get_axle_weight", &CVehicle::getAW, py::arg("axle_index"))
+			.def("get_axle_spacing", &CVehicle::getAS, py::arg("axle_index"))
+			.def("get_axle_width", &CVehicle::getAT, py::arg("axle_index"))
+			.def("get_trans", &CVehicle::getTrans)
+			.def("get_time_on_bridge", &CVehicle::getTimeOnBridge)
+			.def("get_time_off_bridge", &CVehicle::getTimeOffBridge)
+			.def("is_on_bridge", &CVehicle::IsOnBridge, py::arg("at_time"))
+			.def("get_no_bridge_lanes", &CVehicle::getBridgeLaneNo)
+			.def("get_track_width", &CVehicle::getTrackWidth)
+			.def("get_lane_eccentricity", &CVehicle::getLaneEccentricity)
+			.def("get_class", &CVehicle::getClass);
 	py::class_<Classification> classification(m, "Classification");
+		classification.def(py::init<size_t, string>(), py::arg("index"), py::arg("desc"))
+			.def(py::init<size_t,string, string>(), py::arg("index"), py::arg("str"), py::arg("desc"))
+			.def("__eq__", &Classification::operator==, py::arg("another_classification"))
+			.def("tie", &Classification::tie)
+			.def_readwrite("m_ID", &Classification::m_ID)
+			.def_readwrite("m_String", &Classification::m_String)
+			.def_readwrite("m_Desc", &Classification::m_Desc);
 	py::class_<CVehicleClassification, CVehicleClassification_sp> cvehicleclassification(m, "VehicleClassification");
 	py::class_<CVehClassAxle, CVehicleClassification, CVehClassAxle_sp> cvehclassaxle(m, "VehClassAxle");
+		cvehclassaxle.def(py::init<>());
 	py::class_<CVehClassPattern, CVehicleClassification, CVehClassPattern_sp> cvehclasspattern(m, "VehClassPattern");
+		cvehclasspattern.def(py::init<>());
 	py::class_<CBridge, CBridge_sp> cbridge(m, "Bridge");
 	py::class_<CBridgeLane> cbridgelane(m, "BridgeLane");
 	py::class_<CInfluenceLine> cinfluenceline(m, "InfluenceLine");
@@ -387,6 +441,10 @@ PYBIND11_MODULE(_core, m) {
 	py::class_<CVehicleGenGrave, CVehicleGenerator, CVehicleGenGrave_sp> cvehiclegengrave(m, "VehicleGenGrave");
 	py::class_<CVehicleModelData, CModelData, CVehicleModelData_sp> cvehiclemodeldata(m, "VehicleModelData");
 	py::class_<CVehicleTrafficFile> cvehicletrafficfile(m, "VehicleTrafficFile");
+		cvehicletrafficfile.def(py::init<CVehicleClassification_sp, bool, bool, double>(), py::arg("vehicle_classification"), py::arg("use_const_speed"), py::arg("use_ave_speed"), py::arg("const_speed_value"))
+			.def("read", &CVehicleTrafficFile::Read, py::arg("file"), py::arg("format"))
+			.def("get_no_vehicles", &CVehicleTrafficFile::getNoVehicles)
+			.def("get_vehicles", &CVehicleTrafficFile::getVehicles);
 	py::class_<CVehModelDataConstant, CVehicleModelData, CVehModelDataConstant_sp> cvehmodeldataconstant(m, "VehModelDataConstant");
 	py::class_<CVehModelDataGarage, CVehicleModelData, CVehModelDataGarage_sp> cvehmodeldatagarage(m, "VehModelDataGarage");
 	py::class_<CVehModelDataGrave, CVehicleModelData, CVehModelDataGrave_sp> cvehmodeldatagrave(m, "VehModelDataGrave");
