@@ -1,1 +1,1 @@
-from cpp._core import *
+from PyBTLS.cpp._core import *
