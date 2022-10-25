@@ -12,7 +12,7 @@ r"""
 """
 
 def from_2darray_to_string(ndarray, delimiter = ",", eol_char = "\n"):
-    return eol_char.join(item for item in [delimiter.join(item) for item in ndarray.astype(str)]) + "\n"
+    return eol_char.join(item for item in [delimiter.join(item) for item in ndarray.astype(str)])
 
 
 r"""

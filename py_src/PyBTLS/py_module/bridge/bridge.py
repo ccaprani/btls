@@ -105,7 +105,7 @@ class Bridge():
                 xy = from_2darray_to_string(np.vstack((il[0], il[1])).T)
                 #Add to the IL text
                 #ilt += LE ID, Number of pt in this LE; xy coordinates of IL
-                ilt += str(custom_le_id) + "," + str(len(il[0])) + "\n" + xy
+                ilt += str(custom_le_id) + "," + str(len(il[0])) + "\n" + xy + "\n"
         
         #At the end, append the number of IL in the IL file
         ilt = str(custom_le_id) + "\n" + ilt
