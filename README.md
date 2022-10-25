@@ -1,22 +1,3 @@
-# BTLS Parallel Branch
-By Akbar
-
-Added modules to:
-1. Define bridge and traffic
-2. Perform analysis in single or parallel
-3. Extract BTLS output neatly into Pandas DataFrame, ready for analysis
-
-These modules eliminates the need for the user to interact with the .txt files. All can be done in Python using OOP syntaxes.
-For an example, see in the folder tests/Example analysis of block maxima.ipynb
-
-To Do:
-- Convert grave_traffic files into one that is editable using Pandas DataFrame syntaxing
-- Importing of all simulation outputs. Only several are supported right now. This is only a matter of coding the txt parser.
-- Saving and loading functionalities. Pickle module somewhat works for now, but it doesn't save some attributes/properties. See the example file.
-
-Please reach out if you have any comments, questions, suggestions, etc.
-
-
 # BTLS
 
 **Bridge Traffic Load Simulation by Colin Caprani (Modified by Ziyi Zhou).**
