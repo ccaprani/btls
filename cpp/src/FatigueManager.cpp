@@ -11,6 +11,15 @@ CFatigueManager::CFatigueManager(void) {
     m_EventCount = 0;
 }
 
+CFatigueManager::CFatigueManager(CPyConfigData& pyConfig) {
+    RAINFLOW_DECIMAL    = pyConfig.Output_Fatigue_RAINFLOW_DECIMAL;
+    RAINFLOW_CUTOFF     = pyConfig.Output_Fatigue_RAINFLOW_CUTOFF;
+    WRITE_BUFFER_SIZE   = pyConfig.Output_Fatigue_WRITE_RAINFLOW_BUFFER_SIZE;
+
+    m_WriteHeadLine = true;
+    m_EventCount = 0;
+}
+
 CFatigueManager::~CFatigueManager(void)
 {
 }

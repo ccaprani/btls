@@ -10,6 +10,7 @@
 #endif // _MSC_VER > 1000
 
 #include "Effect.h"
+#include "PyConfigData.h"
 #include <string>
 #include <vector>
 #include <fstream>
@@ -20,6 +21,7 @@ class CEvent
 {
 public:
 	CEvent();
+	CEvent(CPyConfigData& pyConfig);
 	CEvent(size_t);
 	CEvent(size_t, size_t noEffects);
 	virtual ~CEvent();
@@ -47,6 +49,8 @@ public:
 	void		writeEffect(size_t k, std::string file, bool trucks);
 	void		writeToFile(std::string file);
 	void		AddSingleEffect(CEffect effect);
+
+	void		reSet();
 	
 	std::vector<CEffect> m_vMaxEffects;
 	std::vector<CEffect> m_vMinEffects;

@@ -14,10 +14,23 @@ CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine>
 	ReadBridges(file.string(), vDiscreteIL, vInfSurf);
 }
 
+CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, CPyConfigData& pyConfig)
+{
+	m_CommentString = "//";
+	vector<CInfluenceLine> vInfSurf; // create blank vector
+	ReadBridges(file.string(), vDiscreteIL, vInfSurf, pyConfig);
+}
+
 CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf)
 {
 	m_CommentString = "//";
 	ReadBridges(file.string(), vDiscreteIL, vInfSurf);
+}
+
+CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf, CPyConfigData& pyConfig)
+{
+	m_CommentString = "//";
+	ReadBridges(file.string(), vDiscreteIL, vInfSurf, pyConfig);
 }
 
 
@@ -25,12 +38,15 @@ CBridgeFile::~CBridgeFile(void)
 {
 }
 
+
+// never be called
 void CBridgeFile::ReadBridges(string file)
 {
 	vector<CInfluenceLine> vDiscreteIL; // create blank vector
 	vector<CInfluenceLine> vInfSurf; // create blank vector
 	ReadBridges(file, vDiscreteIL,vInfSurf);
 }
+
 
 void CBridgeFile::ReadBridges(string file, vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf)
 {
@@ -46,6 +62,39 @@ void CBridgeFile::ReadBridges(string file, vector<CInfluenceLine> vDiscreteIL, s
 	while (GetNextDataLine(line))	// while another bridge
 	{
 		CBridge_sp pBridge = std::make_shared<CBridge>(); //new CBridge;
+		pBridge->setIndex( m_CSV.stringToInt( m_CSV.getfield(0) ) );
+		pBridge->setLength(m_CSV.stringToDouble( m_CSV.getfield(1) ) );
+		int NoLanes = m_CSV.stringToInt( m_CSV.getfield(2) );
+		pBridge->InitializeLanes(NoLanes);
+		int NoLoadEffects = m_CSV.stringToInt( m_CSV.getfield(3) );
+		pBridge->setNoLoadEffects(NoLoadEffects);
+		
+		//pBridge->InitializeDataMgr();	// this needs to come after thresholds are set
+		std::vector<double> vThresholds(NoLoadEffects,0.0);
+
+		for(int i = 0; i < NoLoadEffects; i++)
+			vThresholds.at(i) = ReadLoadEffect(pBridge, vDiscreteIL, vInfSurf);
+	
+		pBridge->setThresholds(vThresholds);
+
+		m_vpBridge.push_back(pBridge);
+	} // end of while loop
+}
+
+void CBridgeFile::ReadBridges(string file, vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf, CPyConfigData& pyConfig)
+{
+
+	if( !m_CSV.OpenFile(file, ",") )
+	{
+		std::cerr << "***ERROR: Bridge file could not be opened" << endl;
+		system("PAUSE");
+		exit( 1 );
+	}
+	string line;
+
+	while (GetNextDataLine(line))	// while another bridge
+	{
+		CBridge_sp pBridge = std::make_shared<CBridge>(pyConfig); //new CBridge;
 		pBridge->setIndex( m_CSV.stringToInt( m_CSV.getfield(0) ) );
 		pBridge->setLength(m_CSV.stringToDouble( m_CSV.getfield(1) ) );
 		int NoLanes = m_CSV.stringToInt( m_CSV.getfield(2) );

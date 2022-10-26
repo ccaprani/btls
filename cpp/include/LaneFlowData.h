@@ -1,6 +1,7 @@
 #pragma once
 #include "ModelData.h"
 #include "LaneFlowComposition.h"
+#include "PyConfigData.h"
 #include <memory>
 // forward declare
 class CVehicle; typedef std::shared_ptr<CVehicle> CVehicle_sp;
@@ -9,10 +10,10 @@ class CLaneFlowData : public CModelData
 {
 public:
 	CLaneFlowData();
+	CLaneFlowData(CPyConfigData& pyConfig);
 	virtual ~CLaneFlowData();
 
 	virtual void ReadDataIn();
-	virtual void ReadDataIn(std::string lanes_file);
 	
 	CLaneFlowComposition getLaneComp(size_t i) const;
 

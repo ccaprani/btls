@@ -21,10 +21,10 @@
 0
 // Vehicle Generation Model to be used
 // (0 - Grave, 1 - Constant, 2 - Garage)
-2
+0
 // Headway model to be used:
 // (0 - Auxerre NHM, 1 - Constant, 5 - Congestion (w/ or w/out cars), 6 - free-flow, cars included)
-6
+0
 // Traffic Classification System to be used:
 // (0 - No. of Axles, 1 - Axle Pattern)
 1
@@ -72,7 +72,7 @@ WGBSlowLanes_Jul.txt
 IS.txt
 // Time step (s):
 0.05
-// Minimum GVW for inclusion in calculations (t/10):
+// Minimum GVW for inclusion in calculations (t*10):
 0
 //
 // ---------------------------------------------

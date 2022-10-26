@@ -6,12 +6,15 @@ class CPOTManager : public COutputManagerBase
 {
 public:
 	CPOTManager(void);
+	CPOTManager(CPyConfigData& pyConfig);
 	virtual ~CPOTManager(void);
 
 	virtual void Update(CEvent Ev);
 	virtual void Initialize(double BridgeLength, std::vector<double> vThreshold, double SimStartTime);
 
 private:
+	void Creator();
+
 	virtual void	WriteVehicleFiles();
 	virtual void	WriteSummaryFiles();
 	virtual void	CheckBuffer(bool bForceOutput);

@@ -8,17 +8,29 @@ CFlowModelData::CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bo
 	// MAGIC NUMBERs - internal gap buffer e.g. tyre diameter, and a min driving gap
 	, m_BufferGapSpace(1.0), m_BufferGapTime(0.1)
 {
+	Creator(lfc);
+}
+
+CFlowModelData::CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars, CPyConfigData& pyConfig)
+	: m_Model(fm), m_bModelHasCars(bCars)
+	// MAGIC NUMBERs - internal gap buffer e.g. tyre diameter, and a min driving gap
+	, m_BufferGapSpace(1.0), m_BufferGapTime(0.1), CModelData(pyConfig)
+{
+	CConfigData::get().Gen.NO_OVERLAP_LENGTH = pyConfig.Gen_NO_OVERLAP_LENGTH;
+	Creator(lfc);
+}
+
+CFlowModelData::~CFlowModelData()
+{
+}
+
+void CFlowModelData::Creator(CLaneFlowComposition lfc) {
 	m_vTotalFlow = lfc.getTotalFlow();
 	m_vTruckFlow = lfc.getTruckFlow();
 	m_vCarPercent = lfc.getCarPercent();
 	m_vSpeed = lfc.getSpeed();
 	m_BlockSize = lfc.getBlockSize();
 	m_BlockCount = lfc.getBlockCount();
-}
-
-
-CFlowModelData::~CFlowModelData()
-{
 }
 
 void CFlowModelData::getFlow(size_t i, double& totalFlow, double& truckFlow)
@@ -49,6 +61,12 @@ void CFlowModelData::getBlockInfo(size_t& sz, size_t& n) const
 
 CFlowModelDataNHM::CFlowModelDataNHM(CLaneFlowComposition lfc)
 	: CFlowModelData(eFM_NHM, lfc, false) // Model does not have cars
+{
+	ReadDataIn();
+}
+
+CFlowModelDataNHM::CFlowModelDataNHM(CLaneFlowComposition lfc, CPyConfigData& pyConfig)
+	: CFlowModelData(eFM_NHM, lfc, false, pyConfig) // Model does not have cars
 {
 	ReadDataIn();
 }
@@ -106,6 +124,14 @@ CFlowModelDataCongested::CFlowModelDataCongested(CLaneFlowComposition lfc)
 	m_Speed = CConfigData::get().Traffic.CONGESTED_SPEED;
 }
 
+CFlowModelDataCongested::CFlowModelDataCongested(CLaneFlowComposition lfc, CPyConfigData& pyConfig)
+	: CFlowModelData(eFM_Congested, lfc, true, pyConfig) // Model has cars
+{
+	m_GapMean = pyConfig.Traffic_CONGESTED_GAP;
+	m_GapStd = pyConfig.Traffic_CONGESTED_GAP_COEF_VAR;
+	m_Speed = pyConfig.Traffic_CONGESTED_SPEED;
+}
+
 CFlowModelDataCongested::~CFlowModelDataCongested()
 {
 
@@ -130,6 +156,12 @@ CFlowModelDataPoisson::CFlowModelDataPoisson(CLaneFlowComposition lfc)
 
 }
 
+CFlowModelDataPoisson::CFlowModelDataPoisson(CLaneFlowComposition lfc, CPyConfigData& pyConfig)
+	: CFlowModelData(eFM_Poisson, lfc, true, pyConfig) // Model has cars
+{
+
+}
+
 CFlowModelDataPoisson::~CFlowModelDataPoisson()
 {
 
@@ -144,6 +176,12 @@ void CFlowModelDataPoisson::ReadDataIn()
 
 CFlowModelDataConstant::CFlowModelDataConstant(CLaneFlowComposition lfc)
 	: CFlowModelData(eFM_Constant, lfc, true) // Model has cars
+{
+
+}
+
+CFlowModelDataConstant::CFlowModelDataConstant(CLaneFlowComposition lfc, CPyConfigData& pyConfig)
+	: CFlowModelData(eFM_Constant, lfc, true, pyConfig) // Model has cars
 {
 
 }

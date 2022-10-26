@@ -6,13 +6,12 @@ class CVehModelDataGarage :	public CVehicleModelData
 {
 public:
 	CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc);
+	CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CPyConfigData& pyConfig);
 	virtual ~CVehModelDataGarage();
 
 	virtual void ReadDataIn();
 
-	void readGarage(std::string garage_file);
 	void assignGarage(std::vector<CVehicle_sp> vVehicles);
-	void readKernels(std::string kernel_file);
 
 	size_t getGarageCount() const { return m_NoVehicles; };
 	CVehicle_sp getVehicle(size_t i);
@@ -20,9 +19,7 @@ public:
 
 private:
 	void readGarage();
-	void extractGarage(filesystem::path file);
 	void readKernels();
-	void extractKernels(filesystem::path kernel_file);
 
 	std::vector<CVehicle_sp> m_vVehicles;
 	size_t m_NoVehicles;

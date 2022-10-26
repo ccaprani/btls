@@ -8,6 +8,7 @@
 #include <memory>
 #include "CSVParse.h"
 #include "TriModalNormal.h"
+#include "PyConfigData.h"
 
 typedef std::vector<double> vec;
 typedef std::vector< std::vector<double> > matrix;
@@ -43,6 +44,7 @@ class CModelData
 {
 public:
 	CModelData();
+	CModelData(CPyConfigData& pyConfig);
 	virtual ~CModelData();
 
 	virtual void ReadDataIn() = 0;

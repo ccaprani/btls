@@ -6,6 +6,7 @@ class CVehModelDataGrave : public CVehicleModelData
 {
 public:
 	CVehModelDataGrave(CVehicleClassification_sp pVC, CLaneFlowComposition lfc);
+	CVehModelDataGrave(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CPyConfigData& pyConfig);
 	~CVehModelDataGrave();
 
 	virtual void ReadDataIn();

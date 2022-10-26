@@ -5,6 +5,27 @@
 
 CPOTManager::CPOTManager(void)
 {
+	Creator();
+}
+
+CPOTManager::CPOTManager(CPyConfigData& pyConfig)
+{
+	CConfigData::get().Output.POT.WRITE_POT_BUFFER_SIZE	= pyConfig.Output_POT_WRITE_POT_BUFFER_SIZE;
+	CConfigData::get().Output.POT.WRITE_POT_VEHICLES		= pyConfig.Output_POT_WRITE_POT_VEHICLES;
+	CConfigData::get().Output.POT.WRITE_POT_SUMMARY		= pyConfig.Output_POT_WRITE_POT_SUMMARY;
+
+	CConfigData::get().Output.POT.WRITE_POT_COUNTER		= pyConfig.Output_POT_WRITE_POT_COUNTER;
+	CConfigData::get().Output.POT.POT_COUNT_SIZE_DAYS	= pyConfig.Output_POT_POT_COUNT_SIZE_DAYS;
+	CConfigData::get().Output.POT.POT_COUNT_SIZE_SECS	= pyConfig.Output_POT_POT_COUNT_SIZE_SECS;
+
+	Creator();
+}
+
+CPOTManager::~CPOTManager(void)
+{
+}
+
+void CPOTManager::Creator() {
 	m_FileStem = "PT";
 
 	WRITE_BUFFER_SIZE	= CConfigData::get().Output.POT.WRITE_POT_BUFFER_SIZE;
@@ -17,10 +38,6 @@ CPOTManager::CPOTManager(void)
 
 	m_BlockSize = 3600 * 24 * POT_COUNT_SIZE_DAYS + POT_COUNT_SIZE_SECS;
 	m_CurBlockNo = 0;
-}
-
-CPOTManager::~CPOTManager(void)
-{
 }
 
 void CPOTManager::Initialize(double BridgeLength, std::vector<double> vThreshold, double SimStartTime)
