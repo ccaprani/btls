@@ -11,8 +11,33 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CVehicleBuffer::CVehicleBuffer(CVehicleClassification_sp pVC, double starttime)
+CVehicleBuffer::CVehicleBuffer(CVehicleClassification_sp pVC, double starttime) {
+	Creator(pVC,starttime);
+}
+
+CVehicleBuffer::CVehicleBuffer(CVehicleClassification_sp pVC, double starttime, CPyConfigData& pyConfig) {
+	//init(false, "", 0);
+	CConfigData::get().Output.VehicleFile.WRITE_VEHICLE_FILE		= pyConfig.Output_VehicleFile_WRITE_VEHICLE_FILE;
+	CConfigData::get().Output.VehicleFile.FILE_FORMAT				= pyConfig.Output_VehicleFile_FILE_FORMAT;	
+	CConfigData::get().Output.VehicleFile.VEHICLE_FILENAME			= pyConfig.Output_VehicleFile_VEHICLE_FILENAME;
+	CConfigData::get().Output.VehicleFile.WRITE_VEHICLE_BUFFER_SIZE	= pyConfig.Output_VehicleFile_WRITE_VEHICLE_BUFFER_SIZE;
+	CConfigData::get().Output.VehicleFile.WRITE_FLOW_STATS			= pyConfig.Output_VehicleFile_WRITE_FLOW_STATS;
+
+	CConfigData::get().Road.NO_LANES_DIR1	= pyConfig.Road_NO_LANES_DIR1;
+	CConfigData::get().Road.NO_LANES_DIR2	= pyConfig.Road_NO_LANES_DIR2;
+	
+	Creator(pVC,starttime);
+}
+
+CVehicleBuffer::~CVehicleBuffer()
 {
+	if(m_OutFile.is_open())
+		m_OutFile.close();
+	
+	writeFlowData();
+}
+
+void CVehicleBuffer::Creator(CVehicleClassification_sp pVC, double starttime) {
 	//init(false, "", 0);
 	WRITE_VEHICLE_FILE			= CConfigData::get().Output.VehicleFile.WRITE_VEHICLE_FILE;
 	FILE_FORMAT					= CConfigData::get().Output.VehicleFile.FILE_FORMAT;	
@@ -39,14 +64,6 @@ CVehicleBuffer::CVehicleBuffer(CVehicleClassification_sp pVC, double starttime)
 		m_OutFile.open(VEHICLE_FILENAME.c_str(), std::ios::out);
 		m_vVehicles.reserve(WRITE_VEHICLE_BUFFER_SIZE);	
 	}
-}
-
-CVehicleBuffer::~CVehicleBuffer()
-{
-	if(m_OutFile.is_open())
-		m_OutFile.close();
-	
-	writeFlowData();
 }
 
 void CVehicleBuffer::AddVehicle(const CVehicle_sp& pVeh)

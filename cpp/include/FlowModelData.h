@@ -8,6 +8,7 @@ class CFlowModelData :	public CModelData
 {
 public:
 	CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars);
+	CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars, CPyConfigData& pyConfig);
 	virtual ~CFlowModelData();
 
 	vec		getCarPercent() const { return m_vCarPercent; };
@@ -39,6 +40,7 @@ protected:
 	const double m_BufferGapTime;
 
 private:
+	virtual void Creator(CLaneFlowComposition lfc);
 
 };
 typedef std::shared_ptr<CFlowModelData> CFlowModelData_sp;
@@ -47,6 +49,7 @@ class CFlowModelDataNHM : public CFlowModelData
 {
 public:
 	CFlowModelDataNHM(CLaneFlowComposition lfc);
+	CFlowModelDataNHM(CLaneFlowComposition lfc, CPyConfigData& pyConfig);
 	virtual ~CFlowModelDataNHM();
 
 	virtual void ReadDataIn();
@@ -65,6 +68,7 @@ class CFlowModelDataCongested : public CFlowModelData
 {
 public:
 	CFlowModelDataCongested(CLaneFlowComposition lfc);
+	CFlowModelDataCongested(CLaneFlowComposition lfc, CPyConfigData& pyConfig);
 	virtual ~CFlowModelDataCongested();
 
 	virtual void ReadDataIn();
@@ -83,6 +87,7 @@ class CFlowModelDataPoisson : public CFlowModelData
 {
 public:
 	CFlowModelDataPoisson(CLaneFlowComposition lfc);
+	CFlowModelDataPoisson(CLaneFlowComposition lfc, CPyConfigData& pyConfig);
 	virtual ~CFlowModelDataPoisson();
 
 	virtual void ReadDataIn();
@@ -93,6 +98,7 @@ class CFlowModelDataConstant : public CFlowModelData
 {
 public:
 	CFlowModelDataConstant(CLaneFlowComposition lfc);
+	CFlowModelDataConstant(CLaneFlowComposition lfc, CPyConfigData& pyConfig);
 	virtual ~CFlowModelDataConstant();
 
 	virtual void ReadDataIn();

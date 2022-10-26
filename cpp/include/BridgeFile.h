@@ -12,10 +12,13 @@ class CBridgeFile
 public:
 	CBridgeFile(void);
 	CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL);
+	CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, CPyConfigData& pyConfig);
 	CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf);
+	CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf, CPyConfigData& pyConfig);
 	~CBridgeFile(void);
 	void ReadBridges(std::string file);
 	void ReadBridges(std::string file, std::vector<CInfluenceLine> vDiscreteIL,std::vector<CInfluenceLine> vInfSurf);
+	void ReadBridges(string file, vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf, CPyConfigData& pyConfig);
 	std::vector<CBridge_sp> getBridges(void);
 	double getMaxBridgeLength(void);
 

@@ -21,6 +21,18 @@ CBridge::CBridge()
 	NO_LANES			= CConfigData::get().Road.NO_LANES;
 }
 
+CBridge::CBridge(CPyConfigData& pyConfig)
+	: m_Index(0)
+	, m_NoLanes(0)
+	, m_NoLoadEffects(0)
+	, m_NoVehs(0)
+	, m_EventMgr(pyConfig)
+{
+	NO_LANES_DIR1		= pyConfig.Road_NO_LANES_DIR1;
+	NO_DIRS				= pyConfig.Road_NO_DIRS;
+	NO_LANES			= pyConfig.Road_NO_LANES;
+}
+
 CBridge::CBridge(double length, double calcTimeStep, int n, double curTime)
 {
 	setLength(length);

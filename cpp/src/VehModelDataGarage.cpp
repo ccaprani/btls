@@ -15,6 +15,21 @@ CVehModelDataGarage::CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlo
 	ReadDataIn();
 }
 
+CVehModelDataGarage::CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CPyConfigData& pyConfig)
+	: CVehicleModelData(eVM_Garage, pVC, lfc, 1, pyConfig) // MAGIC NUMBER - truck class count
+	, m_NoVehicles(0)
+{
+	// MAGIC NUMBER for now
+	m_KernalGVW = Normal(1.0,0.08); // Mean and COV
+	m_KernalAW = Normal(1.0, 0.05);
+	m_KernalAS = Normal(1.0, 0.02);
+
+	CConfigData::get().Read.GARAGE_FILE = pyConfig.Read_GARAGE_FILE;
+	CConfigData::get().Read.FILE_FORMAT = pyConfig.Read_FILE_FORMAT;
+	CConfigData::get().Read.KERNEL_FILE = pyConfig.Read_KERNEL_FILE;
+	
+	ReadDataIn();
+}
 
 CVehModelDataGarage::~CVehModelDataGarage()
 {
@@ -29,16 +44,7 @@ void CVehModelDataGarage::ReadDataIn()
 void CVehModelDataGarage::readGarage()
 {
 	filesystem::path file = CConfigData::get().Read.GARAGE_FILE;
-	extractGarage(file);
-}
-
-void CVehModelDataGarage::readGarage(std::string garage_file)
-{
-	filesystem::path file = garage_file;
-	extractGarage(file);
-}
-
-void CVehModelDataGarage::extractGarage(filesystem::path file) {
+	
 	CVehicleTrafficFile TrafficFile(m_pVehClassification, false, false, 0.0);
 	std::cout << "Reading traffic garage file..." << std::endl;
 	TrafficFile.Read(file.string(), CConfigData::get().Read.FILE_FORMAT);
@@ -62,19 +68,10 @@ void CVehModelDataGarage::assignGarage(std::vector<CVehicle_sp> vVehicles)
 void CVehModelDataGarage::readKernels()
 {
 	filesystem::path file = CConfigData::get().Read.KERNEL_FILE;
-	extractKernels(file);
-}
 
-void CVehModelDataGarage::readKernels(std::string kernel_file)
-{
-	filesystem::path file = kernel_file;
-	extractKernels(file);
-}
-
-void CVehModelDataGarage::extractKernels(filesystem::path kernel_file) {
-	if (!m_CSV.OpenFile(kernel_file.string(), ","))
+	if (!m_CSV.OpenFile(file.string(), ","))
 		std::cerr << "***WARNING: Kernel file " 
-				  << std::filesystem::weakly_canonical(kernel_file) 
+				  << std::filesystem::weakly_canonical(file) 
 				  << " could not be opened, using defaults" << endl;
 	else
 	{

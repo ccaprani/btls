@@ -9,6 +9,13 @@ CLaneFlowData::CLaneFlowData()
 {
 }
 
+CLaneFlowData::CLaneFlowData(CPyConfigData& pyConfig)
+	: m_TruckClassCount(0),
+	  m_BlockSize(3600), m_NoBlocks(24), // MAGIC NUMBER - default to older type file format
+	  CModelData(pyConfig)
+{
+	CConfigData::get().Road.LANES_FILE = pyConfig.Road_LANES_FILE;
+}
 
 CLaneFlowData::~CLaneFlowData()
 {
@@ -22,13 +29,6 @@ CLaneFlowComposition CLaneFlowData::getLaneComp(size_t i) const
 void CLaneFlowData::ReadDataIn()
 {
 	filesystem::path file = CConfigData::get().Road.LANES_FILE;
-	ReadLaneFlow(file.string());
-	SetRoadProperties();
-}
-
-void CLaneFlowData::ReadDataIn(std::string lanes_file)
-{
-	filesystem::path file = lanes_file;
 	ReadLaneFlow(file.string());
 	SetRoadProperties();
 }

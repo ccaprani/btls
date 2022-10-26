@@ -7,12 +7,16 @@ class CBlockMaxManager : public COutputManagerBase
 {
 public:
 	CBlockMaxManager();
+	CBlockMaxManager(CPyConfigData& pyConfig);
 	virtual ~CBlockMaxManager();
 
 	virtual void Update(CEvent Ev);
 	virtual void Initialize(double BridgeLength, size_t nLE, double SimStartTime);
 
 private:
+
+	void Creator();
+
 	virtual void	WriteVehicleFiles();
 	virtual void	WriteSummaryFiles();
 	virtual void	CheckBuffer(bool bForceOutput);

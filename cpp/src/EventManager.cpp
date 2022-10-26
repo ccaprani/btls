@@ -12,6 +12,38 @@
 
 CEventManager::CEventManager()
 {
+	Creator();
+}
+
+CEventManager::CEventManager(CPyConfigData& pyConfig) 
+	: m_AllEventBuffer(pyConfig)
+	, m_FatigueEventBuffer(pyConfig)
+	, m_BlockMaxManager(pyConfig)
+	, m_POTManager(pyConfig)
+	, m_StatsManager(pyConfig)
+	, m_FatigueManager(pyConfig)
+	, m_CurEvent(pyConfig)
+{
+	CConfigData::get().Output.WRITE_TIME_HISTORY		= pyConfig.Output_WRITE_TIME_HISTORY;
+	CConfigData::get().Output.WRITE_EACH_EVENT			= pyConfig.Output_WRITE_EACH_EVENT;
+	CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE 	= pyConfig.Output_WRITE_EVENT_BUFFER_SIZE;
+	CConfigData::get().Output.WRITE_FATIGUE_EVENT		= pyConfig.Output_WRITE_FATIGUE_EVENT;
+
+	CConfigData::get().Output.BlockMax.WRITE_BM	= pyConfig.Output_BlockMax_WRITE_BM;
+	CConfigData::get().Output.POT.WRITE_POT		= pyConfig.Output_POT_WRITE_POT;
+	CConfigData::get().Output.Stats.WRITE_STATS = pyConfig.Output_Stats_WRITE_STATS;
+	
+	CConfigData::get().Output.Fatigue.DO_FATIGUE_RAINFLOW = pyConfig.Output_Fatigue_DO_FATIGUE_RAINFLOW;
+
+	Creator();
+}
+
+CEventManager::~CEventManager()
+{
+
+}
+
+void CEventManager::Creator() {
 	WRITE_TIME_HISTORY		= CConfigData::get().Output.WRITE_TIME_HISTORY;
 	WRITE_EACH_EVENT		= CConfigData::get().Output.WRITE_EACH_EVENT;
 	WRITE_EVENT_BUFFER_SIZE = CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE;
@@ -26,11 +58,6 @@ CEventManager::CEventManager()
 	m_NoEvents = 0;
 	m_CurTime = 0.0;
 	m_FatigueEventBuffer.setMode(true);
-}
-
-CEventManager::~CEventManager()
-{
-
 }
 
 void CEventManager::Initialize(double BridgeLength, std::vector<double> vThresholds, double SimStartTime)
@@ -142,7 +169,7 @@ void CEventManager::EndEvent()
 	if(DO_FATIGUE_RAINFLOW) m_FatigueManager.Update();
 
 	// reset for next event - must be last thing done
-	m_CurEvent = CEvent();
+	m_CurEvent.reSet(); 
 }
 
 // called at the end of the simulation
