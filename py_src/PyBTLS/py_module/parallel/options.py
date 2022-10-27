@@ -57,6 +57,8 @@ class BTLSWrapperOptions():
         self.num_decimal_rainflow_algorithm = 3
         # Cutoff value for Fatigue
         self.fatigue_cutoff_value = 5.0
+        # Rainflow-out file buffer size
+        self.rainflow_buffer_size = int(1e5)
         
         # Write vehicle file (1 or 0)
         # WARNING: a large file may result in long-run simulations

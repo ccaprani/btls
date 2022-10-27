@@ -3,7 +3,7 @@ import numpy as np
 import warnings
 import os
 
-from PyBTLS.py_module.misc._helper_class import _DfBased
+from PyBTLS.py_module.utils._helper_class import _DfBased
 
 class AxleSpacing(_DfBased):
     def _from_txt_to_dataframe_kwargs(self, txt, *args, **kwargs):

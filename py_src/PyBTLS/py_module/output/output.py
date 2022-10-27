@@ -4,8 +4,8 @@ r"""
 """
 import re
 import numpy as np
-from PyBTLS.py_module.misc._helper_class import _DfBased
-from PyBTLS.py_module.misc._helper_functions import data_enforce_type
+from PyBTLS.py_module.utils._helper_class import _DfBased
+from PyBTLS.py_module.utils._helper_functions import data_enforce_type
 
 class _BtlsWrapper_DefaultOutputs():
     def __init__(self):

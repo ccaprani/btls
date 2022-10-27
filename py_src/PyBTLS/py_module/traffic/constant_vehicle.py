@@ -1,8 +1,7 @@
 import numpy as np
 import pandas as pd
-from PyBTLS.py_module.misc._helper_class import _DfBased
-from PyBTLS.py_module.misc._helper_functions import data_enforce_type
-from PyBTLS.py_module.default_files._default_files_loader import read_default_file
+from PyBTLS.py_module.utils._helper_class import _DfBased
+from PyBTLS.py_module.utils._helper_functions import data_enforce_type, read_default_file
 
 
 r"""

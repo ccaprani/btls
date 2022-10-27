@@ -164,6 +164,7 @@ class BTLSWrapper():
         BTLSin_txt += str(self.options.write_rainflow_algorithm) + "\n"
         BTLSin_txt += str(self.options.num_decimal_rainflow_algorithm) + "\n"
         BTLSin_txt += str(self.options.fatigue_cutoff_value) + "\n"
+        BTLSin_txt += str(self.options.rainflow_buffer_size) + "\n"
         
         
         BTLSin_txt += str(self.options.write_vehicle_file) + "\n"

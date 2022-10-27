@@ -4,7 +4,7 @@ import warnings
 import os
 import shutil
 import pickle
-from PyBTLS.py_module.misc._helper_class import _ListLike
+from PyBTLS.py_module.utils._helper_class import _ListLike
 from PyBTLS.py_module.parallel.wrapper import BTLSWrapper
 
 """

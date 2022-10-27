@@ -1,6 +1,6 @@
-from PyBTLS.py_module.misc._helper_functions import data_enforce_type
-from PyBTLS.py_module.misc._helper_class import _DfBased
-from PyBTLS.py_module.misc._vehicle_event_parser import parse_from_event_text_list_to_event_data
+from PyBTLS.py_module.utils._helper_functions import data_enforce_type
+from PyBTLS.py_module.utils._helper_class import _DfBased
+from PyBTLS.py_module.utils._vehicle_event_parser import parse_from_event_text_list_to_event_data
 from PyBTLS.py_module.vehicle.vehicle import Vehicle
 
 class Event(_DfBased):

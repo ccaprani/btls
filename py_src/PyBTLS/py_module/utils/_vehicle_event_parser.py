@@ -1,5 +1,5 @@
 import numpy as np
-from PyBTLS.py_module.misc._helper_functions import data_enforce_type, parse_fixed_width_text
+from PyBTLS.py_module.utils._helper_functions import data_enforce_type, parse_fixed_width_text
 
 r"""
 Helper function to parse vehicle data from raw txt to kwargs of pandas dataframe

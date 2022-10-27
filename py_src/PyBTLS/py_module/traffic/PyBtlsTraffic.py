@@ -4,7 +4,7 @@
 """
 
 from abc import abstractproperty
-from PyBTLS.py_module.default_files._default_files_loader import read_default_raw_file
+from PyBTLS.py_module.utils._helper_functions import read_default_traffic_file_raw
 import numpy as np
 import warnings
 import os
@@ -30,7 +30,7 @@ class BaseTrafficFile():
         1
 
     def load_default(self, data_source):
-        self.txt = read_default_raw_file('default_traffic/' + data_source)
+        self.txt = read_default_traffic_file_raw(data_source)
         self._parse_txt_to_data()
     
     def import_from_csv(self, path):

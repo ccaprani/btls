@@ -1,7 +1,6 @@
 import numpy as np
-from PyBTLS.py_module.misc._helper_functions import from_2darray_to_string, data_enforce_type
-from PyBTLS.py_module.misc._helper_class import _DfBased, _ListLike
-from PyBTLS.py_module.default_files._default_files_loader import read_default_file
+from PyBTLS.py_module.utils._helper_functions import from_2darray_to_string, data_enforce_type, read_default_file
+from PyBTLS.py_module.utils._helper_class import _DfBased, _ListLike
 
 """
 

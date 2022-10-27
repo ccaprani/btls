@@ -1,7 +1,7 @@
 import numpy as np
-from PyBTLS.py_module.misc._helper_class import _DfBased
-from PyBTLS.py_module.misc._vehicle_event_parser import parse_from_vehicle_text_list_to_df_kwargs
-from PyBTLS.py_module.misc._vehicle_event_writer import vehicle_df_to_txt
+from PyBTLS.py_module.utils._helper_class import _DfBased
+from PyBTLS.py_module.utils._vehicle_event_parser import parse_from_vehicle_text_list_to_df_kwargs
+from PyBTLS.py_module.utils._vehicle_event_writer import vehicle_df_to_txt
 
 class Vehicle(_DfBased):
     def _from_txt_to_dataframe_kwargs(self, txt, *args, **kwargs):
