@@ -48,6 +48,7 @@ void CVehModelDataConstant::readConstant()
         i++;		m_pNominalVehicle->setAS(i, 1.2); m_pNominalVehicle->setAW(i, 90); m_pNominalVehicle->setAT(i, 2.4);
         i++;		m_pNominalVehicle->setAS(i, 0.0); m_pNominalVehicle->setAW(i, 90); m_pNominalVehicle->setAT(i, 2.4);
         m_pNominalVehicle->setLength(13.9);
+        m_pNominalVehicle->setHead(1001);
     }
 	else
 	{
@@ -81,6 +82,7 @@ void CVehModelDataConstant::readConstant()
         }
         m_pNominalVehicle->setLength(length);
         m_pNominalVehicle->setGVW(gvw);
+        m_pNominalVehicle->setHead(1001);
     }
 }
 

@@ -71,7 +71,7 @@ WGBSlowLanes_Jul.txt
 // Influence Surface definition file:
 IS.txt
 // Time step (s):
-0.05
+0.1
 // Minimum GVW for inclusion in calculations (t*10):
 0
 //
@@ -93,11 +93,11 @@ IS.txt
 // FATIGUE RAINFLOW FILE
 // ---------------------------------------------
 // Conduct Rainflow algorithm for fatigue (1 or 0)
-1
+0
 // Number of decimals left for Rainflow algorithm
-5
+3
 // Cutoff value for Fatigue
-2.0
+0.0
 // Rainflow-out file buffer size
 100000
 //
@@ -105,7 +105,7 @@ IS.txt
 // ---------------------------------------------
 // Write vehicle file (1 or 0)
 // WARNING: a large file may result in long-run simulations
-0
+1
 // Traffic output file format (CASTOR - 1, BeDIT - 2, DITIS - 3, MON - 4):
 4
 // Vehicle file name
@@ -118,19 +118,19 @@ Vehicle.txt
 // BLOCK MAXIMUM LOAD EFFECTS
 // ---------------------------------------------
 // Analyse for Block Max (overrides remaining params) (1 or 0)
-0
+1
 // Block size for maxima (days):
 1
 // Block size for maxima (seconds):
 0
 // Write block max separated vehicle files (1 or 0):
-1
+0
 // Write block max summary files (1 or 0):
 1
 // Do and write block max mixed vehicle analysis (1 or 0):
 0
 // Write block max buffer size:
-2
+10000
 //
 // PEAKS OVER THRESHOLD LOAD EFFECTS
 // ---------------------------------------------
@@ -154,7 +154,7 @@ Vehicle.txt
 // Analyse for Statistics (overrides remaining params) (1 or 0)
 1
 // Write cumulative statistics file (1 or 0)
-1
+0
 // Write statistics at intervals files (1 or 0)
 0
 // Interval size for statistics output (seconds)
