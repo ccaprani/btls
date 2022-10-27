@@ -1,5 +1,5 @@
-from PyBTLS.cpp import BTLS, ConfigData, PyConfigData, Vehicle, VehClassAxle, VehClassPattern, Bridge, InfluenceLine, InfluenceSurface, LaneFileTraffic, LaneGenTraffic, VehicleBuffer, ReadILFile, BridgeFile, LaneFlowData, VehicleGenConstant, VehicleGenGarage, VehicleGenGrave, VehicleTrafficFile, VehModelDataConstant, VehModelDataGarage, VehModelDataGrave
-from PyBTLS.python import Settings, FatigueCalculation
+from PyBTLS.cpp import PyConfigData, Vehicle, VehClassAxle, VehClassPattern, Bridge, InfluenceLine, InfluenceSurface, LaneFileTraffic, LaneGenTraffic, VehicleBuffer, ReadILFile, BridgeFile, LaneFlowData, VehicleGenConstant, VehicleGenGarage, VehicleGenGrave, VehicleTrafficFile, VehModelDataConstant, VehModelDataGarage, VehModelDataGrave
+# from PyBTLS.python import Settings, FatigueCalculation
 
 
 def get_vehicle_classification(py_config):
@@ -85,25 +85,5 @@ def do_simulation(vehicle_classification, bridge_list, lane_list, sim_start_time
 
 
 if __name__ == "__main__":
-    py_config = PyConfigData()
+    pass
 
-    py_config.VehGenGarage(lanes_file="./LaneFlowData_80.csv", garage_file="./garage.txt", file_format=4, kernel_file="./kernels.csv", no_days=3, lane_eccentricity_std=20)
-
-    py_config.FlowGenFreeFlow(vehicle_classification = 1)
-
-    py_config.Simulation(bridge_file="./1-ABT6111Bridges.txt", infline_file="./1-ABT6111ILS.txt", infsurf_file="./IS.txt", calc_time_step=0.1, min_gvw=35)
-
-    py_config.OutputFatigue(do_rainflow=True)
-
-    vehicle_classification = get_vehicle_classification(py_config)
-
-    start_time = 0.0
-    end_time = 0.0
-
-    bridge_list, py_config = prepare_bridges(py_config)
-
-    lane_list, end_time, py_config = get_generator_lanes(vehicle_classification,start_time,py_config)
-    for i in range(len(bridge_list)):
-        bridge_list[i].initialize_data_manager(start_time)
-
-    do_simulation(vehicle_classification,bridge_list,lane_list,start_time,end_time,py_config)

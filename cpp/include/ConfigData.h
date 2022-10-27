@@ -84,7 +84,9 @@ public:
 		double CONGESTED_SPEED;
 		double CONGESTED_GAP;
 		double CONGESTED_GAP_COEF_VAR;
-	} Traffic = {1,1,1,5.0,30.0,5.0,0.05};
+		double CONSTANT_SPEED;
+    	double CONSTANT_GAP;
+	} Traffic = {1,1,1,5.0,30.0,5.0,0.05,20.0,10.0};
 
 	struct Sim_Config
 	{
