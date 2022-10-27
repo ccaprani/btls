@@ -21,10 +21,10 @@
 0
 // Vehicle Generation Model to be used
 // (0 - Grave, 1 - Constant, 2 - Garage)
-0
+1
 // Headway model to be used:
 // (0 - Auxerre NHM, 1 - Constant, 5 - Congestion (w/ or w/out cars), 6 - free-flow, cars included)
-0
+1
 // Traffic Classification System to be used:
 // (0 - No. of Axles, 1 - Axle Pattern)
 1
@@ -36,6 +36,10 @@ LaneFlowData_80.csv
 49.7
 // Congested gaps coefficient of variation:
 0.05
+// Constant speed (km/h) (Headway model 1 only):
+36.0
+// Constant gap (s) (Headway model 1 only):
+10.0
 //
 // TRAFFIC GARAGE PARAMETERS
 // ---------------------------------------------
@@ -109,7 +113,7 @@ IS.txt
 // Traffic output file format (CASTOR - 1, BeDIT - 2, DITIS - 3, MON - 4):
 4
 // Vehicle file name
-Vehicle.txt
+Vehicles.txt
 // Vehicle file buffer size
 100000
 // Write vehicle file flow statistics (1 or 0)
@@ -118,7 +122,7 @@ Vehicle.txt
 // BLOCK MAXIMUM LOAD EFFECTS
 // ---------------------------------------------
 // Analyse for Block Max (overrides remaining params) (1 or 0)
-1
+0
 // Block size for maxima (days):
 1
 // Block size for maxima (seconds):

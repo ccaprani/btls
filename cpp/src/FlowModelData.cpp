@@ -66,7 +66,7 @@ CFlowModelDataNHM::CFlowModelDataNHM(CLaneFlowComposition lfc)
 }
 
 CFlowModelDataNHM::CFlowModelDataNHM(CLaneFlowComposition lfc, CPyConfigData& pyConfig)
-	: CFlowModelData(eFM_NHM, lfc, false, pyConfig) // Model does not have cars
+	: CFlowModelData(eFM_NHM, lfc, pyConfig.Gen_GEN_CAR, pyConfig) // Model does not have cars
 {
 	ReadDataIn();
 }
@@ -125,7 +125,7 @@ CFlowModelDataCongested::CFlowModelDataCongested(CLaneFlowComposition lfc)
 }
 
 CFlowModelDataCongested::CFlowModelDataCongested(CLaneFlowComposition lfc, CPyConfigData& pyConfig)
-	: CFlowModelData(eFM_Congested, lfc, true, pyConfig) // Model has cars
+	: CFlowModelData(eFM_Congested, lfc, pyConfig.Gen_GEN_CAR, pyConfig) // Model has cars
 {
 	m_GapMean = pyConfig.Traffic_CONGESTED_GAP;
 	m_GapStd = pyConfig.Traffic_CONGESTED_GAP_COEF_VAR;
@@ -157,7 +157,7 @@ CFlowModelDataPoisson::CFlowModelDataPoisson(CLaneFlowComposition lfc)
 }
 
 CFlowModelDataPoisson::CFlowModelDataPoisson(CLaneFlowComposition lfc, CPyConfigData& pyConfig)
-	: CFlowModelData(eFM_Poisson, lfc, true, pyConfig) // Model has cars
+	: CFlowModelData(eFM_Poisson, lfc, pyConfig.Gen_GEN_CAR, pyConfig) // Model has cars
 {
 
 }
@@ -177,18 +177,29 @@ void CFlowModelDataPoisson::ReadDataIn()
 CFlowModelDataConstant::CFlowModelDataConstant(CLaneFlowComposition lfc)
 	: CFlowModelData(eFM_Constant, lfc, true) // Model has cars
 {
-
+	m_ConstSpeed = CConfigData::get().Traffic.CONSTANT_SPEED;
+	m_ConstGap = CConfigData::get().Traffic.CONSTANT_GAP;
 }
 
 CFlowModelDataConstant::CFlowModelDataConstant(CLaneFlowComposition lfc, CPyConfigData& pyConfig)
-	: CFlowModelData(eFM_Constant, lfc, true, pyConfig) // Model has cars
+	: CFlowModelData(eFM_Constant, lfc, pyConfig.Gen_GEN_CAR, pyConfig) // Model has cars
 {
-
+	m_ConstSpeed = pyConfig.Traffic_CONSTANT_SPEED;
+	m_ConstGap = pyConfig.Traffic_CONSTANT_GAP;
 }
 
 CFlowModelDataConstant::~CFlowModelDataConstant()
 {
+}
 
+double CFlowModelDataConstant::getConstSpeed() 
+{
+	return m_ConstSpeed;
+}
+
+double CFlowModelDataConstant::getConstGap() 
+{
+	return m_ConstGap;
 }
 
 void CFlowModelDataConstant::ReadDataIn()

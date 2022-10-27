@@ -101,7 +101,15 @@ public:
 	CFlowModelDataConstant(CLaneFlowComposition lfc, CPyConfigData& pyConfig);
 	virtual ~CFlowModelDataConstant();
 
+	double getConstSpeed();
+	double getConstGap();
+
 	virtual void ReadDataIn();
+
+private:
+	double m_ConstSpeed;
+	double m_ConstGap;
+
 };
 typedef std::shared_ptr<CFlowModelDataConstant> CFlowModelDataConstant_sp;
 
