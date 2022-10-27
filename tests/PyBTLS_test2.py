@@ -3,11 +3,11 @@ import PyBTLS
 
 py_config = PyBTLS.PyConfigData()
 
-# py_config.VehGenGrave(lanes_file="./LaneFlowData_80.csv", traffic_folder="../Traffic/Auxerre", no_days=1, truck_track_width=190.0, lane_eccentricity_std=0.0)
+# py_config.VehGenGrave(lanes_file="./LaneFlowData_80.csv", traffic_folder="../Traffic/Auxerre", no_days=30, truck_track_width=190.0, lane_eccentricity_std=0.0)
 
-py_config.VehGenConstant(lanes_file="./LaneFlowData_80.csv", constant_file="./constant_vehicle.csv", no_days=1, lane_eccentricity_std=0.0)
+py_config.VehGenConstant(lanes_file="./LaneFlowData_80.csv", constant_file="./constant_vehicle.csv", no_days=30, lane_eccentricity_std=0.0)
 
-# py_config.VehGenGarage(lanes_file="./LaneFlowData_80.csv", garage_file="./garage.txt", file_format=4, kernel_file="./kernels.csv", no_days=1, lane_eccentricity_std=20)
+# py_config.VehGenGarage(lanes_file="./LaneFlowData_80.csv", garage_file="./garage.txt", file_format=4, kernel_file="./kernels.csv", no_days=30, lane_eccentricity_std=20)
 
 
 # py_config.FlowGenNHM(vehicle_classification=1)  # Bug: zegmentation fault when use garage or constant gen.
@@ -20,7 +20,10 @@ py_config.FlowGenCongestion(vehicle_classification=1, congested_spacing=26.1, co
 
 py_config.Simulation(bridge_file="./1-ABT6111Bridges.txt", infline_file="./1-ABT6111ILS.txt", infsurf_file="./IS.txt", calc_time_step=0.1, min_gvw=35)
 
-py_config.OutputFatigue(do_rainflow=True)
+py_config.OutputVehicleFile(write_flow_stats=True)
+py_config.OutputBlockMax(write_blockmax=True,write_summary=True,write_vehicle=True)
+py_config.OutputStats(write_stats=True)
+# py_config.OutputFatigue(do_rainflow=True)
 
 vehicle_classification = PyBTLS.get_vehicle_classification(py_config)
 
