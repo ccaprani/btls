@@ -1,4 +1,4 @@
-from PyBTLS.c_module import ConfigData
+from PyBTLS.cpp import ConfigData
 
 
 class Settings:

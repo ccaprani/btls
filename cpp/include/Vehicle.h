@@ -41,8 +41,8 @@ public:
 	void	setAS(size_t i, double s);
 	void	setAT(size_t i, double tw);
 	void	setTrns(double trans);
-	void	setBridgeTimes(double length);
-	void	setTimeOnBridge(double length);
+	void	setBridgeTimes(double BridgeLength);
+	void	setTimeOnBridge(double BridgeLength);
 	void	setBridgeLaneNo(size_t BridgeLaneNo);
 	void	setTrackWidth(double tw);
 	void	setLaneEccentricity(double e);

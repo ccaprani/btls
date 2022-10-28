@@ -1,6 +1,6 @@
 import math
 import rainflow
-from PyBTLS.c_module import BTLS
+from PyBTLS.cpp import BTLS
 
 
 class FatigueCalculation():
