@@ -21,10 +21,10 @@
 0
 // Vehicle Generation Model to be used
 // (0 - Grave, 1 - Constant, 2 - Garage)
-1
+0
 // Headway model to be used:
 // (0 - Auxerre NHM, 1 - Constant, 5 - Congestion (w/ or w/out cars), 6 - free-flow, cars included)
-1
+0
 // Traffic Classification System to be used:
 // (0 - No. of Axles, 1 - Axle Pattern)
 1

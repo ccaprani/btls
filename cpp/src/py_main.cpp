@@ -54,6 +54,7 @@ PYBIND11_MODULE(_core, m) {
 			.def_readwrite("Gen_TRUCK_TRACK_WIDTH", &CPyConfigData::Gen_TRUCK_TRACK_WIDTH)
 			.def_readwrite("Gen_LANE_ECCENTRICITY_STD", &CPyConfigData::Gen_LANE_ECCENTRICITY_STD)
 			.def_readwrite("Gen_NO_OVERLAP_LENGTH", &CPyConfigData::Gen_NO_OVERLAP_LENGTH)
+			.def_readwrite("Gen_GEN_CAR", &CPyConfigData::Gen_GEN_CAR)
 			.def_readwrite("Read_READ_FILE", &CPyConfigData::Read_READ_FILE)
 			.def_readwrite("Read_TRAFFIC_FILE", &CPyConfigData::Read_TRAFFIC_FILE)
 			.def_readwrite("Read_GARAGE_FILE", &CPyConfigData::Read_GARAGE_FILE)

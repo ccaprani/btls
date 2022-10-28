@@ -3,14 +3,18 @@ import PyBTLS
 
 py_config = PyBTLS.PyConfigData()
 
-# py_config.VehGenGrave(lanes_file="./LaneFlowData_80.csv", traffic_folder="../Traffic/Auxerre", no_days=10, truck_track_width=190.0, lane_eccentricity_std=0.0)
+# py_config.ReadData("BTLSin.txt")
+# py_config.Gen_GEN_CAR = True
+
+py_config.VehGenGrave(lanes_file="./LaneFlowData_80.csv", traffic_folder="../Traffic/Auxerre", no_days=10, truck_track_width=190.0, lane_eccentricity_std=0.0)
 
 # py_config.VehGenConstant(lanes_file="./LaneFlowData_80.csv", constant_file="./constant_vehicle.csv", no_days=10, lane_eccentricity_std=0.0)
 
-py_config.VehGenGarage(lanes_file="./LaneFlowData_80.csv", garage_file="./garage.txt", file_format=4, kernel_file="./kernels.csv", no_days=10, lane_eccentricity_std=20)
+# py_config.VehGenGarage(lanes_file="./LaneFlowData_80.csv", garage_file="./garage.txt", file_format=4, kernel_file="./kernels.csv", no_days=10, lane_eccentricity_std=20)
 
 
 py_config.FlowGenNHM(vehicle_classification=1, traffic_folder="../Traffic/Auxerre")
+print(py_config.Gen_TRAFFIC_FOLDER)
 
 # py_config.FlowGenConstant(vehicle_classification=1, constant_speed=36, constant_gap=10)
 
