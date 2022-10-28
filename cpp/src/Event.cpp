@@ -13,6 +13,7 @@ using namespace std;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+// never be called in EventManager
 CEvent::CEvent(size_t ID, size_t noEffects)
 {
 	setDefaults();
@@ -21,6 +22,8 @@ CEvent::CEvent(size_t ID, size_t noEffects)
 	setNoEffects(noEffects);
 }
 
+
+// never be called in EventManager
 CEvent::CEvent(size_t ID)
 {
 	setDefaults();
@@ -29,6 +32,12 @@ CEvent::CEvent(size_t ID)
 
 CEvent::CEvent()
 {
+	setDefaults();
+}
+
+CEvent::CEvent(CPyConfigData& pyConfig)
+{
+	CConfigData::get().Output.VehicleFile.FILE_FORMAT = pyConfig.Output_VehicleFile_FILE_FORMAT;
 	setDefaults();
 }
 
@@ -57,8 +66,7 @@ void CEvent::setDefaults()
 	FILE_FORMAT = CConfigData::get().Output.VehicleFile.FILE_FORMAT;
 
 	m_CurEffect = 0;
-	m_StartTime = 0;
-	m_CurEffect = 0;
+	m_StartTime = 0.0;
 	m_EventID = 0;
 	m_NoEffects = 0;
 }
@@ -268,6 +276,16 @@ std::string CEvent::getTimeStr()
 	sTime += to_string(Hour) + ":" + to_string(Min) + ":" + to_string(Sec);
 
 	return sTime;
+}
+
+void CEvent::reSet() {
+	m_CurEffect = 0;
+	m_NoEffects = 0;
+	m_EventID = 0;
+	m_StartTime = 0.0;
+
+	m_vMaxEffects.clear();
+	m_vMinEffects.clear();
 }
 
 template <typename T>

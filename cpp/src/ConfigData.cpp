@@ -40,6 +40,8 @@ void CConfigData::ExtractData()
 	str = GetNextDataLine();	Traffic.CONGESTED_SPACING		= m_CSV.stringToDouble( str);
 	str = GetNextDataLine();	Traffic.CONGESTED_SPEED			= m_CSV.stringToDouble( str);
 	str = GetNextDataLine();	Traffic.CONGESTED_GAP_COEF_VAR	= m_CSV.stringToDouble( str);
+	str = GetNextDataLine();	Traffic.CONSTANT_SPEED			= m_CSV.stringToDouble( str);
+	str = GetNextDataLine();	Traffic.CONSTANT_GAP			= m_CSV.stringToDouble( str);
 
 	str = GetNextDataLine();	Read.GARAGE_FILE				= str;
 	str = GetNextDataLine();	Read.KERNEL_FILE				= str;
@@ -154,6 +156,8 @@ void CConfigData::doDerivedConstants()
 
 	Traffic.CONGESTED_SPEED = Traffic.CONGESTED_SPEED/3.6;	// km/h to m/s
 	Traffic.CONGESTED_GAP = Traffic.CONGESTED_SPACING/Traffic.CONGESTED_SPEED;
+
+	Traffic.CONSTANT_SPEED = Traffic.CONSTANT_SPEED/3.6;	// km/h to m/s
 }
 
 string CConfigData::returnInt(int i) 

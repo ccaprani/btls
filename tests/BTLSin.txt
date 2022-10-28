@@ -21,10 +21,10 @@
 0
 // Vehicle Generation Model to be used
 // (0 - Grave, 1 - Constant, 2 - Garage)
-2
+1
 // Headway model to be used:
 // (0 - Auxerre NHM, 1 - Constant, 5 - Congestion (w/ or w/out cars), 6 - free-flow, cars included)
-6
+1
 // Traffic Classification System to be used:
 // (0 - No. of Axles, 1 - Axle Pattern)
 1
@@ -36,6 +36,10 @@ LaneFlowData_80.csv
 49.7
 // Congested gaps coefficient of variation:
 0.05
+// Constant speed (km/h) (Headway model 1 only):
+36.0
+// Constant gap (s) (Headway model 1 only):
+10.0
 //
 // TRAFFIC GARAGE PARAMETERS
 // ---------------------------------------------
@@ -71,8 +75,8 @@ WGBSlowLanes_Jul.txt
 // Influence Surface definition file:
 IS.txt
 // Time step (s):
-0.05
-// Minimum GVW for inclusion in calculations (t/10):
+0.1
+// Minimum GVW for inclusion in calculations (t*10):
 0
 //
 // ---------------------------------------------
@@ -93,11 +97,11 @@ IS.txt
 // FATIGUE RAINFLOW FILE
 // ---------------------------------------------
 // Conduct Rainflow algorithm for fatigue (1 or 0)
-1
+0
 // Number of decimals left for Rainflow algorithm
-5
+3
 // Cutoff value for Fatigue
-2.0
+0.0
 // Rainflow-out file buffer size
 100000
 //
@@ -105,11 +109,11 @@ IS.txt
 // ---------------------------------------------
 // Write vehicle file (1 or 0)
 // WARNING: a large file may result in long-run simulations
-0
+1
 // Traffic output file format (CASTOR - 1, BeDIT - 2, DITIS - 3, MON - 4):
 4
 // Vehicle file name
-Vehicle.txt
+Vehicles.txt
 // Vehicle file buffer size
 100000
 // Write vehicle file flow statistics (1 or 0)
@@ -124,13 +128,13 @@ Vehicle.txt
 // Block size for maxima (seconds):
 0
 // Write block max separated vehicle files (1 or 0):
-1
+0
 // Write block max summary files (1 or 0):
 1
 // Do and write block max mixed vehicle analysis (1 or 0):
 0
 // Write block max buffer size:
-2
+10000
 //
 // PEAKS OVER THRESHOLD LOAD EFFECTS
 // ---------------------------------------------
@@ -154,7 +158,7 @@ Vehicle.txt
 // Analyse for Statistics (overrides remaining params) (1 or 0)
 1
 // Write cumulative statistics file (1 or 0)
-1
+0
 // Write statistics at intervals files (1 or 0)
 0
 // Interval size for statistics output (seconds)

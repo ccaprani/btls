@@ -5,6 +5,23 @@
 
 CStatsManager::CStatsManager(void)
 {
+	Creator();
+}
+
+CStatsManager::CStatsManager(CPyConfigData& pyConfig) {
+	CConfigData::get().Output.Stats.WRITE_SS_CUMULATIVE		= pyConfig.Output_Stats_WRITE_SS_CUMULATIVE;
+	CConfigData::get().Output.Stats.WRITE_SS_INTERVALS		= pyConfig.Output_Stats_WRITE_SS_INTERVALS;
+	CConfigData::get().Output.Stats.WRITE_SS_INTERVAL_SIZE	= pyConfig.Output_Stats_WRITE_SS_INTERVAL_SIZE;
+	CConfigData::get().Output.Stats.WRITE_SS_BUFFER_SIZE	= pyConfig.Output_Stats_WRITE_SS_BUFFER_SIZE;
+
+	Creator();
+}
+
+CStatsManager::~CStatsManager(void)
+{
+}
+
+void CStatsManager::Creator() {
 	m_FileStem = "SS";
 
 	WRITE_SS_CUMULATIVE		= CConfigData::get().Output.Stats.WRITE_SS_CUMULATIVE;
@@ -18,12 +35,6 @@ CStatsManager::CStatsManager(void)
 	
 	m_CurIntervalNo = 1;
 }
-
-
-CStatsManager::~CStatsManager(void)
-{
-}
-
 
 void CStatsManager::Initialize(double BridgeLength,size_t nLE, double SimStartTime)
 {

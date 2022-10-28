@@ -6,9 +6,12 @@ class CVehModelDataGarage :	public CVehicleModelData
 {
 public:
 	CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc);
+	CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CPyConfigData& pyConfig);
 	virtual ~CVehModelDataGarage();
 
 	virtual void ReadDataIn();
+
+	void assignGarage(std::vector<CVehicle_sp> vVehicles);
 
 	size_t getGarageCount() const { return m_NoVehicles; };
 	CVehicle_sp getVehicle(size_t i);

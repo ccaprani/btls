@@ -7,12 +7,15 @@ class CStatsManager : public COutputManagerBase
 {
 public:
 	CStatsManager(void);
+	CStatsManager(CPyConfigData& pyConfig);
 	virtual ~CStatsManager(void);
 
 	virtual void Update(CEvent Ev);
 	virtual void Initialize(double BridgeLength, size_t nLE, double SimStartTime);
 
 private:
+	void Creator();
+
 	virtual void	WriteSummaryFiles();
 	virtual void	CheckBuffer(bool bForceOutput);
 	virtual void	WriteBuffer();

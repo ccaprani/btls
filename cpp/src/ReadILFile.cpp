@@ -114,7 +114,7 @@ std::vector<CInfluenceLine> CReadILFile::getInfLines(std::filesystem::path file,
 		ReadInfSurfFile(file.string());
 	}
 
-	else
+	else  // read influence lines
 	{
 		cout << "Reading influence line file: " << file.c_str() << endl;
 		ReadILFile(file.string());

@@ -7,6 +7,7 @@ back_up
 dev_functions
 Sample_data
 PyBTLS.egg*
+__pycache__
 
 # CMake
 CMakeFiles/*
