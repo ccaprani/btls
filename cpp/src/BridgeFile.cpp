@@ -14,11 +14,11 @@ CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine>
 	ReadBridges(file.string(), vDiscreteIL, vInfSurf);
 }
 
-CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, CPyConfigData& pyConfig)
+CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, CConfigDataCore& config)
 {
 	m_CommentString = "//";
 	vector<CInfluenceLine> vInfSurf; // create blank vector
-	ReadBridges(file.string(), vDiscreteIL, vInfSurf, pyConfig);
+	ReadBridges(file.string(), vDiscreteIL, vInfSurf, config);
 }
 
 CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf)
@@ -27,10 +27,10 @@ CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine>
 	ReadBridges(file.string(), vDiscreteIL, vInfSurf);
 }
 
-CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf, CPyConfigData& pyConfig)
+CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf, CConfigDataCore& config)
 {
 	m_CommentString = "//";
-	ReadBridges(file.string(), vDiscreteIL, vInfSurf, pyConfig);
+	ReadBridges(file.string(), vDiscreteIL, vInfSurf, config);
 }
 
 
@@ -81,7 +81,7 @@ void CBridgeFile::ReadBridges(string file, vector<CInfluenceLine> vDiscreteIL, s
 	} // end of while loop
 }
 
-void CBridgeFile::ReadBridges(string file, vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf, CPyConfigData& pyConfig)
+void CBridgeFile::ReadBridges(string file, vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf, CConfigDataCore& config)
 {
 
 	if( !m_CSV.OpenFile(file, ",") )
@@ -94,7 +94,7 @@ void CBridgeFile::ReadBridges(string file, vector<CInfluenceLine> vDiscreteIL, s
 
 	while (GetNextDataLine(line))	// while another bridge
 	{
-		CBridge_sp pBridge = std::make_shared<CBridge>(pyConfig); //new CBridge;
+		CBridge_sp pBridge = std::make_shared<CBridge>(config); //new CBridge;
 		pBridge->setIndex( m_CSV.stringToInt( m_CSV.getfield(0) ) );
 		pBridge->setLength(m_CSV.stringToDouble( m_CSV.getfield(1) ) );
 		int NoLanes = m_CSV.stringToInt( m_CSV.getfield(2) );

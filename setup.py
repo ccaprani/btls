@@ -3,7 +3,7 @@ from glob import glob
 from setuptools import setup
 from pybind11.setup_helpers import Pybind11Extension, ParallelCompile, naive_recompile
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 # `N` is to set the bumer of threads
 # `naive_recompile` makes it recompile only if the source file changes. It does not check header files!

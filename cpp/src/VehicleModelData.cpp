@@ -11,10 +11,10 @@ CVehicleModelData::CVehicleModelData(EVehicleModel vm, CVehicleClassification_sp
 	m_mComposition = lfc.getComposition();
 }
 
-CVehicleModelData::CVehicleModelData(EVehicleModel vm, CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const size_t nClass, CPyConfigData& pyConfig)
-	: m_Model(vm), m_pVehClassification(pVC), m_LaneEccStd(0.0), m_TruckClassCount(nClass), CModelData(pyConfig)
+CVehicleModelData::CVehicleModelData(EVehicleModel vm, CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const size_t nClass, CConfigDataCore& config)
+	: m_Model(vm), m_pVehClassification(pVC), m_LaneEccStd(0.0), m_TruckClassCount(nClass), CModelData(config)
 {
-	m_LaneEccStd = pyConfig.Gen_LANE_ECCENTRICITY_STD / 100; // cm to m
+	m_LaneEccStd = config.Gen.LANE_ECCENTRICITY_STD / 100; // cm to m
 
 	m_mComposition = lfc.getComposition();
 }

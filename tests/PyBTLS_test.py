@@ -1,10 +1,9 @@
 import PyBTLS
 
 
-py_config = PyBTLS.PyConfigData()
+py_config = PyBTLS.ConfigData()
 
 # py_config.ReadData("BTLSin.txt")
-# py_config.Gen_GEN_CAR = True
 
 py_config.VehGenGrave(lanes_file="./LaneFlowData_80.csv", traffic_folder="../Traffic/Auxerre", no_days=10, truck_track_width=190.0, lane_eccentricity_std=0.0)
 
@@ -14,7 +13,6 @@ py_config.VehGenGrave(lanes_file="./LaneFlowData_80.csv", traffic_folder="../Tra
 
 
 py_config.FlowGenNHM(vehicle_classification=1, traffic_folder="../Traffic/Auxerre")
-print(py_config.Gen_TRAFFIC_FOLDER)
 
 # py_config.FlowGenConstant(vehicle_classification=1, constant_speed=36, constant_gap=10)
 
@@ -39,15 +37,5 @@ py_config.OutputVehicleFile(write_vehicle_file=True,write_flow_stats=True,buffer
 # py_config.OutputFatigue(do_rainflow=True)
 
 
-vehicle_classification = PyBTLS.get_vehicle_classification(py_config)
+PyBTLS.run()
 
-start_time = 0.0
-end_time = 0.0
-
-bridge_list, py_config = PyBTLS.prepare_bridges(py_config) 
-
-lane_list, end_time, py_config = PyBTLS.get_generator_lanes(vehicle_classification,start_time,py_config)
-for i in range(len(bridge_list)):
-    bridge_list[i].initialize_data_manager(start_time)
-
-PyBTLS.do_simulation(vehicle_classification,bridge_list,lane_list,start_time,end_time,py_config)

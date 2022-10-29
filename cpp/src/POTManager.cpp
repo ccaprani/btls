@@ -5,18 +5,26 @@
 
 CPOTManager::CPOTManager(void)
 {
+	WRITE_BUFFER_SIZE	= CConfigData::get().Output.POT.WRITE_POT_BUFFER_SIZE;
+	WRITE_VEHICLES		= CConfigData::get().Output.POT.WRITE_POT_VEHICLES;
+	WRITE_SUMMARY		= CConfigData::get().Output.POT.WRITE_POT_SUMMARY;
+
+	WRITE_POT_COUNTER	= CConfigData::get().Output.POT.WRITE_POT_COUNTER;
+	POT_COUNT_SIZE_DAYS	= CConfigData::get().Output.POT.POT_COUNT_SIZE_DAYS;
+	POT_COUNT_SIZE_SECS	= CConfigData::get().Output.POT.POT_COUNT_SIZE_SECS;
+
 	Creator();
 }
 
-CPOTManager::CPOTManager(CPyConfigData& pyConfig)
+CPOTManager::CPOTManager(CConfigDataCore& config)
 {
-	CConfigData::get().Output.POT.WRITE_POT_BUFFER_SIZE	= pyConfig.Output_POT_WRITE_POT_BUFFER_SIZE;
-	CConfigData::get().Output.POT.WRITE_POT_VEHICLES		= pyConfig.Output_POT_WRITE_POT_VEHICLES;
-	CConfigData::get().Output.POT.WRITE_POT_SUMMARY		= pyConfig.Output_POT_WRITE_POT_SUMMARY;
+	WRITE_BUFFER_SIZE	= config.Output.POT.WRITE_POT_BUFFER_SIZE;
+	WRITE_VEHICLES		= config.Output.POT.WRITE_POT_VEHICLES;
+	WRITE_SUMMARY		= config.Output.POT.WRITE_POT_SUMMARY;
 
-	CConfigData::get().Output.POT.WRITE_POT_COUNTER		= pyConfig.Output_POT_WRITE_POT_COUNTER;
-	CConfigData::get().Output.POT.POT_COUNT_SIZE_DAYS	= pyConfig.Output_POT_POT_COUNT_SIZE_DAYS;
-	CConfigData::get().Output.POT.POT_COUNT_SIZE_SECS	= pyConfig.Output_POT_POT_COUNT_SIZE_SECS;
+	WRITE_POT_COUNTER	= config.Output.POT.WRITE_POT_COUNTER;
+	POT_COUNT_SIZE_DAYS	= config.Output.POT.POT_COUNT_SIZE_DAYS;
+	POT_COUNT_SIZE_SECS	= config.Output.POT.POT_COUNT_SIZE_SECS;
 
 	Creator();
 }
@@ -27,14 +35,6 @@ CPOTManager::~CPOTManager(void)
 
 void CPOTManager::Creator() {
 	m_FileStem = "PT";
-
-	WRITE_BUFFER_SIZE	= CConfigData::get().Output.POT.WRITE_POT_BUFFER_SIZE;
-	WRITE_VEHICLES		= CConfigData::get().Output.POT.WRITE_POT_VEHICLES;
-	WRITE_SUMMARY		= CConfigData::get().Output.POT.WRITE_POT_SUMMARY;
-
-	WRITE_POT_COUNTER	= CConfigData::get().Output.POT.WRITE_POT_COUNTER;
-	POT_COUNT_SIZE_DAYS	= CConfigData::get().Output.POT.POT_COUNT_SIZE_DAYS;
-	POT_COUNT_SIZE_SECS	= CConfigData::get().Output.POT.POT_COUNT_SIZE_SECS;
 
 	m_BlockSize = 3600 * 24 * POT_COUNT_SIZE_DAYS + POT_COUNT_SIZE_SECS;
 	m_CurBlockNo = 0;

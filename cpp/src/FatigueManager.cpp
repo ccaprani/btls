@@ -7,15 +7,17 @@ CFatigueManager::CFatigueManager(void) {
     RAINFLOW_CUTOFF     = CConfigData::get().Output.Fatigue.RAINFLOW_CUTOFF;
     WRITE_BUFFER_SIZE   = CConfigData::get().Output.Fatigue.WRITE_RAINFLOW_BUFFER_SIZE;
 
+    m_FileStem = "RC";
     m_WriteHeadLine = true;
     m_EventCount = 0;
 }
 
-CFatigueManager::CFatigueManager(CPyConfigData& pyConfig) {
-    RAINFLOW_DECIMAL    = pyConfig.Output_Fatigue_RAINFLOW_DECIMAL;
-    RAINFLOW_CUTOFF     = pyConfig.Output_Fatigue_RAINFLOW_CUTOFF;
-    WRITE_BUFFER_SIZE   = pyConfig.Output_Fatigue_WRITE_RAINFLOW_BUFFER_SIZE;
+CFatigueManager::CFatigueManager(CConfigDataCore& config) {
+    RAINFLOW_DECIMAL    = config.Output.Fatigue.RAINFLOW_DECIMAL;
+    RAINFLOW_CUTOFF     = config.Output.Fatigue.RAINFLOW_CUTOFF;
+    WRITE_BUFFER_SIZE   = config.Output.Fatigue.WRITE_RAINFLOW_BUFFER_SIZE;
 
+    m_FileStem = "RC";
     m_WriteHeadLine = true;
     m_EventCount = 0;
 }
@@ -83,7 +85,7 @@ void CFatigueManager::WriteBuffer() {
     for (size_t i = 0; i < m_NoLoadEffects; i++) {
         std::map<double, double>::iterator iter;
         std::string file;
-        file = "RC_" + to_string(m_BridgeLength) + "_" + to_string(i+1) + ".txt";
+        file = m_FileStem + "_" + to_string(m_BridgeLength) + "_" + to_string(i+1) + ".txt";
         std::ostringstream oStr;
         if (m_WriteHeadLine) {
             m_RainflowOutFile.open(file.c_str(),std::ios::out);

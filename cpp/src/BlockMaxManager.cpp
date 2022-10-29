@@ -12,24 +12,6 @@
 
 CBlockMaxManager::CBlockMaxManager()
 {
-	Creator();
-}
-
-CBlockMaxManager::CBlockMaxManager(CPyConfigData& pyConfig) {
-	CConfigData::get().Output.BlockMax.BLOCK_SIZE_DAYS		= pyConfig.Output_BlockMax_BLOCK_SIZE_DAYS;
-	CConfigData::get().Output.BlockMax.BLOCK_SIZE_SECS		= pyConfig.Output_BlockMax_BLOCK_SIZE_SECS;
-
-	CConfigData::get().Output.BlockMax.WRITE_BM_BUFFER_SIZE	= pyConfig.Output_BlockMax_WRITE_BM_BUFFER_SIZE;
-	CConfigData::get().Output.BlockMax.WRITE_BM_VEHICLES		= pyConfig.Output_BlockMax_WRITE_BM_VEHICLES;
-	CConfigData::get().Output.BlockMax.WRITE_BM_SUMMARY		= pyConfig.Output_BlockMax_WRITE_BM_SUMMARY;
-	CConfigData::get().Output.BlockMax.WRITE_BM_MIXED		= pyConfig.Output_BlockMax_WRITE_BM_MIXED;
-
-	Creator();
-}
-
-void CBlockMaxManager::Creator() {
-	m_FileStem = "BM";
-
 	BLOCK_SIZE_DAYS		= CConfigData::get().Output.BlockMax.BLOCK_SIZE_DAYS;
 	BLOCK_SIZE_SECS		= CConfigData::get().Output.BlockMax.BLOCK_SIZE_SECS;
 
@@ -37,6 +19,24 @@ void CBlockMaxManager::Creator() {
 	WRITE_VEHICLES		= CConfigData::get().Output.BlockMax.WRITE_BM_VEHICLES;
 	WRITE_SUMMARY		= CConfigData::get().Output.BlockMax.WRITE_BM_SUMMARY;
 	WRITE_BM_MIXED		= CConfigData::get().Output.BlockMax.WRITE_BM_MIXED;
+
+	Creator();
+}
+
+CBlockMaxManager::CBlockMaxManager(CConfigDataCore& config) {
+	BLOCK_SIZE_DAYS		= config.Output.BlockMax.BLOCK_SIZE_DAYS;
+	BLOCK_SIZE_SECS		= config.Output.BlockMax.BLOCK_SIZE_SECS;
+
+	WRITE_BUFFER_SIZE	= config.Output.BlockMax.WRITE_BM_BUFFER_SIZE;
+	WRITE_VEHICLES		= config.Output.BlockMax.WRITE_BM_VEHICLES;
+	WRITE_SUMMARY		= config.Output.BlockMax.WRITE_BM_SUMMARY;
+	WRITE_BM_MIXED		= config.Output.BlockMax.WRITE_BM_MIXED;
+
+	Creator();
+}
+
+void CBlockMaxManager::Creator() {
+	m_FileStem = "BM";
 
 	m_BlockSize = 3600 * 24 * BLOCK_SIZE_DAYS + BLOCK_SIZE_SECS;
 	m_CurBlockNo = 1;

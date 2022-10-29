@@ -7,7 +7,7 @@ class CStatsManager : public COutputManagerBase
 {
 public:
 	CStatsManager(void);
-	CStatsManager(CPyConfigData& pyConfig);
+	CStatsManager(CConfigDataCore& config);
 	virtual ~CStatsManager(void);
 
 	virtual void Update(CEvent Ev);

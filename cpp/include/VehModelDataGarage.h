@@ -6,7 +6,7 @@ class CVehModelDataGarage :	public CVehicleModelData
 {
 public:
 	CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc);
-	CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CPyConfigData& pyConfig);
+	CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CConfigDataCore& config);
 	virtual ~CVehModelDataGarage();
 
 	virtual void ReadDataIn();

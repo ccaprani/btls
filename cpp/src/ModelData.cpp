@@ -8,9 +8,9 @@ CModelData::CModelData()
 	m_Path = CConfigData::get().Gen.TRAFFIC_FOLDER;
 }
 
-CModelData::CModelData(CPyConfigData& pyConfig)
+CModelData::CModelData(CConfigDataCore& config)
 {
-	m_Path = pyConfig.Gen_TRAFFIC_FOLDER;
+	m_Path = config.Gen.TRAFFIC_FOLDER;
 }
 
 CModelData::~CModelData()

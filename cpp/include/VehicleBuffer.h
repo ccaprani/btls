@@ -14,7 +14,7 @@
 #include <fstream>
 #include <math.h>
 #include "Vehicle.h"
-#include "PyConfigData.h"
+#include "ConfigData.h"
 
 struct CFlowRateData
 {
@@ -46,7 +46,7 @@ class CVehicleBuffer
 {
 public:
 	CVehicleBuffer(CVehicleClassification_sp pVC, double starttime);
-	CVehicleBuffer(CVehicleClassification_sp pVC, double starttime, CPyConfigData& pyConfig);
+	CVehicleBuffer(CVehicleClassification_sp pVC, double starttime, CConfigDataCore& config);
 	virtual ~CVehicleBuffer();
 	
 	void AddVehicle(const CVehicle_sp& pVeh);

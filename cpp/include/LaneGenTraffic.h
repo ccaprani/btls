@@ -8,19 +8,19 @@
 #include "VehicleGenGrave.h"
 #include "VehicleGenConstant.h"
 #include "VehicleGenGarage.h"
-#include "PyConfigData.h"
+#include "ConfigData.h"
 
 class CLaneGenTraffic : public CLane
 {
 public:
 	CLaneGenTraffic(void);
-	CLaneGenTraffic(CPyConfigData& pyConfig);
+	CLaneGenTraffic(CConfigDataCore& config);
 	~CLaneGenTraffic(void);
 
 	virtual CVehicle_sp GetNextVehicle();
 	
 	void setLaneData(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const double starttime);
-	void setLaneData(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const double starttime, CPyConfigData& pyConfig);
+	void setLaneData(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const double starttime, CConfigDataCore& config);
 
 private:
 	void	Creator();

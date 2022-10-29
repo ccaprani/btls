@@ -15,8 +15,8 @@ CVehModelDataGarage::CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlo
 	ReadDataIn();
 }
 
-CVehModelDataGarage::CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CPyConfigData& pyConfig)
-	: CVehicleModelData(eVM_Garage, pVC, lfc, 1, pyConfig) // MAGIC NUMBER - truck class count
+CVehModelDataGarage::CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CConfigDataCore& config)
+	: CVehicleModelData(eVM_Garage, pVC, lfc, 1, config) // MAGIC NUMBER - truck class count
 	, m_NoVehicles(0)
 {
 	// MAGIC NUMBER for now
@@ -24,9 +24,9 @@ CVehModelDataGarage::CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlo
 	m_KernalAW = Normal(1.0, 0.05);
 	m_KernalAS = Normal(1.0, 0.02);
 
-	CConfigData::get().Read.GARAGE_FILE = pyConfig.Read_GARAGE_FILE;
-	CConfigData::get().Read.FILE_FORMAT = pyConfig.Read_FILE_FORMAT;
-	CConfigData::get().Read.KERNEL_FILE = pyConfig.Read_KERNEL_FILE;
+	CConfigData::get().Read.GARAGE_FILE = config.Read.GARAGE_FILE;
+	CConfigData::get().Read.FILE_FORMAT = config.Read.FILE_FORMAT;
+	CConfigData::get().Read.KERNEL_FILE = config.Read.KERNEL_FILE;
 	
 	ReadDataIn();
 }

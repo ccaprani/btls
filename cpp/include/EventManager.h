@@ -22,13 +22,13 @@
 #include "POTManager.h"
 #include "StatsManager.h"
 #include "FatigueManager.h"
-#include "PyConfigData.h"
+#include "ConfigData.h"
 
 class CEventManager  
 {
 public:
 	CEventManager();
-	CEventManager(CPyConfigData& pyConfig);
+	CEventManager(CConfigDataCore& config);
 	virtual ~CEventManager();
 
 	void Initialize(double BridgeLength,std::vector<double> vThresholds, double SimStartTime);

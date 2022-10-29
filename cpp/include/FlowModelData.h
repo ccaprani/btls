@@ -8,7 +8,7 @@ class CFlowModelData :	public CModelData
 {
 public:
 	CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars);
-	CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars, CPyConfigData& pyConfig);
+	CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars, CConfigDataCore& config);
 	virtual ~CFlowModelData();
 
 	vec		getCarPercent() const { return m_vCarPercent; };
@@ -49,7 +49,7 @@ class CFlowModelDataNHM : public CFlowModelData
 {
 public:
 	CFlowModelDataNHM(CLaneFlowComposition lfc);
-	CFlowModelDataNHM(CLaneFlowComposition lfc, CPyConfigData& pyConfig);
+	CFlowModelDataNHM(CLaneFlowComposition lfc, CConfigDataCore& config);
 	virtual ~CFlowModelDataNHM();
 
 	virtual void ReadDataIn();
@@ -68,7 +68,7 @@ class CFlowModelDataCongested : public CFlowModelData
 {
 public:
 	CFlowModelDataCongested(CLaneFlowComposition lfc);
-	CFlowModelDataCongested(CLaneFlowComposition lfc, CPyConfigData& pyConfig);
+	CFlowModelDataCongested(CLaneFlowComposition lfc, CConfigDataCore& config);
 	virtual ~CFlowModelDataCongested();
 
 	virtual void ReadDataIn();
@@ -87,7 +87,7 @@ class CFlowModelDataPoisson : public CFlowModelData
 {
 public:
 	CFlowModelDataPoisson(CLaneFlowComposition lfc);
-	CFlowModelDataPoisson(CLaneFlowComposition lfc, CPyConfigData& pyConfig);
+	CFlowModelDataPoisson(CLaneFlowComposition lfc, CConfigDataCore& config);
 	virtual ~CFlowModelDataPoisson();
 
 	virtual void ReadDataIn();
@@ -98,7 +98,7 @@ class CFlowModelDataConstant : public CFlowModelData
 {
 public:
 	CFlowModelDataConstant(CLaneFlowComposition lfc);
-	CFlowModelDataConstant(CLaneFlowComposition lfc, CPyConfigData& pyConfig);
+	CFlowModelDataConstant(CLaneFlowComposition lfc, CConfigDataCore& config);
 	virtual ~CFlowModelDataConstant();
 
 	double getConstSpeed();

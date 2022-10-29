@@ -10,7 +10,7 @@
 #endif // _MSC_VER > 1000
 
 #include "Effect.h"
-#include "PyConfigData.h"
+#include "ConfigData.h"
 #include <string>
 #include <vector>
 #include <fstream>
@@ -21,7 +21,7 @@ class CEvent
 {
 public:
 	CEvent();
-	CEvent(CPyConfigData& pyConfig);
+	CEvent(CConfigDataCore& config);
 	CEvent(size_t);
 	CEvent(size_t, size_t noEffects);
 	virtual ~CEvent();

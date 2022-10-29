@@ -11,12 +11,12 @@ CFlowModelData::CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bo
 	Creator(lfc);
 }
 
-CFlowModelData::CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars, CPyConfigData& pyConfig)
+CFlowModelData::CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars, CConfigDataCore& config)
 	: m_Model(fm), m_bModelHasCars(bCars)
 	// MAGIC NUMBERs - internal gap buffer e.g. tyre diameter, and a min driving gap
-	, m_BufferGapSpace(1.0), m_BufferGapTime(0.1), CModelData(pyConfig)
+	, m_BufferGapSpace(1.0), m_BufferGapTime(0.1), CModelData(config)
 {
-	CConfigData::get().Gen.NO_OVERLAP_LENGTH = pyConfig.Gen_NO_OVERLAP_LENGTH;
+	CConfigData::get().Gen.NO_OVERLAP_LENGTH = config.Gen.NO_OVERLAP_LENGTH;
 	Creator(lfc);
 }
 
@@ -60,13 +60,13 @@ void CFlowModelData::getBlockInfo(size_t& sz, size_t& n) const
 //////////// CFlowModelDataNHM //////////////
 
 CFlowModelDataNHM::CFlowModelDataNHM(CLaneFlowComposition lfc)
-	: CFlowModelData(eFM_NHM, lfc, false) // Model does not have cars
+	: CFlowModelData(eFM_NHM, lfc, CConfigData::get().Traffic.GEN_CAR)
 {
 	ReadDataIn();
 }
 
-CFlowModelDataNHM::CFlowModelDataNHM(CLaneFlowComposition lfc, CPyConfigData& pyConfig)
-	: CFlowModelData(eFM_NHM, lfc, pyConfig.Gen_GEN_CAR, pyConfig) // Model does not have cars
+CFlowModelDataNHM::CFlowModelDataNHM(CLaneFlowComposition lfc, CConfigDataCore& config)
+	: CFlowModelData(eFM_NHM, lfc, config.Traffic.GEN_CAR, config)
 {
 	ReadDataIn();
 }
@@ -117,19 +117,19 @@ void CFlowModelDataNHM::ReadFile_NHM()
 //////////// CFlowModelDataCongested //////////////
 
 CFlowModelDataCongested::CFlowModelDataCongested(CLaneFlowComposition lfc)
-	: CFlowModelData(eFM_Congested, lfc, true) // Model has cars
+	: CFlowModelData(eFM_Congested, lfc, CConfigData::get().Traffic.GEN_CAR)
 {
 	m_GapMean = CConfigData::get().Traffic.CONGESTED_GAP;
 	m_GapStd = CConfigData::get().Traffic.CONGESTED_GAP_COEF_VAR;
 	m_Speed = CConfigData::get().Traffic.CONGESTED_SPEED;
 }
 
-CFlowModelDataCongested::CFlowModelDataCongested(CLaneFlowComposition lfc, CPyConfigData& pyConfig)
-	: CFlowModelData(eFM_Congested, lfc, pyConfig.Gen_GEN_CAR, pyConfig) // Model has cars
+CFlowModelDataCongested::CFlowModelDataCongested(CLaneFlowComposition lfc, CConfigDataCore& config)
+	: CFlowModelData(eFM_Congested, lfc, config.Traffic.GEN_CAR, config)
 {
-	m_GapMean = pyConfig.Traffic_CONGESTED_GAP;
-	m_GapStd = pyConfig.Traffic_CONGESTED_GAP_COEF_VAR;
-	m_Speed = pyConfig.Traffic_CONGESTED_SPEED;
+	m_GapMean = config.Traffic.CONGESTED_GAP;
+	m_GapStd = config.Traffic.CONGESTED_GAP_COEF_VAR;
+	m_Speed = config.Traffic.CONGESTED_SPEED;
 }
 
 CFlowModelDataCongested::~CFlowModelDataCongested()
@@ -151,13 +151,13 @@ void CFlowModelDataCongested::getGapParams(double& mean, double& std)
 //////////// CFlowModelDataPoisson //////////////
 
 CFlowModelDataPoisson::CFlowModelDataPoisson(CLaneFlowComposition lfc)
-	: CFlowModelData(eFM_Poisson, lfc, true) // Model has cars
+	: CFlowModelData(eFM_Poisson, lfc, CConfigData::get().Traffic.GEN_CAR)
 {
 
 }
 
-CFlowModelDataPoisson::CFlowModelDataPoisson(CLaneFlowComposition lfc, CPyConfigData& pyConfig)
-	: CFlowModelData(eFM_Poisson, lfc, pyConfig.Gen_GEN_CAR, pyConfig) // Model has cars
+CFlowModelDataPoisson::CFlowModelDataPoisson(CLaneFlowComposition lfc, CConfigDataCore& config)
+	: CFlowModelData(eFM_Poisson, lfc, config.Traffic.GEN_CAR, config)
 {
 
 }
@@ -175,17 +175,17 @@ void CFlowModelDataPoisson::ReadDataIn()
 //////////// CFlowModelDataConstant //////////////
 
 CFlowModelDataConstant::CFlowModelDataConstant(CLaneFlowComposition lfc)
-	: CFlowModelData(eFM_Constant, lfc, true) // Model has cars
+	: CFlowModelData(eFM_Constant, lfc, CConfigData::get().Traffic.GEN_CAR)
 {
 	m_ConstSpeed = CConfigData::get().Traffic.CONSTANT_SPEED;
 	m_ConstGap = CConfigData::get().Traffic.CONSTANT_GAP;
 }
 
-CFlowModelDataConstant::CFlowModelDataConstant(CLaneFlowComposition lfc, CPyConfigData& pyConfig)
-	: CFlowModelData(eFM_Constant, lfc, pyConfig.Gen_GEN_CAR, pyConfig) // Model has cars
+CFlowModelDataConstant::CFlowModelDataConstant(CLaneFlowComposition lfc, CConfigDataCore& config)
+	: CFlowModelData(eFM_Constant, lfc, config.Traffic.GEN_CAR, config)
 {
-	m_ConstSpeed = pyConfig.Traffic_CONSTANT_SPEED;
-	m_ConstGap = pyConfig.Traffic_CONSTANT_GAP;
+	m_ConstSpeed = config.Traffic.CONSTANT_SPEED;
+	m_ConstGap = config.Traffic.CONSTANT_GAP;
 }
 
 CFlowModelDataConstant::~CFlowModelDataConstant()

@@ -20,9 +20,9 @@ CEventBuffer::CEventBuffer()
 	m_Mode = CEventBuffer::ALLEVENTS;
 }
 
-CEventBuffer::CEventBuffer(CPyConfigData& pyConfig)
+CEventBuffer::CEventBuffer(CConfigDataCore& config)
 {
-	m_BufferSize = pyConfig.Output_WRITE_EVENT_BUFFER_SIZE;
+	m_BufferSize = config.Output.WRITE_EVENT_BUFFER_SIZE;
 
 	SetBufferSize(m_BufferSize);
 	m_NoEvents = 0;
@@ -39,9 +39,9 @@ CEventBuffer::CEventBuffer(std::string OutFile)
 	m_Mode = ALLEVENTS;
 }
 
-CEventBuffer::CEventBuffer(std::string OutFile, CPyConfigData& pyConfig)
+CEventBuffer::CEventBuffer(std::string OutFile, CConfigDataCore& config)
 {
-	m_BufferSize = pyConfig.Output_WRITE_EVENT_BUFFER_SIZE;
+	m_BufferSize = config.Output.WRITE_EVENT_BUFFER_SIZE;
 
 	m_OutFile.open(OutFile.c_str(), std::ios::out);
 	SetBufferSize(m_BufferSize);

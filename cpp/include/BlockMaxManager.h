@@ -7,7 +7,7 @@ class CBlockMaxManager : public COutputManagerBase
 {
 public:
 	CBlockMaxManager();
-	CBlockMaxManager(CPyConfigData& pyConfig);
+	CBlockMaxManager(CConfigDataCore& config);
 	virtual ~CBlockMaxManager();
 
 	virtual void Update(CEvent Ev);

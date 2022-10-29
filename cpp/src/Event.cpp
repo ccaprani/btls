@@ -26,18 +26,20 @@ CEvent::CEvent(size_t ID, size_t noEffects)
 // never be called in EventManager
 CEvent::CEvent(size_t ID)
 {
+	FILE_FORMAT = CConfigData::get().Output.VehicleFile.FILE_FORMAT;
 	setDefaults();
 	m_EventID = ID;
 }
 
 CEvent::CEvent()
 {
+	FILE_FORMAT = CConfigData::get().Output.VehicleFile.FILE_FORMAT;
 	setDefaults();
 }
 
-CEvent::CEvent(CPyConfigData& pyConfig)
+CEvent::CEvent(CConfigDataCore& config)
 {
-	CConfigData::get().Output.VehicleFile.FILE_FORMAT = pyConfig.Output_VehicleFile_FILE_FORMAT;
+	FILE_FORMAT = config.Output.VehicleFile.FILE_FORMAT;
 	setDefaults();
 }
 
@@ -62,8 +64,6 @@ void CEvent::setDefaults()
 	SECS_PER_HOUR	= CConfigData::get().Time.SECS_PER_HOUR;
 	MINS_PER_HOUR	= CConfigData::get().Time.MINS_PER_HOUR;
 	SECS_PER_MIN	= CConfigData::get().Time.SECS_PER_MIN;
-
-	FILE_FORMAT = CConfigData::get().Output.VehicleFile.FILE_FORMAT;
 
 	m_CurEffect = 0;
 	m_StartTime = 0.0;

@@ -16,15 +16,15 @@
 #include "Event.h"
 #include "Effect.h"
 #include "Vehicle.h"
-#include "PyConfigData.h"
+#include "ConfigData.h"
 
 class CEventBuffer
 {
 public:
 	CEventBuffer();
-	CEventBuffer(CPyConfigData& pyConfig);
+	CEventBuffer(CConfigDataCore& config);
 	CEventBuffer(std::string OutFile);
-	CEventBuffer(std::string OutFile, CPyConfigData& pyConfig);
+	CEventBuffer(std::string OutFile, CConfigDataCore& config);
 	virtual ~CEventBuffer();
 
 	void setMode(bool bFatigue);

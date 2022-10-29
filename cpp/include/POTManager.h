@@ -6,7 +6,7 @@ class CPOTManager : public COutputManagerBase
 {
 public:
 	CPOTManager(void);
-	CPOTManager(CPyConfigData& pyConfig);
+	CPOTManager(CConfigDataCore& config);
 	virtual ~CPOTManager(void);
 
 	virtual void Update(CEvent Ev);

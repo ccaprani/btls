@@ -12,38 +12,6 @@
 
 CEventManager::CEventManager()
 {
-	Creator();
-}
-
-CEventManager::CEventManager(CPyConfigData& pyConfig) 
-	: m_AllEventBuffer(pyConfig)
-	, m_FatigueEventBuffer(pyConfig)
-	, m_BlockMaxManager(pyConfig)
-	, m_POTManager(pyConfig)
-	, m_StatsManager(pyConfig)
-	, m_FatigueManager(pyConfig)
-	, m_CurEvent(pyConfig)
-{
-	CConfigData::get().Output.WRITE_TIME_HISTORY		= pyConfig.Output_WRITE_TIME_HISTORY;
-	CConfigData::get().Output.WRITE_EACH_EVENT			= pyConfig.Output_WRITE_EACH_EVENT;
-	CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE 	= pyConfig.Output_WRITE_EVENT_BUFFER_SIZE;
-	CConfigData::get().Output.WRITE_FATIGUE_EVENT		= pyConfig.Output_WRITE_FATIGUE_EVENT;
-
-	CConfigData::get().Output.BlockMax.WRITE_BM	= pyConfig.Output_BlockMax_WRITE_BM;
-	CConfigData::get().Output.POT.WRITE_POT		= pyConfig.Output_POT_WRITE_POT;
-	CConfigData::get().Output.Stats.WRITE_STATS = pyConfig.Output_Stats_WRITE_STATS;
-	
-	CConfigData::get().Output.Fatigue.DO_FATIGUE_RAINFLOW = pyConfig.Output_Fatigue_DO_FATIGUE_RAINFLOW;
-
-	Creator();
-}
-
-CEventManager::~CEventManager()
-{
-
-}
-
-void CEventManager::Creator() {
 	WRITE_TIME_HISTORY		= CConfigData::get().Output.WRITE_TIME_HISTORY;
 	WRITE_EACH_EVENT		= CConfigData::get().Output.WRITE_EACH_EVENT;
 	WRITE_EVENT_BUFFER_SIZE = CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE;
@@ -55,6 +23,38 @@ void CEventManager::Creator() {
 	
 	DO_FATIGUE_RAINFLOW = CConfigData::get().Output.Fatigue.DO_FATIGUE_RAINFLOW;
 
+	Creator();
+}
+
+CEventManager::CEventManager(CConfigDataCore& config) 
+	: m_AllEventBuffer(config)
+	, m_FatigueEventBuffer(config)
+	, m_BlockMaxManager(config)
+	, m_POTManager(config)
+	, m_StatsManager(config)
+	, m_FatigueManager(config)
+	, m_CurEvent(config)
+{
+	WRITE_TIME_HISTORY		= config.Output.WRITE_TIME_HISTORY;
+	WRITE_EACH_EVENT			= config.Output.WRITE_EACH_EVENT;
+	WRITE_EVENT_BUFFER_SIZE 	= config.Output.WRITE_EVENT_BUFFER_SIZE;
+	WRITE_FATIGUE_EVENT		= config.Output.WRITE_FATIGUE_EVENT;
+
+	WRITE_BM	= config.Output.BlockMax.WRITE_BM;
+	WRITE_POT		= config.Output.POT.WRITE_POT;
+	WRITE_STATS = config.Output.Stats.WRITE_STATS;
+	
+	DO_FATIGUE_RAINFLOW = config.Output.Fatigue.DO_FATIGUE_RAINFLOW;
+
+	Creator();
+}
+
+CEventManager::~CEventManager()
+{
+
+}
+
+void CEventManager::Creator() {
 	m_NoEvents = 0;
 	m_CurTime = 0.0;
 	m_FatigueEventBuffer.setMode(true);

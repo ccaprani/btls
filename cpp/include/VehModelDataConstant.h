@@ -6,7 +6,7 @@ class CVehModelDataConstant :	public CVehicleModelData
 {
 public:
 	CVehModelDataConstant(CVehicleClassification_sp pVC, CLaneFlowComposition lfc);
-    CVehModelDataConstant(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CPyConfigData& pyConfig);
+    CVehModelDataConstant(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CConfigDataCore& config);
 	virtual ~CVehModelDataConstant();
 
 	virtual void ReadDataIn();

@@ -15,7 +15,7 @@
 #include "EventManager.h"
 #include "Vehicle.h"
 #include "CalcEffect.h"
-#include "PyConfigData.h"
+#include "ConfigData.h"
 #include <memory>
 
 class CBridge;  typedef std::shared_ptr<CBridge> CBridge_sp;
@@ -24,7 +24,7 @@ class CBridge
 {
 public:
 	CBridge();
-	CBridge(CPyConfigData& pyConfig);
+	CBridge(CConfigDataCore& config);
 	CBridge(double length, double calcTimeStep, int n, double curTime);
 	virtual ~CBridge();
 

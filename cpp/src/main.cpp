@@ -71,7 +71,7 @@ int main()
 
 	// Now read generator info for lanes
 	vector<CLane_sp> vLanes;
-	if (CConfigData::get().Gen.GEN_TRAFFIC)	GetGeneratorLanes(pVC, vLanes, StartTime, EndTime); 
+	if (CConfigData::get().Gen.GEN_TRAFFIC) GetGeneratorLanes(pVC, vLanes, StartTime, EndTime); 
 	if (CConfigData::get().Read.READ_FILE)	GetTrafficFileLanes(pVC, vLanes, StartTime, EndTime);
 
 	// Now we know the time, we can tell bridge data managers when to start

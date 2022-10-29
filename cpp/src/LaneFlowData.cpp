@@ -9,12 +9,12 @@ CLaneFlowData::CLaneFlowData()
 {
 }
 
-CLaneFlowData::CLaneFlowData(CPyConfigData& pyConfig)
+CLaneFlowData::CLaneFlowData(CConfigDataCore& config)
 	: m_TruckClassCount(0),
 	  m_BlockSize(3600), m_NoBlocks(24), // MAGIC NUMBER - default to older type file format
-	  CModelData(pyConfig)
+	  CModelData(config)
 {
-	CConfigData::get().Road.LANES_FILE = pyConfig.Road_LANES_FILE;
+	CConfigData::get().Road.LANES_FILE = config.Road.LANES_FILE;
 }
 
 CLaneFlowData::~CLaneFlowData()
