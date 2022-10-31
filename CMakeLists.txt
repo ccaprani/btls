@@ -6,7 +6,7 @@ if(WIN32)
   option(Win "|To build on Windows|" ON)
 endif()
 
-configure_file (
+configure_file(
   "${PROJECT_SOURCE_DIR}/cpp/config/BTLS_Config.h.in"
   "${PROJECT_SOURCE_DIR}/cpp/config/BTLS_Config.h"
 )
