@@ -16,12 +16,15 @@
 #include "Event.h"
 #include "Effect.h"
 #include "Vehicle.h"
+#include "ConfigData.h"
 
 class CEventBuffer
 {
 public:
 	CEventBuffer();
+	CEventBuffer(CConfigDataCore& config);
 	CEventBuffer(std::string OutFile);
+	CEventBuffer(std::string OutFile, CConfigDataCore& config);
 	virtual ~CEventBuffer();
 
 	void setMode(bool bFatigue);

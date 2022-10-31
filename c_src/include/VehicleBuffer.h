@@ -14,6 +14,7 @@
 #include <fstream>
 #include <math.h>
 #include "Vehicle.h"
+#include "ConfigData.h"
 
 struct CFlowRateData
 {
@@ -45,6 +46,7 @@ class CVehicleBuffer
 {
 public:
 	CVehicleBuffer(CVehicleClassification_sp pVC, double starttime);
+	CVehicleBuffer(CVehicleClassification_sp pVC, double starttime, CConfigDataCore& config);
 	virtual ~CVehicleBuffer();
 	
 	void AddVehicle(const CVehicle_sp& pVeh);
@@ -52,6 +54,8 @@ public:
 
 private:
 //	void SetBufferSize(int size);
+	void Creator(CVehicleClassification_sp pVC, double starttime);
+
 	void writeFlowData();
 	void updateFlowData(const CVehicle_sp& pVeh);
 	void flushFlowData();

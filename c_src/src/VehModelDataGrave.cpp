@@ -12,6 +12,18 @@ CVehModelDataGrave::CVehModelDataGrave(CVehicleClassification_sp pVC, CLaneFlowC
 	ReadDataIn();
 }
 
+CVehModelDataGrave::CVehModelDataGrave(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CConfigDataCore& config)
+	: CVehicleModelData(eVM_Grave, pVC, lfc, 5, config) // MAGIC NUMBER - truck class count of the Grave Model
+{
+	GVWRange range;
+	m_v4AxleWeight.assign(12, range);
+	m_v5AxleWeight.assign(12, range);
+
+	CConfigData::get().Gen.TRUCK_TRACK_WIDTH = config.Gen.TRUCK_TRACK_WIDTH;
+
+	ReadDataIn();
+}
+
 CVehModelDataGrave::~CVehModelDataGrave()
 {
 
