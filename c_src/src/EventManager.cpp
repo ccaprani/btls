@@ -23,14 +23,41 @@ CEventManager::CEventManager()
 	
 	DO_FATIGUE_RAINFLOW = CConfigData::get().Output.Fatigue.DO_FATIGUE_RAINFLOW;
 
-	m_NoEvents = 0;
-	m_CurTime = 0.0;
-	m_FatigueEventBuffer.setMode(true);
+	Creator();
+}
+
+CEventManager::CEventManager(CConfigDataCore& config) 
+	: m_AllEventBuffer(config)
+	, m_FatigueEventBuffer(config)
+	, m_BlockMaxManager(config)
+	, m_POTManager(config)
+	, m_StatsManager(config)
+	, m_FatigueManager(config)
+	, m_CurEvent(config)
+{
+	WRITE_TIME_HISTORY		= config.Output.WRITE_TIME_HISTORY;
+	WRITE_EACH_EVENT			= config.Output.WRITE_EACH_EVENT;
+	WRITE_EVENT_BUFFER_SIZE 	= config.Output.WRITE_EVENT_BUFFER_SIZE;
+	WRITE_FATIGUE_EVENT		= config.Output.WRITE_FATIGUE_EVENT;
+
+	WRITE_BM	= config.Output.BlockMax.WRITE_BM;
+	WRITE_POT		= config.Output.POT.WRITE_POT;
+	WRITE_STATS = config.Output.Stats.WRITE_STATS;
+	
+	DO_FATIGUE_RAINFLOW = config.Output.Fatigue.DO_FATIGUE_RAINFLOW;
+
+	Creator();
 }
 
 CEventManager::~CEventManager()
 {
 
+}
+
+void CEventManager::Creator() {
+	m_NoEvents = 0;
+	m_CurTime = 0.0;
+	m_FatigueEventBuffer.setMode(true);
 }
 
 void CEventManager::Initialize(double BridgeLength, std::vector<double> vThresholds, double SimStartTime)
@@ -142,7 +169,7 @@ void CEventManager::EndEvent()
 	if(DO_FATIGUE_RAINFLOW) m_FatigueManager.Update();
 
 	// reset for next event - must be last thing done
-	m_CurEvent = CEvent();
+	m_CurEvent.reSet(); 
 }
 
 // called at the end of the simulation

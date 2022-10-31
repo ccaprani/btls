@@ -2,12 +2,14 @@
 
 #include "OutputManagerBase.h"
 #include "Rainflow.h"
+#include "ConfigData.h"
 
 
 class CFatigueManager : public COutputManagerBase
 {
 public:
     CFatigueManager(void);
+    CFatigueManager(CConfigDataCore& config);
     virtual ~CFatigueManager(void);
 
     void Initialize(double bridgeLength, size_t noLoadEffects);

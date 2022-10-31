@@ -4,353 +4,247 @@
 #include "PrepareSim.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
+#include "pybind11/stl/filesystem.h"
 
 
 //extern CConfigData g_ConfigData;
 using namespace std;
 namespace py = pybind11;
 
-
-class BTLS {
-public:
-	BTLS () {
-		this->get_info();
-		CConfigData::get();
-		this->StartTime = 0.0;
-	 	this->EndTime = 0.0;
-	};
-
-	void get_info () {
-		cout << "---------------------------------------------" << endl;
-		cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
-		cout << "                Version 1.3.5			      " << endl;
-		cout << "---------------------------------------------" << endl << endl;
-	};
-
-	void set_road_config (CConfigData::Road_Config& road_config) {
-		CConfigData::get().Road = road_config;
-	};
-
-	void set_gen_config (CConfigData::Gen_Config& gen_config) {
-		CConfigData::get().Gen = gen_config;
-	};
-
-	void set_read_config (CConfigData::Read_Config& read_config) {
-		CConfigData::get().Read = read_config;
-	};
-
-	void set_traffic_config (CConfigData::Traffic_Config& traffic_config) {
-		CConfigData::get().Traffic = traffic_config;
-	};
-
-	void set_sim_config (CConfigData::Sim_Config& sim_config) {
-		CConfigData::get().Sim = sim_config;
-	};
-
-	void set_output_config (CConfigData::Output_Config& output_config) {
-		CConfigData::get().Output = output_config;
-	};
-
-	void set_output_general_config (bool WRITE_TIME_HISTORY, bool WRITE_EACH_EVENT, int WRITE_EVENT_BUFFER_SIZE, bool WRITE_FATIGUE_EVENT) {
-		CConfigData::get().Output.WRITE_TIME_HISTORY = WRITE_TIME_HISTORY;
-		CConfigData::get().Output.WRITE_EACH_EVENT = WRITE_EACH_EVENT;
-		CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE = WRITE_EVENT_BUFFER_SIZE;
-		CConfigData::get().Output.WRITE_FATIGUE_EVENT = WRITE_FATIGUE_EVENT;
-	};
-
-	void set_output_vehiclefile_config (CConfigData::Output_Config::VehicleFile_Config& output_vehiclefile_config) {
-		CConfigData::get().Output.VehicleFile = output_vehiclefile_config;
-	};
-
-	void set_output_blockmax_config (CConfigData::Output_Config::BlockMax_Config& output_blockmax_config) {
-		CConfigData::get().Output.BlockMax = output_blockmax_config;
-	};
-
-	void set_output_pot_config (CConfigData::Output_Config::POT_Config& output_pot_config) {
-		CConfigData::get().Output.POT = output_pot_config;
-	};
-
-	void set_output_stats_config (CConfigData::Output_Config::Stats_Config& output_stats_config) {
-		CConfigData::get().Output.Stats = output_stats_config;
-	};
-
-	void set_output_fatigue_config (CConfigData::Output_Config::Fatigue_Config& output_fatigue_config) {
-		CConfigData::get().Output.Fatigue = output_fatigue_config;
-	};
-
-	void set_time_config (CConfigData::Time_Config& time_config) {
-		CConfigData::get().Time = time_config;
-	}
-
-	void set_program_mode (int program_mode) {
-		CConfigData::get().Mode.PROGRAM_MODE = program_mode;
-		switch(CConfigData::get().Mode.PROGRAM_MODE)
-		{
-		case 1:
-			CConfigData::get().Gen.GEN_TRAFFIC = true;
-			CConfigData::get().Read.READ_FILE = false;
-			CConfigData::get().Sim.CALC_LOAD_EFFECTS = true;
-			break;
-		case 2:
-			CConfigData::get().Gen.GEN_TRAFFIC = true;
-			CConfigData::get().Sim.CALC_LOAD_EFFECTS = false;
-			CConfigData::get().Read.READ_FILE = false;
-			break;
-		case 3:
-			CConfigData::get().Gen.GEN_TRAFFIC = false;
-			CConfigData::get().Sim.CALC_LOAD_EFFECTS = true;
-			CConfigData::get().Read.READ_FILE = true;
-			break;
-		}
-		if (CConfigData::get().Mode.PROGRAM_MODE == 2) {
-			CConfigData::get().Output.VehicleFile.WRITE_VEHICLE_FILE = true;
-			}
-		CConfigData::get().Traffic.CONGESTED_SPEED = CConfigData::get().Traffic.CONGESTED_SPEED/3.6;	// km/h to m/s
-		CConfigData::get().Traffic.CONGESTED_GAP = CConfigData::get().Traffic.CONGESTED_SPACING/CConfigData::get().Traffic.CONGESTED_SPEED;
-		cout << "Program Mode: " << CConfigData::get().Mode.PROGRAM_MODE << endl << endl;
-	};
-
-	int run (string file_BTLSin) {
-
-		// Load configs from BTLSin.txt.
-		if (!CConfigData::get().ReadData(file_BTLSin) )
-		{
-			cout << "BTLSin file could not be opened" << endl;
-			cout << "Using default values" << endl;
-		}
-		cout << "Program Mode: " << CConfigData::get().Mode.PROGRAM_MODE << endl << endl;
-
-		CVehicleClassification_sp pVC = this->get_vehicle_classification();
-
-		// Bridges are read in first, to set max bridge length, needed for flow generators.
-		vector<CBridge_sp> vBridges = this->get_bridges();
-
-		// Now read generator info for lanes.
-		vector<CLane_sp> vLanes = this->get_lanes(pVC);
-		
-		// Now we know the time, we can tell bridge data managers when to start.
-		this->do_simulation(pVC, vBridges, vLanes, this->StartTime, this->EndTime);
-
-		// Reset the Times.
-		this->StartTime = 0.0;
-		this->EndTime = 0.0;
-
-		return 1;
-	};
-
-	int run () {
-
-		cout << "Program Mode: " << CConfigData::get().Mode.PROGRAM_MODE << endl << endl;
-
-		CVehicleClassification_sp pVC = this->get_vehicle_classification();
-
-		// Bridges are read in first, to set max bridge length, needed for flow generators.
-		vector<CBridge_sp> vBridges = this->get_bridges();
-
-		// Now read generator info for lanes.
-		vector<CLane_sp> vLanes = this->get_lanes(pVC);
-		
-		// Now we know the time, we can tell bridge data managers when to start.
-		this->do_simulation(pVC, vBridges, vLanes, this->StartTime, this->EndTime);
-
-		// Reset the Times.
-		this->StartTime = 0.0;
-		this->EndTime = 0.0;
-
-		return 1;
-	};
-
-	CVehicleClassification_sp get_vehicle_classification () {
-		CVehicleClassification_sp pVC;
-		switch (CConfigData::get().Traffic.CLASSIFICATION) {
-			case 1: // Pattern
-				pVC = std::make_shared<CVehClassPattern>(); break;
-			default: // Axle count
-				pVC = std::make_shared<CVehClassAxle>(); break;
-			}
-		return pVC;
-	};
-
-	vector<CBridge_sp>& get_bridges () {
-		static vector<CBridge_sp> vBridges;
-		if (CConfigData::get().Sim.CALC_LOAD_EFFECTS) {
-			vBridges = PrepareBridges();
-			}
-		return vBridges;
-	};
-
-	vector<CLane_sp>& get_lanes (CVehicleClassification_sp pVC) {
-		static vector<CLane_sp> vLanes;
-		if (CConfigData::get().Gen.GEN_TRAFFIC) {
-			GetGeneratorLanes(pVC, vLanes, this->StartTime, this->EndTime);
-			}
-		if (CConfigData::get().Read.READ_FILE) {
-			GetTrafficFileLanes(pVC, vLanes, this->StartTime, this->EndTime);
-			}
-		return vLanes;
-	};
-
-	int do_simulation (CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double StartTime, double EndTime) {
-		for (auto& it : vBridges) {
-			it->InitializeDataMgr(StartTime);
-			}
-		clock_t start = clock();
-		doSimulation(pVC, vBridges, vLanes, StartTime, EndTime);
-		cout << endl << "Simulation complete" << endl;
-		clock_t end = clock();
-		cout << endl << "Duration of analysis: " << std::fixed << std::setprecision(3) << ((double)(end) - (double)(start))/((double)CLOCKS_PER_SEC) << " s" << endl;
-		return 1;
-	};
-
-	double StartTime;
-	double EndTime;
+void get_info() {
+	cout << "---------------------------------------------" << endl;
+	cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
+	cout << "                Version 1.3.5			      " << endl;
+	cout << "---------------------------------------------" << endl << endl;
 };
 
+
 PYBIND11_MODULE(_core, m) {
-	m.doc() = "PyBTLS is for short-to-mid span bridge traffic loading simulation.";
-	// m.def("test_c_rainflow", [](vector<double>& series, int ndigits = -1, int nbins = -1, double binsize = -1.0){CRainflow rainflow_alg = CRainflow(); return rainflow_alg.countCycles(series,ndigits,nbins,binsize);}, py::arg("series"), py::arg("ndigits")=-1, py::arg("nbins")=-1, py::arg("binsize")=-1.0);
-	py::class_<BTLS> btls(m, "BTLS");
-		btls.def(py::init<>())
-			.def("set_road_config", &BTLS::set_road_config)
-			.def("set_gen_config", &BTLS::set_gen_config)
-			.def("set_read_config", &BTLS::set_read_config)
-			.def("set_traffic_config", &BTLS::set_traffic_config)
-			.def("set_sim_config", &BTLS::set_sim_config)
-			.def("set_output_config", &BTLS::set_output_config)
-			.def("set_output_general_config", &BTLS::set_output_general_config)
-			.def("set_output_vehiclefile_config", &BTLS::set_output_vehiclefile_config)
-			.def("set_output_blockmax_config", &BTLS::set_output_blockmax_config)
-			.def("set_output_pot_config", &BTLS::set_output_pot_config)
-			.def("set_output_stats_config", &BTLS::set_output_stats_config)
-			.def("set_output_fatigue_config", &BTLS::set_output_fatigue_config)
-			.def("set_time_config", &BTLS::set_time_config)
-			.def("set_program_mode", &BTLS::set_program_mode)
-			.def("run", py::overload_cast<string>(&BTLS::run), "To run BTLS by BTLSin.txt.", py::arg("file_BTLSin"))
-			.def("run", py::overload_cast<>(&BTLS::run), "To run BTLS.")
-			.def("get_vehicle_classification", &BTLS::get_vehicle_classification, py::return_value_policy::reference)
-			.def("get_bridges", &BTLS::get_bridges, py::return_value_policy::reference)
-			.def("get_lanes", &BTLS::get_lanes, py::return_value_policy::reference)
-			.def("do_simulation", &BTLS::do_simulation)
-			.def_readwrite("StartTime", &BTLS::StartTime)
-			.def_readwrite("EndTime", &BTLS::EndTime);
-	py::class_<CConfigData> cconfigdata(m, "ConfigData");
-		py::class_<CConfigData::Road_Config> road_config(cconfigdata, "Road_Config");
-			road_config.def(py::init<string, size_t, size_t, size_t, size_t>())
-				.def_readwrite("LANES_FILE", &CConfigData::Road_Config::LANES_FILE)
-				.def_readwrite("NO_LANES_DIR1", &CConfigData::Road_Config::NO_LANES_DIR1)
-				.def_readwrite("NO_LANES_DIR2", &CConfigData::Road_Config::NO_LANES_DIR2)
-				.def_readwrite("NO_LANES", &CConfigData::Road_Config::NO_LANES)
-				.def_readwrite("NO_DIRS", &CConfigData::Road_Config::NO_DIRS);
-		py::class_<CConfigData::Gen_Config> gen_config(cconfigdata, "Gen_Config");
-			gen_config.def(py::init<string, bool, size_t, double, double, double>())
-				.def_readwrite("TRAFFIC_FOLDER", &CConfigData::Gen_Config::TRAFFIC_FOLDER)
-				.def_readwrite("GEN_TRAFFIC", &CConfigData::Gen_Config::GEN_TRAFFIC)
-				.def_readwrite("NO_DAYS", &CConfigData::Gen_Config::NO_DAYS)
-				.def_readwrite("TRUCK_TRACK_WIDTH", &CConfigData::Gen_Config::TRUCK_TRACK_WIDTH)
-				.def_readwrite("LANE_ECCENTRICITY_STD", &CConfigData::Gen_Config::LANE_ECCENTRICITY_STD)
-				.def_readwrite("NO_OVERLAP_LENGTH", &CConfigData::Gen_Config::NO_OVERLAP_LENGTH);
-		py::class_<CConfigData::Read_Config> read_config(cconfigdata, "Read_Config");
-			read_config.def(py::init<bool, string, string, string, string, unsigned int, bool, bool, double>())
-				.def_readwrite("READ_FILE", &CConfigData::Read_Config::READ_FILE)
-				.def_readwrite("TRAFFIC_FILE", &CConfigData::Read_Config::TRAFFIC_FILE)
-				.def_readwrite("GARAGE_FILE", &CConfigData::Read_Config::GARAGE_FILE)
-				.def_readwrite("KERNEL_FILE", &CConfigData::Read_Config::KERNEL_FILE)
-				.def_readwrite("CONSTANT_FILE", &CConfigData::Read_Config::CONSTANT_FILE)
-				.def_readwrite("FILE_FORMAT", &CConfigData::Read_Config::FILE_FORMAT)
-				.def_readwrite("USE_CONSTANT_SPEED", &CConfigData::Read_Config::USE_CONSTANT_SPEED)
-				.def_readwrite("USE_AVE_SPEED", &CConfigData::Read_Config::USE_AVE_SPEED)
-				.def_readwrite("CONST_SPEED", &CConfigData::Read_Config::CONST_SPEED);
-		py::class_<CConfigData::Traffic_Config> traffic_config(cconfigdata, "Traffic_Config");
-			traffic_config.def(py::init<int, int, int, double, double, double, double>())
-				.def_readwrite("VEHICLE_MODEL", &CConfigData::Traffic_Config::VEHICLE_MODEL)
-				.def_readwrite("HEADWAY_MODEL", &CConfigData::Traffic_Config::HEADWAY_MODEL)
-				.def_readwrite("CLASSIFICATION", &CConfigData::Traffic_Config::CLASSIFICATION)
-				.def_readwrite("CONGESTED_SPACING", &CConfigData::Traffic_Config::CONGESTED_SPACING)
-				.def_readwrite("CONGESTED_SPEED", &CConfigData::Traffic_Config::CONGESTED_SPEED)
-				.def_readwrite("CONGESTED_GAP", &CConfigData::Traffic_Config::CONGESTED_GAP)
-				.def_readwrite("CONGESTED_GAP_COEF_VAR", &CConfigData::Traffic_Config::CONGESTED_GAP_COEF_VAR);
-		py::class_<CConfigData::Sim_Config> sim_config(cconfigdata, "Sim_Config");
-			sim_config.def(py::init<bool, string, string, string, double, int>())
-				.def_readwrite("CALC_LOAD_EFFECTS", &CConfigData::Sim_Config::CALC_LOAD_EFFECTS)
-				.def_readwrite("BRIDGE_FILE", &CConfigData::Sim_Config::BRIDGE_FILE)
-				.def_readwrite("INFLINE_FILE", &CConfigData::Sim_Config::INFLINE_FILE)
-				.def_readwrite("INFSURF_FILE", &CConfigData::Sim_Config::INFSURF_FILE)
-				.def_readwrite("CALC_TIME_STEP", &CConfigData::Sim_Config::CALC_TIME_STEP)
-				.def_readwrite("MIN_GVW", &CConfigData::Sim_Config::MIN_GVW);
-		py::class_<CConfigData::Output_Config> output_config(cconfigdata, "Output_Config");
-			output_config.def(py::init<bool, bool, int, bool, CConfigData::Output_Config::VehicleFile_Config, CConfigData::Output_Config::BlockMax_Config, CConfigData::Output_Config::POT_Config, CConfigData::Output_Config::Stats_Config, CConfigData::Output_Config::Fatigue_Config>())
-				.def_readwrite("WRITE_TIME_HISTORY", &CConfigData::Output_Config::WRITE_TIME_HISTORY)
-				.def_readwrite("WRITE_EACH_EVENT", &CConfigData::Output_Config::WRITE_EACH_EVENT)
-				.def_readwrite("WRITE_EVENT_BUFFER_SIZE", &CConfigData::Output_Config::WRITE_EVENT_BUFFER_SIZE)
-				.def_readwrite("WRITE_FATIGUE_EVENT", &CConfigData::Output_Config::WRITE_FATIGUE_EVENT)
-				.def_readwrite("VehicleFile", &CConfigData::Output_Config::VehicleFile)
-				.def_readwrite("BlockMax", &CConfigData::Output_Config::BlockMax)
-				.def_readwrite("POT", &CConfigData::Output_Config::POT)
-				.def_readwrite("Stats", &CConfigData::Output_Config::Stats)
-				.def_readwrite("Fatigue", &CConfigData::Output_Config::Fatigue);
-			py::class_<CConfigData::Output_Config::VehicleFile_Config> vehiclefile_config(output_config, "VehicleFile_Config");
-				vehiclefile_config.def(py::init<bool, unsigned int, string, int, bool>())
-					.def_readwrite("WRITE_VEHICLE_FILE", &CConfigData::Output_Config::VehicleFile_Config::WRITE_VEHICLE_FILE)
-					.def_readwrite("FILE_FORMAT", &CConfigData::Output_Config::VehicleFile_Config::FILE_FORMAT)
-					.def_readwrite("VEHICLE_FILENAME", &CConfigData::Output_Config::VehicleFile_Config::VEHICLE_FILENAME)
-					.def_readwrite("WRITE_VEHICLE_BUFFER_SIZE", &CConfigData::Output_Config::VehicleFile_Config::WRITE_VEHICLE_BUFFER_SIZE)
-					.def_readwrite("WRITE_FLOW_STATS", &CConfigData::Output_Config::VehicleFile_Config::WRITE_FLOW_STATS);
-			py::class_<CConfigData::Output_Config::BlockMax_Config> blockmax_config(output_config, "BlockMax_Config");
-				blockmax_config.def(py::init<bool, bool, bool, bool, int, int, int>())
-					.def_readwrite("WRITE_BM", &CConfigData::Output_Config::BlockMax_Config::WRITE_BM)
-					.def_readwrite("WRITE_BM_VEHICLES", &CConfigData::Output_Config::BlockMax_Config::WRITE_BM_VEHICLES)
-					.def_readwrite("WRITE_BM_SUMMARY", &CConfigData::Output_Config::BlockMax_Config::WRITE_BM_SUMMARY)
-					.def_readwrite("WRITE_BM_MIXED", &CConfigData::Output_Config::BlockMax_Config::WRITE_BM_MIXED)
-					.def_readwrite("BLOCK_SIZE_DAYS", &CConfigData::Output_Config::BlockMax_Config::BLOCK_SIZE_DAYS)
-					.def_readwrite("BLOCK_SIZE_SECS", &CConfigData::Output_Config::BlockMax_Config::BLOCK_SIZE_SECS)
-					.def_readwrite("WRITE_BM_BUFFER_SIZE", &CConfigData::Output_Config::BlockMax_Config::WRITE_BM_BUFFER_SIZE);
-			py::class_<CConfigData::Output_Config::POT_Config> pot_config(output_config, "POT_Config");
-				pot_config.def(py::init<bool, bool, bool, bool, int, int, int>())
-					.def_readwrite("WRITE_POT", &CConfigData::Output_Config::POT_Config::WRITE_POT)
-					.def_readwrite("WRITE_POT_VEHICLES", &CConfigData::Output_Config::POT_Config::WRITE_POT_VEHICLES)
-					.def_readwrite("WRITE_POT_SUMMARY", &CConfigData::Output_Config::POT_Config::WRITE_POT_SUMMARY)
-					.def_readwrite("WRITE_POT_COUNTER", &CConfigData::Output_Config::POT_Config::WRITE_POT_COUNTER)
-					.def_readwrite("POT_COUNT_SIZE_DAYS", &CConfigData::Output_Config::POT_Config::POT_COUNT_SIZE_DAYS)
-					.def_readwrite("POT_COUNT_SIZE_SECS", &CConfigData::Output_Config::POT_Config::POT_COUNT_SIZE_SECS)
-					.def_readwrite("WRITE_POT_BUFFER_SIZE", &CConfigData::Output_Config::POT_Config::WRITE_POT_BUFFER_SIZE);
-			py::class_<CConfigData::Output_Config::Stats_Config> stats_config(output_config, "Stats_Config");
-				stats_config.def(py::init<bool, bool, bool, int, int>())
-					.def_readwrite("WRITE_STATS", &CConfigData::Output_Config::Stats_Config::WRITE_STATS)
-					.def_readwrite("WRITE_SS_CUMULATIVE", &CConfigData::Output_Config::Stats_Config::WRITE_SS_CUMULATIVE)
-					.def_readwrite("WRITE_SS_INTERVALS", &CConfigData::Output_Config::Stats_Config::WRITE_SS_INTERVALS)
-					.def_readwrite("WRITE_SS_INTERVAL_SIZE", &CConfigData::Output_Config::Stats_Config::WRITE_SS_INTERVAL_SIZE)
-					.def_readwrite("WRITE_SS_BUFFER_SIZE", &CConfigData::Output_Config::Stats_Config::WRITE_SS_BUFFER_SIZE);
-			py::class_<CConfigData::Output_Config::Fatigue_Config> fatigue_config(output_config, "Fatigue_Config");
-				fatigue_config.def(py::init<bool, int, double, int>())
-					.def_readwrite("DO_FATIGUE_RAINFLOW", &CConfigData::Output_Config::Fatigue_Config::DO_FATIGUE_RAINFLOW)
-					.def_readwrite("RAINFLOW_DECIMAL", &CConfigData::Output_Config::Fatigue_Config::RAINFLOW_DECIMAL)
-					.def_readwrite("RAINFLOW_CUTOFF", &CConfigData::Output_Config::Fatigue_Config::RAINFLOW_CUTOFF)
-					.def_readwrite("WRITE_RAINFLOW_BUFFER_SIZE", &CConfigData::Output_Config::Fatigue_Config::WRITE_RAINFLOW_BUFFER_SIZE);
-		py::class_<CConfigData::Time_Config> time_config(cconfigdata, "Time_Config");
-			time_config.def(py::init<int, int, int, int, int, int>())
-				.def_readwrite("DAYS_PER_MT", &CConfigData::Time_Config::DAYS_PER_MT)
-				.def_readwrite("MTS_PER_YR", &CConfigData::Time_Config::MTS_PER_YR)
-				.def_readwrite("HOURS_PER_DAY", &CConfigData::Time_Config::HOURS_PER_DAY)
-				.def_readwrite("SECS_PER_HOUR", &CConfigData::Time_Config::SECS_PER_HOUR)
-				.def_readwrite("MINS_PER_HOUR", &CConfigData::Time_Config::MINS_PER_HOUR)
-				.def_readwrite("SECS_PER_MIN", &CConfigData::Time_Config::SECS_PER_MIN);
+	m.doc() = ("PyBTLS is for short-to-mid span bridge traffic loading simulation.");
+	m.def("get_info", &get_info);
+	// py::class_<CConfigData> cconfigdata(m, "ConfigData");
+	py::class_<CConfigDataCore> cconfigdatacore(m, "ConfigDataCore");
+		cconfigdatacore.def(py::init<>())
+			.def("ReadData", &CConfigDataCore::ReadData, py::arg("in_file"))
+			.def("VehGenGrave", &CConfigDataCore::VehGenGrave, py::arg("lanes_file"), py::arg("traffic_folder"), py::arg("no_days"), py::arg("truck_track_width"), py::arg("lane_eccentricity_std"))
+			.def("VehGenGarage", &CConfigDataCore::VehGenGarage, py::arg("lanes_file"), py::arg("garage_file"), py::arg("file_format"), py::arg("kernel_file"), py::arg("no_days"), py::arg("lane_eccentricity_std"))
+			.def("VehGenConstant", &CConfigDataCore::VehGenConstant, py::arg("lanes_file"), py::arg("constant_file"), py::arg("no_days"), py::arg("lane_eccentricity_std"))
+			.def("FlowGenNHM", &CConfigDataCore::FlowGenNHM, py::arg("vehicle_classification"), py::arg("traffic_folder"), py::arg("gen_car")=true)
+			.def("FlowGenConstant", &CConfigDataCore::FlowGenConstant, py::arg("vehicle_classification"), py::arg("constant_speed"), py::arg("constant_gap"), py::arg("gen_car")=true)
+			.def("FlowGenCongestion", &CConfigDataCore::FlowGenCongestion, py::arg("vehicle_classification"), py::arg("congested_spacing"), py::arg("congested_speed"), py::arg("congested_gap_coef_var"), py::arg("gen_car")=true)
+			.def("FlowGenFreeFlow", &CConfigDataCore::FlowGenFreeFlow, py::arg("vehicle_classification"), py::arg("gen_car")=true)
+			.def("TrafficRead", &CConfigDataCore::TrafficRead, py::arg("traffic_file"), py::arg("file_format"), py::arg("use_constant_speed"), py::arg("use_ave_speed"), py::arg("const_speed"))
+			.def("Simulation", &CConfigDataCore::Simulation, py::arg("bridge_file"), py::arg("infline_file"), py::arg("infsurf_file"), py::arg("calc_time_step"), py::arg("min_gvw"))
+			.def("OutputGeneral", &CConfigDataCore::OutputGeneral, py::arg("write_time_history")=false, py::arg("write_each_event")=false, py::arg("write_fatigue_event")=false, py::arg("write_buffer_size")=1000)
+			.def("OutputVehicleFile", &CConfigDataCore::OutputVehicleFile, py::arg("write_vehicle_file")=false, py::arg("vehicle_file_format")=4, py::arg("vehicle_file_name")="Vehicles.txt", py::arg("buffer_size")=10000, py::arg("write_flow_stats")=false)
+			.def("OutputBlockMax", &CConfigDataCore::OutputBlockMax, py::arg("write_blockmax")=false, py::arg("write_vehicle")=false, py::arg("write_summary")=false, py::arg("write_mixed")=false, py::arg("block_size_days")=1, py::arg("block_size_secs")=0, py::arg("buffer_size")=10000)
+			.def("OutputPOT", &CConfigDataCore::OutputPOT, py::arg("write_pot")=false, py::arg("write_vehicle")=false, py::arg("write_summary")=false, py::arg("write_counter")=false, py::arg("pot_size_days")=1, py::arg("pot_size_secs")=0, py::arg("buffer_size")=10000)
+			.def("OutputStats", &CConfigDataCore::OutputStats, py::arg("write_stats")=false, py::arg("write_cumulative")=false, py::arg("write_intervals")=false, py::arg("interval_size")=3600, py::arg("buffer_size")=10000)
+			.def("OutputFatigue", &CConfigDataCore::OutputFatigue, py::arg("do_rainflow")=false, py::arg("decimal")=3, py::arg("cut_off_value")=0.0, py::arg("write_buffer_size")=10000)
+			.def_readwrite("Road", &CConfigDataCore::Road)
+			.def_readwrite("Gen", &CConfigDataCore::Gen)
+			.def_readwrite("Read", &CConfigDataCore::Read)
+			.def_readwrite("Traffic", &CConfigDataCore::Traffic)
+			.def_readwrite("Sim", &CConfigDataCore::Sim)
+			.def_readwrite("Output", &CConfigDataCore::Output);
+		py::class_<CConfigDataCore::Road_Config> road_config(cconfigdatacore, "Road_Config");
+			road_config.def_readwrite("LANES_FILE", &CConfigDataCore::Road_Config::LANES_FILE)
+				.def_readwrite("NO_LANES_DIR1", &CConfigDataCore::Road_Config::NO_LANES_DIR1)
+				.def_readwrite("NO_LANES_DIR2", &CConfigDataCore::Road_Config::NO_LANES_DIR2)
+				.def_readwrite("NO_LANES", &CConfigDataCore::Road_Config::NO_LANES)
+				.def_readwrite("NO_DIRS", &CConfigDataCore::Road_Config::NO_DIRS);
+		py::class_<CConfigDataCore::Gen_Config> gen_config(cconfigdatacore, "Gen_Config");
+			gen_config.def_readwrite("TRAFFIC_FOLDER", &CConfigDataCore::Gen_Config::TRAFFIC_FOLDER)
+				.def_readwrite("GEN_TRAFFIC", &CConfigDataCore::Gen_Config::GEN_TRAFFIC)
+				.def_readwrite("NO_DAYS", &CConfigDataCore::Gen_Config::NO_DAYS)
+				.def_readwrite("TRUCK_TRACK_WIDTH", &CConfigDataCore::Gen_Config::TRUCK_TRACK_WIDTH)
+				.def_readwrite("LANE_ECCENTRICITY_STD", &CConfigDataCore::Gen_Config::LANE_ECCENTRICITY_STD)
+				.def_readwrite("NO_OVERLAP_LENGTH", &CConfigDataCore::Gen_Config::NO_OVERLAP_LENGTH);
+		py::class_<CConfigDataCore::Read_Config> read_config(cconfigdatacore, "Read_Config");
+			read_config.def_readwrite("READ_FILE", &CConfigDataCore::Read_Config::READ_FILE)
+				.def_readwrite("TRAFFIC_FILE", &CConfigDataCore::Read_Config::TRAFFIC_FILE)
+				.def_readwrite("GARAGE_FILE", &CConfigDataCore::Read_Config::GARAGE_FILE)
+				.def_readwrite("KERNEL_FILE", &CConfigDataCore::Read_Config::KERNEL_FILE)
+				.def_readwrite("CONSTANT_FILE", &CConfigDataCore::Read_Config::CONSTANT_FILE)
+				.def_readwrite("FILE_FORMAT", &CConfigDataCore::Read_Config::FILE_FORMAT)
+				.def_readwrite("USE_CONSTANT_SPEED", &CConfigDataCore::Read_Config::USE_CONSTANT_SPEED)
+				.def_readwrite("USE_AVE_SPEED", &CConfigDataCore::Read_Config::USE_AVE_SPEED)
+				.def_readwrite("CONST_SPEED", &CConfigDataCore::Read_Config::CONST_SPEED);
+		py::class_<CConfigDataCore::Traffic_Config> traffic_config(cconfigdatacore, "Traffic_Config");
+			traffic_config.def_readwrite("VEHICLE_MODEL", &CConfigDataCore::Traffic_Config::VEHICLE_MODEL)
+				.def_readwrite("HEADWAY_MODEL", &CConfigDataCore::Traffic_Config::HEADWAY_MODEL)
+				.def_readwrite("CLASSIFICATION", &CConfigDataCore::Traffic_Config::CLASSIFICATION)
+				.def_readwrite("CONGESTED_SPACING", &CConfigDataCore::Traffic_Config::CONGESTED_SPACING)
+				.def_readwrite("CONGESTED_SPEED", &CConfigDataCore::Traffic_Config::CONGESTED_SPEED)
+				.def_readwrite("CONGESTED_GAP", &CConfigDataCore::Traffic_Config::CONGESTED_GAP)
+				.def_readwrite("CONGESTED_GAP_COEF_VAR", &CConfigDataCore::Traffic_Config::CONGESTED_GAP_COEF_VAR)
+				.def_readwrite("CONSTANT_SPEED", &CConfigDataCore::Traffic_Config::CONSTANT_SPEED)
+				.def_readwrite("CONSTANT_GAP", &CConfigDataCore::Traffic_Config::CONSTANT_GAP)
+				.def_readwrite("GEN_CAR", &CConfigDataCore::Traffic_Config::GEN_CAR);
+		py::class_<CConfigDataCore::Sim_Config> sim_config(cconfigdatacore, "Sim_Config");
+			sim_config.def_readwrite("CALC_LOAD_EFFECTS", &CConfigDataCore::Sim_Config::CALC_LOAD_EFFECTS)
+				.def_readwrite("BRIDGE_FILE", &CConfigDataCore::Sim_Config::BRIDGE_FILE)
+				.def_readwrite("INFLINE_FILE", &CConfigDataCore::Sim_Config::INFLINE_FILE)
+				.def_readwrite("INFSURF_FILE", &CConfigDataCore::Sim_Config::INFSURF_FILE)
+				.def_readwrite("CALC_TIME_STEP", &CConfigDataCore::Sim_Config::CALC_TIME_STEP)
+				.def_readwrite("MIN_GVW", &CConfigDataCore::Sim_Config::MIN_GVW);
+		py::class_<CConfigDataCore::Output_Config> output_config(cconfigdatacore, "Output_Config");
+			output_config.def_readwrite("WRITE_TIME_HISTORY", &CConfigDataCore::Output_Config::WRITE_TIME_HISTORY)
+				.def_readwrite("WRITE_EACH_EVENT", &CConfigDataCore::Output_Config::WRITE_EACH_EVENT)
+				.def_readwrite("WRITE_EVENT_BUFFER_SIZE", &CConfigDataCore::Output_Config::WRITE_EVENT_BUFFER_SIZE)
+				.def_readwrite("WRITE_FATIGUE_EVENT", &CConfigDataCore::Output_Config::WRITE_FATIGUE_EVENT)
+				.def_readwrite("VehicleFile", &CConfigDataCore::Output_Config::VehicleFile)
+				.def_readwrite("BlockMax", &CConfigDataCore::Output_Config::BlockMax)
+				.def_readwrite("POT", &CConfigDataCore::Output_Config::POT)
+				.def_readwrite("Stats", &CConfigDataCore::Output_Config::Stats)
+				.def_readwrite("Fatigue", &CConfigDataCore::Output_Config::Fatigue);
+			py::class_<CConfigDataCore::Output_Config::VehicleFile_Config> vehiclefile_config(output_config, "VehicleFile_Config");
+				vehiclefile_config.def_readwrite("WRITE_VEHICLE_FILE", &CConfigDataCore::Output_Config::VehicleFile_Config::WRITE_VEHICLE_FILE)
+					.def_readwrite("FILE_FORMAT", &CConfigDataCore::Output_Config::VehicleFile_Config::FILE_FORMAT)
+					.def_readwrite("VEHICLE_FILENAME", &CConfigDataCore::Output_Config::VehicleFile_Config::VEHICLE_FILENAME)
+					.def_readwrite("WRITE_VEHICLE_BUFFER_SIZE", &CConfigDataCore::Output_Config::VehicleFile_Config::WRITE_VEHICLE_BUFFER_SIZE)
+					.def_readwrite("WRITE_FLOW_STATS", &CConfigDataCore::Output_Config::VehicleFile_Config::WRITE_FLOW_STATS);
+			py::class_<CConfigDataCore::Output_Config::BlockMax_Config> blockmax_config(output_config, "BlockMax_Config");
+				blockmax_config.def_readwrite("WRITE_BM", &CConfigDataCore::Output_Config::BlockMax_Config::WRITE_BM)
+					.def_readwrite("WRITE_BM_VEHICLES", &CConfigDataCore::Output_Config::BlockMax_Config::WRITE_BM_VEHICLES)
+					.def_readwrite("WRITE_BM_SUMMARY", &CConfigDataCore::Output_Config::BlockMax_Config::WRITE_BM_SUMMARY)
+					.def_readwrite("WRITE_BM_MIXED", &CConfigDataCore::Output_Config::BlockMax_Config::WRITE_BM_MIXED)
+					.def_readwrite("BLOCK_SIZE_DAYS", &CConfigDataCore::Output_Config::BlockMax_Config::BLOCK_SIZE_DAYS)
+					.def_readwrite("BLOCK_SIZE_SECS", &CConfigDataCore::Output_Config::BlockMax_Config::BLOCK_SIZE_SECS)
+					.def_readwrite("WRITE_BM_BUFFER_SIZE", &CConfigDataCore::Output_Config::BlockMax_Config::WRITE_BM_BUFFER_SIZE);
+			py::class_<CConfigDataCore::Output_Config::POT_Config> pot_config(output_config, "POT_Config");
+				pot_config.def_readwrite("WRITE_POT", &CConfigDataCore::Output_Config::POT_Config::WRITE_POT)
+					.def_readwrite("WRITE_POT_VEHICLES", &CConfigDataCore::Output_Config::POT_Config::WRITE_POT_VEHICLES)
+					.def_readwrite("WRITE_POT_SUMMARY", &CConfigDataCore::Output_Config::POT_Config::WRITE_POT_SUMMARY)
+					.def_readwrite("WRITE_POT_COUNTER", &CConfigDataCore::Output_Config::POT_Config::WRITE_POT_COUNTER)
+					.def_readwrite("POT_COUNT_SIZE_DAYS", &CConfigDataCore::Output_Config::POT_Config::POT_COUNT_SIZE_DAYS)
+					.def_readwrite("POT_COUNT_SIZE_SECS", &CConfigDataCore::Output_Config::POT_Config::POT_COUNT_SIZE_SECS)
+					.def_readwrite("WRITE_POT_BUFFER_SIZE", &CConfigDataCore::Output_Config::POT_Config::WRITE_POT_BUFFER_SIZE);
+			py::class_<CConfigDataCore::Output_Config::Stats_Config> stats_config(output_config, "Stats_Config");
+				stats_config.def_readwrite("WRITE_STATS", &CConfigDataCore::Output_Config::Stats_Config::WRITE_STATS)
+					.def_readwrite("WRITE_SS_CUMULATIVE", &CConfigDataCore::Output_Config::Stats_Config::WRITE_SS_CUMULATIVE)
+					.def_readwrite("WRITE_SS_INTERVALS", &CConfigDataCore::Output_Config::Stats_Config::WRITE_SS_INTERVALS)
+					.def_readwrite("WRITE_SS_INTERVAL_SIZE", &CConfigDataCore::Output_Config::Stats_Config::WRITE_SS_INTERVAL_SIZE)
+					.def_readwrite("WRITE_SS_BUFFER_SIZE", &CConfigDataCore::Output_Config::Stats_Config::WRITE_SS_BUFFER_SIZE);
+			py::class_<CConfigDataCore::Output_Config::Fatigue_Config> fatigue_config(output_config, "Fatigue_Config");
+				fatigue_config.def_readwrite("DO_FATIGUE_RAINFLOW", &CConfigDataCore::Output_Config::Fatigue_Config::DO_FATIGUE_RAINFLOW)
+					.def_readwrite("RAINFLOW_DECIMAL", &CConfigDataCore::Output_Config::Fatigue_Config::RAINFLOW_DECIMAL)
+					.def_readwrite("RAINFLOW_CUTOFF", &CConfigDataCore::Output_Config::Fatigue_Config::RAINFLOW_CUTOFF)
+					.def_readwrite("WRITE_RAINFLOW_BUFFER_SIZE", &CConfigDataCore::Output_Config::Fatigue_Config::WRITE_RAINFLOW_BUFFER_SIZE);
 	py::class_<CVehicle, CVehicle_sp> cvehicle(m, "Vehicle");
+		cvehicle.def(py::init<>())
+			.def("is_car", &CVehicle::IsCar)
+			.def("__lt__", &CVehicle::operator<, py::arg("another_vehicle"))
+			.def("set_head", &CVehicle::setHead, py::arg("head"))
+			.def("write", &CVehicle::Write, py::arg("file_type"))
+			.def("create", &CVehicle::create, py::arg("str"), py::arg("format"))
+			.def("set_time", &CVehicle::setTime, py::arg("time"))
+			.def("set_length", &CVehicle::setLength, py::arg("length"))
+			.def("set_velocity", &CVehicle::setVelocity, py::arg("velocity"))
+			.def("set_local_lane", &CVehicle::setLocalLane, py::arg("lane_index"))
+			.def("set_global_lane", &CVehicle::setGlobalLane, py::arg("lane_index"), py::arg("no_road_lanes"))
+			.def("set_direction", &CVehicle::setDirection, py::arg("direction"))
+			.def("set_gvw", &CVehicle::setGVW, py::arg("weight"))
+			.def("set_no_axles", &CVehicle::setNoAxles, py::arg("no_axles"))
+			.def("set_axle_weight", &CVehicle::setAW, py::arg("axle_index"), py::arg("weight"))
+			.def("set_axle_spacing", &CVehicle::setAS, py::arg("axle_index"), py::arg("spacing"))
+			.def("set_axle_width", &CVehicle::setAT, py::arg("axle_index"), py::arg("width"))
+			.def("set_trans", &CVehicle::setTrns, py::arg("trans_position"))
+			.def("set_bridge_times", &CVehicle::setBridgeTimes, py::arg("bridge_length"))
+			.def("set_time_on_bridge", &CVehicle::setTimeOnBridge, py::arg("bridge_length"))
+			.def("set_no_bridge_lanes", &CVehicle::setBridgeLaneNo, py::arg("mp_bridge_lanes"))
+			.def("set_track_width", &CVehicle::setTrackWidth, py::arg("truck_width"))
+			.def("set_lane_eccentricity", &CVehicle::setLaneEccentricity, py::arg("eccentricity"))
+			.def("set_class", &CVehicle::setClass, py::arg("vehicle_class"))
+			.def("get_time_str", &CVehicle::getTimeStr)
+			.def("get_head", &CVehicle::getHead)
+			.def("get_time", &CVehicle::getTime)
+			.def("get_length", &CVehicle::getLength)
+			.def("get_velocity", &CVehicle::getVelocity)
+			.def("get_local_lane", &CVehicle::getLocalLane)
+			.def("get_global_lane", &CVehicle::getGlobalLane, py::arg("no_road_lanes"))
+			.def("get_direction", &CVehicle::getDirection)
+			.def("get_gvw", &CVehicle::getGVW)
+			.def("get_no_axles", &CVehicle::getNoAxles)
+			.def("get_axle_weight", &CVehicle::getAW, py::arg("axle_index"))
+			.def("get_axle_spacing", &CVehicle::getAS, py::arg("axle_index"))
+			.def("get_axle_width", &CVehicle::getAT, py::arg("axle_index"))
+			.def("get_trans", &CVehicle::getTrans)
+			.def("get_time_on_bridge", &CVehicle::getTimeOnBridge)
+			.def("get_time_off_bridge", &CVehicle::getTimeOffBridge)
+			.def("is_on_bridge", &CVehicle::IsOnBridge, py::arg("at_time"))
+			.def("get_no_bridge_lanes", &CVehicle::getBridgeLaneNo)
+			.def("get_track_width", &CVehicle::getTrackWidth)
+			.def("get_lane_eccentricity", &CVehicle::getLaneEccentricity)
+			.def("get_class", &CVehicle::getClass);
 	py::class_<Classification> classification(m, "Classification");
+		classification.def(py::init<size_t, string>(), py::arg("index"), py::arg("desc"))
+			.def(py::init<size_t,string, string>(), py::arg("index"), py::arg("str"), py::arg("desc"))
+			.def("__eq__", &Classification::operator==, py::arg("another_classification"))
+			.def("tie", &Classification::tie)
+			.def_readwrite("m_ID", &Classification::m_ID)
+			.def_readwrite("m_String", &Classification::m_String)
+			.def_readwrite("m_Desc", &Classification::m_Desc);
 	py::class_<CVehicleClassification, CVehicleClassification_sp> cvehicleclassification(m, "VehicleClassification");
 	py::class_<CVehClassAxle, CVehicleClassification, CVehClassAxle_sp> cvehclassaxle(m, "VehClassAxle");
+		cvehclassaxle.def(py::init<>())
+			.def("set_class", &CVehClassAxle::setClassification, py::arg("vehicle"));
 	py::class_<CVehClassPattern, CVehicleClassification, CVehClassPattern_sp> cvehclasspattern(m, "VehClassPattern");
+		cvehclasspattern.def(py::init<>())
+			.def("set_class", &CVehClassPattern::setClassification, py::arg("vehicle"));
 	py::class_<CBridge, CBridge_sp> cbridge(m, "Bridge");
+		cbridge.def(py::init<CConfigDataCore&>(), py::arg("config"))
+			.def("set_calc_time_step", &CBridge::setCalcTimeStep, py::arg("calc_time_step"))
+			.def("add_vehicle", &CBridge::AddVehicle, py::arg("vehicle"))
+			.def("update", &CBridge::Update, py::arg("next_arrival_time"), py::arg("current_time"))
+			.def("finish", &CBridge::Finish)
+			.def("initialize_data_manager", &CBridge::InitializeDataMgr, py::arg("sim_start_time"));
 	py::class_<CBridgeLane> cbridgelane(m, "BridgeLane");
 	py::class_<CInfluenceLine> cinfluenceline(m, "InfluenceLine");
+		cinfluenceline.def(py::init<>())
+			.def("get_ordinate", &CInfluenceLine::getOrdinate, py::arg("x"))
+			.def("get_no_points", &CInfluenceLine::getNoPoints)
+			.def("get_load_ffect", &CInfluenceLine::getLoadEffect, py::arg("axle_list"))
+			.def("get_type", &CInfluenceLine::getType, "return: 1-expression, 2-discrete, 3-Surface")
+			.def("get_inf_surface", &CInfluenceLine::getIS)
+			.def("set_inf_line", py::overload_cast<size_t, double>(&CInfluenceLine::setIL), py::arg("intergrated_inf_line_index"), py::arg("bridge_length"))
+			.def("set_inf_line", py::overload_cast<vector<double>, vector<double> >(&CInfluenceLine::setIL), py::arg("h_ordinate_list"), py::arg("v_ordinate_list"))
+			.def("set_inf_line", py::overload_cast<CInfluenceSurface>(&CInfluenceLine::setIL), py::arg("inf_surface"))
+			.def("get_length", &CInfluenceLine::getLength)
+			.def("set_index", &CInfluenceLine::setIndex, py::arg("index"))
+			.def("get_index", &CInfluenceLine::getIndex)
+			.def("set_weight", &CInfluenceLine::setWeight, py::arg("weight"));
 	py::class_<CInfluenceSurface> cinfluencesurface(m, "InfluenceSurface");
+		cinfluencesurface.def(py::init<>());
 	py::class_<CAxle> caxle(m, "Axle");
 	py::class_<CLane, CLane_sp> clane(m, "Lane");
 	py::class_<CLaneFileTraffic, CLane, CLaneFileTraffic_sp> clanefiletraffic(m, "LaneFileTraffic");
+		clanefiletraffic.def(py::init<>())
+			.def("set_lane_data", &CLaneFileTraffic::setLaneData, py::arg("dirn"), py::arg("lane_index"))
+			.def("add_vehicle", &CLaneFileTraffic::addVehicle, py::arg("vehicle"))
+			.def("set_first_arrival_time", &CLaneFileTraffic::setFirstArrivalTime)
+			.def("get_no_vehicles", &CLaneFileTraffic::GetNoVehicles)
+			.def("get_direction", &CLaneFileTraffic::GetDirection)
+			.def("get_next_vehicle", &CLaneFileTraffic::GetNextVehicle)
+			.def("get_next_arrival_time", &CLaneFileTraffic::GetNextArrivalTime);
 	py::class_<CLaneGenTraffic, CLane, CLaneGenTraffic_sp> clanegentraffic(m, "LaneGenTraffic");
+		clanegentraffic.def(py::init<CConfigDataCore&>(), py::arg("config"))
+			.def("set_lane_data", py::overload_cast<CVehicleClassification_sp, CLaneFlowComposition, const double, CConfigDataCore&>(&CLaneGenTraffic::setLaneData), py::arg("vehicle_classification"), py::arg("lane_flow_composition"), py::arg("start_time"), py::arg("config"))
+			.def("get_next_vehicle", &CLaneGenTraffic::GetNextVehicle, py::return_value_policy::reference)  // return a shared_ptr reference like in PrepareSim.cpp
+			.def("get_next_arrival_time", &CLaneGenTraffic::GetNextArrivalTime);
 	py::class_<CVehicleBuffer> cvehiclebuffer(m, "VehicleBuffer");
+		cvehiclebuffer.def(py::init<CVehicleClassification_sp, double, CConfigDataCore&>(), py::arg("vehicle_classification"), py::arg("start_time"), py::arg("config"))
+			.def("add_vehicle", &CVehicleBuffer::AddVehicle, py::arg("vehicle"))
+			.def("flush_buffer", &CVehicleBuffer::FlushBuffer);
 	py::class_<CReadILFile> creadilfile(m, "ReadILFile");
+		creadilfile.def(py::init<>())
+			.def("get_inf_lines", py::overload_cast<filesystem::path, unsigned int>(&CReadILFile::getInfLines), py::arg("inf_file"), py::arg("line0_or_surface1"));
 	py::class_<CCSVParse> ccsvparse(m, "CSVParse");
 	py::class_<CBridgeFile> cbridgefile(m, "BridgeFile");
+		cbridgefile.def(py::init<filesystem::path, vector<CInfluenceLine>, CConfigDataCore&>(), py::arg("bridges_file"), py::arg("inf_line"), py::arg("config"))
+			.def(py::init<filesystem::path, vector<CInfluenceLine>, vector<CInfluenceLine>, CConfigDataCore&>(), py::arg("bridges_file"), py::arg("inf_line"), py::arg("inf_surface"), py::arg("config"))
+			.def("get_bridges", &CBridgeFile::getBridges)
+			.def("get_max_bridge_length", &CBridgeFile::getMaxBridgeLength);
 	py::class_<CLaneFlowComposition> claneflowcomposition(m, "LaneFlowComposition");
 	py::class_<CBlockMaxEvent> cblockmaxevent(m, "BlockMaxEvent");
 	py::class_<COutputManagerBase> coutputmanagerbase(m, "OutputManagerBase");
@@ -373,6 +267,14 @@ PYBIND11_MODULE(_core, m) {
 	py::class_<CFlowGenConstant, CFlowGenerator, CFlowGenConstant_sp> cflowgenconstant(m, "FlowGenConstant");
 	py::class_<CModelData, CModelData_sp> cmodeldata(m, "ModelData");
 	py::class_<CLaneFlowData, CModelData, CLaneFlowData_sp> claneflowdata(m, "LaneFlowData");
+		claneflowdata.def(py::init<CConfigDataCore&>(), py::arg("config"))
+			.def(py::init<>())
+			.def("read_data_in", &CLaneFlowData::ReadDataIn)
+			.def("get_no_dirn", &CLaneFlowData::getNoDirn)
+			.def("get_no_lanes", &CLaneFlowData::getNoLanes)
+			.def("get_no_lanes_dir1", &CLaneFlowData::getNoLanesDir1)
+			.def("get_no_lanes_dir2", &CLaneFlowData::getNoLanesDir2)
+			.def("get_lane_composition", &CLaneFlowData::getLaneComp, py::arg("lane_index"));
 	py::class_<CFlowModelData, CModelData, CFlowModelData_sp> cflowmodeldata(m, "FlowModelData");
 	py::class_<CFlowModelDataNHM, CFlowModelData, CFlowModelDataNHM_sp> cflowmodeldatanhm(m, "FlowModelDataNHM");
 	py::class_<CFlowModelDataCongested, CFlowModelData, CFlowModelDataCongested_sp> cflowmodeldatacongested(m, "FlowModelDataCongested");
@@ -383,14 +285,36 @@ PYBIND11_MODULE(_core, m) {
 	py::class_<CFlowRateData> cflowratedata(m, "FlowRateData");
 	py::class_<CVehicleGenerator, CGenerator, CVehicleGenerator_sp> cvehiclegenerator(m, "VehicleGenerator");
 	py::class_<CVehicleGenConstant, CVehicleGenerator, CVehicleGenConstant_sp> cvehiclegenconstant(m, "VehicleGenConstant");
+		cvehiclegenconstant.def(py::init<CVehModelDataConstant_sp>(), py::arg("vehicle_model_data"))
+			.def("generator", &CVehicleGenConstant::Generate, py::arg("lane_block"));
 	py::class_<CVehicleGenGarage, CVehicleGenerator, CVehicleGenGarage_sp> cvehiclegengarage(m, "VehicleGenGarage");
+		cvehiclegengarage.def(py::init<CVehModelDataGarage_sp>(), py::arg("vehicle_model_data"))
+			.def("generator", &CVehicleGenGarage::Generate, py::arg("lane_block"));
 	py::class_<CVehicleGenGrave, CVehicleGenerator, CVehicleGenGrave_sp> cvehiclegengrave(m, "VehicleGenGrave");
+		cvehiclegengrave.def(py::init<CVehModelDataGrave_sp>(), py::arg("vehicle_model_data"))
+			.def("generator", &CVehicleGenGrave::Generate, py::arg("lane_block"));
 	py::class_<CVehicleModelData, CModelData, CVehicleModelData_sp> cvehiclemodeldata(m, "VehicleModelData");
 	py::class_<CVehicleTrafficFile> cvehicletrafficfile(m, "VehicleTrafficFile");
+		cvehicletrafficfile.def(py::init<CVehicleClassification_sp, bool, bool, double>(), py::arg("vehicle_classification"), py::arg("use_const_speed"), py::arg("use_ave_speed"), py::arg("const_speed_value"))
+			.def("read", &CVehicleTrafficFile::Read, py::arg("file"), py::arg("format"))
+			.def("get_no_days", &CVehicleTrafficFile::getNoDays)
+			.def("get_no_lanes", &CVehicleTrafficFile::getNoLanes)
+			.def("get_no_dirn", &CVehicleTrafficFile::getNoDirn)
+			.def("get_no_lanes_dir1", &CVehicleTrafficFile::getNoLanesDir1)
+			.def("get_no_lanes_dir2", &CVehicleTrafficFile::getNoLanesDir2)
+			.def("get_no_vehicles", &CVehicleTrafficFile::getNoVehicles)
+			.def("get_next_vehicle", &CVehicleTrafficFile::getNextVehicle)
+			.def("get_vehicles", &CVehicleTrafficFile::getVehicles)
+			.def("get_start_time", &CVehicleTrafficFile::getStartTime)
+			.def("get_end_time", &CVehicleTrafficFile::getEndTime);
 	py::class_<CVehModelDataConstant, CVehicleModelData, CVehModelDataConstant_sp> cvehmodeldataconstant(m, "VehModelDataConstant");
+		cvehmodeldataconstant.def(py::init<CVehicleClassification_sp, CLaneFlowComposition, CConfigDataCore&>(), py::arg("vehicle_classification"), py::arg("lane_flow_composition"), py::arg("config"));
 	py::class_<CVehModelDataGarage, CVehicleModelData, CVehModelDataGarage_sp> cvehmodeldatagarage(m, "VehModelDataGarage");
+		cvehmodeldatagarage.def(py::init<CVehicleClassification_sp, CLaneFlowComposition, CConfigDataCore&>(), py::arg("vehicle_classification"), py::arg("lane_flow_composition"), py::arg("config"))
+			.def("assign_garage", &CVehModelDataGarage::assignGarage, py::arg("vehicle_list"));
 	py::class_<CVehModelDataGrave, CVehicleModelData, CVehModelDataGrave_sp> cvehmodeldatagrave(m, "VehModelDataGrave");
-	// py::class_<Normal> normal(m, "Normal");
-	// py::enum_<EFlowModel>(m, "EFlowModel").export_values();
-	// py::enum_<EVehicleModel>(m, "EVehicleModel").export_values();
+		cvehmodeldatagrave.def(py::init<CVehicleClassification_sp, CLaneFlowComposition, CConfigDataCore&>(), py::arg("vehicle_classification"), py::arg("lane_flow_composition"), py::arg("config"));
+	py::class_<Normal> normal(m, "Normal");
+	py::enum_<EFlowModel>(m, "EFlowModel").export_values();
+	py::enum_<EVehicleModel>(m, "EVehicleModel").export_values();
 };

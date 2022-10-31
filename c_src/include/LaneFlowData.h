@@ -1,6 +1,7 @@
 #pragma once
 #include "ModelData.h"
 #include "LaneFlowComposition.h"
+#include "ConfigData.h"
 #include <memory>
 // forward declare
 class CVehicle; typedef std::shared_ptr<CVehicle> CVehicle_sp;
@@ -9,6 +10,7 @@ class CLaneFlowData : public CModelData
 {
 public:
 	CLaneFlowData();
+	CLaneFlowData(CConfigDataCore& config);
 	virtual ~CLaneFlowData();
 
 	virtual void ReadDataIn();

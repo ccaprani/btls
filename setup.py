@@ -3,7 +3,7 @@ from glob import glob
 from setuptools import setup
 from pybind11.setup_helpers import Pybind11Extension, ParallelCompile, naive_recompile
 
-__version__ = "0.2.2"
+__version__ = "0.3.1"
 
 # `N` is to set the bumer of threads
 # `naive_recompile` makes it recompile only if the source file changes. It does not check header files!
@@ -11,14 +11,14 @@ ParallelCompile("NPY_NUM_BUILD_JOBS", needs_recompile=naive_recompile, default=4
 
 # could only be relative paths, otherwise the `build` command would fail if you use a MANIFEST.in to distribute your package
 # only source files (.cpp, .c, .cc) are needed
-source_files = sorted(glob("./c_src/src/*.cpp", recursive=True))
+source_files = sorted(glob("./cpp/src/*.cpp", recursive=True))
 try:
-    source_files.remove("./c_src/src/main.cpp")  # for MacOS and Linux
+    source_files.remove("./cpp/src/main.cpp")  # for MacOS and Linux
 except ValueError:
-    source_files.remove("./c_src/src\\main.cpp")  # for Windows
+    source_files.remove("./cpp/src\\main.cpp")  # for Windows
 
 # If any libraries are used, e.g. libabc.so
-include_dirs = ["./c_src/include"]
+include_dirs = ["./cpp/include"]
 # library_dirs = ["LINK_DIR"]
 # (optional) if the library is not in the dir like `/usr/lib/`
 # either to add its dir to `runtime_library_dirs` or to the env variable "LD_LIBRARY_PATH"
@@ -37,7 +37,7 @@ if platform.system() == "Darwin":
 # Set ext modules.
 ext_modules = [
     Pybind11Extension(
-        name="PyBTLS.c_module._core", # depends on the structure of your package
+        name="PyBTLS.cpp._core", # depends on the structure of your package
         extra_compile_args = cpp_extra_compile_args,
         sources=source_files,
         # Example: passing in the version to the compiled code

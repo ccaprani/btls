@@ -5,12 +5,29 @@
 
 CStatsManager::CStatsManager(void)
 {
-	m_FileStem = "SS";
-
 	WRITE_SS_CUMULATIVE		= CConfigData::get().Output.Stats.WRITE_SS_CUMULATIVE;
 	WRITE_SS_INTERVALS		= CConfigData::get().Output.Stats.WRITE_SS_INTERVALS;
 	WRITE_SS_INTERVAL_SIZE	= CConfigData::get().Output.Stats.WRITE_SS_INTERVAL_SIZE;
 	WRITE_BUFFER_SIZE		= CConfigData::get().Output.Stats.WRITE_SS_BUFFER_SIZE;
+
+	Creator();
+}
+
+CStatsManager::CStatsManager(CConfigDataCore& config) {
+	WRITE_SS_CUMULATIVE		= config.Output.Stats.WRITE_SS_CUMULATIVE;
+	WRITE_SS_INTERVALS		= config.Output.Stats.WRITE_SS_INTERVALS;
+	WRITE_SS_INTERVAL_SIZE	= config.Output.Stats.WRITE_SS_INTERVAL_SIZE;
+	WRITE_BUFFER_SIZE	= config.Output.Stats.WRITE_SS_BUFFER_SIZE;
+
+	Creator();
+}
+
+CStatsManager::~CStatsManager(void)
+{
+}
+
+void CStatsManager::Creator() {
+	m_FileStem = "SS";
 
 	// inhereted from base class, just set to false
 	WRITE_SUMMARY = false;
@@ -18,12 +35,6 @@ CStatsManager::CStatsManager(void)
 	
 	m_CurIntervalNo = 1;
 }
-
-
-CStatsManager::~CStatsManager(void)
-{
-}
-
 
 void CStatsManager::Initialize(double BridgeLength,size_t nLE, double SimStartTime)
 {
