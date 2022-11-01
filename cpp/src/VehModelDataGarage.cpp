@@ -3,8 +3,8 @@
 
 //extern CConfigData g_ConfigData;
 
-CVehModelDataGarage::CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc)
-	: CVehicleModelData(eVM_Garage, pVC, lfc, 1) // MAGIC NUMBER - truck class count
+CVehModelDataGarage::CVehModelDataGarage(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc)
+	: CVehicleModelData(config, eVM_Garage, pVC, lfc, 1) // MAGIC NUMBER - truck class count
 	, m_NoVehicles(0)
 {
 	// MAGIC NUMBER for now
@@ -12,21 +12,9 @@ CVehModelDataGarage::CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlo
 	m_KernalAW = Normal(1.0, 0.05);
 	m_KernalAS = Normal(1.0, 0.02);
 
-	ReadDataIn();
-}
-
-CVehModelDataGarage::CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CConfigDataCore& config)
-	: CVehicleModelData(eVM_Garage, pVC, lfc, 1, config) // MAGIC NUMBER - truck class count
-	, m_NoVehicles(0)
-{
-	// MAGIC NUMBER for now
-	m_KernalGVW = Normal(1.0,0.08); // Mean and COV
-	m_KernalAW = Normal(1.0, 0.05);
-	m_KernalAS = Normal(1.0, 0.02);
-
-	CConfigData::get().Read.GARAGE_FILE = config.Read.GARAGE_FILE;
-	CConfigData::get().Read.FILE_FORMAT = config.Read.FILE_FORMAT;
-	CConfigData::get().Read.KERNEL_FILE = config.Read.KERNEL_FILE;
+	m_Config.Read.GARAGE_FILE = config.Read.GARAGE_FILE;
+	m_Config.Read.FILE_FORMAT = config.Read.FILE_FORMAT;
+	m_Config.Read.KERNEL_FILE = config.Read.KERNEL_FILE;
 
 	ReadDataIn();
 }

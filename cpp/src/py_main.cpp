@@ -306,12 +306,12 @@ PYBIND11_MODULE(_core, m) {
 			.def("get_start_time", &CVehicleTrafficFile::getStartTime)
 			.def("get_end_time", &CVehicleTrafficFile::getEndTime);
 	py::class_<CVehModelDataConstant, CVehicleModelData, CVehModelDataConstant_sp> cvehmodeldataconstant(m, "VehModelDataConstant");
-		cvehmodeldataconstant.def(py::init<CVehicleClassification_sp, CLaneFlowComposition, CConfigDataCore&>(), py::arg("vehicle_classification"), py::arg("lane_flow_composition"), py::arg("config"));
+		cvehmodeldataconstant.def(py::init<CConfigDataCore&, CVehicleClassification_sp, CLaneFlowComposition>(), py::arg("config"), py::arg("vehicle_classification"), py::arg("lane_flow_composition"));
 	py::class_<CVehModelDataGarage, CVehicleModelData, CVehModelDataGarage_sp> cvehmodeldatagarage(m, "VehModelDataGarage");
-		cvehmodeldatagarage.def(py::init<CVehicleClassification_sp, CLaneFlowComposition, CConfigDataCore&>(), py::arg("vehicle_classification"), py::arg("lane_flow_composition"), py::arg("config"))
+		cvehmodeldatagarage.def(py::init<CConfigDataCore&, CVehicleClassification_sp, CLaneFlowComposition>(), py::arg("config"), py::arg("vehicle_classification"), py::arg("lane_flow_composition"))
 			.def("assign_garage", &CVehModelDataGarage::assignGarage, py::arg("vehicle_list"));
 	py::class_<CVehModelDataGrave, CVehicleModelData, CVehModelDataGrave_sp> cvehmodeldatagrave(m, "VehModelDataGrave");
-		cvehmodeldatagrave.def(py::init<CVehicleClassification_sp, CLaneFlowComposition, CConfigDataCore&>(), py::arg("vehicle_classification"), py::arg("lane_flow_composition"), py::arg("config"));
+		cvehmodeldatagrave.def(py::init<CConfigDataCore&, CVehicleClassification_sp, CLaneFlowComposition>(), py::arg("config"), py::arg("vehicle_classification"), py::arg("lane_flow_composition"));
 	py::class_<Normal> normal(m, "Normal");
 	py::enum_<EFlowModel>(m, "EFlowModel").export_values();
 	py::enum_<EVehicleModel>(m, "EVehicleModel").export_values();

@@ -3,7 +3,7 @@
 
 //extern CConfigData g_ConfigData;
 
-CFlowModelData::CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars, CConfigDataCore& config)
+CFlowModelData::CFlowModelData(CConfigDataCore& config, EFlowModel fm, CLaneFlowComposition lfc, const bool bCars)
 	: m_Model(fm), m_bModelHasCars(bCars), m_Config(config)
 	// MAGIC NUMBERs - internal gap buffer e.g. tyre diameter, and a min driving gap
 	, m_BufferGapSpace(1.0), m_BufferGapTime(0.1), CModelData(config)
@@ -47,8 +47,8 @@ void CFlowModelData::getBlockInfo(size_t& sz, size_t& n) const
 
 //////////// CFlowModelDataNHM //////////////
 
-CFlowModelDataNHM::CFlowModelDataNHM(CLaneFlowComposition lfc, CConfigDataCore& config)
-	: CFlowModelData(eFM_NHM, lfc, false, config) // Model does not have cars
+CFlowModelDataNHM::CFlowModelDataNHM(CConfigDataCore& config, CLaneFlowComposition lfc)
+	: CFlowModelData(config, eFM_NHM, lfc, false) // Model does not have cars
 {
 	ReadDataIn();
 }
@@ -98,8 +98,8 @@ void CFlowModelDataNHM::ReadFile_NHM()
 
 //////////// CFlowModelDataCongested //////////////
 
-CFlowModelDataCongested::CFlowModelDataCongested(CLaneFlowComposition lfc, CConfigDataCore& config)
-	: CFlowModelData(eFM_Congested, lfc, true, config)
+CFlowModelDataCongested::CFlowModelDataCongested(CConfigDataCore& config, CLaneFlowComposition lfc)
+	: CFlowModelData(config, eFM_Congested, lfc, true)
 {
 	m_GapMean = m_Config.Traffic.CONGESTED_GAP;
 	m_GapStd = m_Config.Traffic.CONGESTED_GAP_COEF_VAR;
@@ -124,8 +124,8 @@ void CFlowModelDataCongested::getGapParams(double& mean, double& std)
 
 //////////// CFlowModelDataPoisson //////////////
 
-CFlowModelDataPoisson::CFlowModelDataPoisson(CLaneFlowComposition lfc, CConfigDataCore& config)
-	: CFlowModelData(eFM_Poisson, lfc, true, config) // Model has cars
+CFlowModelDataPoisson::CFlowModelDataPoisson(CConfigDataCore& config, CLaneFlowComposition lfc)
+	: CFlowModelData(config, eFM_Poisson, lfc, true) // Model has cars
 {
 
 }
@@ -142,8 +142,8 @@ void CFlowModelDataPoisson::ReadDataIn()
 
 //////////// CFlowModelDataConstant //////////////
 
-CFlowModelDataConstant::CFlowModelDataConstant(CLaneFlowComposition lfc, CConfigDataCore& config)
-	: CFlowModelData(eFM_Constant, lfc, true, config)
+CFlowModelDataConstant::CFlowModelDataConstant(CConfigDataCore& config, CLaneFlowComposition lfc)
+	: CFlowModelData(config, eFM_Constant, lfc, true) // Model has cars
 {
 	m_ConstSpeed = m_Config.Traffic.CONSTANT_SPEED;
 	m_ConstGap = m_Config.Traffic.CONSTANT_GAP;

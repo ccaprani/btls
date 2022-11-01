@@ -7,7 +7,7 @@
 class CFlowModelData :	public CModelData
 {
 public:
-	CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars, CConfigDataCore& config);
+	CFlowModelData(CConfigDataCore& config, EFlowModel fm, CLaneFlowComposition lfc, const bool bCars);
 	virtual ~CFlowModelData();
 
 	vec		getCarPercent() const { return m_vCarPercent; };
@@ -48,8 +48,7 @@ typedef std::shared_ptr<CFlowModelData> CFlowModelData_sp;
 class CFlowModelDataNHM : public CFlowModelData
 {
 public:
-	CFlowModelDataNHM(CLaneFlowComposition lfc);
-	CFlowModelDataNHM(CLaneFlowComposition lfc, CConfigDataCore& config);
+	CFlowModelDataNHM(CConfigDataCore& config, CLaneFlowComposition lfc);
 	virtual ~CFlowModelDataNHM();
 
 	virtual void ReadDataIn();
@@ -67,8 +66,7 @@ typedef std::shared_ptr<CFlowModelDataNHM> CFlowModelDataNHM_sp;
 class CFlowModelDataCongested : public CFlowModelData
 {
 public:
-	CFlowModelDataCongested(CLaneFlowComposition lfc);
-	CFlowModelDataCongested(CLaneFlowComposition lfc, CConfigDataCore& config);
+	CFlowModelDataCongested(CConfigDataCore& config, CLaneFlowComposition lfc);
 	virtual ~CFlowModelDataCongested();
 
 	virtual void ReadDataIn();
@@ -86,8 +84,7 @@ typedef std::shared_ptr<CFlowModelDataCongested> CFlowModelDataCongested_sp;
 class CFlowModelDataPoisson : public CFlowModelData
 {
 public:
-	CFlowModelDataPoisson(CLaneFlowComposition lfc);
-	CFlowModelDataPoisson(CLaneFlowComposition lfc, CConfigDataCore& config);
+	CFlowModelDataPoisson(CConfigDataCore& config, CLaneFlowComposition lfc);
 	virtual ~CFlowModelDataPoisson();
 
 	virtual void ReadDataIn();
@@ -97,8 +94,7 @@ typedef std::shared_ptr<CFlowModelDataPoisson> CFlowModelDataPoisson_sp;
 class CFlowModelDataConstant : public CFlowModelData
 {
 public:
-	CFlowModelDataConstant(CLaneFlowComposition lfc);
-	CFlowModelDataConstant(CLaneFlowComposition lfc, CConfigDataCore& config);
+	CFlowModelDataConstant(CConfigDataCore& config, CLaneFlowComposition lfc);
 	virtual ~CFlowModelDataConstant();
 
 	double getConstSpeed();

@@ -6,8 +6,7 @@
 class CVehicleModelData : public CModelData
 {
 public:
-	CVehicleModelData(EVehicleModel vm, CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const size_t nClass);
-	CVehicleModelData(EVehicleModel vm, CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const size_t nClass, CConfigDataCore& config);
+	CVehicleModelData(CConfigDataCore& config, EVehicleModel vm, CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const size_t nClass);
 	virtual ~CVehicleModelData();
 
 	EVehicleModel getModel() const { return m_Model; };
@@ -17,6 +16,8 @@ public:
 	vec getComposition(size_t i) const;
 
 protected:	
+	CConfigDataCore& m_Config;
+	
 	EVehicleModel m_Model;
 	const size_t m_TruckClassCount;
 

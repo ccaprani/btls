@@ -5,8 +5,7 @@
 class CVehModelDataGarage :	public CVehicleModelData
 {
 public:
-	CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc);
-	CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CConfigDataCore& config);
+	CVehModelDataGarage(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc);
 	virtual ~CVehModelDataGarage();
 
 	virtual void ReadDataIn();
