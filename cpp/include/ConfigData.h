@@ -65,7 +65,7 @@ public:
         double CONGESTED_GAP_COEF_VAR;
         double CONSTANT_SPEED;
         double CONSTANT_GAP;
-    } Traffic = {0, 0, 1, 5.0, 30.0, 5.0, 0.05, 36.0, 10.0, true};
+    } Traffic = {0, 0, 1, 5.0, 30.0, 5.0, 0.05, 36.0, 10.0};
 
     struct Sim_Config
     {

@@ -235,7 +235,6 @@ void CConfigDataCore::FlowGenConstant(int classification, double constant_speed,
     Traffic.CLASSIFICATION = classification;  // 0 no_ of axle, 1 axle pattern
     Traffic.CONSTANT_SPEED = constant_speed/3.6;  // km/h to m/s
     Traffic.CONSTANT_GAP = constant_gap;
-    Traffic.GEN_CAR = gen_car;
 }
 
 void CConfigDataCore::FlowGenCongestion(int classification, double congested_spacing, double congested_speed, double congested_gap_coef_var, bool gen_car) 
@@ -248,7 +247,6 @@ void CConfigDataCore::FlowGenCongestion(int classification, double congested_spa
     Traffic.CONGESTED_SPEED = congested_speed/3.6;  // km/h to m/s
 	Traffic.CONGESTED_GAP = Traffic.CONGESTED_SPACING/Traffic.CONGESTED_SPEED;
     Traffic.CONGESTED_GAP_COEF_VAR = congested_gap_coef_var;
-    Traffic.GEN_CAR = gen_car;
 }
 
 void CConfigDataCore::FlowGenFreeFlow(int classification, bool gen_car) 
@@ -257,7 +255,6 @@ void CConfigDataCore::FlowGenFreeFlow(int classification, bool gen_car)
     Read.READ_FILE = false;
     Traffic.HEADWAY_MODEL = 6;
     Traffic.CLASSIFICATION = classification;  // 0 no. of axle, 1 axle pattern
-    Traffic.GEN_CAR = gen_car;
 }
 
 
