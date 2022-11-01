@@ -11,6 +11,14 @@ CVehModelDataConstant::CVehModelDataConstant(CVehicleClassification_sp pVC, CLan
 	ReadDataIn();    
 }
 
+CVehModelDataConstant::CVehModelDataConstant(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CConfigDataCore& config)
+	: CVehicleModelData(eVM_Constant, pVC, lfc, 1) // MAGIC NUMBER - truck class count
+	, m_pNominalVehicle(nullptr), m_CoV_AS(0.0), m_CoV_AW(0.0)
+{
+    CConfigData::get().Read.CONSTANT_FILE = config.Read.CONSTANT_FILE;
+    makeNominalVehicle();
+	ReadDataIn();    
+}
 
 CVehModelDataConstant::~CVehModelDataConstant()
 {

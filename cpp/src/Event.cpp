@@ -23,12 +23,20 @@ CEvent::CEvent(size_t ID, size_t noEffects)
 
 CEvent::CEvent(size_t ID)
 {
+	FILE_FORMAT = CConfigData::get().Output.VehicleFile.FILE_FORMAT;
 	setDefaults();
 	m_EventID = ID;
 }
 
 CEvent::CEvent()
 {
+	FILE_FORMAT = CConfigData::get().Output.VehicleFile.FILE_FORMAT;
+	setDefaults();
+}
+
+CEvent::CEvent(CConfigDataCore& config)
+{
+	FILE_FORMAT = config.Output.VehicleFile.FILE_FORMAT;
 	setDefaults();
 }
 
@@ -57,10 +65,21 @@ void CEvent::setDefaults()
 	FILE_FORMAT = CConfigData::get().Output.VehicleFile.FILE_FORMAT;
 
 	m_CurEffect = 0;
-	m_StartTime = 0;
+	m_StartTime = 0.0;
 	m_CurEffect = 0;
 	m_EventID = 0;
 	m_NoEffects = 0;
+}
+
+void CEvent::reset() 
+{
+	m_CurEffect = 0;
+	m_NoEffects = 0;
+	m_EventID = 0;
+	m_StartTime = 0.0;
+
+	m_vMaxEffects.clear();
+	m_vMinEffects.clear();
 }
 
 //////// THE SETS /////////////

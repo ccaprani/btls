@@ -7,6 +7,7 @@ class CVehicleModelData : public CModelData
 {
 public:
 	CVehicleModelData(EVehicleModel vm, CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const size_t nClass);
+	CVehicleModelData(EVehicleModel vm, CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const size_t nClass, CConfigDataCore& config);
 	virtual ~CVehicleModelData();
 
 	EVehicleModel getModel() const { return m_Model; };

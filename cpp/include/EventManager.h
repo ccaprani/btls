@@ -27,6 +27,7 @@ class CEventManager
 {
 public:
 	CEventManager();
+	CEventManager(CConfigDataCore& config);
 	virtual ~CEventManager();
 
 	void Initialize(double BridgeLength,std::vector<double> vThresholds, double SimStartTime);
@@ -38,7 +39,9 @@ public:
 	void setEventOutputFile(double BridgeLength);
 
 private:
+	void Creator();
 	void WriteEventBuffer();
+	
 	CEventBuffer		m_AllEventBuffer;
 	CEventBuffer		m_FatigueEventBuffer;
 	CBlockMaxManager	m_BlockMaxManager;

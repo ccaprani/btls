@@ -15,6 +15,22 @@ CVehModelDataGarage::CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlo
 	ReadDataIn();
 }
 
+CVehModelDataGarage::CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CConfigDataCore& config)
+	: CVehicleModelData(eVM_Garage, pVC, lfc, 1, config) // MAGIC NUMBER - truck class count
+	, m_NoVehicles(0)
+{
+	// MAGIC NUMBER for now
+	m_KernalGVW = Normal(1.0,0.08); // Mean and COV
+	m_KernalAW = Normal(1.0, 0.05);
+	m_KernalAS = Normal(1.0, 0.02);
+
+	CConfigData::get().Read.GARAGE_FILE = config.Read.GARAGE_FILE;
+	CConfigData::get().Read.FILE_FORMAT = config.Read.FILE_FORMAT;
+	CConfigData::get().Read.KERNEL_FILE = config.Read.KERNEL_FILE;
+
+	ReadDataIn();
+}
+
 
 CVehModelDataGarage::~CVehModelDataGarage()
 {
@@ -40,9 +56,19 @@ void CVehModelDataGarage::readGarage()
 	m_vVehicles = TrafficFile.getVehicles();
 }
 
+void CVehModelDataGarage::assignGarage(std::vector<CVehicle_sp> vVehicles)
+{
+	m_NoVehicles = vVehicles.size();
+	if (m_NoVehicles == 0)
+		std::cout << "****ERROR: no vehicles in traffic garage file" << std::endl;
+
+	m_vVehicles = vVehicles;
+}
+
 void CVehModelDataGarage::readKernels()
 {
 	filesystem::path file = CConfigData::get().Read.KERNEL_FILE;
+	
 	if (!m_CSV.OpenFile(file.string(), ","))
 		std::cerr << "***WARNING: Kernel file " 
 				  << std::filesystem::weakly_canonical(file) 

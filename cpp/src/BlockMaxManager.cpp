@@ -22,6 +22,31 @@ CBlockMaxManager::CBlockMaxManager()
 	WRITE_SUMMARY		= CConfigData::get().Output.BlockMax.WRITE_BM_SUMMARY;
 	WRITE_BM_MIXED		= CConfigData::get().Output.BlockMax.WRITE_BM_MIXED;
 
+	SetDerivedValues();
+}
+
+CBlockMaxManager::CBlockMaxManager(CConfigDataCore& config) 
+{
+	BLOCK_SIZE_DAYS		= config.Output.BlockMax.BLOCK_SIZE_DAYS;
+	BLOCK_SIZE_SECS		= config.Output.BlockMax.BLOCK_SIZE_SECS;
+
+	WRITE_BUFFER_SIZE	= config.Output.BlockMax.WRITE_BM_BUFFER_SIZE;
+	WRITE_VEHICLES		= config.Output.BlockMax.WRITE_BM_VEHICLES;
+	WRITE_SUMMARY		= config.Output.BlockMax.WRITE_BM_SUMMARY;
+	WRITE_BM_MIXED		= config.Output.BlockMax.WRITE_BM_MIXED;
+
+	SetDerivedValues();
+}
+
+CBlockMaxManager::~CBlockMaxManager()
+{
+
+}
+
+void CBlockMaxManager::SetDerivedValues() 
+{
+	m_FileStem = "BM";
+
 	m_BlockSize = 3600 * 24 * BLOCK_SIZE_DAYS + BLOCK_SIZE_SECS;
 	m_CurBlockNo = 1;
 	m_MaxEvTypesForBridge = 0;
@@ -29,11 +54,6 @@ CBlockMaxManager::CBlockMaxManager()
 
 	m_BlockMaxEvent.setID(m_CurBlockNo);
 	m_BMMixedEvent.setID(m_CurBlockNo);
-}
-
-CBlockMaxManager::~CBlockMaxManager()
-{
-
 }
 
 void CBlockMaxManager::Initialize(double BridgeLength, size_t nLE, double SimStartTime)

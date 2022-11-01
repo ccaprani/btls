@@ -103,7 +103,7 @@ typedef std::shared_ptr<CFlowGenPoisson> CFlowGenPoisson_sp;
 class CFlowGenConstant : public CFlowGenerator
 {
 public:
-	CFlowGenConstant(CFlowModelData_sp pFDM) : CFlowGenerator(nullptr, eFM_Constant){};
+	CFlowGenConstant(CFlowModelDataConstant_sp pFDM) : CFlowGenerator(nullptr, eFM_Constant){};
 	virtual ~CFlowGenConstant(){};
 
 protected:
@@ -112,7 +112,7 @@ protected:
 	//void updateProperties();
 
 private:
-	//CFlowModelDataPoisson_sp m_pFMD;
+	CFlowModelDataConstant_sp m_pFMD;
 	//Normal m_Speed;
 };
 typedef std::shared_ptr<CFlowGenConstant> CFlowGenConstant_sp;

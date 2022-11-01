@@ -7,17 +7,20 @@ class CBlockMaxManager : public COutputManagerBase
 {
 public:
 	CBlockMaxManager();
+	CBlockMaxManager(CConfigDataCore& config);
 	virtual ~CBlockMaxManager();
 
 	virtual void Update(CEvent Ev);
 	virtual void Initialize(double BridgeLength, size_t nLE, double SimStartTime);
 
 private:
-	virtual void	WriteVehicleFiles();
-	virtual void	WriteSummaryFiles();
-	virtual void	CheckBuffer(bool bForceOutput);
-	virtual void	OpenVehicleFiles();
-	virtual void	WriteBuffer();
+	void SetDerivedValues();
+
+	virtual void WriteVehicleFiles();
+	virtual void WriteSummaryFiles();
+	virtual void CheckBuffer(bool bForceOutput);
+	virtual void OpenVehicleFiles();
+	virtual void WriteBuffer();
 	
 	void	AddExtraEvents();
 	void	UpdateMixedEvents(CEvent Ev);

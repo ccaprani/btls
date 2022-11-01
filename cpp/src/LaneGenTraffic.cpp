@@ -5,17 +5,22 @@
 
 CLaneGenTraffic::CLaneGenTraffic(void)
 {
-	m_pVehicleGen		= nullptr;
-	m_pVehModelData		= nullptr;
-	m_pFlowGen			= nullptr;
-	m_pFlowModelData	= nullptr;
-	m_pPrevVeh			= nullptr;
-	m_pNextVeh			= nullptr;
-	
 	HEADWAY_MODEL			= CConfigData::get().Traffic.HEADWAY_MODEL;
 	VEHICLE_MODEL			= CConfigData::get().Traffic.VEHICLE_MODEL;
 
 	NO_LANES				= CConfigData::get().Road.NO_LANES;
+
+	Creator();
+}
+
+CLaneGenTraffic::CLaneGenTraffic(CConfigDataCore& config) 
+{
+	HEADWAY_MODEL	= config.Traffic.HEADWAY_MODEL;
+	VEHICLE_MODEL	= config.Traffic.VEHICLE_MODEL;
+
+	NO_LANES		= config.Road.NO_LANES;
+
+	Creator();
 }
 
 
@@ -25,6 +30,16 @@ CLaneGenTraffic::~CLaneGenTraffic(void)
 	m_pVehicleGen = nullptr;
 	m_pFlowModelData = nullptr;
 	m_pFlowGen = nullptr;
+}
+
+void CLaneGenTraffic::Creator() 
+{
+	m_pVehicleGen		= nullptr;
+	m_pVehModelData		= nullptr;
+	m_pFlowGen			= nullptr;
+	m_pFlowModelData	= nullptr;
+	m_pPrevVeh			= nullptr;
+	m_pNextVeh			= nullptr;
 }
 
 
@@ -73,6 +88,61 @@ void CLaneGenTraffic::setLaneData(CVehicleClassification_sp pVC,
 		break;
 	default:	// Poisson arrivals
 		m_pFlowModelData = std::make_shared<CFlowModelDataPoisson>(lfc);
+		m_pFlowGen = std::make_shared<CFlowGenPoisson>(std::dynamic_pointer_cast<CFlowModelDataPoisson>(m_pFlowModelData));
+		break;
+	}
+
+	// Now update the vehicle generator about the flow model
+	m_pVehicleGen->update(m_pFlowModelData);
+
+	GenNextArrival();	// the first arrival generation
+}
+
+void CLaneGenTraffic::setLaneData(CVehicleClassification_sp pVC, 
+									CLaneFlowComposition lfc, const double starttime, CConfigDataCore& config)
+{
+	m_NextArrivalTime = starttime;
+
+	m_Direction = lfc.getDirn();
+	// Map vehicles to local lane using zero based cumulative lane no.
+	if (m_Direction == 2)
+		m_LaneIndex = NO_LANES - lfc.getGlobalLaneNo();
+	else
+		m_LaneIndex = lfc.getGlobalLaneNo();
+
+	// Vehicle model must come first for NHM temporary
+	switch (VEHICLE_MODEL)
+	{
+	case 1:		// Constant
+		m_pVehModelData = std::make_shared<CVehModelDataConstant>(pVC, lfc, config);
+		m_pVehicleGen = std::make_shared<CVehicleGenConstant>(std::dynamic_pointer_cast<CVehModelDataConstant>(m_pVehModelData));
+		break;
+	case 2:		// Garage
+		m_pVehModelData = std::make_shared<CVehModelDataGarage>(pVC, lfc, config);
+		m_pVehicleGen = std::make_shared<CVehicleGenGarage>(std::dynamic_pointer_cast<CVehModelDataGarage>(m_pVehModelData));
+		break;
+	default:	// Grave
+		m_pVehModelData = std::make_shared<CVehModelDataGrave>(pVC, lfc, config);
+		m_pVehicleGen = std::make_shared<CVehicleGenGrave>(std::dynamic_pointer_cast<CVehModelDataGrave>(m_pVehModelData));
+		break;
+	}
+
+	switch (HEADWAY_MODEL)
+	{
+	case 0:		// NHM
+		m_pFlowModelData = std::make_shared<CFlowModelDataNHM>(lfc, config);
+		m_pFlowGen = std::make_shared<CFlowGenNHM>(std::dynamic_pointer_cast<CFlowModelDataNHM>(m_pFlowModelData));
+		break;
+	case 1:		// Constant test
+		m_pFlowModelData = std::make_shared<CFlowModelDataConstant>(lfc, config);
+		m_pFlowGen = std::make_shared<CFlowGenConstant>(std::dynamic_pointer_cast<CFlowModelDataConstant>(m_pFlowModelData));
+		break;
+	case 5:		// Congestion
+		m_pFlowModelData = std::make_shared<CFlowModelDataCongested>(lfc, config);
+		m_pFlowGen = std::make_shared<CFlowGenCongested>(std::dynamic_pointer_cast<CFlowModelDataCongested>(m_pFlowModelData));
+		break;
+	default:	// Poisson arrivals
+		m_pFlowModelData = std::make_shared<CFlowModelDataPoisson>(lfc, config);
 		m_pFlowGen = std::make_shared<CFlowGenPoisson>(std::dynamic_pointer_cast<CFlowModelDataPoisson>(m_pFlowModelData));
 		break;
 	}

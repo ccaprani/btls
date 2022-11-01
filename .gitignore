@@ -7,6 +7,9 @@ back_up
 dev_functions
 Sample_data
 PyBTLS.egg*
+__pycache__
+*.so
+*.exe
 
 # CMake
 CMakeFiles/*
@@ -21,6 +24,7 @@ Makefile
 BM_*.txt
 SS_*.txt
 RC_*.txt
+TH_*.txt
 FlowData_*.txt
 
 BridgeTrafficLoadSim

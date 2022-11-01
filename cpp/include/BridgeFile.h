@@ -13,9 +13,13 @@ public:
 	CBridgeFile(void);
 	CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL);
 	CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf);
+	CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, CConfigDataCore& config);
+	CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf, CConfigDataCore& config);
 	~CBridgeFile(void);
+
 	void ReadBridges(std::string file);
 	void ReadBridges(std::string file, std::vector<CInfluenceLine> vDiscreteIL,std::vector<CInfluenceLine> vInfSurf);
+	void ReadBridges(string file, vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf, CConfigDataCore& config);
 	std::vector<CBridge_sp> getBridges(void);
 	double getMaxBridgeLength(void);
 

@@ -2,12 +2,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_EVENTBUFFER_H__55D47416_48E5_47C4_B36E_B9227C33D7DC__INCLUDED_)
-#define AFX_EVENTBUFFER_H__55D47416_48E5_47C4_B36E_B9227C33D7DC__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include <vector>
 #include <string>
@@ -16,12 +11,15 @@
 #include "Event.h"
 #include "Effect.h"
 #include "Vehicle.h"
+#include "ConfigData.h"
 
 class CEventBuffer
 {
 public:
 	CEventBuffer();
 	CEventBuffer(std::string OutFile);
+	CEventBuffer(CConfigDataCore& config);
+	CEventBuffer(std::string OutFile, CConfigDataCore& config);
 	virtual ~CEventBuffer();
 
 	void setMode(bool bFatigue);
@@ -44,5 +42,3 @@ private:
 	double m_BridgeLength;
 	template <typename T> std::string to_string(T const& value);
 };
-
-#endif // !defined(AFX_EVENTBUFFER_H__55D47416_48E5_47C4_B36E_B9227C33D7DC__INCLUDED_)

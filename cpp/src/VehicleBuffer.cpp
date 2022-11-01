@@ -4,7 +4,6 @@
 
 #include <iostream>
 #include "VehicleBuffer.h"
-#include "ConfigData.h"
 
 //extern CConfigData g_ConfigData;
 //////////////////////////////////////////////////////////////////////
@@ -22,6 +21,37 @@ CVehicleBuffer::CVehicleBuffer(CVehicleClassification_sp pVC, double starttime)
 
 	NO_LANES_DIR1	= CConfigData::get().Road.NO_LANES_DIR1;
 	NO_LANES_DIR2	= CConfigData::get().Road.NO_LANES_DIR2;
+
+	Creator(pVC,starttime);
+}
+
+CVehicleBuffer::CVehicleBuffer(CVehicleClassification_sp pVC, double starttime, CConfigDataCore& config) 
+{
+	WRITE_VEHICLE_FILE			= config.Output.VehicleFile.WRITE_VEHICLE_FILE;
+	FILE_FORMAT					= config.Output.VehicleFile.FILE_FORMAT;	
+	VEHICLE_FILENAME			= config.Output.VehicleFile.VEHICLE_FILENAME;
+	WRITE_VEHICLE_BUFFER_SIZE	= config.Output.VehicleFile.WRITE_VEHICLE_BUFFER_SIZE;
+	WRITE_FLOW_STATS			= config.Output.VehicleFile.WRITE_FLOW_STATS;
+
+	NO_LANES_DIR1	= config.Road.NO_LANES_DIR1;
+	NO_LANES_DIR2	= config.Road.NO_LANES_DIR2;
+
+	Creator(pVC,starttime);
+}
+
+CVehicleBuffer::~CVehicleBuffer()
+{
+	/*
+	if(m_OutFile.is_open())
+		m_OutFile.close();
+
+	writeFlowData();
+	*/
+}
+
+void CVehicleBuffer::Creator(CVehicleClassification_sp pVC, double starttime) 
+{
+	//init(false, "", 0);
 	NO_LANES = NO_LANES_DIR1 + NO_LANES_DIR2;
 
 	m_pVehClassification = pVC;
@@ -39,14 +69,6 @@ CVehicleBuffer::CVehicleBuffer(CVehicleClassification_sp pVC, double starttime)
 		m_OutFile.open(VEHICLE_FILENAME.c_str(), std::ios::out);
 		m_vVehicles.reserve(WRITE_VEHICLE_BUFFER_SIZE);	
 	}
-}
-
-CVehicleBuffer::~CVehicleBuffer()
-{
-	if(m_OutFile.is_open())
-		m_OutFile.close();
-	
-	writeFlowData();
 }
 
 void CVehicleBuffer::AddVehicle(const CVehicle_sp& pVeh)

@@ -2,19 +2,15 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_EVENT_H__0B74769F_32EB_4F04_BD76_F27A2F5FF946__INCLUDED_)
-#define AFX_EVENT_H__0B74769F_32EB_4F04_BD76_F27A2F5FF946__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
-#include "Effect.h"
 #include <string>
 #include <vector>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include "Effect.h"
+#include "ConfigData.h"
 
 class CEvent  
 {
@@ -22,9 +18,12 @@ public:
 	CEvent();
 	CEvent(size_t);
 	CEvent(size_t, size_t noEffects);
+	CEvent(CConfigDataCore& config);
 	virtual ~CEvent();
 	
 	bool operator<(const CEvent& x);
+
+	void reset();
 
 	CEffect&	getMaxEffect(size_t effNo);
 	CEffect&	getMinEffect(size_t effNo);
@@ -68,5 +67,3 @@ private:
 	size_t	SECS_PER_MIN;
 	size_t	FILE_FORMAT;
 };
-
-#endif // !defined(AFX_EVENT_H__0B74769F_32EB_4F04_BD76_F27A2F5FF946__INCLUDED_)

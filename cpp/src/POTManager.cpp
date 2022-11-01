@@ -5,8 +5,6 @@
 
 CPOTManager::CPOTManager(void)
 {
-	m_FileStem = "PT";
-
 	WRITE_BUFFER_SIZE	= CConfigData::get().Output.POT.WRITE_POT_BUFFER_SIZE;
 	WRITE_VEHICLES		= CConfigData::get().Output.POT.WRITE_POT_VEHICLES;
 	WRITE_SUMMARY		= CConfigData::get().Output.POT.WRITE_POT_SUMMARY;
@@ -15,12 +13,32 @@ CPOTManager::CPOTManager(void)
 	POT_COUNT_SIZE_DAYS	= CConfigData::get().Output.POT.POT_COUNT_SIZE_DAYS;
 	POT_COUNT_SIZE_SECS	= CConfigData::get().Output.POT.POT_COUNT_SIZE_SECS;
 
-	m_BlockSize = 3600 * 24 * POT_COUNT_SIZE_DAYS + POT_COUNT_SIZE_SECS;
-	m_CurBlockNo = 0;
+	Creator();
+}
+
+CPOTManager::CPOTManager(CConfigDataCore& config)
+{
+	WRITE_BUFFER_SIZE	= config.Output.POT.WRITE_POT_BUFFER_SIZE;
+	WRITE_VEHICLES		= config.Output.POT.WRITE_POT_VEHICLES;
+	WRITE_SUMMARY		= config.Output.POT.WRITE_POT_SUMMARY;
+
+	WRITE_POT_COUNTER	= config.Output.POT.WRITE_POT_COUNTER;
+	POT_COUNT_SIZE_DAYS	= config.Output.POT.POT_COUNT_SIZE_DAYS;
+	POT_COUNT_SIZE_SECS	= config.Output.POT.POT_COUNT_SIZE_SECS;
+
+	Creator();
 }
 
 CPOTManager::~CPOTManager(void)
 {
+}
+
+void CPOTManager::Creator() 
+{
+	m_FileStem = "PT";
+
+	m_BlockSize = 3600 * 24 * POT_COUNT_SIZE_DAYS + POT_COUNT_SIZE_SECS;
+	m_CurBlockNo = 0;
 }
 
 void CPOTManager::Initialize(double BridgeLength, std::vector<double> vThreshold, double SimStartTime)

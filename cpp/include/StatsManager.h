@@ -7,15 +7,18 @@ class CStatsManager : public COutputManagerBase
 {
 public:
 	CStatsManager(void);
+	CStatsManager(CConfigDataCore& config);
 	virtual ~CStatsManager(void);
 
 	virtual void Update(CEvent Ev);
 	virtual void Initialize(double BridgeLength, size_t nLE, double SimStartTime);
 
 private:
-	virtual void	WriteSummaryFiles();
-	virtual void	CheckBuffer(bool bForceOutput);
-	virtual void	WriteBuffer();
+	void Creator();
+	
+	virtual void WriteSummaryFiles();
+	virtual void CheckBuffer(bool bForceOutput);
+	virtual void WriteBuffer();
 
 	void WriteCumulativeFile();
 	void WriteIntervalHeadings();

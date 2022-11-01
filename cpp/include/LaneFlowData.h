@@ -9,6 +9,7 @@ class CLaneFlowData : public CModelData
 {
 public:
 	CLaneFlowData();
+	CLaneFlowData(CConfigDataCore& config);
 	virtual ~CLaneFlowData();
 
 	virtual void ReadDataIn();

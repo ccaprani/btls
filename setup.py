@@ -37,7 +37,7 @@ if platform.system() == "Darwin":
 # Set ext modules.
 ext_modules = [
     Pybind11Extension(
-        name="PyBTLS.c_module._core", # depends on the structure of your package
+        name="PyBTLS.cpp._core", # depends on the structure of your package
         extra_compile_args = cpp_extra_compile_args,
         sources=source_files,
         # Example: passing in the version to the compiled code
