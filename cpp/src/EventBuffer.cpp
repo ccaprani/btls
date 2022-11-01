@@ -11,15 +11,6 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CEventBuffer::CEventBuffer()
-{
-	m_BufferSize = CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE;
-
-	SetBufferSize(m_BufferSize);
-	m_NoEvents = 0;
-	m_Mode = CEventBuffer::ALLEVENTS;
-}
-
 CEventBuffer::CEventBuffer(CConfigDataCore& config)
 {
 	m_BufferSize = config.Output.WRITE_EVENT_BUFFER_SIZE;
@@ -27,26 +18,6 @@ CEventBuffer::CEventBuffer(CConfigDataCore& config)
 	SetBufferSize(m_BufferSize);
 	m_NoEvents = 0;
 	m_Mode = CEventBuffer::ALLEVENTS;
-}
-
-CEventBuffer::CEventBuffer(std::string OutFile)
-{
-	m_BufferSize = CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE;
-
-	m_OutFile.open(OutFile.c_str(), std::ios::out);
-	SetBufferSize(m_BufferSize);
-	m_NoEvents = 0;
-	m_Mode = ALLEVENTS;
-}
-
-CEventBuffer::CEventBuffer(std::string OutFile, CConfigDataCore& config)
-{
-	m_BufferSize = config.Output.WRITE_EVENT_BUFFER_SIZE;
-
-	m_OutFile.open(OutFile.c_str(), std::ios::out);
-	SetBufferSize(m_BufferSize);
-	m_NoEvents = 0;
-	m_Mode = ALLEVENTS;
 }
 
 CEventBuffer::~CEventBuffer()

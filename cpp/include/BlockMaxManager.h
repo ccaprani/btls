@@ -6,7 +6,6 @@
 class CBlockMaxManager : public COutputManagerBase
 {
 public:
-	CBlockMaxManager();
 	CBlockMaxManager(CConfigDataCore& config);
 	virtual ~CBlockMaxManager();
 
@@ -14,8 +13,6 @@ public:
 	virtual void Initialize(double BridgeLength, size_t nLE, double SimStartTime);
 
 private:
-	void SetDerivedValues();
-
 	virtual void WriteVehicleFiles();
 	virtual void WriteSummaryFiles();
 	virtual void CheckBuffer(bool bForceOutput);

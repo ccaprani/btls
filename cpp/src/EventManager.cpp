@@ -10,22 +10,6 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CEventManager::CEventManager()
-{
-	WRITE_TIME_HISTORY		= CConfigData::get().Output.WRITE_TIME_HISTORY;
-	WRITE_EACH_EVENT		= CConfigData::get().Output.WRITE_EACH_EVENT;
-	WRITE_EVENT_BUFFER_SIZE = CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE;
-	WRITE_FATIGUE_EVENT		= CConfigData::get().Output.WRITE_FATIGUE_EVENT;
-
-	WRITE_BM	= CConfigData::get().Output.BlockMax.WRITE_BM;
-	WRITE_POT	= CConfigData::get().Output.POT.WRITE_POT;
-	WRITE_STATS = CConfigData::get().Output.Stats.WRITE_STATS;
-	
-	DO_FATIGUE_RAINFLOW = CConfigData::get().Output.Fatigue.DO_FATIGUE_RAINFLOW;
-
-	Creator();
-}
-
 CEventManager::CEventManager(CConfigDataCore& config) 
 	: m_AllEventBuffer(config)
 	, m_FatigueEventBuffer(config)
@@ -34,31 +18,27 @@ CEventManager::CEventManager(CConfigDataCore& config)
 	, m_StatsManager(config)
 	, m_FatigueManager(config)
 	, m_CurEvent(config)
+	, m_Config(config)
 {
-	WRITE_TIME_HISTORY		= config.Output.WRITE_TIME_HISTORY;
-	WRITE_EACH_EVENT		= config.Output.WRITE_EACH_EVENT;
-	WRITE_EVENT_BUFFER_SIZE = config.Output.WRITE_EVENT_BUFFER_SIZE;
-	WRITE_FATIGUE_EVENT		= config.Output.WRITE_FATIGUE_EVENT;
+	WRITE_TIME_HISTORY		= m_Config.Output.WRITE_TIME_HISTORY;
+	WRITE_EACH_EVENT		= m_Config.Output.WRITE_EACH_EVENT;
+	WRITE_EVENT_BUFFER_SIZE = m_Config.Output.WRITE_EVENT_BUFFER_SIZE;
+	WRITE_FATIGUE_EVENT		= m_Config.Output.WRITE_FATIGUE_EVENT;
 
-	WRITE_BM	= config.Output.BlockMax.WRITE_BM;
-	WRITE_POT	= config.Output.POT.WRITE_POT;
-	WRITE_STATS = config.Output.Stats.WRITE_STATS;
+	WRITE_BM	= m_Config.Output.BlockMax.WRITE_BM;
+	WRITE_POT	= m_Config.Output.POT.WRITE_POT;
+	WRITE_STATS = m_Config.Output.Stats.WRITE_STATS;
 
-	DO_FATIGUE_RAINFLOW = config.Output.Fatigue.DO_FATIGUE_RAINFLOW;
+	DO_FATIGUE_RAINFLOW = m_Config.Output.Fatigue.DO_FATIGUE_RAINFLOW;
 
-	Creator();
+	m_NoEvents = 0;
+	m_CurTime = 0.0;
+	m_FatigueEventBuffer.setMode(true);
 }
 
 CEventManager::~CEventManager()
 {
 
-}
-
-void CEventManager::Creator() 
-{
-	m_NoEvents = 0;
-	m_CurTime = 0.0;
-	m_FatigueEventBuffer.setMode(true);
 }
 
 void CEventManager::Initialize(double BridgeLength, std::vector<double> vThresholds, double SimStartTime)

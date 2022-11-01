@@ -26,7 +26,6 @@
 class CEventManager  
 {
 public:
-	CEventManager();
 	CEventManager(CConfigDataCore& config);
 	virtual ~CEventManager();
 
@@ -39,8 +38,9 @@ public:
 	void setEventOutputFile(double BridgeLength);
 
 private:
-	void Creator();
 	void WriteEventBuffer();
+
+	CConfigDataCore& 	m_Config;
 	
 	CEventBuffer		m_AllEventBuffer;
 	CEventBuffer		m_FatigueEventBuffer;

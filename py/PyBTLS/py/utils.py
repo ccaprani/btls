@@ -18,8 +18,9 @@ def prepare_bridges():
 
     read_IL = ReadILFile()
 
-    bridge_file = BridgeFile(config.Sim.BRIDGE_FILE, read_IL.get_inf_lines(
-    config.Sim.INFLINE_FILE, 0), read_IL.get_inf_lines(config.Sim.INFSURF_FILE, 1), config)
+    bridge_file = BridgeFile(config, 
+                             read_IL.get_inf_lines(config.Sim.INFLINE_FILE, 0),
+                             read_IL.get_inf_lines(config.Sim.INFSURF_FILE, 1))
 
     bridge_list = bridge_file.get_bridges()
     config.Gen.NO_OVERLAP_LENGTH = bridge_file.get_max_bridge_length()
@@ -56,7 +57,7 @@ def get_generator_lanes(vehicle_classification, start_time):
 def do_simulation(vehicle_classification, bridge_list, lane_list, sim_start_time, sim_end_time):
     global config
 
-    vehicle_buffer = VehicleBuffer(vehicle_classification, sim_start_time, config)
+    vehicle_buffer = VehicleBuffer(config,vehicle_classification, sim_start_time)
     current_time = sim_start_time
     current_day = int(sim_start_time/86400)
     sim_process_print = ""

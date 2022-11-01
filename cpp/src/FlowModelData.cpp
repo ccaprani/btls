@@ -3,35 +3,22 @@
 
 //extern CConfigData g_ConfigData;
 
-CFlowModelData::CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars)
-	: m_Model(fm), m_bModelHasCars(bCars)
-	// MAGIC NUMBERs - internal gap buffer e.g. tyre diameter, and a min driving gap
-	, m_BufferGapSpace(1.0), m_BufferGapTime(0.1)
-{
-		Creator(lfc);
-}
-
 CFlowModelData::CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars, CConfigDataCore& config)
-	: m_Model(fm), m_bModelHasCars(bCars)
+	: m_Model(fm), m_bModelHasCars(bCars), m_Config(config)
 	// MAGIC NUMBERs - internal gap buffer e.g. tyre diameter, and a min driving gap
 	, m_BufferGapSpace(1.0), m_BufferGapTime(0.1), CModelData(config)
-{
-	CConfigData::get().Gen.NO_OVERLAP_LENGTH = config.Gen.NO_OVERLAP_LENGTH;
-	Creator(lfc);
-}
-
-CFlowModelData::~CFlowModelData()
-{
-}
-
-void CFlowModelData::Creator(CLaneFlowComposition lfc) 
-{
+{	
 	m_vTotalFlow = lfc.getTotalFlow();
 	m_vTruckFlow = lfc.getTruckFlow();
 	m_vCarPercent = lfc.getCarPercent();
 	m_vSpeed = lfc.getSpeed();
 	m_BlockSize = lfc.getBlockSize();
 	m_BlockCount = lfc.getBlockCount();
+}
+
+CFlowModelData::~CFlowModelData()
+{
+
 }
 
 void CFlowModelData::getFlow(size_t i, double& totalFlow, double& truckFlow)
@@ -47,7 +34,7 @@ void CFlowModelData::getSpeedParams(size_t i, Normal& speed)
 
 void CFlowModelData::getGapLimits(double& bridge, double& space, double& time)
 {
-	bridge = CConfigData::get().Gen.NO_OVERLAP_LENGTH;
+	bridge = m_Config.Gen.NO_OVERLAP_LENGTH;
 	space = m_BufferGapSpace;
 	time = m_BufferGapTime;
 }
@@ -60,14 +47,8 @@ void CFlowModelData::getBlockInfo(size_t& sz, size_t& n) const
 
 //////////// CFlowModelDataNHM //////////////
 
-CFlowModelDataNHM::CFlowModelDataNHM(CLaneFlowComposition lfc)
-	: CFlowModelData(eFM_NHM, lfc, false)
-{
-	ReadDataIn();
-}
-
 CFlowModelDataNHM::CFlowModelDataNHM(CLaneFlowComposition lfc, CConfigDataCore& config)
-	: CFlowModelData(eFM_NHM, lfc, false) // Model does not have cars
+	: CFlowModelData(eFM_NHM, lfc, false, config) // Model does not have cars
 {
 	ReadDataIn();
 }
@@ -117,20 +98,12 @@ void CFlowModelDataNHM::ReadFile_NHM()
 
 //////////// CFlowModelDataCongested //////////////
 
-CFlowModelDataCongested::CFlowModelDataCongested(CLaneFlowComposition lfc)
-	: CFlowModelData(eFM_Congested, lfc, true) // Model has cars
-{
-	m_GapMean = CConfigData::get().Traffic.CONGESTED_GAP;
-	m_GapStd = CConfigData::get().Traffic.CONGESTED_GAP_COEF_VAR;
-	m_Speed = CConfigData::get().Traffic.CONGESTED_SPEED;
-}
-
 CFlowModelDataCongested::CFlowModelDataCongested(CLaneFlowComposition lfc, CConfigDataCore& config)
 	: CFlowModelData(eFM_Congested, lfc, true, config)
 {
-	m_GapMean = config.Traffic.CONGESTED_GAP;
-	m_GapStd = config.Traffic.CONGESTED_GAP_COEF_VAR;
-	m_Speed = config.Traffic.CONGESTED_SPEED;
+	m_GapMean = m_Config.Traffic.CONGESTED_GAP;
+	m_GapStd = m_Config.Traffic.CONGESTED_GAP_COEF_VAR;
+	m_Speed = m_Config.Traffic.CONGESTED_SPEED;
 }
 
 CFlowModelDataCongested::~CFlowModelDataCongested()
@@ -151,12 +124,6 @@ void CFlowModelDataCongested::getGapParams(double& mean, double& std)
 
 //////////// CFlowModelDataPoisson //////////////
 
-CFlowModelDataPoisson::CFlowModelDataPoisson(CLaneFlowComposition lfc)
-	: CFlowModelData(eFM_Poisson, lfc, true)
-{
-
-}
-
 CFlowModelDataPoisson::CFlowModelDataPoisson(CLaneFlowComposition lfc, CConfigDataCore& config)
 	: CFlowModelData(eFM_Poisson, lfc, true, config) // Model has cars
 {
@@ -175,18 +142,11 @@ void CFlowModelDataPoisson::ReadDataIn()
 
 //////////// CFlowModelDataConstant //////////////
 
-CFlowModelDataConstant::CFlowModelDataConstant(CLaneFlowComposition lfc)
-	: CFlowModelData(eFM_Constant, lfc, true) // Model has cars
-{
-	m_ConstSpeed = CConfigData::get().Traffic.CONSTANT_SPEED;
-	m_ConstGap = CConfigData::get().Traffic.CONSTANT_GAP;
-}
-
 CFlowModelDataConstant::CFlowModelDataConstant(CLaneFlowComposition lfc, CConfigDataCore& config)
 	: CFlowModelData(eFM_Constant, lfc, true, config)
 {
-	m_ConstSpeed = config.Traffic.CONSTANT_SPEED;
-	m_ConstGap = config.Traffic.CONSTANT_GAP;
+	m_ConstSpeed = m_Config.Traffic.CONSTANT_SPEED;
+	m_ConstGap = m_Config.Traffic.CONSTANT_GAP;
 }
 
 CFlowModelDataConstant::~CFlowModelDataConstant()

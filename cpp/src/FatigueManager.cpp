@@ -2,24 +2,12 @@
 #include "ConfigData.h"
 
 
-CFatigueManager::CFatigueManager(void) 
-{
-    RAINFLOW_DECIMAL    = CConfigData::get().Output.Fatigue.RAINFLOW_DECIMAL;
-    RAINFLOW_CUTOFF     = CConfigData::get().Output.Fatigue.RAINFLOW_CUTOFF;
-    WRITE_BUFFER_SIZE   = CConfigData::get().Output.Fatigue.WRITE_RAINFLOW_BUFFER_SIZE;
-
-    m_FileStem = "RC";
-    m_WriteHeadLine = true;
-    m_EventCount = 0;
-}
-
-CFatigueManager::CFatigueManager(CConfigDataCore& config) 
+CFatigueManager::CFatigueManager(CConfigDataCore& config) : COutputManagerBase("RC")
 {
     RAINFLOW_DECIMAL    = config.Output.Fatigue.RAINFLOW_DECIMAL;
     RAINFLOW_CUTOFF     = config.Output.Fatigue.RAINFLOW_CUTOFF;
     WRITE_BUFFER_SIZE   = config.Output.Fatigue.WRITE_RAINFLOW_BUFFER_SIZE;
 
-    m_FileStem = "RC";
     m_WriteHeadLine = true;
     m_EventCount = 0;
 }

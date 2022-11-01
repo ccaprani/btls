@@ -7,7 +7,6 @@
 class CFlowModelData :	public CModelData
 {
 public:
-	CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars);
 	CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars, CConfigDataCore& config);
 	virtual ~CFlowModelData();
 
@@ -22,7 +21,7 @@ public:
 	void getBlockInfo(size_t& sz, size_t& n) const;
 
 protected:
-	virtual void Creator(CLaneFlowComposition lfc);
+	CConfigDataCore& m_Config;
 
 	EFlowModel m_Model;
 	const bool m_bModelHasCars;

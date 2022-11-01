@@ -232,7 +232,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("get_next_vehicle", &CLaneGenTraffic::GetNextVehicle, py::return_value_policy::reference)  // return a shared_ptr reference like in PrepareSim.cpp
 			.def("get_next_arrival_time", &CLaneGenTraffic::GetNextArrivalTime);
 	py::class_<CVehicleBuffer> cvehiclebuffer(m, "VehicleBuffer");
-		cvehiclebuffer.def(py::init<CVehicleClassification_sp, double, CConfigDataCore&>(), py::arg("vehicle_classification"), py::arg("start_time"), py::arg("config"))
+		cvehiclebuffer.def(py::init<CConfigDataCore&, CVehicleClassification_sp, double>(), py::arg("config"), py::arg("vehicle_classification"), py::arg("start_time"))
 			.def("add_vehicle", &CVehicleBuffer::AddVehicle, py::arg("vehicle"))
 			.def("flush_buffer", &CVehicleBuffer::FlushBuffer);
 	py::class_<CReadILFile> creadilfile(m, "ReadILFile");
@@ -240,8 +240,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("get_inf_lines", py::overload_cast<filesystem::path, unsigned int>(&CReadILFile::getInfLines), py::arg("inf_file"), py::arg("line0_or_surface1"));
 	py::class_<CCSVParse> ccsvparse(m, "CSVParse");
 	py::class_<CBridgeFile> cbridgefile(m, "BridgeFile");
-		cbridgefile.def(py::init<filesystem::path, vector<CInfluenceLine>, CConfigDataCore&>(), py::arg("bridges_file"), py::arg("inf_line"), py::arg("config"))
-			.def(py::init<filesystem::path, vector<CInfluenceLine>, vector<CInfluenceLine>, CConfigDataCore&>(), py::arg("bridges_file"), py::arg("inf_line"), py::arg("inf_surface"), py::arg("config"))
+		cbridgefile.def(py::init<CConfigDataCore&, vector<CInfluenceLine>, vector<CInfluenceLine>>(), py::arg("config"), py::arg("inf_line"), py::arg("inf_surface"))
 			.def("get_bridges", &CBridgeFile::getBridges)
 			.def("get_max_bridge_length", &CBridgeFile::getMaxBridgeLength);
 	py::class_<CLaneFlowComposition> claneflowcomposition(m, "LaneFlowComposition");

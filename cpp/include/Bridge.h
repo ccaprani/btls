@@ -18,9 +18,8 @@ class CBridge;  typedef std::shared_ptr<CBridge> CBridge_sp;
 class CBridge  
 {
 public:
-	CBridge();
 	CBridge(CConfigDataCore& config);
-	CBridge(double length, double calcTimeStep, int n, double curTime);
+	CBridge(CConfigDataCore& config, double length, double calcTimeStep, int n, double curTime);
 	virtual ~CBridge();
 
 	void setCurrentSimTime(double curTime);

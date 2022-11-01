@@ -10,11 +10,7 @@
 class CBridgeFile
 {
 public:
-	CBridgeFile(void);
-	CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL);
-	CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf);
-	CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, CConfigDataCore& config);
-	CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf, CConfigDataCore& config);
+	CBridgeFile(CConfigDataCore& config, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf);
 	~CBridgeFile(void);
 
 	void ReadBridges(std::string file);
@@ -26,6 +22,8 @@ public:
 private:
 	double ReadLoadEffect(CBridge_sp pBridge, vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf);
 	int GetNextDataLine(string& str);
+
+	CConfigDataCore& m_Config;
 
 	CCSVParse m_CSV;
 	string m_CommentString;

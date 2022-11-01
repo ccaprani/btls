@@ -5,7 +5,6 @@
 class CPOTManager : public COutputManagerBase
 {
 public:
-	CPOTManager(void);
 	CPOTManager(CConfigDataCore& config);
 	virtual ~CPOTManager(void);
 
@@ -13,8 +12,6 @@ public:
 	virtual void Initialize(double BridgeLength, std::vector<double> vThreshold, double SimStartTime);
 
 private:
-	void Creator();
-
 	virtual void	WriteVehicleFiles();
 	virtual void	WriteSummaryFiles();
 	virtual void	CheckBuffer(bool bForceOutput);

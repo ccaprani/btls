@@ -21,8 +21,6 @@ public:
 	void setLaneData(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const double starttime, CConfigDataCore& config);
 
 private:
-	void Creator();
-
 	void GenNextArrival();
 	void GenNextTime();
 	void GenNextVehicle();

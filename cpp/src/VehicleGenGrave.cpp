@@ -70,7 +70,7 @@ void CVehicleGenGrave::GenerateTruck23(CVehicle_sp pVeh, size_t nAxles)
 	ScaleVector(vAW, GVW / sumAW);	// scale AWs to get correct GVW
 
 	// And assign to vehicle
-	for (int i = 0; i < nAxles; ++i)
+	for (size_t i = 0; i < nAxles; ++i)
 		pVeh->setAW(i, vAW[i]);
 
 }
@@ -100,11 +100,11 @@ void CVehicleGenGrave::GenerateTruck45(CVehicle_sp pVeh, size_t nAxles)
 	// split the tandem/tridem weight
 	double tdemW = vAW[2];
 	double indivAW = nAxles == 4 ? tdemW / 2 : tdemW / 3;
-	for (int i = 2; i < nAxles; ++i)
+	for (size_t i = 2; i < nAxles; ++i)
 		vAW[i] = indivAW;
 
 	// And assign to vehicle
-	for (int i = 0; i < nAxles; ++i)
+	for (size_t i = 0; i < nAxles; ++i)
 		pVeh->setAW(i, vAW[i]);
 }
 
@@ -120,7 +120,7 @@ void CVehicleGenGrave::GenerateCommonProps(CVehicle_sp pVeh, size_t nAxles)
 
 	// Gen axle spacings
 	std::vector<double> vAS(nAxles, 0.0);
-	for (int i = 0; i < nAxles - 1; ++i)	// no last-axle spacing
+	for (size_t i = 0; i < nAxles - 1; ++i)	// no last-axle spacing
 	{
 		double val = -1.0;
 		while (val < 0.5 || val > 200)
@@ -136,7 +136,7 @@ void CVehicleGenGrave::GenerateCommonProps(CVehicle_sp pVeh, size_t nAxles)
 	while (val < 120.0 || val > 260.0)	// physical bounds
 		val = m_RNG.GenerateTriModalNormal(m_pVMD->GetTrackWidthDist(nAxles, 0));
 	vATW[0] = val / 100; // cm to m
-	for (int i = 1; i < nAxles; ++i)
+	for (size_t i = 1; i < nAxles; ++i)
 	{
 		CTriModalNormal tmn = m_pVMD->GetTrackWidthDist(nAxles, i);
 		if (tmn.m_vModes[0].Mean > 1e-6)	// only generate if a new value is required
@@ -150,7 +150,7 @@ void CVehicleGenGrave::GenerateCommonProps(CVehicle_sp pVeh, size_t nAxles)
 
 	// assign these new properties to vehicle
 	pVeh->setGVW(GVW);
-	for (int i = 0; i < nAxles; ++i)
+	for (size_t i = 0; i < nAxles; ++i)
 	{
 		pVeh->setAS(i, vAS[i]);
 		pVeh->setAT(i, vATW[i]);

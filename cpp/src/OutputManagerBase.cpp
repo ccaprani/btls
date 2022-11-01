@@ -1,7 +1,7 @@
 #include "OutputManagerBase.h"
 
 
-COutputManagerBase::COutputManagerBase(void)
+COutputManagerBase::COutputManagerBase(std::string filestem) : m_FileStem(filestem)
 {
 }
 

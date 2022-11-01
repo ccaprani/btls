@@ -3,7 +3,7 @@
 vector<CBridge_sp> PrepareBridges()
 {
 	CReadILFile readIL;
-	CBridgeFile BridgeFile(CConfigData::get().Sim.BRIDGE_FILE,
+	CBridgeFile BridgeFile(CConfigData::get(),
 		readIL.getInfLines(CConfigData::get().Sim.INFLINE_FILE,0),	// discrete ILs
 		readIL.getInfLines(CConfigData::get().Sim.INFSURF_FILE,1));	// Influence Surfaces
 
@@ -88,10 +88,10 @@ void GetTrafficFileLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLane
 
 void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double SimStartTime, double SimEndTime)
 {
-	CVehicleBuffer VehBuff(pVC, SimStartTime);
-	size_t nLanes = vLanes.size();
+	CVehicleBuffer VehBuff(CConfigData::get(), pVC, SimStartTime);
+	//size_t nLanes = vLanes.size();
 	double curTime = SimStartTime;
-	double nextTime = 0.0;
+	//double nextTime = 0.0;
 	int curDay = (int)(SimStartTime/86400);
 	
 	std::cout << "Starting simulation..." << endl;

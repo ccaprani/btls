@@ -13,7 +13,7 @@
 class COutputManagerBase
 {
 public:
-	COutputManagerBase(void);
+	COutputManagerBase(std::string filestem);
 	virtual ~COutputManagerBase(void);
 
 	virtual void Update(CEvent Ev) = 0;
@@ -34,7 +34,7 @@ protected:
 	void OpenVehicleFile(size_t i);
 	
 	double	m_BridgeLength;
-	std::string m_FileStem;
+	const std::string m_FileStem;
 
 	double m_SimStartTime;
 

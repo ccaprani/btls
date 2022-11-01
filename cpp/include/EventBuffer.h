@@ -16,10 +16,7 @@
 class CEventBuffer
 {
 public:
-	CEventBuffer();
-	CEventBuffer(std::string OutFile);
 	CEventBuffer(CConfigDataCore& config);
-	CEventBuffer(std::string OutFile, CConfigDataCore& config);
 	virtual ~CEventBuffer();
 
 	void setMode(bool bFatigue);

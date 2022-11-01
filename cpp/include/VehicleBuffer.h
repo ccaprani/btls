@@ -40,15 +40,13 @@ struct CFlowRateData
 class CVehicleBuffer  
 {
 public:
-	CVehicleBuffer(CVehicleClassification_sp pVC, double starttime);
-	CVehicleBuffer(CVehicleClassification_sp pVC, double starttime, CConfigDataCore& config);
+	CVehicleBuffer(CConfigDataCore& config, CVehicleClassification_sp pVC, double starttime);
 	virtual ~CVehicleBuffer();
 	
 	void AddVehicle(const CVehicle_sp& pVeh);
 	void FlushBuffer();
 
 private:
-	void Creator(CVehicleClassification_sp pVC, double starttime);
 
 //	void SetBufferSize(int size);
 	void writeFlowData();

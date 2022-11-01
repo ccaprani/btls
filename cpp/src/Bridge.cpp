@@ -10,17 +10,6 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CBridge::CBridge()
-	: m_Index(0)
-	, m_NoLanes(0)
-	, m_NoLoadEffects(0)
-	, m_NoVehs(0)
-{
-	NO_LANES_DIR1		= CConfigData::get().Road.NO_LANES_DIR1;
-	NO_DIRS				= CConfigData::get().Road.NO_DIRS;
-	NO_LANES			= CConfigData::get().Road.NO_LANES;
-}
-
 CBridge::CBridge(CConfigDataCore& config)
 	: m_Index(0)
 	, m_NoLanes(0)
@@ -33,7 +22,7 @@ CBridge::CBridge(CConfigDataCore& config)
 	NO_LANES			= config.Road.NO_LANES;
 }
 
-CBridge::CBridge(double length, double calcTimeStep, int n, double curTime)
+CBridge::CBridge(CConfigDataCore& config, double length, double calcTimeStep, int n, double curTime) : m_EventMgr(config)
 {
 	setLength(length);
 	setCalcTimeStep(calcTimeStep);
