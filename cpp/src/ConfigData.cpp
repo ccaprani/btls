@@ -225,7 +225,6 @@ void CConfigDataCore::FlowGenNHM(int classification, string traffic_folder, bool
     Traffic.HEADWAY_MODEL = 0;
     Traffic.CLASSIFICATION = classification;  // 0 no_ of axle, 1 axle pattern
     Gen.TRAFFIC_FOLDER = traffic_folder;
-    Traffic.GEN_CAR = gen_car;
 }
 
 void CConfigDataCore::FlowGenConstant(int classification, double constant_speed, double constant_gap, bool gen_car) 

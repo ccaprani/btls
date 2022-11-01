@@ -79,8 +79,7 @@ PYBIND11_MODULE(_core, m) {
 				.def_readwrite("CONGESTED_GAP", &CConfigDataCore::Traffic_Config::CONGESTED_GAP)
 				.def_readwrite("CONGESTED_GAP_COEF_VAR", &CConfigDataCore::Traffic_Config::CONGESTED_GAP_COEF_VAR)
 				.def_readwrite("CONSTANT_SPEED", &CConfigDataCore::Traffic_Config::CONSTANT_SPEED)
-				.def_readwrite("CONSTANT_GAP", &CConfigDataCore::Traffic_Config::CONSTANT_GAP)
-				.def_readwrite("GEN_CAR", &CConfigDataCore::Traffic_Config::GEN_CAR);
+				.def_readwrite("CONSTANT_GAP", &CConfigDataCore::Traffic_Config::CONSTANT_GAP);
 		py::class_<CConfigDataCore::Sim_Config> sim_config(cconfigdatacore, "Sim_Config");
 			sim_config.def_readwrite("CALC_LOAD_EFFECTS", &CConfigDataCore::Sim_Config::CALC_LOAD_EFFECTS)
 				.def_readwrite("BRIDGE_FILE", &CConfigDataCore::Sim_Config::BRIDGE_FILE)

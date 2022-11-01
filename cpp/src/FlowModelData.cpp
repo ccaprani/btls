@@ -61,7 +61,7 @@ void CFlowModelData::getBlockInfo(size_t& sz, size_t& n) const
 //////////// CFlowModelDataNHM //////////////
 
 CFlowModelDataNHM::CFlowModelDataNHM(CLaneFlowComposition lfc)
-	: CFlowModelData(eFM_NHM, lfc, CConfigData::get().Traffic.GEN_CAR)
+	: CFlowModelData(eFM_NHM, lfc, false)
 {
 	ReadDataIn();
 }
