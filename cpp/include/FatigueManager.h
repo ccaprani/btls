@@ -7,7 +7,7 @@
 class CFatigueManager : public COutputManagerBase
 {
 public:
-    CFatigueManager(void);
+    CFatigueManager(CConfigDataCore& config);
     virtual ~CFatigueManager(void);
 
     void Initialize(double bridgeLength, size_t noLoadEffects);

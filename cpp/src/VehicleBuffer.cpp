@@ -4,24 +4,23 @@
 
 #include <iostream>
 #include "VehicleBuffer.h"
-#include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CVehicleBuffer::CVehicleBuffer(CVehicleClassification_sp pVC, double starttime)
+CVehicleBuffer::CVehicleBuffer(CConfigDataCore& config, CVehicleClassification_sp pVC, double starttime) 
 {
-	//init(false, "", 0);
-	WRITE_VEHICLE_FILE			= CConfigData::get().Output.VehicleFile.WRITE_VEHICLE_FILE;
-	FILE_FORMAT					= CConfigData::get().Output.VehicleFile.FILE_FORMAT;	
-	VEHICLE_FILENAME			= CConfigData::get().Output.VehicleFile.VEHICLE_FILENAME;
-	WRITE_VEHICLE_BUFFER_SIZE	= CConfigData::get().Output.VehicleFile.WRITE_VEHICLE_BUFFER_SIZE;
-	WRITE_FLOW_STATS			= CConfigData::get().Output.VehicleFile.WRITE_FLOW_STATS;
+	WRITE_VEHICLE_FILE			= config.Output.VehicleFile.WRITE_VEHICLE_FILE;
+	FILE_FORMAT					= config.Output.VehicleFile.FILE_FORMAT;	
+	VEHICLE_FILENAME			= config.Output.VehicleFile.VEHICLE_FILENAME;
+	WRITE_VEHICLE_BUFFER_SIZE	= config.Output.VehicleFile.WRITE_VEHICLE_BUFFER_SIZE;
+	WRITE_FLOW_STATS			= config.Output.VehicleFile.WRITE_FLOW_STATS;
 
-	NO_LANES_DIR1	= CConfigData::get().Road.NO_LANES_DIR1;
-	NO_LANES_DIR2	= CConfigData::get().Road.NO_LANES_DIR2;
+	NO_LANES_DIR1	= config.Road.NO_LANES_DIR1;
+	NO_LANES_DIR2	= config.Road.NO_LANES_DIR2;
+
+	//init(false, "", 0);
 	NO_LANES = NO_LANES_DIR1 + NO_LANES_DIR2;
 
 	m_pVehClassification = pVC;
@@ -45,7 +44,7 @@ CVehicleBuffer::~CVehicleBuffer()
 {
 	if(m_OutFile.is_open())
 		m_OutFile.close();
-	
+
 	writeFlowData();
 }
 

@@ -5,23 +5,30 @@
 #include "EventManager.h"
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CEventManager::CEventManager()
+CEventManager::CEventManager(CConfigDataCore& config) 
+	: m_Config(config)
+	, m_AllEventBuffer(config.Output.WRITE_EVENT_BUFFER_SIZE)
+	, m_FatigueEventBuffer(config.Output.WRITE_EVENT_BUFFER_SIZE)
+	, m_BlockMaxManager(config)
+	, m_POTManager(config)
+	, m_StatsManager(config)
+	, m_FatigueManager(config)
+	, m_CurEvent(config.Output.VehicleFile.FILE_FORMAT)
 {
-	WRITE_TIME_HISTORY		= CConfigData::get().Output.WRITE_TIME_HISTORY;
-	WRITE_EACH_EVENT		= CConfigData::get().Output.WRITE_EACH_EVENT;
-	WRITE_EVENT_BUFFER_SIZE = CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE;
-	WRITE_FATIGUE_EVENT		= CConfigData::get().Output.WRITE_FATIGUE_EVENT;
+	WRITE_TIME_HISTORY		= m_Config.Output.WRITE_TIME_HISTORY;
+	WRITE_EACH_EVENT		= m_Config.Output.WRITE_EACH_EVENT;
+	WRITE_EVENT_BUFFER_SIZE = m_Config.Output.WRITE_EVENT_BUFFER_SIZE;
+	WRITE_FATIGUE_EVENT		= m_Config.Output.WRITE_FATIGUE_EVENT;
 
-	WRITE_BM	= CConfigData::get().Output.BlockMax.WRITE_BM;
-	WRITE_POT	= CConfigData::get().Output.POT.WRITE_POT;
-	WRITE_STATS = CConfigData::get().Output.Stats.WRITE_STATS;
-	
-	DO_FATIGUE_RAINFLOW = CConfigData::get().Output.Fatigue.DO_FATIGUE_RAINFLOW;
+	WRITE_BM	= m_Config.Output.BlockMax.WRITE_BM;
+	WRITE_POT	= m_Config.Output.POT.WRITE_POT;
+	WRITE_STATS = m_Config.Output.Stats.WRITE_STATS;
+
+	DO_FATIGUE_RAINFLOW = m_Config.Output.Fatigue.DO_FATIGUE_RAINFLOW;
 
 	m_NoEvents = 0;
 	m_CurTime = 0.0;
@@ -73,7 +80,7 @@ void CEventManager::AddNewEvent(const std::vector<CVehicle_sp> pVehs, double cur
 	// form local copy of vehs
 	std::vector<CVehicle> vVehs;
 	vVehs.reserve(pVehs.size());
-	for(int i = 0; i != pVehs.size(); ++i)
+	for(size_t i = 0; i != pVehs.size(); ++i)
 		vVehs.push_back( *pVehs.at(i) );
 	// call primary func
 	AddNewEvent(vVehs, curTime);
@@ -142,7 +149,7 @@ void CEventManager::EndEvent()
 	if(DO_FATIGUE_RAINFLOW) m_FatigueManager.Update();
 
 	// reset for next event - must be last thing done
-	m_CurEvent = CEvent();
+	m_CurEvent.reset();
 }
 
 // called at the end of the simulation

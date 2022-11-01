@@ -5,7 +5,7 @@
 class CVehModelDataGrave : public CVehicleModelData
 {
 public:
-	CVehModelDataGrave(CVehicleClassification_sp pVC, CLaneFlowComposition lfc);
+	CVehModelDataGrave(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc);
 	~CVehModelDataGrave();
 
 	virtual void ReadDataIn();

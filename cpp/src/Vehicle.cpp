@@ -8,13 +8,13 @@
 #include <sstream>
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
 CVehicle::CVehicle() : m_Class(Classification(0, "default"))
 {
+	// We're not wrapping the time constants, so just use the internal values
 	DAYS_PER_MT		= CConfigData::get().Time.DAYS_PER_MT;
 	MTS_PER_YR		= CConfigData::get().Time.MTS_PER_YR;
 	
@@ -490,7 +490,7 @@ std::string CVehicle::writeDITISData()
 	int velocity	= Round(m_Velocity*10);
 	int grossWeight = Round(m_GVW/KG100_TO_KN);
 	int length		= Round(m_Length*10);
-	int trackwidth	= Round(m_TrackWidth*100); // m to cm
+	//int trackwidth	= Round(m_TrackWidth*100); // m to cm
 	int transPos	= Round(m_Trns*100);	// m to cm
 	int sec			= Round(floor(Round(m_Sec*100.0)/100.0)); // round to hndt first
 	int hndt		= Round((m_Sec - sec) * 100);
@@ -702,11 +702,11 @@ void CVehicle::setHead(int head)
 
 void CVehicle::setBridgeTimes(double BridgeLength)
 {
-	setTimeOnBridge(BridgeLength);
+	setTimeOnBridge();
 	m_TimeOffBridge = m_TimeOnBridge + (BridgeLength + m_Length)/(m_Velocity);
 }
 
-void CVehicle::setTimeOnBridge(double BridgeLength)
+void CVehicle::setTimeOnBridge()
 {
 /*	// this code is suitable when the time datum is the RHS of the bridge
 	if(m_Dir == 1)

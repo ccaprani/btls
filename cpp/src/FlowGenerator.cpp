@@ -1,8 +1,8 @@
 #include "FlowGenerator.h"
 
 CFlowGenerator::CFlowGenerator(CFlowModelData_sp pFMD, EFlowModel fm)
-	: m_CurBlock(0), m_FlowModel(fm), m_TotalFlow(0.0), m_TruckFlow(0.0)
-	, m_BlockSize(3600), m_BlockCount(24), m_pFlowModelData(pFMD)
+	: m_pFlowModelData(pFMD), m_FlowModel(fm), m_TotalFlow(0.0), m_TruckFlow(0.0)
+	, m_CurBlock(0), m_BlockSize(3600), m_BlockCount(24)
 {
 	m_pPrevVeh = nullptr;
 	m_pNextVeh = nullptr;

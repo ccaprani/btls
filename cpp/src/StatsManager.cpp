@@ -1,29 +1,24 @@
 #include "StatsManager.h"
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
-
-CStatsManager::CStatsManager(void)
+CStatsManager::CStatsManager(CConfigDataCore& config) : COutputManagerBase("SS")
 {
-	m_FileStem = "SS";
-
-	WRITE_SS_CUMULATIVE		= CConfigData::get().Output.Stats.WRITE_SS_CUMULATIVE;
-	WRITE_SS_INTERVALS		= CConfigData::get().Output.Stats.WRITE_SS_INTERVALS;
-	WRITE_SS_INTERVAL_SIZE	= CConfigData::get().Output.Stats.WRITE_SS_INTERVAL_SIZE;
-	WRITE_BUFFER_SIZE		= CConfigData::get().Output.Stats.WRITE_SS_BUFFER_SIZE;
+	WRITE_SS_CUMULATIVE		= config.Output.Stats.WRITE_SS_CUMULATIVE;
+	WRITE_SS_INTERVALS		= config.Output.Stats.WRITE_SS_INTERVALS;
+	WRITE_SS_INTERVAL_SIZE	= config.Output.Stats.WRITE_SS_INTERVAL_SIZE;
+	WRITE_BUFFER_SIZE	= config.Output.Stats.WRITE_SS_BUFFER_SIZE;
 
 	// inhereted from base class, just set to false
 	WRITE_SUMMARY = false;
 	WRITE_VEHICLES = false;
-	
+
 	m_CurIntervalNo = 1;
 }
 
-
 CStatsManager::~CStatsManager(void)
 {
-}
 
+}
 
 void CStatsManager::Initialize(double BridgeLength,size_t nLE, double SimStartTime)
 {

@@ -15,7 +15,7 @@
 3
 // Location of Traffic folders
 ../Traffic/Auxerre
-// Default truck track width (cm)
+// Default truck track width (cm) (Vehicle Gen. Model 0 only)
 190.0
 // Standard deviation of eccentricity in lane (cm) (about 20 cm usually)
 0
@@ -30,12 +30,16 @@
 1
 // Lane and flow definition file:
 LaneFlowData_80.csv
-// Nominal congested spacing, front to back (m):
+// Nominal congested spacing, front to back (m) (Headway model 5 only):
 26.1
-// Congested speed (km/h):
+// Congested speed (km/h) (Headway model 5 only):
 49.7
-// Congested gaps coefficient of variation:
+// Congested gaps coefficient of variation (Headway model 5 only):
 0.05
+// Constant speed (km/h) (Headway model 1 only):
+36.0
+// Constant gap (s) (Headway model 1 only):
+10.0
 //
 // TRAFFIC GARAGE PARAMETERS
 // ---------------------------------------------
@@ -72,7 +76,7 @@ WGBSlowLanes_Jul.txt
 IS.txt
 // Time step (s):
 0.05
-// Minimum GVW for inclusion in calculations (t/10):
+// Minimum GVW for inclusion in calculations (t*10):
 0
 //
 // ---------------------------------------------
@@ -130,7 +134,7 @@ Vehicle.txt
 // Do and write block max mixed vehicle analysis (1 or 0):
 0
 // Write block max buffer size:
-2
+10000
 //
 // PEAKS OVER THRESHOLD LOAD EFFECTS
 // ---------------------------------------------

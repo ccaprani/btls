@@ -2,18 +2,14 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_VEHICLEBUFFER_H__B75906EE_9833_4A7C_A839_79BAB74EE23B__INCLUDED_)
-#define AFX_VEHICLEBUFFER_H__B75906EE_9833_4A7C_A839_79BAB74EE23B__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include <vector>
 #include <string>
 #include <fstream>
 #include <math.h>
 #include "Vehicle.h"
+#include "ConfigData.h"
 
 struct CFlowRateData
 {
@@ -44,13 +40,14 @@ struct CFlowRateData
 class CVehicleBuffer  
 {
 public:
-	CVehicleBuffer(CVehicleClassification_sp pVC, double starttime);
+	CVehicleBuffer(CConfigDataCore& config, CVehicleClassification_sp pVC, double starttime);
 	virtual ~CVehicleBuffer();
 	
 	void AddVehicle(const CVehicle_sp& pVeh);
 	void FlushBuffer();
 
 private:
+
 //	void SetBufferSize(int size);
 	void writeFlowData();
 	void updateFlowData(const CVehicle_sp& pVeh);
@@ -79,5 +76,3 @@ private:
 
 	template <typename T> std::string to_string(T const& value);
 };
-
-#endif // !defined(AFX_VEHICLEBUFFER_H__B75906EE_9833_4A7C_A839_79BAB74EE23B__INCLUDED_)

@@ -1,10 +1,8 @@
 #include "VehModelDataGarage.h"
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
-
-CVehModelDataGarage::CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc)
-	: CVehicleModelData(eVM_Garage, pVC, lfc, 1) // MAGIC NUMBER - truck class count
+CVehModelDataGarage::CVehModelDataGarage(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc)
+	: CVehicleModelData(config, eVM_Garage, pVC, lfc, 1) // MAGIC NUMBER - truck class count
 	, m_NoVehicles(0)
 {
 	// MAGIC NUMBER for now
@@ -30,19 +28,25 @@ void CVehModelDataGarage::readGarage()
 {
 	CVehicleTrafficFile TrafficFile(m_pVehClassification, false, false, 0.0);
 	std::cout << "Reading traffic garage file..." << std::endl;
-	filesystem::path file = CConfigData::get().Read.GARAGE_FILE;
-	TrafficFile.Read(file.string(), CConfigData::get().Read.FILE_FORMAT);
+	filesystem::path file = m_Config.Read.GARAGE_FILE;
+	TrafficFile.Read(file.string(), m_Config.Read.FILE_FORMAT);
 
-	m_NoVehicles = TrafficFile.getNoVehicles();
+	assignGarage(TrafficFile.getVehicles());
+}
+
+void CVehModelDataGarage::assignGarage(std::vector<CVehicle_sp> vVehicles)
+{
+	m_NoVehicles = vVehicles.size();
 	if (m_NoVehicles == 0)
 		std::cout << "****ERROR: no vehicles in traffic garage file" << std::endl;
 
-	m_vVehicles = TrafficFile.getVehicles();
+	m_vVehicles = vVehicles;
 }
 
 void CVehModelDataGarage::readKernels()
 {
-	filesystem::path file = CConfigData::get().Read.KERNEL_FILE;
+	filesystem::path file = m_Config.Read.KERNEL_FILE;
+	
 	if (!m_CSV.OpenFile(file.string(), ","))
 		std::cerr << "***WARNING: Kernel file " 
 				  << std::filesystem::weakly_canonical(file) 

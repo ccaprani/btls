@@ -2,12 +2,14 @@
 #include "ConfigData.h"
 
 
-CVehModelDataGrave::CVehModelDataGrave(CVehicleClassification_sp pVC, CLaneFlowComposition lfc)
-	: CVehicleModelData(eVM_Grave, pVC, lfc, 5) // MAGIC NUMBER - truck class count of the Grave Model
+CVehModelDataGrave::CVehModelDataGrave(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc)
+	: CVehicleModelData(config, eVM_Grave, pVC, lfc, 5) // MAGIC NUMBER - truck class count of the Grave Model
 {
 	GVWRange range;
 	m_v4AxleWeight.assign(12, range);
 	m_v5AxleWeight.assign(12, range);
+
+	m_Config.Gen.TRUCK_TRACK_WIDTH = config.Gen.TRUCK_TRACK_WIDTH;
 
 	ReadDataIn();
 }
@@ -359,7 +361,7 @@ void CVehModelDataGrave::ReadFile_ATW()
 				  << std::filesystem::weakly_canonical(file) 
 				  << " using default values" << std::endl;
 		CTriModalNormal tmn;
-		tmn.AddMode(1, CConfigData::get().Gen.TRUCK_TRACK_WIDTH, 0);	// deterministic width
+		tmn.AddMode(1, m_Config.Gen.TRUCK_TRACK_WIDTH, 0);	// deterministic width
 		vector<CTriModalNormal> vTrack(2, tmn); // start off with 2 axles
 		Add2AxleTrackWidth(vTrack); // add it
 		vTrack.push_back(tmn);	Add3AxleTrackWidth(vTrack); // add another axle and store it

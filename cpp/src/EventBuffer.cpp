@@ -5,29 +5,15 @@
 #include "EventBuffer.h"
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CEventBuffer::CEventBuffer()
+CEventBuffer::CEventBuffer(size_t bufferSize) : m_BufferSize(bufferSize)
 {
-	m_BufferSize = CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE;
-
 	SetBufferSize(m_BufferSize);
 	m_NoEvents = 0;
 	m_Mode = CEventBuffer::ALLEVENTS;
-}
-
-CEventBuffer::CEventBuffer(std::string OutFile)
-{
-	m_BufferSize = CConfigData::get().Output.WRITE_EVENT_BUFFER_SIZE;
-
-	m_OutFile.open(OutFile.c_str(), std::ios::out);
-	SetBufferSize(m_BufferSize);
-	m_NoEvents = 0;
-	m_Mode = ALLEVENTS;
 }
 
 CEventBuffer::~CEventBuffer()

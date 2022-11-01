@@ -2,12 +2,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#if !defined(AFX_BRIDGE_H__08978135_0EE8_43D7_83DC_10A50D3EA1F3__INCLUDED_)
-#define AFX_BRIDGE_H__08978135_0EE8_43D7_83DC_10A50D3EA1F3__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 //#include <boost/thread.hpp>
 //#include <boost/ref.hpp>
@@ -15,6 +10,7 @@
 #include "EventManager.h"
 #include "Vehicle.h"
 #include "CalcEffect.h"
+#include "ConfigData.h"
 #include <memory>
 
 class CBridge;  typedef std::shared_ptr<CBridge> CBridge_sp;
@@ -22,8 +18,7 @@ class CBridge;  typedef std::shared_ptr<CBridge> CBridge_sp;
 class CBridge  
 {
 public:
-	CBridge();
-	CBridge(double length, double calcTimeStep, int n, double curTime);
+	CBridge(CConfigDataCore& config);
 	virtual ~CBridge();
 
 	void setCurrentSimTime(double curTime);
@@ -66,6 +61,7 @@ private:
 	size_t	NO_LANES_DIR1;
 	size_t	NO_DIRS;
 	size_t	NO_LANES;
+	
 	size_t	m_Index;
 	size_t	m_NoLanes;
 	size_t	m_NoLoadEffects;
@@ -73,5 +69,3 @@ private:
 
 //	boost::thread m_Thread;	
 };
-
-#endif // !defined(AFX_BRIDGE_H__08978135_0EE8_43D7_83DC_10A50D3EA1F3__INCLUDED_)

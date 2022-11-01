@@ -8,7 +8,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CBlockMaxEvent::CBlockMaxEvent()
+CBlockMaxEvent::CBlockMaxEvent(size_t file_format) : FILE_FORMAT(file_format)
 {
 	m_NoEvents = 0;
 	m_ID = 0;
@@ -37,7 +37,7 @@ void CBlockMaxEvent::AddExtraEvents(size_t nVehs)
 	{
 		// add the event to the vector
 		m_NoEvents++;
-		CEvent temp(m_ID,m_NoLoadEffects);
+		CEvent temp(FILE_FORMAT, m_ID, m_NoLoadEffects);
 		m_vEvents.push_back(temp);
 	}
 }

@@ -6,30 +6,30 @@
 #include <sstream>
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
 using namespace std;
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CEvent::CEvent(size_t ID, size_t noEffects)
+
+CEvent::CEvent(size_t fileFormat) : FILE_FORMAT(fileFormat)
+{
+	setDefaults();
+}
+
+CEvent::CEvent(size_t fileFormat, size_t ID) : FILE_FORMAT(fileFormat)
+{
+	setDefaults();
+	m_EventID = ID;
+}
+
+CEvent::CEvent(size_t fileFormat, size_t ID, size_t noEffects) : FILE_FORMAT(fileFormat)
 {
 	setDefaults();
 	m_EventID = ID;
 	m_NoEffects = noEffects;
 	setNoEffects(noEffects);
-}
-
-CEvent::CEvent(size_t ID)
-{
-	setDefaults();
-	m_EventID = ID;
-}
-
-CEvent::CEvent()
-{
-	setDefaults();
 }
 
 CEvent::~CEvent()
@@ -46,6 +46,7 @@ bool CEvent::operator<(const CEvent& x)
 
 void CEvent::setDefaults()
 {
+	// We're not wrapping the time constants, so just use the internal values
 	DAYS_PER_MT		= CConfigData::get().Time.DAYS_PER_MT;
 	MTS_PER_YR		= CConfigData::get().Time.MTS_PER_YR;
 	
@@ -54,13 +55,19 @@ void CEvent::setDefaults()
 	MINS_PER_HOUR	= CConfigData::get().Time.MINS_PER_HOUR;
 	SECS_PER_MIN	= CConfigData::get().Time.SECS_PER_MIN;
 
-	FILE_FORMAT = CConfigData::get().Output.VehicleFile.FILE_FORMAT;
-
-	m_CurEffect = 0;
-	m_StartTime = 0;
-	m_CurEffect = 0;
 	m_EventID = 0;
-	m_NoEffects = 0;
+	reset();
+}
+
+void CEvent::reset() 
+{
+	m_CurEffect = 0;
+	m_StartTime = 0.0;	
+	m_EventID = 0;
+	m_NoEffects = 0;	
+
+	m_vMaxEffects.clear();
+	m_vMinEffects.clear();
 }
 
 //////// THE SETS /////////////

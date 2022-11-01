@@ -1,14 +1,14 @@
 #include "LaneFlowData.h"
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
-
-CLaneFlowData::CLaneFlowData()
-	: m_TruckClassCount(0),
-	  m_BlockSize(3600), m_NoBlocks(24) // MAGIC NUMBER - default to older type file format
+CLaneFlowData::CLaneFlowData(CConfigDataCore& config)
+	: CModelData(config)
+	, m_TruckClassCount(0)
+	, m_BlockSize(3600)
+	, m_NoBlocks(24) // MAGIC NUMBER - default to older type file format
 {
-}
 
+}
 
 CLaneFlowData::~CLaneFlowData()
 {
@@ -21,7 +21,7 @@ CLaneFlowComposition CLaneFlowData::getLaneComp(size_t i) const
 
 void CLaneFlowData::ReadDataIn()
 {
-	filesystem::path file = CConfigData::get().Road.LANES_FILE;
+	filesystem::path file = m_Config.Road.LANES_FILE;
 	ReadLaneFlow(file.string());
 	SetRoadProperties();
 }

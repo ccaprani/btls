@@ -32,10 +32,10 @@ private:
 	vec m_vTruckFlow;
 	std::vector<Normal> m_vSpeed;
 
-	size_t m_TruckClassCount;
-	size_t m_NoBlocks;		// typically hours
-	size_t m_BlockSize;		// typically 3600 secs
 	size_t m_GlobalLaneNo;	// Global
 	size_t m_Dirn;			// 1-based
+	size_t m_BlockSize;		// typically 3600 secs	
+	size_t m_NoBlocks;		// typically hours
+	size_t m_TruckClassCount;
 };
 

@@ -5,27 +5,20 @@
 #include "Bridge.h"
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CBridge::CBridge()
-	: m_Index(0)
+CBridge::CBridge(CConfigDataCore& config)
+	: m_EventMgr(config)
+	, m_Index(0)
 	, m_NoLanes(0)
 	, m_NoLoadEffects(0)
 	, m_NoVehs(0)
 {
-	NO_LANES_DIR1		= CConfigData::get().Road.NO_LANES_DIR1;
-	NO_DIRS				= CConfigData::get().Road.NO_DIRS;
-	NO_LANES			= CConfigData::get().Road.NO_LANES;
-}
-
-CBridge::CBridge(double length, double calcTimeStep, int n, double curTime)
-{
-	setLength(length);
-	setCalcTimeStep(calcTimeStep);
-	setCurrentSimTime(curTime);
+	NO_LANES_DIR1		= config.Road.NO_LANES_DIR1;
+	NO_DIRS				= config.Road.NO_DIRS;
+	NO_LANES			= config.Road.NO_LANES;
 }
 
 CBridge::~CBridge()

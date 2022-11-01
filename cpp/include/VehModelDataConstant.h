@@ -5,7 +5,7 @@
 class CVehModelDataConstant :	public CVehicleModelData
 {
 public:
-	CVehModelDataConstant(CVehicleClassification_sp pVC, CLaneFlowComposition lfc);
+    CVehModelDataConstant(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc);
 	virtual ~CVehModelDataConstant();
 
 	virtual void ReadDataIn();

@@ -7,7 +7,7 @@
 class CFlowModelData :	public CModelData
 {
 public:
-	CFlowModelData(EFlowModel fm, CLaneFlowComposition lfc, const bool bCars);
+	CFlowModelData(CConfigDataCore& config, EFlowModel fm, CLaneFlowComposition lfc, const bool bCars);
 	virtual ~CFlowModelData();
 
 	vec		getCarPercent() const { return m_vCarPercent; };
@@ -16,7 +16,7 @@ public:
 	void	getGapLimits(double& bridge, double& space, double& time);
 
 	EFlowModel getModel() const { return m_Model; };
-	const bool getModelHasCars() const { return m_bModelHasCars; };
+	bool getModelHasCars() const { return m_bModelHasCars; };
 
 	void getBlockInfo(size_t& sz, size_t& n) const;
 
@@ -46,7 +46,7 @@ typedef std::shared_ptr<CFlowModelData> CFlowModelData_sp;
 class CFlowModelDataNHM : public CFlowModelData
 {
 public:
-	CFlowModelDataNHM(CLaneFlowComposition lfc);
+	CFlowModelDataNHM(CConfigDataCore& config, CLaneFlowComposition lfc);
 	virtual ~CFlowModelDataNHM();
 
 	virtual void ReadDataIn();
@@ -64,7 +64,7 @@ typedef std::shared_ptr<CFlowModelDataNHM> CFlowModelDataNHM_sp;
 class CFlowModelDataCongested : public CFlowModelData
 {
 public:
-	CFlowModelDataCongested(CLaneFlowComposition lfc);
+	CFlowModelDataCongested(CConfigDataCore& config, CLaneFlowComposition lfc);
 	virtual ~CFlowModelDataCongested();
 
 	virtual void ReadDataIn();
@@ -82,7 +82,7 @@ typedef std::shared_ptr<CFlowModelDataCongested> CFlowModelDataCongested_sp;
 class CFlowModelDataPoisson : public CFlowModelData
 {
 public:
-	CFlowModelDataPoisson(CLaneFlowComposition lfc);
+	CFlowModelDataPoisson(CConfigDataCore& config, CLaneFlowComposition lfc);
 	virtual ~CFlowModelDataPoisson();
 
 	virtual void ReadDataIn();
@@ -92,10 +92,17 @@ typedef std::shared_ptr<CFlowModelDataPoisson> CFlowModelDataPoisson_sp;
 class CFlowModelDataConstant : public CFlowModelData
 {
 public:
-	CFlowModelDataConstant(CLaneFlowComposition lfc);
+	CFlowModelDataConstant(CConfigDataCore& config, CLaneFlowComposition lfc);
 	virtual ~CFlowModelDataConstant();
 
+	double getConstSpeed();
+	double getConstGap();
+
 	virtual void ReadDataIn();
+
+private:
+	double m_ConstSpeed;
+	double m_ConstGap;
 };
 typedef std::shared_ptr<CFlowModelDataConstant> CFlowModelDataConstant_sp;
 

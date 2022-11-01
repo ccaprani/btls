@@ -296,7 +296,6 @@ double CCalcEffect::give_effect16(double x)
 {
 	// This is for the 18.0 m bridge of the B224 in Vienna
 	double L = m_span;
-	double s = L/2;
 	double ordinate = 0.0;
 	double y = 0.0;
 	double scaleFactor = 3.5;

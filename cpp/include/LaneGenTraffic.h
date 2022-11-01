@@ -12,18 +12,19 @@
 class CLaneGenTraffic : public CLane
 {
 public:
-	CLaneGenTraffic(void);
+	CLaneGenTraffic(CConfigDataCore& config);
 	~CLaneGenTraffic(void);
 
 	virtual CVehicle_sp GetNextVehicle();
 	
-	void setLaneData(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, 
-		const double starttime);
+	void setLaneData(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const double starttime);
 
 private:
-	void	GenNextArrival();
-	void	GenNextTime();
-	void	GenNextVehicle();
+	void GenNextArrival();
+	void GenNextTime();
+	void GenNextVehicle();
+
+	CConfigDataCore& m_Config;
 	
 	CVehicleGenerator_sp m_pVehicleGen;
 	CVehicleModelData_sp m_pVehModelData;

@@ -5,11 +5,12 @@
 class CVehModelDataGarage :	public CVehicleModelData
 {
 public:
-	CVehModelDataGarage(CVehicleClassification_sp pVC, CLaneFlowComposition lfc);
+	CVehModelDataGarage(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc);
 	virtual ~CVehModelDataGarage();
 
 	virtual void ReadDataIn();
-
+	
+	void assignGarage(std::vector<CVehicle_sp> vVehicles);
 	size_t getGarageCount() const { return m_NoVehicles; };
 	CVehicle_sp getVehicle(size_t i);
 	void getKernals(Normal& GVW, Normal& AW, Normal& AS);

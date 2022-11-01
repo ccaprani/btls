@@ -2,34 +2,16 @@
 
 using namespace std;
 
-CBridgeFile::CBridgeFile(void)
+CBridgeFile::CBridgeFile(CConfigDataCore& config, std::vector<CInfluenceLine> vDiscreteIL, 
+	std::vector<CInfluenceLine> vInfSurf) : m_Config(config)
 {
 	m_CommentString = "//";
+	ReadBridges(m_Config.Sim.BRIDGE_FILE, vDiscreteIL, vInfSurf);
 }
-
-CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL)
-{
-	m_CommentString = "//";
-	vector<CInfluenceLine> vInfSurf; // create blank vector
-	ReadBridges(file.string(), vDiscreteIL, vInfSurf);
-}
-
-CBridgeFile::CBridgeFile(std::filesystem::path file, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf)
-{
-	m_CommentString = "//";
-	ReadBridges(file.string(), vDiscreteIL, vInfSurf);
-}
-
 
 CBridgeFile::~CBridgeFile(void)
 {
-}
 
-void CBridgeFile::ReadBridges(string file)
-{
-	vector<CInfluenceLine> vDiscreteIL; // create blank vector
-	vector<CInfluenceLine> vInfSurf; // create blank vector
-	ReadBridges(file, vDiscreteIL,vInfSurf);
 }
 
 void CBridgeFile::ReadBridges(string file, vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf)
@@ -45,7 +27,7 @@ void CBridgeFile::ReadBridges(string file, vector<CInfluenceLine> vDiscreteIL, s
 
 	while (GetNextDataLine(line))	// while another bridge
 	{
-		CBridge_sp pBridge = std::make_shared<CBridge>(); //new CBridge;
+		CBridge_sp pBridge = std::make_shared<CBridge>(m_Config); //new CBridge;
 		pBridge->setIndex( m_CSV.stringToInt( m_CSV.getfield(0) ) );
 		pBridge->setLength(m_CSV.stringToDouble( m_CSV.getfield(1) ) );
 		int NoLanes = m_CSV.stringToInt( m_CSV.getfield(2) );
@@ -64,69 +46,6 @@ void CBridgeFile::ReadBridges(string file, vector<CInfluenceLine> vDiscreteIL, s
 		m_vpBridge.push_back(pBridge);
 	} // end of while loop
 }
-
-// Up to version 1.1.0
-/*
-double CBridgeFile::ReadLoadEffect(CBridge_sp pBridge, vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf)
-{
-	string line;
-	m_CSV.getline(line);
-	int index = m_CSV.stringToInt( m_CSV.getfield(0) );
-	int type = m_CSV.stringToInt( m_CSV.getfield(1) );
-	int ref = m_CSV.stringToInt( m_CSV.getfield(2) );
-
-	int NoLanes = pBridge->getNoLanes();
-
-	std::string sThreshold = m_CSV.getfield(3+NoLanes);	// last entry in row
-	if(sThreshold == "")
-	{
-		cout << "**ERROR: Threshold not defined, assuming zero. Bridge " << pBridge->getIndex() << " : Load effect " << index << endl;
-		sThreshold = "0.0";
-	}
-	double threshold = m_CSV.stringToDouble(sThreshold);
-
-	if(type == 2)	// using seperate IL for each lane
-	{
-		for(int j = 0; j < NoLanes; j++)
-		{
-			CInfluenceLine IL;
-			unsigned int ILno = m_CSV.stringToInt( m_CSV.getfield(3+j) );
-			if(ILno > vDiscreteIL.size())
-				cout << "**ERROR: IL does not exist. Bridge " << pBridge->getIndex() << " : Load effect " << index << endl;
-			IL = vDiscreteIL.at(ILno-1);
-			if(IL.getLength() > pBridge->getLength())
-				cout << "**WARNING: Inf Line " << index << " longer than bridge " << pBridge->getIndex() << endl;
-			IL.setIndex(index);
-					
-			CBridgeLane& lane = pBridge->getBridgeLane(j);
-			lane.addLoadEffect(IL,1.0);	// MAGIC NUMBER - Assumes unit weight for IL
-		}
-	}
-	else	// Using lane weights
-	{
-		CInfluenceLine IL;
-		if(type == 0)	// discrete IL
-		{
-			IL = vDiscreteIL.at(ref-1);
-			if(IL.getLength() > pBridge->getLength())
-				cout << "**WARNING: Inf Line " << index 
-						<< " longer than bridge " << pBridge->getIndex() << endl;
-		}
-		else			// IL function
-			IL.setIL(ref,pBridge->getLength());
-
-		IL.setIndex(index);
-		for(int j = 0; j < NoLanes; j++)
-		{
-			double weight = m_CSV.stringToDouble( m_CSV.getfield(3+j) );
-			CBridgeLane& lane = pBridge->getBridgeLane(j);
-			lane.addLoadEffect(IL,weight);
-		}
-	}
-
-	return threshold;
-}
-*/
 
 // New bridge file structure
 double CBridgeFile::ReadLoadEffect(CBridge_sp pBridge, vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf)
