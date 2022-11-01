@@ -31,11 +31,7 @@ void CVehModelDataGarage::readGarage()
 	filesystem::path file = m_Config.Read.GARAGE_FILE;
 	TrafficFile.Read(file.string(), m_Config.Read.FILE_FORMAT);
 
-	m_NoVehicles = TrafficFile.getNoVehicles();
-	if (m_NoVehicles == 0)
-		std::cout << "****ERROR: no vehicles in traffic garage file" << std::endl;
-
-	m_vVehicles = TrafficFile.getVehicles();
+	assignGarage(TrafficFile.getVehicles());
 }
 
 void CVehModelDataGarage::assignGarage(std::vector<CVehicle_sp> vVehicles)
