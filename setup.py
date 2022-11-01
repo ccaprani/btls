@@ -11,14 +11,14 @@ ParallelCompile("NPY_NUM_BUILD_JOBS", needs_recompile=naive_recompile, default=4
 
 # could only be relative paths, otherwise the `build` command would fail if you use a MANIFEST.in to distribute your package
 # only source files (.cpp, .c, .cc) are needed
-source_files = sorted(glob("./c_src/src/*.cpp", recursive=True))
+source_files = sorted(glob("./cpp/src/*.cpp", recursive=True))
 try:
-    source_files.remove("./c_src/src/main.cpp")  # for MacOS and Linux
+    source_files.remove("./cpp/src/main.cpp")  # for MacOS and Linux
 except ValueError:
-    source_files.remove("./c_src/src\\main.cpp")  # for Windows
+    source_files.remove("./cpp/src\\main.cpp")  # for Windows
 
 # If any libraries are used, e.g. libabc.so
-include_dirs = ["./c_src/include"]
+include_dirs = ["./cpp/include"]
 # library_dirs = ["LINK_DIR"]
 # (optional) if the library is not in the dir like `/usr/lib/`
 # either to add its dir to `runtime_library_dirs` or to the env variable "LD_LIBRARY_PATH"

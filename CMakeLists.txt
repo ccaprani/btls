@@ -7,8 +7,8 @@ if(WIN32)
 endif()
 
 configure_file (
-  "${PROJECT_SOURCE_DIR}/c_src/config/BTLS_Config.h.in"
-  "${PROJECT_SOURCE_DIR}/c_src/config/BTLS_Config.h"
+  "${PROJECT_SOURCE_DIR}/cpp/config/BTLS_Config.h.in"
+  "${PROJECT_SOURCE_DIR}/cpp/config/BTLS_Config.h"
 )
 
 # extra parameters to compiler
@@ -25,10 +25,10 @@ elseif(UNIX)
 endif()
 
 # source files
-aux_source_directory(${PROJECT_SOURCE_DIR}/c_src/src SRC_LIST)
-list(REMOVE_ITEM SRC_LIST "${PROJECT_SOURCE_DIR}/c_src/src/py_main.cpp")
-include_directories(${PROJECT_SOURCE_DIR}/c_src/include)
-include_directories(${PROJECT_SOURCE_DIR}/c_src/config)
+aux_source_directory(${PROJECT_SOURCE_DIR}/cpp/src SRC_LIST)
+list(REMOVE_ITEM SRC_LIST "${PROJECT_SOURCE_DIR}/cpp/src/py_main.cpp")
+include_directories(${PROJECT_SOURCE_DIR}/cpp/include)
+include_directories(${PROJECT_SOURCE_DIR}/cpp/config)
 
 # compiling target
 add_executable(BTLS ${SRC_LIST})
