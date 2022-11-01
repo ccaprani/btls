@@ -15,10 +15,7 @@
 #define new DEBUG_NEW
 #endif
 
-
-//extern CConfigData g_ConfigData;
 using namespace std;
-
 
 int main()
 {

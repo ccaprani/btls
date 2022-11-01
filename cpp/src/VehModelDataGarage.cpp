@@ -1,8 +1,6 @@
 #include "VehModelDataGarage.h"
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
-
 CVehModelDataGarage::CVehModelDataGarage(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc)
 	: CVehicleModelData(config, eVM_Garage, pVC, lfc, 1) // MAGIC NUMBER - truck class count
 	, m_NoVehicles(0)

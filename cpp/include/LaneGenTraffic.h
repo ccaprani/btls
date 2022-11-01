@@ -18,7 +18,6 @@ public:
 	virtual CVehicle_sp GetNextVehicle();
 	
 	void setLaneData(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const double starttime);
-	void setLaneData(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const double starttime, CConfigDataCore& config);
 
 private:
 	void GenNextArrival();

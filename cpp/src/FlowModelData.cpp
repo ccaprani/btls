@@ -1,12 +1,10 @@
 #include "FlowModelData.h"
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
-
 CFlowModelData::CFlowModelData(CConfigDataCore& config, EFlowModel fm, CLaneFlowComposition lfc, const bool bCars)
-	: m_Model(fm), m_bModelHasCars(bCars), m_Config(config)
+	: CModelData(config), m_Model(fm), m_bModelHasCars(bCars)
 	// MAGIC NUMBERs - internal gap buffer e.g. tyre diameter, and a min driving gap
-	, m_BufferGapSpace(1.0), m_BufferGapTime(0.1), CModelData(config)
+	, m_BufferGapSpace(1.0), m_BufferGapTime(0.1)
 {	
 	m_vTotalFlow = lfc.getTotalFlow();
 	m_vTruckFlow = lfc.getTruckFlow();

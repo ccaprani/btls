@@ -21,7 +21,7 @@ void GetGeneratorLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLanes,
 	// Useful debugging tool - set start time higher
 	EndTime = (double)(CConfigData::get().Gen.NO_DAYS)*24*3600;
 	
-	CLaneFlowData LaneFlowData; 
+	CLaneFlowData LaneFlowData(CConfigData::get()); 
 	LaneFlowData.ReadDataIn();
 	
 	CConfigData::get().Road.NO_LANES		= LaneFlowData.getNoLanes();

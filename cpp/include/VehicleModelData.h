@@ -16,8 +16,6 @@ public:
 	vec getComposition(size_t i) const;
 
 protected:	
-	CConfigDataCore& m_Config;
-	
 	EVehicleModel m_Model;
 	const size_t m_TruckClassCount;
 

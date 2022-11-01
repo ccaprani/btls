@@ -1,8 +1,6 @@
 #include "StatsManager.h"
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
-
 CStatsManager::CStatsManager(CConfigDataCore& config) : COutputManagerBase("SS")
 {
 	WRITE_SS_CUMULATIVE		= config.Output.Stats.WRITE_SS_CUMULATIVE;

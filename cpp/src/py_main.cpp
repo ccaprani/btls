@@ -266,7 +266,6 @@ PYBIND11_MODULE(_core, m) {
 	py::class_<CModelData, CModelData_sp> cmodeldata(m, "ModelData");
 	py::class_<CLaneFlowData, CModelData, CLaneFlowData_sp> claneflowdata(m, "LaneFlowData");
 		claneflowdata.def(py::init<CConfigDataCore&>(), py::arg("config"))
-			.def(py::init<>())
 			.def("read_data_in", &CLaneFlowData::ReadDataIn)
 			.def("get_no_dirn", &CLaneFlowData::getNoDirn)
 			.def("get_no_lanes", &CLaneFlowData::getNoLanes)

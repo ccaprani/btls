@@ -21,8 +21,6 @@ public:
 	void getBlockInfo(size_t& sz, size_t& n) const;
 
 protected:
-	CConfigDataCore& m_Config;
-
 	EFlowModel m_Model;
 	const bool m_bModelHasCars;
 

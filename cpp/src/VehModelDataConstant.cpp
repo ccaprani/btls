@@ -1,8 +1,6 @@
 #include "VehModelDataConstant.h"
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
-
 CVehModelDataConstant::CVehModelDataConstant(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc)
 	: CVehicleModelData(config, eVM_Constant, pVC, lfc, 1) // MAGIC NUMBER - truck class count
 	, m_pNominalVehicle(nullptr), m_CoV_AS(0.0), m_CoV_AW(0.0)

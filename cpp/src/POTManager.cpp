@@ -1,8 +1,6 @@
 #include "POTManager.h"
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
-
 CPOTManager::CPOTManager(CConfigDataCore& config) : COutputManagerBase("PT")
 {
 	WRITE_BUFFER_SIZE	= config.Output.POT.WRITE_POT_BUFFER_SIZE;

@@ -43,13 +43,14 @@ struct Normal
 class CModelData
 {
 public:
-	CModelData();
 	CModelData(CConfigDataCore& config);
 	virtual ~CModelData();
 
 	virtual void ReadDataIn() = 0;
 
 protected:
+	CConfigDataCore& m_Config;
+
 	std::filesystem::path m_Path;
 	CCSVParse m_CSV;
 };

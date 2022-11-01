@@ -6,7 +6,6 @@
 #include <sstream>
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
 using namespace std;
 
 //////////////////////////////////////////////////////////////////////

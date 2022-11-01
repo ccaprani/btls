@@ -1,8 +1,6 @@
 #include "LaneGenTraffic.h"
 #include "ConfigData.h"
 
-//extern CConfigData g_ConfigData;
-
 CLaneGenTraffic::CLaneGenTraffic(CConfigDataCore& config): m_Config(config)
 {
 	m_pVehicleGen		= nullptr;

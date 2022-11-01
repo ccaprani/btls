@@ -33,8 +33,6 @@
 #define new DEBUG_NEW
 #endif
 
-
-//extern CConfigData g_ConfigData;
 using namespace std;
 
 vector<CBridge_sp> PrepareBridges();
