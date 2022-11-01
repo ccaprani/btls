@@ -12,7 +12,6 @@
 class CLaneGenTraffic : public CLane
 {
 public:
-	CLaneGenTraffic(void);
 	CLaneGenTraffic(CConfigDataCore& config);
 	~CLaneGenTraffic(void);
 
@@ -27,6 +26,8 @@ private:
 	void GenNextArrival();
 	void GenNextTime();
 	void GenNextVehicle();
+
+	CConfigDataCore& m_Config;
 	
 	CVehicleGenerator_sp m_pVehicleGen;
 	CVehicleModelData_sp m_pVehModelData;

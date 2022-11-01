@@ -31,7 +31,7 @@ void GetGeneratorLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLanes,
 
 	for (size_t i = 0; i < LaneFlowData.getNoLanes(); ++i)
 	{
-		CLaneGenTraffic_sp pLane = std::make_shared<CLaneGenTraffic>();
+		CLaneGenTraffic_sp pLane = std::make_shared<CLaneGenTraffic>(CConfigData::get());
 		pLane->setLaneData(pVC, LaneFlowData.getLaneComp(i), StartTime);
 		vpLanes.push_back(pLane);
 	}

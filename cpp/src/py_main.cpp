@@ -228,7 +228,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("get_next_arrival_time", &CLaneFileTraffic::GetNextArrivalTime);
 	py::class_<CLaneGenTraffic, CLane, CLaneGenTraffic_sp> clanegentraffic(m, "LaneGenTraffic");
 		clanegentraffic.def(py::init<CConfigDataCore&>(), py::arg("config"))
-			.def("set_lane_data", py::overload_cast<CVehicleClassification_sp, CLaneFlowComposition, const double, CConfigDataCore&>(&CLaneGenTraffic::setLaneData), py::arg("vehicle_classification"), py::arg("lane_flow_composition"), py::arg("start_time"), py::arg("config"))
+			.def("set_lane_data", py::overload_cast<CVehicleClassification_sp, CLaneFlowComposition, const double>(&CLaneGenTraffic::setLaneData), py::arg("vehicle_classification"), py::arg("lane_flow_composition"), py::arg("start_time"))
 			.def("get_next_vehicle", &CLaneGenTraffic::GetNextVehicle, py::return_value_policy::reference)  // return a shared_ptr reference like in PrepareSim.cpp
 			.def("get_next_arrival_time", &CLaneGenTraffic::GetNextArrivalTime);
 	py::class_<CVehicleBuffer> cvehiclebuffer(m, "VehicleBuffer");
