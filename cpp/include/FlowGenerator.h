@@ -24,8 +24,8 @@ protected:
 	virtual void updateProperties();
 	double genExponential();
 	
-	EFlowModel m_FlowModel;
 	CFlowModelData_sp m_pFlowModelData;
+	EFlowModel m_FlowModel;	
 	CVehicle_sp m_pPrevVeh;
 	CVehicle_sp m_pNextVeh;
 	

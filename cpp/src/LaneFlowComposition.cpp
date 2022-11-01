@@ -2,7 +2,11 @@
 
 
 CLaneFlowComposition::CLaneFlowComposition(size_t lane, size_t dirn, size_t blockSize)
-	: m_GlobalLaneNo(lane), m_Dirn(dirn), m_TruckClassCount(0), m_BlockSize(blockSize)
+	: m_GlobalLaneNo(lane)
+	, m_Dirn(dirn)
+	, m_BlockSize(blockSize)
+	, m_NoBlocks(0)
+	, m_TruckClassCount(0)
 {
 }
 

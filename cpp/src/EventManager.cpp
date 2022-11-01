@@ -10,14 +10,14 @@
 //////////////////////////////////////////////////////////////////////
 
 CEventManager::CEventManager(CConfigDataCore& config) 
-	: m_AllEventBuffer(config)
-	, m_FatigueEventBuffer(config)
+	: m_Config(config)
+	, m_AllEventBuffer(config.Output.WRITE_EVENT_BUFFER_SIZE)
+	, m_FatigueEventBuffer(config.Output.WRITE_EVENT_BUFFER_SIZE)
 	, m_BlockMaxManager(config)
 	, m_POTManager(config)
 	, m_StatsManager(config)
 	, m_FatigueManager(config)
 	, m_CurEvent(config.Output.VehicleFile.FILE_FORMAT)
-	, m_Config(config)
 {
 	WRITE_TIME_HISTORY		= m_Config.Output.WRITE_TIME_HISTORY;
 	WRITE_EACH_EVENT		= m_Config.Output.WRITE_EACH_EVENT;
@@ -80,7 +80,7 @@ void CEventManager::AddNewEvent(const std::vector<CVehicle_sp> pVehs, double cur
 	// form local copy of vehs
 	std::vector<CVehicle> vVehs;
 	vVehs.reserve(pVehs.size());
-	for(int i = 0; i != pVehs.size(); ++i)
+	for(size_t i = 0; i != pVehs.size(); ++i)
 		vVehs.push_back( *pVehs.at(i) );
 	// call primary func
 	AddNewEvent(vVehs, curTime);

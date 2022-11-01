@@ -2,9 +2,10 @@
 #include "ConfigData.h"
 
 CLaneFlowData::CLaneFlowData(CConfigDataCore& config)
-	: m_TruckClassCount(0),
-	  m_BlockSize(3600), m_NoBlocks(24), // MAGIC NUMBER - default to older type file format
-	  CModelData(config)
+	: CModelData(config)
+	, m_TruckClassCount(0)
+	, m_BlockSize(3600)
+	, m_NoBlocks(24) // MAGIC NUMBER - default to older type file format
 {
 
 }

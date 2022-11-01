@@ -15,9 +15,9 @@
 class CEvent  
 {
 public:
-	CEvent(size_t file_format);
-	CEvent(size_t file_format, size_t ID);
-	CEvent(size_t file_format, size_t ID, size_t noEffects);
+	CEvent(size_t fileFormat);
+	CEvent(size_t fileFormat, size_t ID);
+	CEvent(size_t fileFormat, size_t ID, size_t noEffects);
 
 	virtual ~CEvent();
 	

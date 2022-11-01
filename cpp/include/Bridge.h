@@ -61,6 +61,7 @@ private:
 	size_t	NO_LANES_DIR1;
 	size_t	NO_DIRS;
 	size_t	NO_LANES;
+	
 	size_t	m_Index;
 	size_t	m_NoLanes;
 	size_t	m_NoLoadEffects;

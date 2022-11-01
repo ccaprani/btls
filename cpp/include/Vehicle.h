@@ -42,7 +42,7 @@ public:
 	void	setAT(size_t i, double tw);
 	void	setTrns(double trans);
 	void	setBridgeTimes(double BridgeLength);
-	void	setTimeOnBridge(double BridgeLength);
+	void	setTimeOnBridge();
 	void	setBridgeLaneNo(size_t BridgeLaneNo);
 	void	setTrackWidth(double tw);
 	void	setLaneEccentricity(double e);

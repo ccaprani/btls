@@ -27,8 +27,8 @@ protected:
 	void GenerateCar(CVehicle_sp pVeh);
 	bool NextVehicleIsCar();	
 	
-	CVehicleModelData_sp m_pVehModelData;
 	EVehicleModel m_VehModel;
+	CVehicleModelData_sp m_pVehModelData;
 	bool m_bModelHasCars;
 
 	vec m_vCarPercent;

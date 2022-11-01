@@ -13,18 +13,18 @@ using namespace std;
 //////////////////////////////////////////////////////////////////////
 
 
-CEvent::CEvent(size_t file_format) : FILE_FORMAT(file_format)
+CEvent::CEvent(size_t fileFormat) : FILE_FORMAT(fileFormat)
 {
 	setDefaults();
 }
 
-CEvent::CEvent(size_t file_format, size_t ID) : FILE_FORMAT(file_format)
+CEvent::CEvent(size_t fileFormat, size_t ID) : FILE_FORMAT(fileFormat)
 {
 	setDefaults();
 	m_EventID = ID;
 }
 
-CEvent::CEvent(size_t file_format, size_t ID, size_t noEffects) : FILE_FORMAT(file_format)
+CEvent::CEvent(size_t fileFormat, size_t ID, size_t noEffects) : FILE_FORMAT(fileFormat)
 {
 	setDefaults();
 	m_EventID = ID;

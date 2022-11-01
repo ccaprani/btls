@@ -16,7 +16,7 @@ public:
 	void	getGapLimits(double& bridge, double& space, double& time);
 
 	EFlowModel getModel() const { return m_Model; };
-	const bool getModelHasCars() const { return m_bModelHasCars; };
+	bool getModelHasCars() const { return m_bModelHasCars; };
 
 	void getBlockInfo(size_t& sz, size_t& n) const;
 

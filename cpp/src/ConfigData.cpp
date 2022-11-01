@@ -218,7 +218,7 @@ void CConfigDataCore::VehGenConstant(string lanes_file, string constant_file, si
     Traffic.VEHICLE_MODEL = 1;
 }
 
-void CConfigDataCore::FlowGenNHM(int classification, string traffic_folder, bool gen_car) 
+void CConfigDataCore::FlowGenNHM(int classification, string traffic_folder) 
 {
     Gen.GEN_TRAFFIC = true;
     Read.READ_FILE = false;
@@ -227,7 +227,7 @@ void CConfigDataCore::FlowGenNHM(int classification, string traffic_folder, bool
     Gen.TRAFFIC_FOLDER = traffic_folder;
 }
 
-void CConfigDataCore::FlowGenConstant(int classification, double constant_speed, double constant_gap, bool gen_car) 
+void CConfigDataCore::FlowGenConstant(int classification, double constant_speed, double constant_gap) 
 {
     Gen.GEN_TRAFFIC = true;
     Read.READ_FILE = false;
@@ -237,7 +237,7 @@ void CConfigDataCore::FlowGenConstant(int classification, double constant_speed,
     Traffic.CONSTANT_GAP = constant_gap;
 }
 
-void CConfigDataCore::FlowGenCongestion(int classification, double congested_spacing, double congested_speed, double congested_gap_coef_var, bool gen_car) 
+void CConfigDataCore::FlowGenCongestion(int classification, double congested_spacing, double congested_speed, double congested_gap_coef_var) 
 {
     Gen.GEN_TRAFFIC = true;
     Read.READ_FILE = false;
@@ -249,7 +249,7 @@ void CConfigDataCore::FlowGenCongestion(int classification, double congested_spa
     Traffic.CONGESTED_GAP_COEF_VAR = congested_gap_coef_var;
 }
 
-void CConfigDataCore::FlowGenFreeFlow(int classification, bool gen_car) 
+void CConfigDataCore::FlowGenFreeFlow(int classification) 
 {
     Gen.GEN_TRAFFIC = true;
     Read.READ_FILE = false;

@@ -16,7 +16,7 @@
 class CEventBuffer
 {
 public:
-	CEventBuffer(CConfigDataCore& config);
+	CEventBuffer(size_t bufferSize);
 	virtual ~CEventBuffer();
 
 	void setMode(bool bFatigue);
@@ -34,8 +34,8 @@ private:
 	Mode m_Mode; 
 	std::vector<CEvent> m_vEvents;
 	std::ofstream m_OutFile;
-	int m_BufferSize;
-	int m_NoEvents;
+	size_t m_BufferSize;
+	size_t m_NoEvents;
 	double m_BridgeLength;
 	template <typename T> std::string to_string(T const& value);
 };

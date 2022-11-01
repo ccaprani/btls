@@ -702,11 +702,11 @@ void CVehicle::setHead(int head)
 
 void CVehicle::setBridgeTimes(double BridgeLength)
 {
-	setTimeOnBridge(BridgeLength);
+	setTimeOnBridge();
 	m_TimeOffBridge = m_TimeOnBridge + (BridgeLength + m_Length)/(m_Velocity);
 }
 
-void CVehicle::setTimeOnBridge(double BridgeLength)
+void CVehicle::setTimeOnBridge()
 {
 /*	// this code is suitable when the time datum is the RHS of the bridge
 	if(m_Dir == 1)

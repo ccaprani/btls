@@ -9,10 +9,8 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CEventBuffer::CEventBuffer(CConfigDataCore& config)
+CEventBuffer::CEventBuffer(size_t bufferSize) : m_BufferSize(bufferSize)
 {
-	m_BufferSize = config.Output.WRITE_EVENT_BUFFER_SIZE;
-
 	SetBufferSize(m_BufferSize);
 	m_NoEvents = 0;
 	m_Mode = CEventBuffer::ALLEVENTS;

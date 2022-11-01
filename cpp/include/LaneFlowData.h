@@ -30,10 +30,9 @@ private:
 	size_t m_NoLanesDir1;
 	size_t m_NoLanesDir2;
 
-	size_t m_NoBlocks;	// typically hours
-	size_t m_BlockSize;	// typically 3600 secs
-
 	size_t m_TruckClassCount;
+	size_t m_BlockSize;	// typically 3600 secs
+	size_t m_NoBlocks;	// typically hours
 
 	std::vector<CLaneFlowComposition> m_vLaneComp;
 

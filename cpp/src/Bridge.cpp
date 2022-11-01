@@ -10,11 +10,11 @@
 //////////////////////////////////////////////////////////////////////
 
 CBridge::CBridge(CConfigDataCore& config)
-	: m_Index(0)
+	: m_EventMgr(config)
+	, m_Index(0)
 	, m_NoLanes(0)
 	, m_NoLoadEffects(0)
 	, m_NoVehs(0)
-	, m_EventMgr(config)
 {
 	NO_LANES_DIR1		= config.Road.NO_LANES_DIR1;
 	NO_DIRS				= config.Road.NO_DIRS;

@@ -74,22 +74,22 @@ public:
         string INFLINE_FILE;
         string INFSURF_FILE;
         double CALC_TIME_STEP;
-        int MIN_GVW;
+        size_t MIN_GVW;
     } Sim = {false, "bridges.txt", "IL.txt", "IS.csv", 0.1, 35};
 
     struct Output_Config
     {
         bool WRITE_TIME_HISTORY;
         bool WRITE_EACH_EVENT;
-        int WRITE_EVENT_BUFFER_SIZE;
+        size_t WRITE_EVENT_BUFFER_SIZE;
         bool WRITE_FATIGUE_EVENT;
 
         struct VehicleFile_Config
         {
             bool WRITE_VEHICLE_FILE;
-            unsigned int FILE_FORMAT;
+            size_t FILE_FORMAT;
             string VEHICLE_FILENAME;
-            int WRITE_VEHICLE_BUFFER_SIZE;
+            size_t WRITE_VEHICLE_BUFFER_SIZE;
             bool WRITE_FLOW_STATS;
         } VehicleFile;
 
@@ -99,9 +99,9 @@ public:
             bool WRITE_BM_VEHICLES;
             bool WRITE_BM_SUMMARY;
             bool WRITE_BM_MIXED;
-            int BLOCK_SIZE_DAYS;
-            int BLOCK_SIZE_SECS;
-            int WRITE_BM_BUFFER_SIZE;
+            size_t BLOCK_SIZE_DAYS;
+            size_t BLOCK_SIZE_SECS;
+            size_t WRITE_BM_BUFFER_SIZE;
         } BlockMax;
 
         struct POT_Config
@@ -110,9 +110,9 @@ public:
             bool WRITE_POT_VEHICLES;
             bool WRITE_POT_SUMMARY;
             bool WRITE_POT_COUNTER;
-            int POT_COUNT_SIZE_DAYS;
-            int POT_COUNT_SIZE_SECS;
-            int WRITE_POT_BUFFER_SIZE;
+            size_t POT_COUNT_SIZE_DAYS;
+            size_t POT_COUNT_SIZE_SECS;
+            size_t WRITE_POT_BUFFER_SIZE;
         } POT;
 
         struct Stats_Config
@@ -120,8 +120,8 @@ public:
             bool WRITE_STATS;
             bool WRITE_SS_CUMULATIVE;
             bool WRITE_SS_INTERVALS;
-            int WRITE_SS_INTERVAL_SIZE;
-            int WRITE_SS_BUFFER_SIZE;
+            size_t WRITE_SS_INTERVAL_SIZE;
+            size_t WRITE_SS_BUFFER_SIZE;
         } Stats;
 
         struct Fatigue_Config
@@ -129,7 +129,7 @@ public:
             bool DO_FATIGUE_RAINFLOW;
             int RAINFLOW_DECIMAL;
             double RAINFLOW_CUTOFF;
-            int WRITE_RAINFLOW_BUFFER_SIZE;
+            size_t WRITE_RAINFLOW_BUFFER_SIZE;
         } Fatigue;
 
     } Output = {false, false, 10000, false, 
@@ -141,24 +141,22 @@ public:
 
     struct Time_Config
     {
-        int DAYS_PER_MT;
-        int MTS_PER_YR;
-        int HOURS_PER_DAY;
-        int SECS_PER_HOUR;
-        int MINS_PER_HOUR;
-        int SECS_PER_MIN;
+        size_t DAYS_PER_MT;
+        size_t MTS_PER_YR;
+        size_t HOURS_PER_DAY;
+        size_t SECS_PER_HOUR;
+        size_t MINS_PER_HOUR;
+        size_t SECS_PER_MIN;
     } Time = {25, 10, 24, 3600, 60, 60};
 
-
-    // functions
     void VehGenGrave(std::string lanes_file, std::string traffic_folder, size_t no_days, double truck_track_width, double lane_eccentricity_std);
     void VehGenGarage(std::string lanes_file, std::string garage_file, unsigned int file_format, std::string kernel_file, size_t no_days, double lane_eccentricity_std);
     void VehGenConstant(std::string lanes_file, std::string constant_file, size_t no_days, double lane_eccentricity_std);
 
-    void FlowGenNHM(int classification, std::string traffic_folder, bool gen_car = true);
-    void FlowGenConstant(int classification, double constant_speed, double constant_gap, bool gen_car = true);
-    void FlowGenCongestion(int classification, double congested_spacing, double congested_speed, double congested_gap_coef_var, bool gen_car = true);
-    void FlowGenFreeFlow(int classification, bool gen_car = true);
+    void FlowGenNHM(int classification, std::string traffic_folder);
+    void FlowGenConstant(int classification, double constant_speed, double constant_gap);
+    void FlowGenCongestion(int classification, double congested_spacing, double congested_speed, double congested_gap_coef_var);
+    void FlowGenFreeFlow(int classification);
 
     void TrafficRead(std::string traffic_file, unsigned int file_format, bool use_constant_speed, bool use_ave_speed, double const_speed);
 

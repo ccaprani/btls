@@ -21,7 +21,7 @@ elseif(APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")   # -arch x86_64
   set(MACOSX_DEPLOYMENT_TARGET "10.15")
 elseif(UNIX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")  # For warnings: -Wall -Wextra & then -Weffc++ for extra fun
 endif()
 
 # source files
