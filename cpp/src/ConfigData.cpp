@@ -42,7 +42,6 @@ void CConfigDataCore::ExtractData()
 	str = GetNextDataLine();	Traffic.CONGESTED_GAP_COEF_VAR	= m_CSV.stringToDouble( str);
 	str = GetNextDataLine();	Traffic.CONSTANT_SPEED 			= m_CSV.stringToDouble(str);
     str = GetNextDataLine();    Traffic.CONSTANT_GAP 			= m_CSV.stringToDouble(str);
-    str = GetNextDataLine();    Traffic.GEN_CAR 				= m_CSV.stringToBool(str);
 
 	str = GetNextDataLine();	Read.GARAGE_FILE				= str;
 	str = GetNextDataLine();	Read.KERNEL_FILE				= str;
