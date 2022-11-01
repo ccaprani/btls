@@ -15,10 +15,10 @@
 class CEvent  
 {
 public:
-	CEvent();
-	CEvent(size_t);
-	CEvent(size_t, size_t noEffects);
 	CEvent(CConfigDataCore& config);
+	CEvent(CConfigDataCore& config, size_t ID);
+	CEvent(CConfigDataCore& config, size_t ID, size_t noEffects);
+
 	virtual ~CEvent();
 	
 	bool operator<(const CEvent& x);
@@ -51,7 +51,7 @@ public:
 	std::vector<CEffect> m_vMinEffects;
 
 private:
-	void setDefaults();
+	void setDefaults(CConfigDataCore& config);
 	template <typename T> std::string to_string(T const& value);
 
 	size_t	m_CurEffect;

@@ -22,6 +22,8 @@ private:
 	void	AddExtraEvents();
 	void	UpdateMixedEvents(CEvent Ev);
 
+	CConfigDataCore& m_Config;
+
 	CBlockMaxEvent				m_BlockMaxEvent;
 	CEvent						m_BMMixedEvent;
 	std::vector<CBlockMaxEvent>	m_vBMEventsBuffer;

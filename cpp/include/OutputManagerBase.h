@@ -43,9 +43,10 @@ protected:
 	std::vector<std::string>	m_vOutFiles;
 	std::vector<std::string>	m_vSummaryFiles;
 
-	bool			WRITE_VEHICLES;
-	bool			WRITE_SUMMARY;
-	unsigned int	WRITE_BUFFER_SIZE;
+	bool	WRITE_VEHICLES;
+	bool	WRITE_SUMMARY;
+	size_t	WRITE_BUFFER_SIZE;
+	size_t 	FILE_FORMAT;
 
 	// define template function in header file
 	// See http://www.parashift.com/c++-faq-lite/templates.html#faq-35.12

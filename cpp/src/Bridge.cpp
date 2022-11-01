@@ -22,13 +22,6 @@ CBridge::CBridge(CConfigDataCore& config)
 	NO_LANES			= config.Road.NO_LANES;
 }
 
-CBridge::CBridge(CConfigDataCore& config, double length, double calcTimeStep, int n, double curTime) : m_EventMgr(config)
-{
-	setLength(length);
-	setCalcTimeStep(calcTimeStep);
-	setCurrentSimTime(curTime);
-}
-
 CBridge::~CBridge()
 {
 

@@ -19,7 +19,6 @@ class CBridge
 {
 public:
 	CBridge(CConfigDataCore& config);
-	CBridge(CConfigDataCore& config, double length, double calcTimeStep, int n, double curTime);
 	virtual ~CBridge();
 
 	void setCurrentSimTime(double curTime);
