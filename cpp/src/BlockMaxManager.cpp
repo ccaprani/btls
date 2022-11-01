@@ -11,17 +11,18 @@
 
 CBlockMaxManager::CBlockMaxManager(CConfigDataCore& config) 
 	: COutputManagerBase("BM")
-	, m_Config(config)
-	, m_BlockMaxEvent(config)
-	, m_BMMixedEvent(config)
+	, m_BlockMaxEvent(config.Output.VehicleFile.FILE_FORMAT)
+	, m_BMMixedEvent(config.Output.VehicleFile.FILE_FORMAT)
 {
-	BLOCK_SIZE_DAYS		= m_Config.Output.BlockMax.BLOCK_SIZE_DAYS;
-	BLOCK_SIZE_SECS		= m_Config.Output.BlockMax.BLOCK_SIZE_SECS;
+	BLOCK_SIZE_DAYS		= config.Output.BlockMax.BLOCK_SIZE_DAYS;
+	BLOCK_SIZE_SECS		= config.Output.BlockMax.BLOCK_SIZE_SECS;
 
-	WRITE_BUFFER_SIZE	= m_Config.Output.BlockMax.WRITE_BM_BUFFER_SIZE;
-	WRITE_VEHICLES		= m_Config.Output.BlockMax.WRITE_BM_VEHICLES;
-	WRITE_SUMMARY		= m_Config.Output.BlockMax.WRITE_BM_SUMMARY;
-	WRITE_BM_MIXED		= m_Config.Output.BlockMax.WRITE_BM_MIXED;
+	WRITE_BUFFER_SIZE	= config.Output.BlockMax.WRITE_BM_BUFFER_SIZE;
+	WRITE_VEHICLES		= config.Output.BlockMax.WRITE_BM_VEHICLES;
+	WRITE_SUMMARY		= config.Output.BlockMax.WRITE_BM_SUMMARY;
+	WRITE_BM_MIXED		= config.Output.BlockMax.WRITE_BM_MIXED;
+
+	FILE_FORMAT 		= config.Output.VehicleFile.FILE_FORMAT;
 
 	m_BlockSize = 3600 * 24 * BLOCK_SIZE_DAYS + BLOCK_SIZE_SECS;
 	m_CurBlockNo = 1;
@@ -143,7 +144,7 @@ void CBlockMaxManager::CheckBuffer(bool bForceOutput)
 	m_BlockMaxEvent.clear();
 	m_BlockMaxEvent.setID(m_CurBlockNo);
 
-	CEvent ev(m_Config, m_CurBlockNo, m_NoLoadEffects);
+	CEvent ev(FILE_FORMAT, m_CurBlockNo, m_NoLoadEffects);
 	m_BMMixedEvent = ev;	// reset the mixed event
 }
 

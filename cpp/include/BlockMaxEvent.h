@@ -10,7 +10,7 @@
 class CBlockMaxEvent  
 {
 public:
-	CBlockMaxEvent(CConfigDataCore& config);
+	CBlockMaxEvent(size_t file_format);
 	virtual ~CBlockMaxEvent();
 	
 	void AddExtraEvents(size_t nVehs);
@@ -23,10 +23,10 @@ public:
 	void setNoLoadEffects(size_t nLE);
 	
 private:
-	CConfigDataCore& m_Config;
-	
 	size_t m_NoLoadEffects;
 	size_t m_NoEvents;
 	size_t m_ID;
 	std::vector<CEvent>	m_vEvents;
+
+	size_t FILE_FORMAT;
 };

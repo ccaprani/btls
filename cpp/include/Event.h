@@ -15,9 +15,9 @@
 class CEvent  
 {
 public:
-	CEvent(CConfigDataCore& config);
-	CEvent(CConfigDataCore& config, size_t ID);
-	CEvent(CConfigDataCore& config, size_t ID, size_t noEffects);
+	CEvent(size_t file_format);
+	CEvent(size_t file_format, size_t ID);
+	CEvent(size_t file_format, size_t ID, size_t noEffects);
 
 	virtual ~CEvent();
 	
@@ -51,7 +51,7 @@ public:
 	std::vector<CEffect> m_vMinEffects;
 
 private:
-	void setDefaults(CConfigDataCore& config);
+	void setDefaults();
 	template <typename T> std::string to_string(T const& value);
 
 	size_t	m_CurEffect;
@@ -65,5 +65,6 @@ private:
 	size_t	SECS_PER_HOUR;
 	size_t	MINS_PER_HOUR;
 	size_t	SECS_PER_MIN;
+	
 	size_t	FILE_FORMAT;
 };

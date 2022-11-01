@@ -5,7 +5,6 @@ CVehModelDataConstant::CVehModelDataConstant(CConfigDataCore& config, CVehicleCl
 	: CVehicleModelData(config, eVM_Constant, pVC, lfc, 1) // MAGIC NUMBER - truck class count
 	, m_pNominalVehicle(nullptr), m_CoV_AS(0.0), m_CoV_AW(0.0)
 {
-    m_Config.Read.CONSTANT_FILE = config.Read.CONSTANT_FILE;
     makeNominalVehicle();
 	ReadDataIn();    
 }
@@ -21,7 +20,7 @@ void CVehModelDataConstant::ReadDataIn()
 
 void CVehModelDataConstant::readConstant()
 {
-    filesystem::path file = CConfigData::get().Read.CONSTANT_FILE;
+    filesystem::path file = m_Config.Read.CONSTANT_FILE;
 	if (!m_CSV.OpenFile(file.string(), ","))
     {
 		std::cerr << "***WARNING: Constant Vehicle file " 

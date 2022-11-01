@@ -22,8 +22,6 @@ private:
 	void	AddExtraEvents();
 	void	UpdateMixedEvents(CEvent Ev);
 
-	CConfigDataCore& m_Config;
-
 	CBlockMaxEvent				m_BlockMaxEvent;
 	CEvent						m_BMMixedEvent;
 	std::vector<CBlockMaxEvent>	m_vBMEventsBuffer;
@@ -39,4 +37,6 @@ private:
 	size_t	BLOCK_SIZE_SECS;
 	size_t	BLOCK_SIZE_DAYS;
 	bool	WRITE_BM_MIXED;
+
+	size_t FILE_FORMAT;
 };

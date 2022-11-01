@@ -16,7 +16,7 @@ CEventManager::CEventManager(CConfigDataCore& config)
 	, m_POTManager(config)
 	, m_StatsManager(config)
 	, m_FatigueManager(config)
-	, m_CurEvent(config)
+	, m_CurEvent(config.Output.VehicleFile.FILE_FORMAT)
 	, m_Config(config)
 {
 	WRITE_TIME_HISTORY		= m_Config.Output.WRITE_TIME_HISTORY;

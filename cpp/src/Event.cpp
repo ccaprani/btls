@@ -13,20 +13,20 @@ using namespace std;
 //////////////////////////////////////////////////////////////////////
 
 
-CEvent::CEvent(CConfigDataCore& config)
+CEvent::CEvent(size_t file_format) : FILE_FORMAT(file_format)
 {
-	setDefaults(config);
+	setDefaults();
 }
 
-CEvent::CEvent(CConfigDataCore& config, size_t ID)
+CEvent::CEvent(size_t file_format, size_t ID) : FILE_FORMAT(file_format)
 {
-	setDefaults(config);
+	setDefaults();
 	m_EventID = ID;
 }
 
-CEvent::CEvent(CConfigDataCore& config, size_t ID, size_t noEffects)
+CEvent::CEvent(size_t file_format, size_t ID, size_t noEffects) : FILE_FORMAT(file_format)
 {
-	setDefaults(config);
+	setDefaults();
 	m_EventID = ID;
 	m_NoEffects = noEffects;
 	setNoEffects(noEffects);
@@ -44,17 +44,16 @@ bool CEvent::operator<(const CEvent& x)
 	return a < b;
 }
 
-void CEvent::setDefaults(CConfigDataCore& config)
+void CEvent::setDefaults()
 {
-	DAYS_PER_MT		= config.Time.DAYS_PER_MT;
-	MTS_PER_YR		= config.Time.MTS_PER_YR;
+	// We're not wrapping the time constants, so just use the internal values
+	DAYS_PER_MT		= CConfigData::get().Time.DAYS_PER_MT;
+	MTS_PER_YR		= CConfigData::get().Time.MTS_PER_YR;
 	
-	HOURS_PER_DAY	= config.Time.HOURS_PER_DAY;
-	SECS_PER_HOUR	= config.Time.SECS_PER_HOUR;
-	MINS_PER_HOUR	= config.Time.MINS_PER_HOUR;
-	SECS_PER_MIN	= config.Time.SECS_PER_MIN;
-
-	FILE_FORMAT 	= config.Output.VehicleFile.FILE_FORMAT;
+	HOURS_PER_DAY	= CConfigData::get().Time.HOURS_PER_DAY;
+	SECS_PER_HOUR	= CConfigData::get().Time.SECS_PER_HOUR;
+	MINS_PER_HOUR	= CConfigData::get().Time.MINS_PER_HOUR;
+	SECS_PER_MIN	= CConfigData::get().Time.SECS_PER_MIN;
 
 	m_EventID = 0;
 	reset();

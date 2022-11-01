@@ -14,6 +14,7 @@
 
 CVehicle::CVehicle() : m_Class(Classification(0, "default"))
 {
+	// We're not wrapping the time constants, so just use the internal values
 	DAYS_PER_MT		= CConfigData::get().Time.DAYS_PER_MT;
 	MTS_PER_YR		= CConfigData::get().Time.MTS_PER_YR;
 	
