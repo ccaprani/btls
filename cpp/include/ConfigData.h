@@ -15,7 +15,7 @@ public:
     CConfigDataCore();
     ~CConfigDataCore() {};
 
-    bool ReadData(std::string in_file);
+    bool ReadData(string inFile);
 
     struct Mode_Config
     {
@@ -48,7 +48,7 @@ public:
         string GARAGE_FILE;
         string KERNEL_FILE;
         string CONSTANT_FILE;
-        unsigned int FILE_FORMAT;
+        size_t FILE_FORMAT;
         bool USE_CONSTANT_SPEED;
         bool USE_AVE_SPEED;
         double CONST_SPEED;
@@ -149,34 +149,34 @@ public:
         size_t SECS_PER_MIN;
     } Time = {25, 10, 24, 3600, 60, 60};
 
-    void VehGenGrave(std::string lanes_file, std::string traffic_folder, size_t no_days, double truck_track_width, double lane_eccentricity_std);
-    void VehGenGarage(std::string lanes_file, std::string garage_file, unsigned int file_format, std::string kernel_file, size_t no_days, double lane_eccentricity_std);
-    void VehGenConstant(std::string lanes_file, std::string constant_file, size_t no_days, double lane_eccentricity_std);
+    void VehGenGrave(string lanes_file, string traffic_folder, size_t no_days, double truck_track_width, double lane_eccentricity_std);
+    void VehGenGarage(string lanes_file, string garage_file, size_t file_format, string kernel_file, size_t no_days, double lane_eccentricity_std);
+    void VehGenConstant(string lanes_file, string constant_file, size_t no_days, double lane_eccentricity_std);
 
-    void FlowGenNHM(int classification, std::string traffic_folder);
+    void FlowGenNHM(int classification, string traffic_folder);
     void FlowGenConstant(int classification, double constant_speed, double constant_gap);
     void FlowGenCongestion(int classification, double congested_spacing, double congested_speed, double congested_gap_coef_var);
     void FlowGenFreeFlow(int classification);
 
-    void TrafficRead(std::string traffic_file, unsigned int file_format, bool use_constant_speed, bool use_ave_speed, double const_speed);
+    void TrafficRead(string traffic_file, size_t file_format, bool use_constant_speed, bool use_ave_speed, double const_speed);
 
-    void Simulation(std::string bridge_file, std::string infline_file, std::string infsurf_file, double calc_time_step, int min_gvw);
+    void Simulation(string bridge_file, string infline_file, string infsurf_file, double calc_time_step, size_t min_gvw);
 
-    void OutputGeneral(bool write_time_history = false, bool write_each_event = false, bool write_fatigue_event = false, int write_buffer_size = 10000);
-    void OutputVehicleFile(bool write_vehicle_file = false, unsigned int vehicle_file_format = 4, std::string vehicle_file_name = "Vehicles.txt", int buffer_size = 10000, bool write_flow_stats = false);
-    void OutputBlockMax(bool write_blockmax = false, bool write_vehicle = false, bool write_summary = false, bool write_mixed = false, int block_size_days = 1, int block_size_secs = 0, int buffer_size = 10000);
-    void OutputPOT(bool write_pot = false, bool write_vehicle = false, bool write_summary = false, bool write_counter = false, int pot_size_days = 1, int pot_size_secs = 0, int buffer_size = 10000);
-    void OutputStats(bool write_stats = false, bool write_cumulative = false, bool write_intervals = false, int interval_size = 3600, int buffer_size = 10000);
-    void OutputFatigue(bool do_rainflow = false, int decimal = 3, double cut_off_value = 0.0, int buffer_size = 10000);
+    void OutputGeneral(bool write_time_history = false, bool write_each_event = false, bool write_fatigue_event = false, size_t write_buffer_size = 10000);
+    void OutputVehicleFile(bool write_vehicle_file = false, size_t vehicle_file_format = 4, string vehicle_file_name = "Vehicles.txt", size_t buffer_size = 10000, bool write_flow_stats = false);
+    void OutputBlockMax(bool write_blockmax = false, bool write_vehicle = false, bool write_summary = false, bool write_mixed = false, size_t block_size_days = 1, size_t block_size_secs = 0, size_t buffer_size = 10000);
+    void OutputPOT(bool write_pot = false, bool write_vehicle = false, bool write_summary = false, bool write_counter = false, size_t pot_size_days = 1, size_t pot_size_secs = 0, size_t buffer_size = 10000);
+    void OutputStats(bool write_stats = false, bool write_cumulative = false, bool write_intervals = false, size_t interval_size = 3600, size_t buffer_size = 10000);
+    void OutputFatigue(bool do_rainflow = false, int decimal = 3, double cut_off_value = 0.0, size_t buffer_size = 10000);
 
 
 private:
     CCSVParse m_CSV;
-    std::string m_CommentString;
+    string m_CommentString;
 
     void doDerivedConstants();
     void ExtractData();
-    std::string GetNextDataLine();
+    string GetNextDataLine();
 
 };
 

@@ -26,7 +26,7 @@ config.Simulation(bridge_file="./1-ABT6111Bridges.txt", infline_file="./1-ABT611
 
 # config.OutputGeneral()
 
-config.OutputVehicleFile(write_vehicle_file=True,write_flow_stats=True,buffer_size=100000)
+config.OutputVehicleFile(write_vehicle_file=True,vehicle_file_format=4,write_flow_stats=True,buffer_size=100000)
 
 # config.OutputBlockMax(write_blockmax=True,write_summary=True)
 

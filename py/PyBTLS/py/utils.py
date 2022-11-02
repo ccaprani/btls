@@ -94,11 +94,15 @@ def do_simulation(vehicle_classification, bridge_list, lane_list, sim_start_time
 
 
 def run():
+    global config
+
     vehicle_classification = get_vehicle_classification()
 
     start_time = 0.0
 
-    bridge_list = prepare_bridges() 
+    bridge_list = []
+    if config.Sim.CALC_LOAD_EFFECTS:
+        bridge_list = prepare_bridges() 
 
     lane_list, end_time = get_generator_lanes(vehicle_classification,start_time)
     for i in range(len(bridge_list)):

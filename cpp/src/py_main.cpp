@@ -22,7 +22,7 @@ void get_info() {
 PYBIND11_MODULE(_core, m) {
 	m.doc() = ("PyBTLS is for short-to-mid span bridge traffic loading simulation.");
 	m.def("get_info", &get_info);
-	// py::class_<CConfigData> cconfigdata(m, "ConfigData");
+	// py::class_<CConfigData, CConfigDataCore> cconfigdata(m, "ConfigData");
 	py::class_<CConfigDataCore> cconfigdatacore(m, "ConfigDataCore");
 		cconfigdatacore.def(py::init<>())
 			.def("ReadData", &CConfigDataCore::ReadData, py::arg("in_file"))
