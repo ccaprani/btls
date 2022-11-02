@@ -25,7 +25,7 @@ protected:
 	double genExponential();
 	
 	CFlowModelData_sp m_pFlowModelData;
-	EFlowModel m_FlowModel;	
+	EFlowModel m_FlowModel;
 	CVehicle_sp m_pPrevVeh;
 	CVehicle_sp m_pNextVeh;
 	
@@ -100,20 +100,19 @@ private:
 };
 typedef std::shared_ptr<CFlowGenPoisson> CFlowGenPoisson_sp;
 
+
 class CFlowGenConstant : public CFlowGenerator
 {
 public:
-	CFlowGenConstant(CFlowModelDataConstant_sp pFDM) : CFlowGenerator(nullptr, eFM_Constant){};
-	virtual ~CFlowGenConstant(){};
+	CFlowGenConstant(CFlowModelDataConstant_sp pFDM);
+	virtual ~CFlowGenConstant();
 
 protected:
-	double GenerateGap(){ return 10.0; };		// MAGIC NUMBER - for testing
-	double GenerateSpeed() { return 20.0; };;
-	//void updateProperties();
+	double GenerateGap();
+	double GenerateSpeed();
 
 private:
 	CFlowModelDataConstant_sp m_pFMD;
-	//Normal m_Speed;
 };
 typedef std::shared_ptr<CFlowGenConstant> CFlowGenConstant_sp;
 

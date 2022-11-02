@@ -277,3 +277,25 @@ void CFlowGenPoisson::updateProperties()
 
 	m_pFMD->getSpeedParams(m_CurBlock, m_Speed);
 }
+
+
+///////////// CFlowGenConstant ///////////////
+
+CFlowGenConstant::CFlowGenConstant(CFlowModelDataConstant_sp pFDM) : CFlowGenerator(pFDM, eFM_Constant) 
+{
+	m_pFMD = std::dynamic_pointer_cast<CFlowModelDataConstant>(m_pFlowModelData);
+}
+
+CFlowGenConstant::~CFlowGenConstant() 
+{
+}
+
+double CFlowGenConstant::GenerateGap() 
+{
+	return m_pFMD->getConstGap();  // MAGIC NUMBER - for testing
+}
+
+double CFlowGenConstant::GenerateSpeed() 
+{
+	return m_pFMD->getConstSpeed();
+}
