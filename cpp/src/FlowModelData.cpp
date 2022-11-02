@@ -97,7 +97,7 @@ void CFlowModelDataNHM::ReadFile_NHM()
 //////////// CFlowModelDataCongested //////////////
 
 CFlowModelDataCongested::CFlowModelDataCongested(CConfigDataCore& config, CLaneFlowComposition lfc)
-	: CFlowModelData(config, eFM_Congested, lfc, true)
+	: CFlowModelData(config, eFM_Congested, lfc, true) // Model has cars
 {
 	m_GapMean = m_Config.Traffic.CONGESTED_GAP;
 	m_GapStd = m_Config.Traffic.CONGESTED_GAP_COEF_VAR;
