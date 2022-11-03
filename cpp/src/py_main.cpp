@@ -192,7 +192,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("set_class", &CVehClassPattern::setClassification, py::arg("vehicle"));
 	py::class_<CBridge, CBridge_sp> cbridge(m, "Bridge");
 		cbridge.def(py::init<CConfigDataCore&>(), py::arg("config"))
-			.def("set_calc_time_step", &CBridge::setCalcTimeStep, py::arg("calcTimeStep"))
+			.def("set_calc_time_step", &CBridge::setCalcTimeStep, py::arg("calc_time_step"))
 			.def("add_vehicle", &CBridge::AddVehicle, py::arg("vehicle"))
 			.def("update", &CBridge::Update, py::arg("next_arrival_time"), py::arg("current_time"))
 			.def("finish", &CBridge::Finish)
