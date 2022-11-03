@@ -1,26 +1,31 @@
-#include "VehModelDataConstant.h"
+#include "VehModelDataNominal.h"
 
 
-CVehModelDataConstant::CVehModelDataConstant(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc)
+CVehModelDataNominal::CVehModelDataNominal(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc)
 	: CVehicleModelData(config, eVM_Constant, pVC, lfc, 1) // MAGIC NUMBER - truck class count
-	, m_pNominalVehicle(nullptr), m_CoV_AS(0.0), m_CoV_AW(0.0)
+	, m_pNominalVehicle(nullptr)
+    , m_KernelType(eKT_Normal)
 {
+    // MAGIC NUMBER = bias of 1.0
+	m_KernelAW 	= KernelParams(1.0,0.05);
+	m_KernelAS 	= KernelParams(1.0,0.05);
+
     makeNominalVehicle();
-	ReadDataIn();    
+	ReadDataIn();
 }
 
-CVehModelDataConstant::~CVehModelDataConstant()
+CVehModelDataNominal::~CVehModelDataNominal()
 {
 }
 
-void CVehModelDataConstant::ReadDataIn()
+void CVehModelDataNominal::ReadDataIn()
 {
-	readConstant();
+	readNominal();
 }
 
-void CVehModelDataConstant::readConstant()
+void CVehModelDataNominal::readNominal()
 {
-    std::filesystem::path file = m_Config.Read.CONSTANT_FILE;
+    std::filesystem::path file = m_Config.Read.NOMINAL_FILE;
 	if (!m_CSV.OpenFile(file.string(), ","))
     {
 		std::cerr << "***WARNING: Constant Vehicle file " 
@@ -45,8 +50,8 @@ void CVehModelDataConstant::readConstant()
 		
         // First line has the COVs (can be zero)
 		m_CSV.getline(line);
-		m_CoV_AS = m_CSV.stringToDouble(m_CSV.getfield(0));
-		m_CoV_AW = m_CSV.stringToDouble(m_CSV.getfield(1));
+        m_KernelAS.Scale = m_CSV.stringToDouble(m_CSV.getfield(0));
+		m_KernelAW.Scale = m_CSV.stringToDouble(m_CSV.getfield(1));
 
         // Following lines have the axle spacings and weights
         unsigned int i = 0;
@@ -75,13 +80,13 @@ void CVehModelDataConstant::readConstant()
     }
 }
 
-void CVehModelDataConstant::makeNominalVehicle()
+void CVehModelDataNominal::makeNominalVehicle()
 {
     m_pNominalVehicle = std::make_shared<CVehicle>();
 }
 
-void CVehModelDataConstant::getCoVs(double& CoV_AS, double& CoV_AW)
+void CVehModelDataNominal::getKernels(KernelParams& AS, KernelParams& AW)
 {
-    CoV_AS = m_CoV_AS;
-    CoV_AW = m_CoV_AW;
+	AW = m_KernelAW;
+	AS = m_KernelAS;
 }

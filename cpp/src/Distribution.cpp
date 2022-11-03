@@ -217,8 +217,12 @@ double CDistribution::GenerateTriModalNormal(CTriModalNormal TMN)
 
 double CDistribution::GenerateTriangular()
 {
+	return GenerateTriangular(m_Location,m_Scale);
+}
+
+double CDistribution::GenerateTriangular(double loc, double w)
+{
 	double u = m_RNG.rand();
-	double& w = m_Scale;
 	double val = 0.0;
 
 	if(u < 0.5)
@@ -229,5 +233,5 @@ double CDistribution::GenerateTriangular()
 	{
 		val = w*(1 - sqrt(2*(1-u)));
 	}
-	return val + m_Location;
+	return val + loc;
 }

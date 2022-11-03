@@ -14,11 +14,26 @@ CVehicleGenerator::CVehicleGenerator(EVehicleModel vm, CVehicleModelData_sp pVMD
 {
 	if (m_pVehModelData != nullptr) // not all models have data
 		m_pVehClassification = m_pVehModelData->getVehClassification();
+	
+	SetKernelGenerator();
 }
 
 CVehicleGenerator::~CVehicleGenerator()
 {
 
+}
+
+void CVehicleGenerator::SetKernelGenerator()
+{
+	switch (m_pVehModelData->getKernelType())
+	{
+	case eKT_Triangle:
+		m_pKernelGenerator = &CDistribution::GenerateTriangular;
+		break;	
+	default:
+		m_pKernelGenerator = &CDistribution::GenerateNormal;
+		break;
+	}
 }
 
 void CVehicleGenerator::update(CFlowModelData_sp pFMD)

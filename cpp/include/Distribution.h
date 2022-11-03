@@ -44,6 +44,7 @@ public:
 	double GeneratePoisson();
 	double GenerateGEV();	
 	double GenerateTriangular();
+	double GenerateTriangular(double loc, double w);
 
 private:
 	double BoxMuller();

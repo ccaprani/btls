@@ -28,6 +28,24 @@ enum EVehicleModel
 	eVM_Constant
 };
 
+enum EKernelType
+{
+	eKT_Normal = 0,
+	eKT_Triangle
+};
+
+struct KernelParams
+{
+	KernelParams(double loc, double scale)
+	{
+		Location = loc;
+		Scale = scale;
+	};
+	KernelParams():Location(0.0), Scale(0.0){};
+	double Location;
+	double Scale;
+};
+
 struct Normal
 {
 	Normal(double m, double s)
