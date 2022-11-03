@@ -192,7 +192,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("set_class", &CVehClassPattern::setClassification, py::arg("vehicle"));
 	py::class_<CBridge, CBridge_sp> cbridge(m, "Bridge");
 		cbridge.def(py::init<CConfigDataCore&>(), py::arg("config"))
-			.def("set_calcTimeStep", &CBridge::setCalcTimeStep, py::arg("calcTimeStep"))
+			.def("set_calc_time_step", &CBridge::setCalcTimeStep, py::arg("calcTimeStep"))
 			.def("add_vehicle", &CBridge::AddVehicle, py::arg("vehicle"))
 			.def("update", &CBridge::Update, py::arg("next_arrival_time"), py::arg("current_time"))
 			.def("finish", &CBridge::Finish)
@@ -313,7 +313,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("generator", &CVehicleGenGrave::Generate, py::arg("lane_block"));
 	py::class_<CVehicleModelData, CModelData, CVehicleModelData_sp> cvehiclemodeldata(m, "VehicleModelData");
 	py::class_<CVehicleTrafficFile> cvehicletrafficfile(m, "VehicleTrafficFile");
-		cvehicletrafficfile.def(py::init<CVehicleClassification_sp, bool, bool, double>(), py::arg("vehicle_classification"), py::arg("use_constSpeed"), py::arg("useAveSpeed"), py::arg("constSpeed_value"))
+		cvehicletrafficfile.def(py::init<CVehicleClassification_sp, bool, bool, double>(), py::arg("vehicle_classification"), py::arg("use_const_speed"), py::arg("use_ave_speed"), py::arg("const_speed_value"))
 			.def("read", &CVehicleTrafficFile::Read, py::arg("file"), py::arg("format"))
 			.def("get_noDays", &CVehicleTrafficFile::getNoDays)
 			.def("get_no_lanes", &CVehicleTrafficFile::getNoLanes)
