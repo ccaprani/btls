@@ -292,7 +292,7 @@ CFlowGenConstant::~CFlowGenConstant()
 
 double CFlowGenConstant::GenerateGap() 
 {
-	return m_pFMD->getConstGap();  // MAGIC NUMBER - for testing
+	return m_pFMD->getConstGap();
 }
 
 double CFlowGenConstant::GenerateSpeed() 
