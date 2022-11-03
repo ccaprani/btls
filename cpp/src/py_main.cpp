@@ -250,7 +250,30 @@ PYBIND11_MODULE(_core, m) {
 	py::class_<CFatigueManager, COutputManagerBase> cfatiguemanager(m, "FatigueManager");
 	py::class_<CCalcEffect> ccalceffect(m, "CalcEffect");
 	py::class_<CRNGWrapper> crngwrapper(m, "RNGWrapper");
+	py::class_<CTriModalNormal> ctrimodalnormal(m, "TriModalNormal");
+		ctrimodalnormal.def(py::init<>())
+			.def("add_mode", &CTriModalNormal::AddMode, py::arg("w"), py::arg("m"), py::arg("s"));
 	py::class_<CDistribution> cdistribution(m, "Distribution");
+		cdistribution.def(py::init<>())
+			.def(py::init<double, double, double>(), py::arg("w"), py::arg("m"), py::arg("s"))
+			.def("set_shape", &CDistribution::setShape, py::arg("shape"))
+			.def("set_scale", &CDistribution::setScale, py::arg("scale"))
+			.def("set_location", &CDistribution::setLocation, py::arg("loc"))
+			.def("get_shape", &CDistribution::getShape)
+			.def("get_scale", &CDistribution::getScale)
+			.def("get_location", &CDistribution::getLocation)
+			.def("gen_uniform", &CDistribution::GenerateUniform)
+			.def("gen_normal", py::overload_cast<>(&CDistribution::GenerateNormal))
+			.def("gen_normal", py::overload_cast<double,double>(&CDistribution::GenerateNormal), py::arg("mean"), py::arg("stdev"))
+			.def("gen_trimodalnormal", &CDistribution::GenerateTriModalNormal, py::arg("tmn"))
+			.def("gen_exponential", &CDistribution::GenerateExponential)
+			.def("gen_lognormal", &CDistribution::GenerateLogNormal)
+			.def("gen_gamma", &CDistribution::GenerateGamma)
+			.def("gen_gumbel", &CDistribution::GenerateGumbel)
+			.def("gen_poisson", &CDistribution::GeneratePoisson)
+			.def("gen_gev", &CDistribution::GenerateGEV)
+			.def("gen_triangular", py::overload_cast<>(&CDistribution::GenerateTriangular))
+			.def("gen_triangular", py::overload_cast<double,double>(&CDistribution::GenerateTriangular), py::arg("mean"), py::arg("stdev"));
 	py::class_<CEffect> ceffect(m, "Effect");
 	py::class_<CEvent> cevent(m, "Event");
 	py::class_<CEventBuffer> ceventbuffer(m, "EventBuffer");
@@ -277,7 +300,6 @@ PYBIND11_MODULE(_core, m) {
 	py::class_<CFlowModelDataPoisson, CFlowModelData, CFlowModelDataPoisson_sp> cflowmodeldatapoisson(m, "FlowModelDataPoisson");
 	py::class_<CFlowModelDataConstant, CFlowModelData, CFlowModelDataConstant_sp> cflowmodeldataconstant(m, "FlowModelDataConstant");
 	py::class_<CStatsManager> cstatsmanager(m, "StatsManager");
-	py::class_<CTriModalNormal> ctrimodalnormal(m, "TriModalNormal");
 	py::class_<CFlowRateData> cflowratedata(m, "FlowRateData");
 	py::class_<CVehicleGenerator, CGenerator, CVehicleGenerator_sp> cvehiclegenerator(m, "VehicleGenerator");
 	py::class_<CVehicleGenNominal, CVehicleGenerator, CVehicleGenNominal_sp> cvehiclegenconstant(m, "VehicleGenNominal");
