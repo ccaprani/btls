@@ -1,19 +1,18 @@
 #include "ReadILFile.h"
 
-using namespace std;
 
 CReadILFile::CReadILFile(void)
 	: m_NoInfLines(0)
 {
 }
 
-CReadILFile::CReadILFile(filesystem::path file)
+CReadILFile::CReadILFile(std::filesystem::path file)
 	: m_NoInfLines(0)
 {
 	ReadILFile(file.string());
 }
 
-CReadILFile::CReadILFile(filesystem::path file, unsigned int mode)
+CReadILFile::CReadILFile(std::filesystem::path file, unsigned int mode)
 	: m_NoInfLines(0)
 {
 	if(mode == 1)	// read an influence surface
@@ -28,17 +27,17 @@ CReadILFile::~CReadILFile(void)
 
 
 // Reads the IL file in and sets the distance and ordinate vectors
-void CReadILFile::ReadILFile(string file)
+void CReadILFile::ReadILFile(std::string file)
 {
 	m_File = file;
-	m_InFileStream.open(m_File, ios::in );
+	m_InFileStream.open(m_File, std::ios::in );
 	if( !m_InFileStream )
 	{
-		std::cerr << "*** Warning: Influence Line file could not be opened" << endl;
+		std::cerr << "*** Warning: Influence Line file could not be opened" << std::endl;
 		return;
 	}	
 	
-	string temp;
+	std::string temp;
 	getline(m_InFileStream, temp);
 	m_NoInfLines = stringToInt(temp);
 
@@ -66,14 +65,14 @@ void CReadILFile::ReadILFile(string file)
 
 
 // Reads an Influence Surface file in
-void CReadILFile::ReadInfSurfFile(string file)
+void CReadILFile::ReadInfSurfFile(std::string file)
 {
 	if( !m_CSV.OpenFile(file, ",") )
 	{
-		std::cerr << "*** Warning: Influence Surface file could not be opened" << endl;
+		std::cerr << "*** Warning: Influence Surface file could not be opened" << std::endl;
 		return;
 	}
-	string line;
+	std::string line;
 
 	while(m_CSV.getline(line))	// while another IS
 	{
@@ -98,7 +97,7 @@ void CReadILFile::ReadInfSurfFile(string file)
 	}
 }
 
-vector<CInfluenceLine> CReadILFile::getInfLines()
+std::vector<CInfluenceLine> CReadILFile::getInfLines()
 {
 	return m_vInfLine;
 }
@@ -110,30 +109,30 @@ std::vector<CInfluenceLine> CReadILFile::getInfLines(std::filesystem::path file,
 
 	if (mode == 1)	// read an influence surface
 	{
-		cout << "Reading influence surface file: " << file.c_str() << endl;
+		std::cout << "Reading influence surface file: " << file.c_str() << std::endl;
 		ReadInfSurfFile(file.string());
 	}
 
 	else
 	{
-		cout << "Reading influence line file: " << file.c_str() << endl;
+		std::cout << "Reading influence line file: " << file.c_str() << std::endl;
 		ReadILFile(file.string());
 	}
 	
 	return m_vInfLine;
 }
 
-double CReadILFile::stringToDouble(string line)
+double CReadILFile::stringToDouble(std::string line)
 {
-	stringstream ss(line);
+	std::stringstream ss(line);
 	double n;
 	ss >> n;
 	return n;
 }
 
-int CReadILFile::stringToInt(string line)
+int CReadILFile::stringToInt(std::string line)
 {
-	stringstream ss(line);
+	std::stringstream ss(line);
 	int n;
 	ss >> n;
 	return n;

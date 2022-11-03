@@ -25,7 +25,7 @@ bool CConfigDataCore::ReadData(std::string inFile)
 
 void CConfigDataCore::ExtractData()
 {
-	string str;
+	std::string str;
 	str = GetNextDataLine();	Mode.PROGRAM_MODE				= m_CSV.stringToInt(	str);
 
 	str = GetNextDataLine();	Gen.NO_DAYS						= m_CSV.stringToInt(	str);
@@ -101,9 +101,9 @@ void CConfigDataCore::ExtractData()
 	doDerivedConstants();
 }
 
-string CConfigDataCore::GetNextDataLine()
+std::string CConfigDataCore::GetNextDataLine()
 {
-	string line;
+	std::string line;
 	m_CSV.getline(line);
 	while(line.substr(0,2) == m_CommentString)
 		m_CSV.getline(line);
@@ -114,7 +114,7 @@ string CConfigDataCore::GetNextDataLine()
 vector<double> CConfigDataCore::GetVectorFromNextLine()
 {
 	vector<double> vData;
-	string line;
+	std::string line;
 	m_CSV.getline(line);
 	while(line.substr(0,2) == m_CommentString)
 		m_CSV.getline(line);
@@ -122,7 +122,7 @@ vector<double> CConfigDataCore::GetVectorFromNextLine()
 	size_t nData = m_CSV.getnfield();	// minus 1 if comma to be at the end is counted
 	for (size_t j = 0; j < nData; j++)
 	{
-		string str = m_CSV.getfield(j);
+		std::string str = m_CSV.getfield(j);
 		double val = m_CSV.stringToDouble(str);
 		vData.push_back(val);
 	}
@@ -159,9 +159,9 @@ void CConfigDataCore::doDerivedConstants()
 	Traffic.CONGESTED_GAP = Traffic.CONGESTED_SPACING/Traffic.CONGESTED_SPEED;
 }
 /*
-string CConfigDataCore::returnInt(int i) 
+std::string CConfigDataCore::returnInt(int i) 
 {
-	string a;
+	std::string a;
 	switch(i)
 	{
 	case 1: { a = 'a'; break;};
@@ -182,7 +182,7 @@ string CConfigDataCore::returnInt(int i)
 }
 */
 
-void CConfigDataCore::VehGenGrave(string lanes_file, string traffic_folder, size_t no_days, double truck_track_width, double lane_eccentricity_std) 
+void CConfigDataCore::VehGenGrave(std::string lanes_file, std::string traffic_folder, size_t no_days, double truck_track_width, double lane_eccentricity_std) 
 {
     Gen.GEN_TRAFFIC = true;
     Read.READ_FILE = false;
@@ -194,7 +194,7 @@ void CConfigDataCore::VehGenGrave(string lanes_file, string traffic_folder, size
     Traffic.VEHICLE_MODEL = 0;
 }
 
-void CConfigDataCore::VehGenGarage(string lanes_file, string garage_file, unsigned int file_format, string kernel_file, size_t no_days, double lane_eccentricity_std) 
+void CConfigDataCore::VehGenGarage(std::string lanes_file, std::string garage_file, size_t file_format, std::string kernel_file, size_t no_days, double lane_eccentricity_std) 
 {
     Gen.GEN_TRAFFIC = true;
     Read.READ_FILE = false;
@@ -207,7 +207,7 @@ void CConfigDataCore::VehGenGarage(string lanes_file, string garage_file, unsign
     Traffic.VEHICLE_MODEL = 2;
 }
 
-void CConfigDataCore::VehGenConstant(string lanes_file, string constant_file, size_t no_days, double lane_eccentricity_std) 
+void CConfigDataCore::VehGenConstant(std::string lanes_file, std::string constant_file, size_t no_days, double lane_eccentricity_std) 
 {
     Gen.GEN_TRAFFIC = true;
     Read.READ_FILE = false;
@@ -218,7 +218,7 @@ void CConfigDataCore::VehGenConstant(string lanes_file, string constant_file, si
     Traffic.VEHICLE_MODEL = 1;
 }
 
-void CConfigDataCore::FlowGenNHM(int classification, string traffic_folder) 
+void CConfigDataCore::FlowGenNHM(int classification, std::string traffic_folder) 
 {
     Gen.GEN_TRAFFIC = true;
     Read.READ_FILE = false;
@@ -258,7 +258,7 @@ void CConfigDataCore::FlowGenFreeFlow(int classification)
 }
 
 
-void CConfigDataCore::TrafficRead(string traffic_file, unsigned int file_format, bool use_constant_speed, bool use_ave_speed, double const_speed) 
+void CConfigDataCore::TrafficRead(std::string traffic_file, size_t file_format, bool use_constant_speed, bool use_ave_speed, double const_speed) 
 {
     Gen.GEN_TRAFFIC = false;
     Read.READ_FILE = true;
@@ -270,7 +270,7 @@ void CConfigDataCore::TrafficRead(string traffic_file, unsigned int file_format,
 }
 
 
-void CConfigDataCore::Simulation(string bridge_file, string infline_file, string infsurf_file, double calc_time_step, int min_gvw) 
+void CConfigDataCore::Simulation(std::string bridge_file, std::string infline_file, std::string infsurf_file, double calc_time_step, size_t min_gvw) 
 {
     Sim.CALC_LOAD_EFFECTS = true;
     Sim.BRIDGE_FILE = bridge_file;
@@ -281,7 +281,7 @@ void CConfigDataCore::Simulation(string bridge_file, string infline_file, string
 }
 
 
-void CConfigDataCore::OutputGeneral(bool write_time_history, bool write_each_event, bool write_fatigue_event, int write_buffer_size) 
+void CConfigDataCore::OutputGeneral(bool write_time_history, bool write_each_event, bool write_fatigue_event, size_t write_buffer_size) 
 {
     Output.WRITE_TIME_HISTORY = write_time_history;
     Output.WRITE_EACH_EVENT = write_each_event;
@@ -289,7 +289,7 @@ void CConfigDataCore::OutputGeneral(bool write_time_history, bool write_each_eve
     Output.WRITE_FATIGUE_EVENT = write_buffer_size;
 }
 
-void CConfigDataCore::OutputVehicleFile(bool write_vehicle_file, unsigned int vehicle_file_format, string vehicle_file_name, int buffer_size, bool write_flow_stats) 
+void CConfigDataCore::OutputVehicleFile(bool write_vehicle_file, size_t vehicle_file_format, std::string vehicle_file_name, size_t buffer_size, bool write_flow_stats) 
 {
     Output.VehicleFile.WRITE_VEHICLE_FILE = write_vehicle_file;
     Output.VehicleFile.FILE_FORMAT = vehicle_file_format;
@@ -298,7 +298,7 @@ void CConfigDataCore::OutputVehicleFile(bool write_vehicle_file, unsigned int ve
     Output.VehicleFile.WRITE_FLOW_STATS = write_flow_stats;
 }
 
-void CConfigDataCore::OutputBlockMax(bool write_blockmax, bool write_vehicle, bool write_summary, bool write_mixed, int block_size_days, int block_size_secs, int buffer_size) 
+void CConfigDataCore::OutputBlockMax(bool write_blockmax, bool write_vehicle, bool write_summary, bool write_mixed, size_t block_size_days, size_t block_size_secs, size_t buffer_size) 
 {
     Output.BlockMax.WRITE_BM = write_blockmax;
     Output.BlockMax.WRITE_BM_VEHICLES = write_vehicle;
@@ -309,7 +309,7 @@ void CConfigDataCore::OutputBlockMax(bool write_blockmax, bool write_vehicle, bo
     Output.BlockMax.WRITE_BM_BUFFER_SIZE = buffer_size;
 }
 
-void CConfigDataCore::OutputPOT(bool write_pot, bool write_vehicle, bool write_summary, bool write_counter, int pot_size_days, int pot_size_secs, int buffer_size) 
+void CConfigDataCore::OutputPOT(bool write_pot, bool write_vehicle, bool write_summary, bool write_counter, size_t pot_size_days, size_t pot_size_secs, size_t buffer_size) 
 {
     Output.POT.WRITE_POT = write_pot;
     Output.POT.WRITE_POT_VEHICLES = write_vehicle;
@@ -320,7 +320,7 @@ void CConfigDataCore::OutputPOT(bool write_pot, bool write_vehicle, bool write_s
     Output.POT.WRITE_POT_BUFFER_SIZE = buffer_size;
 }
 
-void CConfigDataCore::OutputStats(bool write_stats, bool write_cumulative, bool write_intervals, int interval_size, int buffer_size) 
+void CConfigDataCore::OutputStats(bool write_stats, bool write_cumulative, bool write_intervals, size_t interval_size, size_t buffer_size) 
 {
     Output.Stats.WRITE_STATS = write_stats;
     Output.Stats.WRITE_SS_CUMULATIVE = write_cumulative;
@@ -329,7 +329,7 @@ void CConfigDataCore::OutputStats(bool write_stats, bool write_cumulative, bool 
     Output.Stats.WRITE_SS_BUFFER_SIZE = buffer_size;
 }
 
-void CConfigDataCore::OutputFatigue(bool do_rainflow, int decimal, double cut_off_value, int buffer_size) 
+void CConfigDataCore::OutputFatigue(bool do_rainflow, int decimal, double cut_off_value, size_t buffer_size) 
 {
     Output.Fatigue.DO_FATIGUE_RAINFLOW = do_rainflow;
     Output.Fatigue.RAINFLOW_DECIMAL = decimal;

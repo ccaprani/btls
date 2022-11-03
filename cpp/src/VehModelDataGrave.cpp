@@ -1,5 +1,4 @@
 #include "VehModelDataGrave.h"
-#include "ConfigData.h"
 
 
 CVehModelDataGrave::CVehModelDataGrave(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc)
@@ -229,19 +228,19 @@ vNHM[see paper/manual]
 
 void CVehModelDataGrave::ReadFile_AW23()
 {
-	filesystem::path file = m_Path / "AW2&3.csv";
+	std::filesystem::path file = m_Path / "AW2&3.csv";
 	if( !m_CSV.OpenFile(file.string(), ",") )
 	{
-		std::cerr << "***ERROR: " << std::filesystem::weakly_canonical(file) << " file could not be opened" << endl;
+		std::cerr << "***ERROR: " << std::filesystem::weakly_canonical(file) << " file could not be opened" << std::endl;
 		system("PAUSE");
 		exit( 1 );
 	}
 
 	for (int iTruck = 2; iTruck <= 3; iTruck++)	// for each truck type
 	{
-		string line;
+		std::string line;
 		CTriModalNormal temp;
-		vector<CTriModalNormal> vAxle(iTruck, temp);
+		std::vector<CTriModalNormal> vAxle(iTruck, temp);
 
 		for (int i = 0; i < 3; i++)		// for 3 lines of data
 		{
@@ -270,18 +269,18 @@ void CVehModelDataGrave::ReadFile_AW23()
 
 void CVehModelDataGrave::ReadFile_AW45()
 {
-	filesystem::path file = m_Path / "AW4&5.csv";
+	std::filesystem::path file = m_Path / "AW4&5.csv";
 	if( !m_CSV.OpenFile(file.string(), ",") )
 	{
-		std::cerr << "***ERROR: " << std::filesystem::weakly_canonical(file) << " file could not be opened" << endl;
+		std::cerr << "***ERROR: " << std::filesystem::weakly_canonical(file) << " file could not be opened" << std::endl;
 		system("PAUSE");
 		exit( 1 );
 	}
 
 	for (int iTruck = 4; iTruck <= 5; iTruck++)	// for each truck type
 	{
-		string line;
-		vector<double> vData(6, 0.0);
+		std::string line;
+		std::vector<double> vData(6, 0.0);
 
 		for (int iRange = 0; iRange < 12; iRange++)		// for 12 lines of data
 		{
@@ -301,19 +300,19 @@ void CVehModelDataGrave::ReadFile_AW45()
 
 void CVehModelDataGrave::ReadFile_AS()
 {
-	filesystem::path  file = m_Path / "ASall.csv";
+	std::filesystem::path file = m_Path / "ASall.csv";
 	if( !m_CSV.OpenFile(file.string(), ",") )
 	{
-		std::cerr << "***ERROR: " << std::filesystem::weakly_canonical(file) << " file could not be opened" << endl;
+		std::cerr << "***ERROR: " << std::filesystem::weakly_canonical(file) << " file could not be opened" << std::endl;
 		system("PAUSE");
 		exit( 1 );
 	}
 
 	for (int iTruck = 2; iTruck <= 5; iTruck++)	// for each truck type
 	{
-		string line;
+		std::string line;
 		CTriModalNormal temp;
-		vector<CTriModalNormal> vSpace(iTruck, temp);
+		std::vector<CTriModalNormal> vSpace(iTruck, temp);
 
 		for (int i = 0; i < 3; i++)		// for 3 lines of data
 		{
@@ -354,7 +353,7 @@ void CVehModelDataGrave::ReadFile_AS()
 
 void CVehModelDataGrave::ReadFile_ATW()
 {
-	filesystem::path  file = m_Path / "ATW.csv";
+	std::filesystem::path file = m_Path / "ATW.csv";
 	if (!m_CSV.OpenFile(file.string(), ","))
 	{
 		std::cout << "*** Warning: Axle track width file not found: " 
@@ -362,7 +361,7 @@ void CVehModelDataGrave::ReadFile_ATW()
 				  << " using default values" << std::endl;
 		CTriModalNormal tmn;
 		tmn.AddMode(1, m_Config.Gen.TRUCK_TRACK_WIDTH, 0);	// deterministic width
-		vector<CTriModalNormal> vTrack(2, tmn); // start off with 2 axles
+		std::vector<CTriModalNormal> vTrack(2, tmn); // start off with 2 axles
 		Add2AxleTrackWidth(vTrack); // add it
 		vTrack.push_back(tmn);	Add3AxleTrackWidth(vTrack); // add another axle and store it
 		vTrack.push_back(tmn);	Add4AxleTrackWidth(vTrack); // add another axle and store it
@@ -373,9 +372,9 @@ void CVehModelDataGrave::ReadFile_ATW()
 	// only gets here if file exists
 	for (int iTruck = 2; iTruck <= 5; iTruck++)	// for each truck type
 	{
-		string line;
+		std::string line;
 		CTriModalNormal temp;
-		vector<CTriModalNormal> vTrack(iTruck, temp);
+		std::vector<CTriModalNormal> vTrack(iTruck, temp);
 
 		for (int i = 0; i < 3; i++)		// for 3 lines of data
 		{
@@ -416,21 +415,21 @@ void CVehModelDataGrave::ReadFile_ATW()
 
 void CVehModelDataGrave::ReadFile_GVW()
 {
-	filesystem::path  file = m_Path / "GVWpdf.csv";
+	std::filesystem::path file = m_Path / "GVWpdf.csv";
 	if( !m_CSV.OpenFile(file.string(), ",") )
 	{
-		std::cerr << "***ERROR: " << std::filesystem::weakly_canonical(file) << " file could not be opened" << endl;
+		std::cerr << "***ERROR: " << std::filesystem::weakly_canonical(file) << " file could not be opened" << std::endl;
 		system("PAUSE");
 		exit( 1 );
 	}
 
-	string line;
+	std::string line;
 	CTriModalNormal temp;
-	vector<CTriModalNormal> vSpeed(2, temp);
+	std::vector<CTriModalNormal> vSpeed(2, temp);
 
 	for (int dir = 1; dir <= 2; dir++)
 	{
-		vector<CTriModalNormal> vGVW(4, temp);
+		std::vector<CTriModalNormal> vGVW(4, temp);
 
 		for (int i = 0; i < 3; i++)		// for 3 lines of data
 		{

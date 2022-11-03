@@ -180,7 +180,7 @@ void CVehicleBuffer::writeFlowData()
 template <typename T>
 std::string CVehicleBuffer::to_string(T const& value)
 {
-    stringstream sstr;
+    std::stringstream sstr;
     sstr << value;
     return sstr.str();
 }

@@ -1,5 +1,4 @@
 #include "FatigueManager.h"
-#include "ConfigData.h"
 
 
 CFatigueManager::CFatigueManager(CConfigDataCore& config) : COutputManagerBase("RC")

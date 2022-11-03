@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "BlockMaxManager.h"
-#include "ConfigData.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -56,7 +56,7 @@ void CBlockMaxManager::Initialize(double BridgeLength, size_t nLE, double SimSta
 	{
 		// This is the mixed event output file
 		m_MixedEventFile = m_FileStem + "_V_" + to_string(m_BridgeLength) + "_All.txt";
-		ofstream outFile( m_MixedEventFile.c_str(), ios::out ); outFile.close();
+		std::ofstream outFile( m_MixedEventFile.c_str(), std::ios::out ); outFile.close();
 	}
 }
 
@@ -85,8 +85,8 @@ void CBlockMaxManager::Update(CEvent curEvent)
 		}
 	}
 	else
-		std::cout << endl << "*** No trucks: block maxima error at " 
-			<< curTime << " s, block no. " << m_CurBlockNo << endl;
+		std::cout << std::endl << "*** No trucks: block maxima error at " 
+			<< curTime << " s, block no. " << m_CurBlockNo << std::endl;
 
 	// For mixed event output
 	UpdateMixedEvents(curEvent);
@@ -184,7 +184,7 @@ void CBlockMaxManager::WriteSummaryFiles()
 {
 	for(unsigned int iLE = 0; iLE < m_NoLoadEffects; iLE++)
 	{
-		ofstream outFile( m_vSummaryFiles[iLE].c_str(), ios::app );
+		std::ofstream outFile( m_vSummaryFiles[iLE].c_str(), std::ios::app );
 		
 		for(unsigned int iBlock = 0; iBlock < m_vBMEventsBuffer.size(); iBlock++)
 		{
@@ -195,10 +195,10 @@ void CBlockMaxManager::WriteSummaryFiles()
 			for(unsigned int iEv = 0; iEv < BMEv.getSize(); iEv++)
 			{
 				CEvent& Ev = BMEv.getEvent(iEv);
-				string val = to_string(Ev.getMaxEffect(iLE).getValue(),1);
+				std::string val = to_string(Ev.getMaxEffect(iLE).getValue(),1);
 				outFile << val << '\t' << '\t';
 			}
-			outFile << endl;
+			outFile << std::endl;
 		}
 
 		outFile.close();

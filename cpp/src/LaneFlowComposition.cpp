@@ -28,7 +28,7 @@ void CLaneFlowComposition::addBlockData(vec vData)
 	iCol++;		double carP = vData.at(iCol)/100.0;	m_vCarP.push_back(carP);	// e.g. 80% to 0.80
 		
 	if (carP > 1.0 || carP < 0)
-		cout << "***ERROR: Incorrect car percentage for hour/block " << iBlock << " lane " << m_GlobalLaneNo << endl;
+		std::cout << "***ERROR: Incorrect car percentage for hour/block " << iBlock << " lane " << m_GlobalLaneNo << std::endl;
 	m_vTotalFlow.push_back(flow/(1.0-carP));
 
 	vec vComposition;	double sum = 0.0;
@@ -40,8 +40,8 @@ void CLaneFlowComposition::addBlockData(vec vData)
 		vComposition.push_back(perc/100.0);
 	}
 	if (sum < 99.99 || sum > 100.01)
-		cout << "***ERROR: Truck percentages " << sum << " != 100 for hour/block "
-		<< iBlock << " lane " << m_GlobalLaneNo << endl;
+		std::cout << "***ERROR: Truck percentages " << sum << " != 100 for hour/block "
+			<< iBlock << " lane " << m_GlobalLaneNo << std::endl;
 	m_mComposition.push_back(vComposition);
 
 }

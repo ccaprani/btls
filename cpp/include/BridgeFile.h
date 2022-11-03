@@ -18,13 +18,13 @@ public:
 	double getMaxBridgeLength(void);
 
 private:
-	double ReadLoadEffect(CBridge_sp pBridge, vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf);
-	int GetNextDataLine(string& str);
+	double ReadLoadEffect(CBridge_sp pBridge, std::vector<CInfluenceLine> vDiscreteIL, std::vector<CInfluenceLine> vInfSurf);
+	int GetNextDataLine(std::string& str);
 
 	CConfigDataCore& m_Config;
 
 	CCSVParse m_CSV;
-	string m_CommentString;
+	std::string m_CommentString;
 	std::vector<CBridge_sp> m_vpBridge;
 };
 

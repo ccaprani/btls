@@ -1,5 +1,5 @@
 #include "FlowModelData.h"
-#include "ConfigData.h"
+
 
 CFlowModelData::CFlowModelData(CConfigDataCore& config, EFlowModel fm, CLaneFlowComposition lfc, const bool bCars)
 	: CModelData(config), m_Model(fm), m_bModelHasCars(bCars)
@@ -68,14 +68,14 @@ void CFlowModelDataNHM::ReadDataIn()
 
 void CFlowModelDataNHM::ReadFile_NHM()
 {
-	filesystem::path file = m_Path / "NHM.csv";
+	std::filesystem::path file = m_Path / "NHM.csv";
 	if (!m_CSV.OpenFile(file.string(), ","))
 	{
 		std::cout << "**** ERROR: Cannot read " << std::filesystem::weakly_canonical(file) << std::endl;
 		return;
 	}
 	int noRows = 0;
-	string line;
+	std::string line;
 
 	// get no of rows
 	m_CSV.getline(line);
@@ -97,7 +97,7 @@ void CFlowModelDataNHM::ReadFile_NHM()
 //////////// CFlowModelDataCongested //////////////
 
 CFlowModelDataCongested::CFlowModelDataCongested(CConfigDataCore& config, CLaneFlowComposition lfc)
-	: CFlowModelData(config, eFM_Congested, lfc, true)
+	: CFlowModelData(config, eFM_Congested, lfc, true) // Model has cars
 {
 	m_GapMean = m_Config.Traffic.CONGESTED_GAP;
 	m_GapStd = m_Config.Traffic.CONGESTED_GAP_COEF_VAR;

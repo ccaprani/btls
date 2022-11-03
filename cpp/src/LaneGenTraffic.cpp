@@ -1,5 +1,5 @@
 #include "LaneGenTraffic.h"
-#include "ConfigData.h"
+
 
 CLaneGenTraffic::CLaneGenTraffic(CConfigDataCore& config): m_Config(config)
 {

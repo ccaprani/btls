@@ -1,13 +1,14 @@
 #include "PrepareSim.h"
 
-vector<CBridge_sp> PrepareBridges()
+
+std::vector<CBridge_sp> PrepareBridges()
 {
 	CReadILFile readIL;
 	CBridgeFile BridgeFile(CConfigData::get(),
 		readIL.getInfLines(CConfigData::get().Sim.INFLINE_FILE,0),	// discrete ILs
 		readIL.getInfLines(CConfigData::get().Sim.INFSURF_FILE,1));	// Influence Surfaces
 
-	vector<CBridge_sp> vpBridges = BridgeFile.getBridges();
+	std::vector<CBridge_sp> vpBridges = BridgeFile.getBridges();
 	CConfigData::get().Gen.NO_OVERLAP_LENGTH = BridgeFile.getMaxBridgeLength();
 
 	for(unsigned int i = 0; i < vpBridges.size(); i++)
@@ -16,7 +17,7 @@ vector<CBridge_sp> PrepareBridges()
 	return vpBridges;
 }
 
-void GetGeneratorLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLanes, const double& StartTime, double& EndTime)
+void GetGeneratorLanes(CVehicleClassification_sp pVC, std::vector<CLane_sp>& vpLanes, const double& StartTime, double& EndTime)
 {
 	// Useful debugging tool - set start time higher
 	EndTime = (double)(CConfigData::get().Gen.NO_DAYS)*24*3600;
@@ -37,12 +38,12 @@ void GetGeneratorLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLanes,
 	}
 }
 
-void GetTrafficFileLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLanes, double& StartTime, double& EndTime)
+void GetTrafficFileLanes(CVehicleClassification_sp pVC, std::vector<CLane_sp>& vpLanes, double& StartTime, double& EndTime)
 {
 	CVehicleTrafficFile TrafficFile(pVC, CConfigData::get().Read.USE_CONSTANT_SPEED, 
 		CConfigData::get().Read.USE_AVE_SPEED, CConfigData::get().Read.CONST_SPEED);
-	cout << "Reading traffic file..." << endl;
-	filesystem::path file = CConfigData::get().Read.TRAFFIC_FILE;
+	std::cout << "Reading traffic file..." << std::endl;
+	std::filesystem::path file = CConfigData::get().Read.TRAFFIC_FILE;
 	TrafficFile.Read(file.string(),CConfigData::get().Read.FILE_FORMAT);
 	
 	CConfigData::get().Gen.NO_DAYS		= TrafficFile.getNoDays();
@@ -86,7 +87,7 @@ void GetTrafficFileLanes(CVehicleClassification_sp pVC, vector<CLane_sp>& vpLane
 	EndTime = TrafficFile.getEndTime();
 }
 
-void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, vector<CLane_sp> vLanes, double SimStartTime, double SimEndTime)
+void doSimulation(CVehicleClassification_sp pVC, std::vector<CBridge_sp> vBridges, std::vector<CLane_sp> vLanes, double SimStartTime, double SimEndTime)
 {
 	CVehicleBuffer VehBuff(CConfigData::get(), pVC, SimStartTime);
 	//size_t nLanes = vLanes.size();
@@ -94,8 +95,8 @@ void doSimulation(CVehicleClassification_sp pVC, vector<CBridge_sp> vBridges, ve
 	//double nextTime = 0.0;
 	int curDay = (int)(SimStartTime/86400);
 	
-	std::cout << "Starting simulation..." << endl;
-	std::cout << "Day complete..." << endl;
+	std::cout << "Starting simulation..." << std::endl;
+	std::cout << "Day complete..." << std::endl;
 
 	while (curTime <= SimEndTime)
 	{

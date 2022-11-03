@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "EventBuffer.h"
-#include "ConfigData.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -36,8 +36,8 @@ void CEventBuffer::setOutFile(std::string OutFile)
 
 void CEventBuffer::setOutFile(double BridgeLength)
 {
-	string stem = m_Mode == ALLEVENTS ? "_AllEvents" : "_Fatigue";
-	string OutFile;
+	std::string stem = m_Mode == ALLEVENTS ? "_AllEvents" : "_Fatigue";
+	std::string OutFile;
 	m_BridgeLength = BridgeLength;
 	OutFile = "BL_" + to_string(m_BridgeLength) + stem + ".txt";
 	m_OutFile.open(OutFile.c_str(), std::ios::out);
@@ -101,7 +101,7 @@ void CEventBuffer::FlushFatigueBuff()
 	for (size_t i = 0; i < nEvs; i++)
 	{	
 		CEvent& Ev = m_vEvents[i];
-		ostringstream oStr; 
+		std::ostringstream oStr; 
 
 		// Write the first line
 		oStr.width(15); oStr << std::left << std::fixed << std::setprecision(2) << Ev.getStartTime() << '\t';
@@ -147,7 +147,7 @@ void CEventBuffer::FlushFatigueBuff()
 template <typename T>
 std::string CEventBuffer::to_string(T const& value)
 {
-    stringstream sstr;
+    std::stringstream sstr;
     sstr << value;
     return sstr.str();
 }

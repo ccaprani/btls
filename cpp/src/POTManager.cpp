@@ -1,5 +1,5 @@
 #include "POTManager.h"
-#include "ConfigData.h"
+
 
 CPOTManager::CPOTManager(CConfigDataCore& config) : COutputManagerBase("PT")
 {
@@ -62,7 +62,7 @@ void CPOTManager::Update(CEvent curEvent)
 		}
 	}
 	else
-		std::cout << endl << "*** No trucks: POT error at " << curTime << " s" << endl;
+		std::cout << std::endl << "*** No trucks: POT error at " << curTime << " s" << std::endl;
 
 	CheckBuffer(false);
 }
@@ -161,7 +161,7 @@ void CPOTManager::WriteSummaryFiles()
 {
 	for (size_t iLE = 0; iLE < m_NoLoadEffects; iLE++)
 	{
-		ofstream outFile( m_vSummaryFiles[iLE].c_str(), ios::app );
+		std::ofstream outFile( m_vSummaryFiles[iLE].c_str(), std::ios::app );
 		
 		for (size_t iEv = 0; iEv < m_vEvents.at(iLE).size(); iEv++)
 		{
@@ -175,7 +175,7 @@ void CPOTManager::WriteSummaryFiles()
 			oStr.width(10);		oStr << std::fixed << std::setprecision(1) << Ev.getMaxEffect(iLE).getValue();	
 			// oStr << ends;
 	
-			outFile << oStr.str() << endl;
+			outFile << oStr.str() << std::endl;
 		}
 		outFile.close();
 	}

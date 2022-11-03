@@ -44,6 +44,8 @@ def test_run():
 
     # config.OutputPOT(write_pot=True)
 
+    config.OutputVehicleFile(write_vehicle_file=True,vehicle_file_format=4,write_flow_stats=True,buffer_size=100000)
+
     # config.OutputStats(write_stats=True)
 
     # config.OutputFatigue(do_rainflow=True)
