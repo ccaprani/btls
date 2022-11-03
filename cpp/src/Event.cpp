@@ -6,8 +6,6 @@
 #include "ConfigData.h"
 
 
-using namespace std;
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -146,7 +144,7 @@ CEffect& CEvent::getMaxEffect(size_t effNo)
 		return m_vMaxEffects[effNo];
 	else
 	{
-		std::cout << "***Error: cannot return effect no. " << effNo << endl;
+		std::cout << "***Error: cannot return effect no. " << effNo << std::endl;
 		return m_vMaxEffects[0];
 	}
 }
@@ -157,7 +155,7 @@ CEffect& CEvent::getMinEffect(size_t effNo)
 		return m_vMinEffects[effNo];
 	else
 	{
-		std::cout << "***Error: cannot return effect no. " << effNo << endl;
+		std::cout << "***Error: cannot return effect no. " << effNo << std::endl;
 		return m_vMinEffects[0];
 	}
 }
@@ -188,20 +186,20 @@ void CEvent::AddSingleEffect(CEffect eff)
 	m_vMaxEffects.push_back(eff);
 }
 
-void CEvent::writeToFile(string file)
+void CEvent::writeToFile(std::string file)
 {
 	// ofstream constructor opens file for appending data
 	const char* pFile; pFile = file.c_str();
-	ofstream outFile( pFile, ios::app );
+	std::ofstream outFile( pFile, std::ios::app );
     
 	// check to see if file was created
 	if( !outFile )
 	{
-		std::cerr << "Event file could not be opened" << endl;
+		std::cerr << "Event file could not be opened" << std::endl;
 		exit( 1 );
 	}
 
-	outFile << m_EventID << endl;
+	outFile << m_EventID << std::endl;
 //	outFile.close();
 
 	for (size_t k = 0; k < m_NoEffects; k++)
@@ -210,19 +208,19 @@ void CEvent::writeToFile(string file)
 	outFile.close();
 }
 
-void CEvent::writeEffect(size_t k, string file, bool trucks)
+void CEvent::writeEffect(size_t k, std::string file, bool trucks)
 {
 	// ofstream constructor opens file fo appending data
-	ofstream outFile( file.c_str(), ios::app );
+	std::ofstream outFile( file.c_str(), std::ios::app );
     
 	// check to see if file was created
 	if( !outFile ){
-		::cerr << "File could not be opened" << endl;
+		std::cerr << "File could not be opened" << std::endl;
 		exit( 1 );
 	}
 
 	double val, time, dist;			size_t nTks;
-	ostringstream oStr;
+	std::ostringstream oStr;
 
 	val = m_vMaxEffects[k].getValue();	
 	time = m_vMaxEffects[k].getTime();
@@ -236,7 +234,7 @@ void CEvent::writeEffect(size_t k, string file, bool trucks)
 	oStr << nTks;// << ends;
 	// oStr << ends;
 	
-	outFile << oStr.str() << endl;
+	outFile << oStr.str() << std::endl;
 	if(trucks)
 	{
 		m_vMaxEffects[k].sortVehicles();

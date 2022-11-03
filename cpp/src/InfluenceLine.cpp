@@ -1,6 +1,5 @@
 #include "InfluenceLine.h"
 
-using namespace std;
 
 CInfluenceLine::CInfluenceLine(void)
 	: m_Type(0), m_Weight(1.0)
@@ -75,7 +74,7 @@ void CInfluenceLine::setIL(size_t nIL, double length)
 }
 
 // set the influence line data
-void CInfluenceLine::setIL(vector<double> vDis, vector<double> vOrd)
+void CInfluenceLine::setIL(std::vector<double> vDis, std::vector<double> vOrd)
 {
 	m_Type = 2;
 	m_vDistance = vDis;

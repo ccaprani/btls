@@ -7,15 +7,14 @@
 #include "pybind11/stl/filesystem.h"
 
 
-using namespace std;
 namespace py = pybind11;
 
 
 void get_info() {
-	cout << "---------------------------------------------" << endl;
-	cout << "Bridge Traffic Load Simulation - C.C. Caprani" << endl;
-	cout << "                Version 1.3.7			      " << endl;
-	cout << "---------------------------------------------" << endl << endl;
+	std::cout << "---------------------------------------------" << std::endl;
+	std::cout << "Bridge Traffic Load Simulation - C.C. Caprani" << std::endl;
+	std::cout << "                Version 1.3.7			      " << std::endl;
+	std::cout << "---------------------------------------------" << std::endl << std::endl;
 };
 
 
@@ -177,8 +176,8 @@ PYBIND11_MODULE(_core, m) {
 			.def("get_lane_eccentricity", &CVehicle::getLaneEccentricity)
 			.def("get_class", &CVehicle::getClass);
 	py::class_<Classification> classification(m, "Classification");
-		classification.def(py::init<size_t, string>(), py::arg("index"), py::arg("desc"))
-			.def(py::init<size_t,string, string>(), py::arg("index"), py::arg("str"), py::arg("desc"))
+		classification.def(py::init<size_t, std::string>(), py::arg("index"), py::arg("desc"))
+			.def(py::init<size_t, std::string, std::string>(), py::arg("index"), py::arg("str"), py::arg("desc"))
 			.def("__eq__", &Classification::operator==, py::arg("another_classification"))
 			.def("tie", &Classification::tie)
 			.def_readwrite("m_ID", &Classification::m_ID)
@@ -207,7 +206,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("get_type", &CInfluenceLine::getType, "return: 1-expression, 2-discrete, 3-Surface")
 			.def("get_inf_surface", &CInfluenceLine::getIS)
 			.def("set_inf_line", py::overload_cast<size_t, double>(&CInfluenceLine::setIL), py::arg("intergrated_inf_line_index"), py::arg("bridge_length"))
-			.def("set_inf_line", py::overload_cast<vector<double>, vector<double> >(&CInfluenceLine::setIL), py::arg("h_ordinate_list"), py::arg("v_ordinate_list"))
+			.def("set_inf_line", py::overload_cast<std::vector<double>, std::vector<double> >(&CInfluenceLine::setIL), py::arg("h_ordinate_list"), py::arg("v_ordinate_list"))
 			.def("set_inf_line", py::overload_cast<CInfluenceSurface>(&CInfluenceLine::setIL), py::arg("inf_surface"))
 			.def("get_length", &CInfluenceLine::getLength)
 			.def("set_index", &CInfluenceLine::setIndex, py::arg("index"))
@@ -237,10 +236,10 @@ PYBIND11_MODULE(_core, m) {
 			.def("flush_buffer", &CVehicleBuffer::FlushBuffer);
 	py::class_<CReadILFile> creadilfile(m, "ReadILFile");
 		creadilfile.def(py::init<>())
-			.def("get_inf_lines", py::overload_cast<filesystem::path, unsigned int>(&CReadILFile::getInfLines), py::arg("inf_file"), py::arg("line0_or_surface1"));
+			.def("get_inf_lines", py::overload_cast<std::filesystem::path, unsigned int>(&CReadILFile::getInfLines), py::arg("inf_file"), py::arg("line0_or_surface1"));
 	py::class_<CCSVParse> ccsvparse(m, "CSVParse");
 	py::class_<CBridgeFile> cbridgefile(m, "BridgeFile");
-		cbridgefile.def(py::init<CConfigDataCore&, vector<CInfluenceLine>, vector<CInfluenceLine>>(), py::arg("config"), py::arg("inf_line"), py::arg("inf_surface"))
+		cbridgefile.def(py::init<CConfigDataCore&, std::vector<CInfluenceLine>, std::vector<CInfluenceLine>>(), py::arg("config"), py::arg("inf_line"), py::arg("inf_surface"))
 			.def("get_bridges", &CBridgeFile::getBridges)
 			.def("get_max_bridge_length", &CBridgeFile::getMaxBridgeLength);
 	py::class_<CLaneFlowComposition> claneflowcomposition(m, "LaneFlowComposition");

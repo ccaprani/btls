@@ -17,7 +17,6 @@
 #define allocator A
 #endif
 
-using namespace std;
 
 template <class T>
 class CMatrix
@@ -75,7 +74,7 @@ CMatrix<T>::init(int a, int b, int c)
 {
 	d1 = a;	d2 = b; d3 = c;
 
-	vector<T> v3;
+	std::vector<T> v3;
 	v3.assign(d3,0);
 	M2D v2;	v2.assign(d2,v3);
 	m.assign(d1, v2);
@@ -120,7 +119,7 @@ template<class T>
 void
 CMatrix<T>::add(int a, int b, int c)
 {
-	vector<T> v3;
+	std::vector<T> v3;
 	v3.assign(d3,0);	
 	M2D v2;	v2.assign(d2,v3);
 	m.assign(d1, v2);

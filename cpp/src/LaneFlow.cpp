@@ -1,6 +1,5 @@
 #include "LaneFlow.h"
 
-using namespace std;
 
 CLaneFlow::CLaneFlow(void)
 	: m_LaneNo(0)
@@ -55,7 +54,7 @@ void CLaneFlow::setDirn(int dirn)
 void CLaneFlow::setHourData(std::vector<double> vHrData)
 {
 	if(vHrData.size() != 9)
-		cout << "***ERROR: Incorrect flow data for hour " << vHrData.at(0) << " lane " << m_LaneNo << endl;
+		std::cout << "***ERROR: Incorrect flow data for hour " << vHrData.at(0) << " lane " << m_LaneNo << std::endl;
 	else
 	{
 		int iHour								= static_cast<int>( vHrData.at(0) );
@@ -65,7 +64,7 @@ void CLaneFlow::setHourData(std::vector<double> vHrData)
 		m_vHourData.at(iHour).hourCP.CP_cars	= vHrData.at(4)/100.0;	// to change e.g. 80% to 0.80
 
 		if( m_vHourData.at(iHour).hourCP.CP_cars > 1.0 || m_vHourData.at(iHour).hourCP.CP_cars < 0)
-			cout << "***ERROR: Incorrect car percentage for hour " << vHrData.at(0) << " lane " << m_LaneNo << endl;
+			std::cout << "***ERROR: Incorrect car percentage for hour " << vHrData.at(0) << " lane " << m_LaneNo << std::endl;
 
 		m_vHourData.at(iHour).hourCP.CP_2Axle	= vHrData.at(5)/100.0;
 		m_vHourData.at(iHour).hourCP.CP_3Axle	= vHrData.at(6)/100.0;
@@ -75,8 +74,8 @@ void CLaneFlow::setHourData(std::vector<double> vHrData)
 		double sum = 0.0; 
 		for(int i = 5; i <= 8; ++i) sum += vHrData.at(i);
 		if(sum < 99.99 || sum > 100.01)
-			cout << "***ERROR: Truck percentages " << sum << " != 100 for hour " 
-			     << vHrData.at(0) << " lane " << m_LaneNo << endl;
+			std::cout << "***ERROR: Truck percentages " << sum << " != 100 for hour " 
+				<< vHrData.at(0) << " lane " << m_LaneNo << std::endl;
 	}
 }
 

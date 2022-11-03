@@ -4,7 +4,6 @@
 
 #include "Effect.h"
 
-using namespace std;
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -86,7 +85,7 @@ CVehicle CEffect::giveVehicle(size_t i) const
 		return m_vVehicles[i];
 	else
 	{
-		std::cerr << "Vehicle not available: " << i << endl;
+		std::cerr << "Vehicle not available: " << i << std::endl;
 		return m_vVehicles[0];
 	}
 }
