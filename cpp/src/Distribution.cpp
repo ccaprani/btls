@@ -9,22 +9,19 @@
 //////////////////////////////////////////////////////////////////////
 
 // Initialise static member of class - must be in source file
-//MTRand CRNGWrapper::m_RNG;
-//MTRand CRNGWrapper::m_RNG(100); // MAGIC NUMBER - constant seed for debugging
-
-std::uniform_real_distribution<double> CRNGWrapper::m_RNG(0.0, 1.0);
-//std::mt19937 CRNGWrapper::m_MTgen(100);
+std::uniform_real_distribution<double> CRNGWrapper::m_Uniform(0.0, 1.0);
+std::normal_distribution<double> CRNGWrapper::m_Norm(0.0,1.0);
+//std::mt19937 CRNGWrapper::m_MTgen(100); // MAGIC NUMBER - constant seed for debugging
 std::mt19937 CRNGWrapper::m_MTgen(std::random_device{}());
 
 inline double CRNGWrapper::rand() 
 {
-	//static unsigned n = 0;
-	//if (n == 10)
-	//	std::cout << "RNG check (is not 0.624312?): " << m_RNG(m_MTgen) << std::endl;
-	//n++;
+	return m_Uniform(m_MTgen);
+};
 
-	//return m_RNG.rand(); // Old way
-	return m_RNG(m_MTgen); // C++11 way
+inline double CRNGWrapper::norm()
+{
+	return m_Norm(m_MTgen);
 };
 
 CDistribution::CDistribution():PI(3.14159265359)
@@ -147,12 +144,14 @@ double CDistribution::GenerateGEV()
 
 double CDistribution::GenerateNormal()
 {
-	return m_Location + m_Scale * BoxMuller();
+	//return m_Location + m_Scale * BoxMuller();
+	return m_Location + m_Scale * m_RNG.norm();
 }
 
 double CDistribution::GenerateNormal(double mean, double stdev)
 {
-	return mean + stdev * BoxMuller();
+	//return mean + stdev * BoxMuller();
+	return mean + stdev * m_RNG.norm();
 }
 
 double CDistribution::BoxMuller()
@@ -214,4 +213,21 @@ double CDistribution::GenerateTriModalNormal(CTriModalNormal TMN)
 
 	val = GenerateNormal(mean, stdev);
 	return val;
+}
+
+double CDistribution::GenerateTriangular()
+{
+	double u = m_RNG.rand();
+	double& w = m_Scale;
+	double val = 0.0;
+
+	if(u < 0.5)
+	{
+		val = w*(sqrt(2*u)-1);
+	}
+	else
+	{
+		val = w*(1 - sqrt(2*(1-u)));
+	}
+	return val + m_Location;
 }
