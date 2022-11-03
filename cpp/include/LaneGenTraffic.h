@@ -6,7 +6,7 @@
 #include "LaneFlowComposition.h"
 #include "FlowGenerator.h"
 #include "VehicleGenGrave.h"
-#include "VehicleGenConstant.h"
+#include "VehicleGenNominal.h"
 #include "VehicleGenGarage.h"
 
 class CLaneGenTraffic : public CLane

@@ -13,7 +13,8 @@ public:
 	void assignGarage(std::vector<CVehicle_sp> vVehicles);
 	size_t getGarageCount() const { return m_NoVehicles; };
 	CVehicle_sp getVehicle(size_t i);
-	void getKernals(Normal& GVW, Normal& AW, Normal& AS);
+
+	void getKernels(KernelParams& GVW, KernelParams& AW, KernelParams& AS);
 
 private:
 	void readGarage();
@@ -21,9 +22,9 @@ private:
 
 	std::vector<CVehicle_sp> m_vVehicles;
 	size_t m_NoVehicles;
-
-	Normal m_KernalGVW;
-	Normal m_KernalAW;
-	Normal m_KernalAS;
+	
+	KernelParams m_KernelGVW;
+	KernelParams m_KernelAW;
+	KernelParams m_KernelAS;
 };
 typedef std::shared_ptr<CVehModelDataGarage> CVehModelDataGarage_sp;

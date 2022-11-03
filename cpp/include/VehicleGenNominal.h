@@ -1,12 +1,12 @@
 #pragma once
 #include "VehicleGenerator.h"
-#include "VehModelDataConstant.h"
+#include "VehModelDataNominal.h"
 
-class CVehicleGenConstant :	public CVehicleGenerator
+class CVehicleGenNominal :	public CVehicleGenerator
 {
 public:
-	CVehicleGenConstant(CVehModelDataConstant_sp pVMD);
-	virtual ~CVehicleGenConstant();
+	CVehicleGenNominal(CVehModelDataNominal_sp pVMD);
+	virtual ~CVehicleGenNominal();
 
 protected:
 	virtual void GenerateVehicle(CVehicle_sp pVeh);
@@ -15,8 +15,8 @@ protected:
 private:
 	void randomize(CVehicle_sp pVeh);
 
-	CVehModelDataConstant_sp m_pVMD;
+	CVehModelDataNominal_sp m_pVMD;
 	CVehicle_sp m_NominalVehicle;
 	const double m_MinimumCOV;
 };
-typedef std::shared_ptr<CVehicleGenConstant> CVehicleGenConstant_sp;
+typedef std::shared_ptr<CVehicleGenNominal> CVehicleGenNominal_sp;

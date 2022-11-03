@@ -15,11 +15,15 @@ public:
 	double getLaneEccStd() const { return m_LaneEccStd; };
 	vec getComposition(size_t i) const;
 
+	EKernelType getKernelType() const {return m_KernelType;};
+
 protected:	
 	EVehicleModel m_Model;
 	const size_t m_TruckClassCount;
 
 	CVehicleClassification_sp m_pVehClassification;
+	
+	EKernelType m_KernelType;
 	
 	size_t m_NoLanes;
 	size_t m_CurDirection;

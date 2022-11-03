@@ -25,7 +25,7 @@ protected:
 	virtual size_t GenVehClass() = 0;
 	
 	void GenerateCar(CVehicle_sp pVeh);
-	bool NextVehicleIsCar();	
+	bool NextVehicleIsCar();
 	
 	EVehicleModel m_VehModel;
 	CVehicleModelData_sp m_pVehModelData;
@@ -40,7 +40,10 @@ protected:
 	
 	CVehicleClassification_sp m_pVehClassification;
 
+	double (CDistribution::*m_pKernelGenerator)(double, double);
+
 private:
+	void SetKernelGenerator();
 
 };
 typedef std::shared_ptr<CVehicleGenerator> CVehicleGenerator_sp;
