@@ -1,5 +1,5 @@
 #include "ModelData.h"
-#include "ConfigData.h"
+
 
 CModelData::CModelData(CConfigDataCore& config) : m_Config(config)
 {

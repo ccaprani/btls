@@ -15,7 +15,7 @@ public:
     CConfigDataCore();
     ~CConfigDataCore() {};
 
-    bool ReadData(string inFile);
+    bool ReadData(std::string inFile);
 
     struct Mode_Config
     {
@@ -24,7 +24,7 @@ public:
 
     struct Road_Config
     {
-        string LANES_FILE;
+        std::string LANES_FILE;
         size_t NO_LANES_DIR1; // assigned in program
         size_t NO_LANES_DIR2; // assigned in program
         size_t NO_LANES;      // assigned in program
@@ -33,7 +33,7 @@ public:
 
     struct Gen_Config
     {
-        string TRAFFIC_FOLDER;
+        std::string TRAFFIC_FOLDER;
         bool GEN_TRAFFIC;
         size_t NO_DAYS;
         double TRUCK_TRACK_WIDTH;
@@ -44,10 +44,10 @@ public:
     struct Read_Config
     {
         bool READ_FILE;
-        string TRAFFIC_FILE;
-        string GARAGE_FILE;
-        string KERNEL_FILE;
-        string CONSTANT_FILE;
+        std::string TRAFFIC_FILE;
+        std::string GARAGE_FILE;
+        std::string KERNEL_FILE;
+        std::string CONSTANT_FILE;
         size_t FILE_FORMAT;
         bool USE_CONSTANT_SPEED;
         bool USE_AVE_SPEED;
@@ -70,9 +70,9 @@ public:
     struct Sim_Config
     {
         bool CALC_LOAD_EFFECTS;
-        string BRIDGE_FILE;
-        string INFLINE_FILE;
-        string INFSURF_FILE;
+        std::string BRIDGE_FILE;
+        std::string INFLINE_FILE;
+        std::string INFSURF_FILE;
         double CALC_TIME_STEP;
         size_t MIN_GVW;
     } Sim = {false, "bridges.txt", "IL.txt", "IS.csv", 0.1, 35};
@@ -88,7 +88,7 @@ public:
         {
             bool WRITE_VEHICLE_FILE;
             size_t FILE_FORMAT;
-            string VEHICLE_FILENAME;
+            std::string VEHICLE_FILENAME;
             size_t WRITE_VEHICLE_BUFFER_SIZE;
             bool WRITE_FLOW_STATS;
         } VehicleFile;
@@ -149,21 +149,21 @@ public:
         size_t SECS_PER_MIN;
     } Time = {25, 10, 24, 3600, 60, 60};
 
-    void VehGenGrave(string lanes_file, string traffic_folder, size_t no_days, double truck_track_width, double lane_eccentricity_std);
-    void VehGenGarage(string lanes_file, string garage_file, size_t file_format, string kernel_file, size_t no_days, double lane_eccentricity_std);
-    void VehGenConstant(string lanes_file, string constant_file, size_t no_days, double lane_eccentricity_std);
+    void VehGenGrave(std::string lanes_file, std::string traffic_folder, size_t no_days, double truck_track_width, double lane_eccentricity_std);
+    void VehGenGarage(std::string lanes_file, std::string garage_file, size_t file_format, std::string kernel_file, size_t no_days, double lane_eccentricity_std);
+    void VehGenConstant(std::string lanes_file, std::string constant_file, size_t no_days, double lane_eccentricity_std);
 
-    void FlowGenNHM(int classification, string traffic_folder);
+    void FlowGenNHM(int classification, std::string traffic_folder);
     void FlowGenConstant(int classification, double constant_speed, double constant_gap);
     void FlowGenCongestion(int classification, double congested_spacing, double congested_speed, double congested_gap_coef_var);
     void FlowGenFreeFlow(int classification);
 
-    void TrafficRead(string traffic_file, size_t file_format, bool use_constant_speed, bool use_ave_speed, double const_speed);
+    void TrafficRead(std::string traffic_file, size_t file_format, bool use_constant_speed, bool use_ave_speed, double const_speed);
 
-    void Simulation(string bridge_file, string infline_file, string infsurf_file, double calc_time_step, size_t min_gvw);
+    void Simulation(std::string bridge_file, std::string infline_file, std::string infsurf_file, double calc_time_step, size_t min_gvw);
 
     void OutputGeneral(bool write_time_history = false, bool write_each_event = false, bool write_fatigue_event = false, size_t write_buffer_size = 10000);
-    void OutputVehicleFile(bool write_vehicle_file = false, size_t vehicle_file_format = 4, string vehicle_file_name = "Vehicles.txt", size_t buffer_size = 10000, bool write_flow_stats = false);
+    void OutputVehicleFile(bool write_vehicle_file = false, size_t vehicle_file_format = 4, std::string vehicle_file_name = "Vehicles.txt", size_t buffer_size = 10000, bool write_flow_stats = false);
     void OutputBlockMax(bool write_blockmax = false, bool write_vehicle = false, bool write_summary = false, bool write_mixed = false, size_t block_size_days = 1, size_t block_size_secs = 0, size_t buffer_size = 10000);
     void OutputPOT(bool write_pot = false, bool write_vehicle = false, bool write_summary = false, bool write_counter = false, size_t pot_size_days = 1, size_t pot_size_secs = 0, size_t buffer_size = 10000);
     void OutputStats(bool write_stats = false, bool write_cumulative = false, bool write_intervals = false, size_t interval_size = 3600, size_t buffer_size = 10000);
@@ -172,11 +172,11 @@ public:
 
 private:
     CCSVParse m_CSV;
-    string m_CommentString;
+    std::string m_CommentString;
 
     void doDerivedConstants();
     void ExtractData();
-    string GetNextDataLine();
+    std::string GetNextDataLine();
 
 };
 

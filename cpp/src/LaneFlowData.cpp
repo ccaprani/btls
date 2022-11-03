@@ -1,5 +1,5 @@
 #include "LaneFlowData.h"
-#include "ConfigData.h"
+
 
 CLaneFlowData::CLaneFlowData(CConfigDataCore& config)
 	: CModelData(config)
@@ -21,7 +21,7 @@ CLaneFlowComposition CLaneFlowData::getLaneComp(size_t i) const
 
 void CLaneFlowData::ReadDataIn()
 {
-	filesystem::path file = m_Config.Road.LANES_FILE;
+	std::filesystem::path file = m_Config.Road.LANES_FILE;
 	ReadLaneFlow(file.string());
 	SetRoadProperties();
 }
@@ -30,7 +30,7 @@ void CLaneFlowData::ReadLaneFlow(std::string file)
 {
 	if (!m_CSV.OpenFile(file, ","))
 		return;
-	string line;
+	std::string line;
 
 	// get first line and check if it the old file type or the new file type
 	// distinguished by the values of the second field being > 900 secs (min block size)
@@ -63,13 +63,13 @@ void CLaneFlowData::ReadLaneFlow(std::string file)
 				else 
 					if (m_TruckClassCount != lfc.getTruckClassCount())
 					{
-						cout << "ERROR: inconsistent truck class counts " << lfc.getGlobalLaneNo()
-							<< "  - hour/block " << i << endl;
+						std::cout << "ERROR: inconsistent truck class counts " << lfc.getGlobalLaneNo()
+							<< "  - hour/block " << i << std::endl;
 					};
 			}
 			else
-				cout << "ERROR: not enough hours/blocks in lane " << lfc.getGlobalLaneNo()
-				<< "  - no flow data beyond hour/block " << i << endl;
+				std::cout << "ERROR: not enough hours/blocks in lane " << lfc.getGlobalLaneNo()
+					<< "  - no flow data beyond hour/block " << i << std::endl;
 		}
 		lfc.completeData();
 		m_vLaneComp.push_back(lfc);

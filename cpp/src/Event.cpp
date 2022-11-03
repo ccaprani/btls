@@ -3,8 +3,8 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "Event.h"
-#include <sstream>
 #include "ConfigData.h"
+
 
 using namespace std;
 

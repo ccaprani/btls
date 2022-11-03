@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "EventManager.h"
-#include "ConfigData.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -173,17 +173,17 @@ void CEventManager::DoTimeHistory(int i, std::vector<double>& vEff)
 	{
 	case 1:
 		{
-			string file;
+			std::string file;
 			file = "TH_" + to_string(m_BridgeLength) + ".txt";
-			m_TimeHistoryFile.open(file.c_str(),ios::out);
+			m_TimeHistoryFile.open(file.c_str(), std::ios::out);
 			m_TimeHistoryFile << std::setw(12) << "TIME (s)" << "\t\t" 
-					<< "NO. TRUCKS" << "\t" << "EFFECTS" << endl;
+					<< "NO. TRUCKS" << "\t" << "EFFECTS" << std::endl;
 			break;
 		};
 	case 2:
 		{
 			size_t nVehs = m_CurEvent.getMaxEffect(0).m_NoVehicles;
-			m_TimeHistoryFile << std::setw(12) << fixed << setprecision (3) //14-6-19 changed to 3
+			m_TimeHistoryFile << std::setw(12) << std::fixed << std::setprecision (3) //14-6-19 changed to 3
 				<< m_CurTime << "\t\t" << nVehs << "\t\t";
 			for (size_t k = 0; k < m_NoLoadEffects; k++)
 				m_TimeHistoryFile << vEff[k] << "\t\t";
@@ -196,7 +196,7 @@ void CEventManager::DoTimeHistory(int i, std::vector<double>& vEff)
 template <typename T>
 std::string CEventManager::to_string(T const& value)
 {
-    stringstream sstr;
+    std::stringstream sstr;
     sstr << value;
     return sstr.str();
 }
@@ -204,7 +204,7 @@ std::string CEventManager::to_string(T const& value)
 template <typename T>
 std::string CEventManager::to_string(T const& value, int nDigits)
 {
-    stringstream sstr;
+    std::stringstream sstr;
     sstr << std::fixed << std::setprecision(nDigits) << value;
     return sstr.str();
 }

@@ -43,9 +43,9 @@ int main(void)
 }
 */
 
-bool CCSVParse::OpenFile(string inFile, string sep)
+bool CCSVParse::OpenFile(std::string inFile, std::string sep)
 {
-	fin.open( inFile.c_str(), ios::in );
+	fin.open( inFile.c_str(), std::ios::in );
 
 	if(!fin)
 		return false;
@@ -74,7 +74,7 @@ int CCSVParse::endofline(char c)
 }
 
 // getline: get one line, grow as needed
-int CCSVParse::getline(string& str)
+int CCSVParse::getline(std::string& str)
 {	
 	char c;
 
@@ -88,7 +88,7 @@ int CCSVParse::getline(string& str)
 // split: split line into fields
 size_t CCSVParse::split()
 {
-	string fld;
+	std::string fld;
 	size_t i, j;
 
 	nfield = 0;
@@ -113,7 +113,7 @@ size_t CCSVParse::split()
 }
 
 // advquoted: quoted field; return index of next separator
-size_t CCSVParse::advquoted(const string& s, string& fld, size_t i)
+size_t CCSVParse::advquoted(const std::string& s, std::string& fld, size_t i)
 {
 	size_t j;
 
@@ -133,20 +133,20 @@ size_t CCSVParse::advquoted(const string& s, string& fld, size_t i)
 }
 
 // advplain: unquoted field; return index of next separator
-size_t CCSVParse::advplain(const string& s, string& fld, size_t i)
+size_t CCSVParse::advplain(const std::string& s, std::string& fld, size_t i)
 {
 	size_t j;
 
 	j = s.find_first_of(fieldsep, i); // look for separator
 	if (j > s.length())               // none found
 		j = s.length();
-	fld = string(s, i, j-i);
+	fld = std::string(s, i, j-i);
 	return j;
 }
 
 
 // getfield: return n-th field
-string CCSVParse::getfield(size_t n)
+std::string CCSVParse::getfield(size_t n)
 {
 	//if (n < 0 || n >= nfield)
 	if (n >= nfield)
@@ -155,16 +155,16 @@ string CCSVParse::getfield(size_t n)
 		return field[n];
 }
 
-vector<double> CCSVParse::GetVectorFromNextLine()
+std::vector<double> CCSVParse::GetVectorFromNextLine()
 {
-	vector<double> vData;
-	string line;
+	std::vector<double> vData;
+	std::string line;
 	getline(line);
 
 	size_t nData = getnfield();
 	for(size_t j = 0; j < nData; j++)
 	{
-		string str = getfield(j);
+		std::string str = getfield(j);
 		double val = stringToDouble(str);
 		vData.push_back(val);
 	}
@@ -172,13 +172,13 @@ vector<double> CCSVParse::GetVectorFromNextLine()
 	return vData;
 }
 
-vector<double> CCSVParse::GetVectorFromCurrentLine()
+std::vector<double> CCSVParse::GetVectorFromCurrentLine()
 {
-	vector<double> vData;
+	std::vector<double> vData;
 
 	for (size_t j = 0; j < nfield; j++)
 	{
-		string str = getfield(j);
+		std::string str = getfield(j);
 		double val = stringToDouble(str);
 		vData.push_back(val);
 	}
@@ -186,7 +186,7 @@ vector<double> CCSVParse::GetVectorFromCurrentLine()
 	return vData;
 }
 
-double CCSVParse::stringToDouble(string line)
+double CCSVParse::stringToDouble(std::string line)
 {
 	double val = 0.0;
 	std::istringstream stream (line);
@@ -197,7 +197,7 @@ double CCSVParse::stringToDouble(string line)
 	return val;
 }
 
-int CCSVParse::stringToInt(string line)
+int CCSVParse::stringToInt(std::string line)
 {
 /*	
 	int val = 0;	char data[20]; 
@@ -214,7 +214,7 @@ int CCSVParse::stringToInt(string line)
 	return val;
 }
 
-bool CCSVParse::stringToBool(string line)
+bool CCSVParse::stringToBool(std::string line)
 {
 	int val = stringToInt(line);
 	if(val == 1)

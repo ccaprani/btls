@@ -1,5 +1,5 @@
 #include "StatsManager.h"
-#include "ConfigData.h"
+
 
 CStatsManager::CStatsManager(CConfigDataCore& config) : COutputManagerBase("SS")
 {

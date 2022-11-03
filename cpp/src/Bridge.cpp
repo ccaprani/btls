@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "Bridge.h"
-#include "ConfigData.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -56,7 +56,7 @@ void CBridge::InitializeLanes(size_t NoLanes)
 {
 	m_NoLanes = NoLanes;
 	if(m_Length <= 0.0)
-		cout << "***ERROR: Bridge " << m_Index << "length of zero" << endl;
+		std::cout << "***ERROR: Bridge " << m_Index << "length of zero" << std::endl;
 	CBridgeLane lane(m_Length);
 	m_vLanes.assign(m_NoLanes,lane);
 	// set the lane numbers
@@ -88,10 +88,10 @@ void CBridge::Update(double NextArrivalTime, double curTime)
 		int lead_lane = 0;	// the lane of the leading vehicle
 		while(m_vLanes[lead_lane].getNoVehs() == 0) lead_lane++; // ignore lanes with no vehs
 		double NextTimeOff = TimeNextVehOffBridge(); //m_vLanes[lead_lane].getTimeNextVehOff();
-		double EventEndTime = min(NextArrivalTime,NextTimeOff);
+		double EventEndTime = (std::min)(NextArrivalTime,NextTimeOff);
 
 		if(EventEndTime < m_CurTime)
-			std::cout <<"***Error: Repeating event from the past" << endl;
+			std::cout <<"***Error: Repeating event from the past" << std::endl;
 		
 		// while loop until a vehicle leaves or comes on
 		while(m_CurTime < EventEndTime)
@@ -161,9 +161,9 @@ void CBridge::AddVehicle(const CVehicle_sp& pVeh)
 
 	// update pointer to local store and save
 	if(iLane > m_NoLanes)
-		cout << "***ERROR: Veh - lane: " << pLocalVeh->getLocalLane()
-		<< " direction: " << pLocalVeh->getDirection()
-			 << " cannot be added as no. lanes is " << m_vLanes.size() << endl;
+		std::cout << "***ERROR: Veh - lane: " << pLocalVeh->getLocalLane()
+			<< " direction: " << pLocalVeh->getDirection()
+			<< " cannot be added as no. lanes is " << m_vLanes.size() << std::endl;
 	// Lanes are out of order due to sorting above
 	for (size_t i = 0; i < m_NoLanes; i++)
 	{

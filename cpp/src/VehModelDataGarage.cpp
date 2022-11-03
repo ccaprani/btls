@@ -1,5 +1,5 @@
 #include "VehModelDataGarage.h"
-#include "ConfigData.h"
+
 
 CVehModelDataGarage::CVehModelDataGarage(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc)
 	: CVehicleModelData(config, eVM_Garage, pVC, lfc, 1) // MAGIC NUMBER - truck class count
@@ -28,7 +28,7 @@ void CVehModelDataGarage::readGarage()
 {
 	CVehicleTrafficFile TrafficFile(m_pVehClassification, false, false, 0.0);
 	std::cout << "Reading traffic garage file..." << std::endl;
-	filesystem::path file = m_Config.Read.GARAGE_FILE;
+	std::filesystem::path file = m_Config.Read.GARAGE_FILE;
 	TrafficFile.Read(file.string(), m_Config.Read.FILE_FORMAT);
 
 	assignGarage(TrafficFile.getVehicles());
@@ -45,15 +45,15 @@ void CVehModelDataGarage::assignGarage(std::vector<CVehicle_sp> vVehicles)
 
 void CVehModelDataGarage::readKernels()
 {
-	filesystem::path file = m_Config.Read.KERNEL_FILE;
+	std::filesystem::path file = m_Config.Read.KERNEL_FILE;
 	
 	if (!m_CSV.OpenFile(file.string(), ","))
 		std::cerr << "***WARNING: Kernel file " 
 				  << std::filesystem::weakly_canonical(file) 
-				  << " could not be opened, using defaults" << endl;
+				  << " could not be opened, using defaults" << std::endl;
 	else
 	{
-		string line;
+		std::string line;
 		
 		m_CSV.getline(line);
 		m_KernalGVW.Mean = m_CSV.stringToDouble(m_CSV.getfield(0));

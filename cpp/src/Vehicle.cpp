@@ -2,11 +2,10 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "Vehicle.h"
-
 #include <fstream>
-#include <sstream>
+#include "Vehicle.h"
 #include "ConfigData.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -770,7 +769,7 @@ size_t CVehicle::getGlobalLane(size_t nRoadLanes)
 		return nRoadLanes - m_Lane + 1;
 	else
 	{
-		cout << "**** Warning: Lane error Vehicle " << m_Head << std::endl;
+		std::cout << "**** Warning: Lane error Vehicle " << m_Head << std::endl;
 		return 1;
 	}
 }

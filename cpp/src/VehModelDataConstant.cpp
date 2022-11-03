@@ -1,5 +1,5 @@
 #include "VehModelDataConstant.h"
-#include "ConfigData.h"
+
 
 CVehModelDataConstant::CVehModelDataConstant(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc)
 	: CVehicleModelData(config, eVM_Constant, pVC, lfc, 1) // MAGIC NUMBER - truck class count
@@ -20,12 +20,12 @@ void CVehModelDataConstant::ReadDataIn()
 
 void CVehModelDataConstant::readConstant()
 {
-    filesystem::path file = m_Config.Read.CONSTANT_FILE;
+    std::filesystem::path file = m_Config.Read.CONSTANT_FILE;
 	if (!m_CSV.OpenFile(file.string(), ","))
     {
 		std::cerr << "***WARNING: Constant Vehicle file " 
                   << std::filesystem::weakly_canonical(file) 
-                  << " could not be opened, using defaults" << endl;
+                  << " could not be opened, using defaults" << std::endl;
 
         //Constant vehicle defaults
         m_pNominalVehicle->setGVW(460);
@@ -41,7 +41,7 @@ void CVehModelDataConstant::readConstant()
     }
 	else
 	{
-		string line;
+		std::string line;
 		
         // First line has the COVs (can be zero)
 		m_CSV.getline(line);
