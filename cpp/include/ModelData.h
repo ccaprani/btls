@@ -7,7 +7,7 @@
 #include <vector>
 #include <memory>
 #include "CSVParse.h"
-#include "TriModalNormal.h"
+#include "MultiModalNormal.h"
 #include "ConfigData.h"
 
 typedef std::vector<double> vec;

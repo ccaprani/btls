@@ -9,21 +9,21 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "TriModalNormal.h"
+#include "MultiModalNormal.h"
 
 class CAxleWeight23  
 {
 public:
-	CTriModalNormal GetAxleDist(int iTruck, int iAxle);
-	void Add3AxleData(std::vector<CTriModalNormal> vAxle);
-	void Add2AxleData(std::vector<CTriModalNormal> vAxle);
+	CMultiModalNormal GetAxleDist(int iTruck, int iAxle);
+	void Add3AxleData(std::vector<CMultiModalNormal> vAxle);
+	void Add2AxleData(std::vector<CMultiModalNormal> vAxle);
 	
 	CAxleWeight23();
 	virtual ~CAxleWeight23();
 
 private:
-	std::vector<CTriModalNormal> m_v2AxleData;
-	std::vector<CTriModalNormal> m_v3AxleData;
+	std::vector<CMultiModalNormal> m_v2AxleData;
+	std::vector<CMultiModalNormal> m_v3AxleData;
 
 };
 
