@@ -188,31 +188,23 @@ double CDistribution::GenerateUniform()
 	return m_RNG.rand();
 }
 
-double CDistribution::GenerateTriModalNormal(CTriModalNormal TMN)
+double CDistribution::GenerateMultiModalNormal(CMultiModalNormal MMN)
 {
 	double mode = m_RNG.rand();
-	double val = 0.0;
+	double sumW = 0.0;
+	int iMode = -1;
+	int nModes = (int)MMN.getNoModes();
 
-	double mean, stdev;
+	if(nModes == 0)
+		return 0.0;
 
-	if(mode <= TMN.m_vModes[0].Weight)
+	while(sumW < mode && iMode < nModes)
 	{
-		mean = TMN.m_vModes[0].Mean;		stdev = TMN.m_vModes[0].StdDev;
-		//val = GenerateNormal(TMN.m_vModes[0].Mean, TMN.m_vModes[0].StdDev);
-	}
-	else if( (mode > TMN.m_vModes[0].Weight) && (mode <= (TMN.m_vModes[1].Weight + TMN.m_vModes[0].Weight) ) )
-	{
-		mean = TMN.m_vModes[1].Mean;		stdev = TMN.m_vModes[1].StdDev;
-		//val = GenerateNormal(TMN.m_vModes[1].Mean, TMN.m_vModes[1].StdDev);
-	}
-	else
-	{
-		mean = TMN.m_vModes[2].Mean;		stdev = TMN.m_vModes[2].StdDev;
-		//val = GenerateNormal(TMN.m_vModes[2].Mean, TMN.m_vModes[2].StdDev);
+		iMode++;
+		sumW += MMN.m_vModes[iMode].Weight;
 	}
 
-	val = GenerateNormal(mean, stdev);
-	return val;
+	return GenerateNormal(MMN.m_vModes[iMode].Mean, MMN.m_vModes[iMode].StdDev);
 }
 
 double CDistribution::GenerateTriangular()

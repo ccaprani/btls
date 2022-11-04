@@ -61,7 +61,7 @@ void CVehicleGenGrave::GenerateTruck23(CVehicle_sp pVeh, size_t nAxles)
 	{
 		double val = -1.0;
 		while (val < 15 || val > 500)
-			val = m_RNG.GenerateTriModalNormal(m_pVMD->GetAxleWeightDist(nAxles, i));
+			val = m_RNG.GenerateMultiModalNormal(m_pVMD->GetAxleWeightDist(nAxles, i));
 		vAW[i] = val*0.981;	// kg/100 to kN
 	}
 
@@ -115,7 +115,7 @@ void CVehicleGenGrave::GenerateCommonProps(CVehicle_sp pVeh, size_t nAxles)
 	// Generate GVW, AS, length properties
 	double GVW = -1.0;
 	while (GVW < 35 || GVW > 1000)
-		GVW = m_RNG.GenerateTriModalNormal(m_pVMD->GetGVW(m_CurDirection, nAxles));
+		GVW = m_RNG.GenerateMultiModalNormal(m_pVMD->GetGVW(m_CurDirection, nAxles));
 	GVW = GVW*0.981; // kg/100 to kN
 
 	// Gen axle spacings
@@ -124,7 +124,7 @@ void CVehicleGenGrave::GenerateCommonProps(CVehicle_sp pVeh, size_t nAxles)
 	{
 		double val = -1.0;
 		while (val < 0.5 || val > 200)
-			val = m_RNG.GenerateTriModalNormal(m_pVMD->GetSpacingDist(nAxles, i));
+			val = m_RNG.GenerateMultiModalNormal(m_pVMD->GetSpacingDist(nAxles, i));
 		vAS[i] = val / 10; // dm to m
 	}
 	double length = SumVector(vAS);
@@ -134,16 +134,16 @@ void CVehicleGenGrave::GenerateCommonProps(CVehicle_sp pVeh, size_t nAxles)
 	// do first axle and see if to be constant for all other axles
 	double val = -1.0;
 	while (val < 120.0 || val > 260.0)	// physical bounds
-		val = m_RNG.GenerateTriModalNormal(m_pVMD->GetTrackWidthDist(nAxles, 0));
+		val = m_RNG.GenerateMultiModalNormal(m_pVMD->GetTrackWidthDist(nAxles, 0));
 	vATW[0] = val / 100; // cm to m
 	for (size_t i = 1; i < nAxles; ++i)
 	{
-		CTriModalNormal tmn = m_pVMD->GetTrackWidthDist(nAxles, i);
+		CMultiModalNormal tmn = m_pVMD->GetTrackWidthDist(nAxles, i);
 		if (tmn.m_vModes[0].Mean > 1e-6)	// only generate if a new value is required
 		{
 			val = -1.0;
 			while (val < 120.0 || val > 260.0)	// physical bounds
-				val = m_RNG.GenerateTriModalNormal(m_pVMD->GetTrackWidthDist(nAxles, i));
+				val = m_RNG.GenerateMultiModalNormal(m_pVMD->GetTrackWidthDist(nAxles, i));
 		}
 		vATW[i] = val / 100; // cm to m
 	}

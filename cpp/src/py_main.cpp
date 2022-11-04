@@ -250,9 +250,10 @@ PYBIND11_MODULE(_core, m) {
 	py::class_<CFatigueManager, COutputManagerBase> cfatiguemanager(m, "FatigueManager");
 	py::class_<CCalcEffect> ccalceffect(m, "CalcEffect");
 	py::class_<CRNGWrapper> crngwrapper(m, "RNGWrapper");
-	py::class_<CTriModalNormal> ctrimodalnormal(m, "TriModalNormal");
-		ctrimodalnormal.def(py::init<>())
-			.def("add_mode", &CTriModalNormal::AddMode, py::arg("w"), py::arg("m"), py::arg("s"));
+	py::class_<CMultiModalNormal> cmultimodalnormal(m, "MultiModalNormal");
+		cmultimodalnormal.def(py::init<>())
+			.def("add_mode", &CMultiModalNormal::AddMode, py::arg("w"), py::arg("m"), py::arg("s"))
+			.def("get_no_modes", &CMultiModalNormal::getNoModes);
 	py::class_<CDistribution> cdistribution(m, "Distribution");
 		cdistribution.def(py::init<>())
 			.def(py::init<double, double, double>(), py::arg("w"), py::arg("m"), py::arg("s"))
@@ -265,7 +266,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("gen_uniform", &CDistribution::GenerateUniform)
 			.def("gen_normal", py::overload_cast<>(&CDistribution::GenerateNormal))
 			.def("gen_normal", py::overload_cast<double,double>(&CDistribution::GenerateNormal), py::arg("mean"), py::arg("stdev"))
-			.def("gen_trimodalnormal", &CDistribution::GenerateTriModalNormal, py::arg("tmn"))
+			.def("gen_multimodalnormal", &CDistribution::GenerateMultiModalNormal, py::arg("mmn"))
 			.def("gen_exponential", &CDistribution::GenerateExponential)
 			.def("gen_lognormal", &CDistribution::GenerateLogNormal)
 			.def("gen_gamma", &CDistribution::GenerateGamma)

@@ -18,7 +18,7 @@ CAxleSpacing::~CAxleSpacing()
 
 }
 
-CTriModalNormal CAxleSpacing::GetSpacingDist(int iTruck, int iSpace)
+CMultiModalNormal CAxleSpacing::GetSpacingDist(int iTruck, int iSpace)
 {
 	// this function accepts the integers as being 1-based
 	switch( iTruck )
@@ -34,22 +34,22 @@ CTriModalNormal CAxleSpacing::GetSpacingDist(int iTruck, int iSpace)
 	}
 }
 
-void CAxleSpacing::Add2AxleData(std::vector<CTriModalNormal> vSpace)
+void CAxleSpacing::Add2AxleData(std::vector<CMultiModalNormal> vSpace)
 {
 	m_v2AxleData = vSpace;
 }
 
-void CAxleSpacing::Add3AxleData(std::vector<CTriModalNormal> vSpace)
+void CAxleSpacing::Add3AxleData(std::vector<CMultiModalNormal> vSpace)
 {
 	m_v3AxleData = vSpace;
 }
 
-void CAxleSpacing::Add4AxleData(std::vector<CTriModalNormal> vSpace)
+void CAxleSpacing::Add4AxleData(std::vector<CMultiModalNormal> vSpace)
 {
 	m_v4AxleData = vSpace;
 }
 
-void CAxleSpacing::Add5AxleData(std::vector<CTriModalNormal> vSpace)
+void CAxleSpacing::Add5AxleData(std::vector<CMultiModalNormal> vSpace)
 {
 	m_v5AxleData = vSpace;
 }

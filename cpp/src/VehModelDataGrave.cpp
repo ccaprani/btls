@@ -41,7 +41,7 @@ std::vector<double>	CVehModelDataGrave::GetGVWRange(size_t iTruck, size_t iRange
 	return data;
 }
 
-CTriModalNormal	CVehModelDataGrave::GetSpacingDist(size_t iTruck, size_t iSpace)
+CMultiModalNormal	CVehModelDataGrave::GetSpacingDist(size_t iTruck, size_t iSpace)
 {
 	switch( iTruck )
 	{
@@ -56,7 +56,7 @@ CTriModalNormal	CVehModelDataGrave::GetSpacingDist(size_t iTruck, size_t iSpace)
 	}
 }
 
-CTriModalNormal	CVehModelDataGrave::GetAxleWeightDist(size_t iTruck, size_t iAxle)
+CMultiModalNormal	CVehModelDataGrave::GetAxleWeightDist(size_t iTruck, size_t iAxle)
 {
 	if( iTruck == 2 )
 		return m_v2AxleWeight[iAxle];
@@ -64,7 +64,7 @@ CTriModalNormal	CVehModelDataGrave::GetAxleWeightDist(size_t iTruck, size_t iAxl
 		return m_v3AxleWeight[iAxle];
 }
 
-CTriModalNormal	CVehModelDataGrave::GetTrackWidthDist(size_t iTruck, size_t iAxle)
+CMultiModalNormal	CVehModelDataGrave::GetTrackWidthDist(size_t iTruck, size_t iAxle)
 {
 	switch( iTruck )
 	{
@@ -79,7 +79,7 @@ CTriModalNormal	CVehModelDataGrave::GetTrackWidthDist(size_t iTruck, size_t iAxl
 	}
 }
 
-CTriModalNormal	CVehModelDataGrave::GetGVW(size_t dir, size_t iTruck)
+CMultiModalNormal	CVehModelDataGrave::GetGVW(size_t dir, size_t iTruck)
 {
 	if(dir == 1)
 		return m_vDir1GVW[iTruck - 2];
@@ -87,7 +87,7 @@ CTriModalNormal	CVehModelDataGrave::GetGVW(size_t dir, size_t iTruck)
 		return m_vDir2GVW[iTruck - 2];
 }
 
-CTriModalNormal CVehModelDataGrave::GetSpeed(std::size_t dir)
+CMultiModalNormal CVehModelDataGrave::GetSpeed(std::size_t dir)
 {
 	if (dir == 1)
 		return m_vSpeed[0];
@@ -97,52 +97,52 @@ CTriModalNormal CVehModelDataGrave::GetSpeed(std::size_t dir)
 
 /////////////// THE SETS //////////////////
 
-void CVehModelDataGrave::Add2AxleSpacings(std::vector<CTriModalNormal> vSpace)
+void CVehModelDataGrave::Add2AxleSpacings(std::vector<CMultiModalNormal> vSpace)
 {
 	m_v2AxleSpacings = vSpace;
 }
 
-void CVehModelDataGrave::Add3AxleSpacings(std::vector<CTriModalNormal> vSpace)
+void CVehModelDataGrave::Add3AxleSpacings(std::vector<CMultiModalNormal> vSpace)
 {
 	m_v3AxleSpacings = vSpace;
 }
 
-void CVehModelDataGrave::Add4AxleSpacings(std::vector<CTriModalNormal> vSpace)
+void CVehModelDataGrave::Add4AxleSpacings(std::vector<CMultiModalNormal> vSpace)
 {
 	m_v4AxleSpacings = vSpace;
 }
 
-void CVehModelDataGrave::Add5AxleSpacings(std::vector<CTriModalNormal> vSpace)
+void CVehModelDataGrave::Add5AxleSpacings(std::vector<CMultiModalNormal> vSpace)
 {
 	m_v5AxleSpacings = vSpace;
 }
 
-void CVehModelDataGrave::Add2AxleTrackWidth(std::vector<CTriModalNormal> vTrack)
+void CVehModelDataGrave::Add2AxleTrackWidth(std::vector<CMultiModalNormal> vTrack)
 {
 	m_v2AxleTrackWidth = vTrack;
 }
 
-void CVehModelDataGrave::Add3AxleTrackWidth(std::vector<CTriModalNormal> vTrack)
+void CVehModelDataGrave::Add3AxleTrackWidth(std::vector<CMultiModalNormal> vTrack)
 {
 	m_v3AxleTrackWidth = vTrack;
 }
 
-void CVehModelDataGrave::Add4AxleTrackWidth(std::vector<CTriModalNormal> vTrack)
+void CVehModelDataGrave::Add4AxleTrackWidth(std::vector<CMultiModalNormal> vTrack)
 {
 	m_v4AxleTrackWidth = vTrack;
 }
 
-void CVehModelDataGrave::Add5AxleTrackWidth(std::vector<CTriModalNormal> vTrack)
+void CVehModelDataGrave::Add5AxleTrackWidth(std::vector<CMultiModalNormal> vTrack)
 {
 	m_v5AxleTrackWidth = vTrack;
 }
 
-void CVehModelDataGrave::Add2AxleWeight(std::vector<CTriModalNormal> vAxle)
+void CVehModelDataGrave::Add2AxleWeight(std::vector<CMultiModalNormal> vAxle)
 {
 	m_v2AxleWeight = vAxle;
 }
 
-void CVehModelDataGrave::Add3AxleWeight(std::vector<CTriModalNormal> vAxle)
+void CVehModelDataGrave::Add3AxleWeight(std::vector<CMultiModalNormal> vAxle)
 {
 	m_v3AxleWeight = vAxle;
 }
@@ -163,7 +163,7 @@ void CVehModelDataGrave::Add45AxleWeight(std::vector<double> data, std::size_t i
 		m_v5AxleWeight[iRange] = range;
 }
 
-void CVehModelDataGrave::AddGVW(int dir, std::vector<CTriModalNormal> vGVW)
+void CVehModelDataGrave::AddGVW(int dir, std::vector<CMultiModalNormal> vGVW)
 {
 	if(dir == 1)
 		m_vDir1GVW = vGVW;
@@ -171,7 +171,7 @@ void CVehModelDataGrave::AddGVW(int dir, std::vector<CTriModalNormal> vGVW)
 		m_vDir2GVW = vGVW;
 }
 
-void CVehModelDataGrave::AddSpeed(std::vector<CTriModalNormal> vSpeed)
+void CVehModelDataGrave::AddSpeed(std::vector<CMultiModalNormal> vSpeed)
 {
 	m_vSpeed = vSpeed;
 }
@@ -239,8 +239,8 @@ void CVehModelDataGrave::ReadFile_AW23()
 	for (int iTruck = 2; iTruck <= 3; iTruck++)	// for each truck type
 	{
 		std::string line;
-		CTriModalNormal temp;
-		std::vector<CTriModalNormal> vAxle(iTruck, temp);
+		CMultiModalNormal temp;
+		std::vector<CMultiModalNormal> vAxle(iTruck, temp);
 
 		for (int i = 0; i < 3; i++)		// for 3 lines of data
 		{
@@ -311,8 +311,8 @@ void CVehModelDataGrave::ReadFile_AS()
 	for (int iTruck = 2; iTruck <= 5; iTruck++)	// for each truck type
 	{
 		std::string line;
-		CTriModalNormal temp;
-		std::vector<CTriModalNormal> vSpace(iTruck, temp);
+		CMultiModalNormal temp;
+		std::vector<CMultiModalNormal> vSpace(iTruck, temp);
 
 		for (int i = 0; i < 3; i++)		// for 3 lines of data
 		{
@@ -359,9 +359,9 @@ void CVehModelDataGrave::ReadFile_ATW()
 		std::cout << "*** Warning: Axle track width file not found: " 
 				  << std::filesystem::weakly_canonical(file) 
 				  << " using default values" << std::endl;
-		CTriModalNormal tmn;
+		CMultiModalNormal tmn;
 		tmn.AddMode(1, m_Config.Gen.TRUCK_TRACK_WIDTH, 0);	// deterministic width
-		std::vector<CTriModalNormal> vTrack(2, tmn); // start off with 2 axles
+		std::vector<CMultiModalNormal> vTrack(2, tmn); // start off with 2 axles
 		Add2AxleTrackWidth(vTrack); // add it
 		vTrack.push_back(tmn);	Add3AxleTrackWidth(vTrack); // add another axle and store it
 		vTrack.push_back(tmn);	Add4AxleTrackWidth(vTrack); // add another axle and store it
@@ -373,8 +373,8 @@ void CVehModelDataGrave::ReadFile_ATW()
 	for (int iTruck = 2; iTruck <= 5; iTruck++)	// for each truck type
 	{
 		std::string line;
-		CTriModalNormal temp;
-		std::vector<CTriModalNormal> vTrack(iTruck, temp);
+		CMultiModalNormal temp;
+		std::vector<CMultiModalNormal> vTrack(iTruck, temp);
 
 		for (int i = 0; i < 3; i++)		// for 3 lines of data
 		{
@@ -424,12 +424,12 @@ void CVehModelDataGrave::ReadFile_GVW()
 	}
 
 	std::string line;
-	CTriModalNormal temp;
-	std::vector<CTriModalNormal> vSpeed(2, temp);
+	CMultiModalNormal temp;
+	std::vector<CMultiModalNormal> vSpeed(2, temp);
 
 	for (int dir = 1; dir <= 2; dir++)
 	{
-		std::vector<CTriModalNormal> vGVW(4, temp);
+		std::vector<CMultiModalNormal> vGVW(4, temp);
 
 		for (int i = 0; i < 3; i++)		// for 3 lines of data
 		{

@@ -24,14 +24,14 @@ def test_triangle():
     plt.show()
 
 
-def test_trimodalnormal():
-    tmn = PyBTLS.TriModalNormal()
-    tmn.add_mode(0.4, 20, 4)
-    tmn.add_mode(0.1, 30, 8)
-    tmn.add_mode(0.5, 45, 3)
+def test_MultiModalNormal():
+    mmn = PyBTLS.MultiModalNormal()
+    mmn.add_mode(0.4, 20, 4)
+    mmn.add_mode(0.1, 30, 8)
+    mmn.add_mode(0.5, 45, 3)
 
     for i in range(n):
-        x[i] = dist.gen_trimodalnormal(tmn)
+        x[i] = dist.gen_multimodalnormal(mmn)
 
     plt.hist(x, bins=bins)
     plt.show()
