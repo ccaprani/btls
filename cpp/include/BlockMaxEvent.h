@@ -10,7 +10,7 @@
 class CBlockMaxEvent  
 {
 public:
-	CBlockMaxEvent(size_t file_format);
+	CBlockMaxEvent(size_t fileFormat);
 	virtual ~CBlockMaxEvent();
 	
 	void AddExtraEvents(size_t nVehs);

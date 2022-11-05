@@ -6,9 +6,9 @@ CVehModelDataGarage::CVehModelDataGarage(CConfigDataCore& config, CVehicleClassi
 	, m_NoVehicles(0)
 {
 	// MAGIC NUMBER for now
-	m_KernalGVW = Normal(1.0,0.08); // Mean and COV
-	m_KernalAW = Normal(1.0, 0.05);
-	m_KernalAS = Normal(1.0, 0.02);
+	m_KernelGVW = KernelParams(1.0,0.08); // Mean and COV
+	m_KernelAW 	= KernelParams(1.0,0.05);
+	m_KernelAS 	= KernelParams(1.0,0.02);
 
 	ReadDataIn();
 }
@@ -56,16 +56,16 @@ void CVehModelDataGarage::readKernels()
 		std::string line;
 		
 		m_CSV.getline(line);
-		m_KernalGVW.Mean = m_CSV.stringToDouble(m_CSV.getfield(0));
-		m_KernalGVW.StdDev = m_CSV.stringToDouble(m_CSV.getfield(1));
+		m_KernelGVW.Location = m_CSV.stringToDouble(m_CSV.getfield(0));
+		m_KernelGVW.Scale = m_CSV.stringToDouble(m_CSV.getfield(1));
 		
 		m_CSV.getline(line);
-		m_KernalAW.Mean = m_CSV.stringToDouble(m_CSV.getfield(0));
-		m_KernalAW.StdDev = m_CSV.stringToDouble(m_CSV.getfield(1));
+		m_KernelAW.Location = m_CSV.stringToDouble(m_CSV.getfield(0));
+		m_KernelAW.Scale = m_CSV.stringToDouble(m_CSV.getfield(1));
 		
 		m_CSV.getline(line);
-		m_KernalAS.Mean = m_CSV.stringToDouble(m_CSV.getfield(0));
-		m_KernalAS.StdDev = m_CSV.stringToDouble(m_CSV.getfield(1));
+		m_KernelAS.Location = m_CSV.stringToDouble(m_CSV.getfield(0));
+		m_KernelAS.Scale = m_CSV.stringToDouble(m_CSV.getfield(1));
 	}
 }
 
@@ -77,9 +77,9 @@ CVehicle_sp CVehModelDataGarage::getVehicle(size_t i)
 		return nullptr;
 }
 
-void CVehModelDataGarage::getKernals(Normal& GVW, Normal& AW, Normal& AS)
+void CVehModelDataGarage::getKernels(KernelParams& GVW, KernelParams& AW, KernelParams& AS)
 {
-	GVW = m_KernalGVW;
-	AW = m_KernalAW;
-	AS = m_KernalAS;
+	GVW = m_KernelGVW;
+	AW = m_KernelAW;
+	AS = m_KernelAS;
 }

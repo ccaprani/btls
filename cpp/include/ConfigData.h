@@ -38,8 +38,9 @@ public:
         size_t NO_DAYS;
         double TRUCK_TRACK_WIDTH;
         double LANE_ECCENTRICITY_STD;
-        double NO_OVERLAP_LENGTH; // assigned in program
-    } Gen = {"../Traffic/Auxerre/", false, 1, 190.0, 0.0, 100.0};
+        int KERNEL_TYPE;
+        double NO_OVERLAP_LENGTH; // assigned in program   
+    } Gen = {"../Traffic/Auxerre/", false, 1, 190.0, 0.0, 0, 100.0};
 
     struct Read_Config
     {
@@ -47,7 +48,7 @@ public:
         std::string TRAFFIC_FILE;
         std::string GARAGE_FILE;
         std::string KERNEL_FILE;
-        std::string CONSTANT_FILE;
+        std::string NOMINAL_FILE;
         size_t FILE_FORMAT;
         bool USE_CONSTANT_SPEED;
         bool USE_AVE_SPEED;
@@ -149,25 +150,25 @@ public:
         size_t SECS_PER_MIN;
     } Time = {25, 10, 24, 3600, 60, 60};
 
-    void VehGenGrave(std::string lanes_file, std::string traffic_folder, size_t no_days, double truck_track_width, double lane_eccentricity_std);
-    void VehGenGarage(std::string lanes_file, std::string garage_file, size_t file_format, std::string kernel_file, size_t no_days, double lane_eccentricity_std);
-    void VehGenConstant(std::string lanes_file, std::string constant_file, size_t no_days, double lane_eccentricity_std);
+    void VehGenGrave(std::string lanesFile, std::string trafficFolder, size_t noDays, double truckTrackWidth, double laneEccentricityStd);
+    void VehGenGarage(std::string lanesFile, std::string garageFile, size_t fileFormat, std::string kernelFile, size_t noDays, double laneEccentricityStd, int kernelType);
+    void VehGenNominal(std::string lanesFile, std::string constantFile, size_t noDays, double laneEccentricityStd, int kernelType);
 
-    void FlowGenNHM(int classification, std::string traffic_folder);
-    void FlowGenConstant(int classification, double constant_speed, double constant_gap);
-    void FlowGenCongestion(int classification, double congested_spacing, double congested_speed, double congested_gap_coef_var);
+    void FlowGenNHM(int classification, std::string trafficFolder);
+    void FlowGenConstant(int classification, double constantSpeed, double constantGap);
+    void FlowGenCongestion(int classification, double congestedSpacing, double congestedSpeed, double congestedGapCOV);
     void FlowGenFreeFlow(int classification);
 
-    void TrafficRead(std::string traffic_file, size_t file_format, bool use_constant_speed, bool use_ave_speed, double const_speed);
+    void TrafficRead(std::string trafficFile, size_t fileFormat, bool useConstantSpeed, bool useAveSpeed, double constSpeed);
 
-    void Simulation(std::string bridge_file, std::string infline_file, std::string infsurf_file, double calc_time_step, size_t min_gvw);
+    void Simulation(std::string bridgeFile, std::string infLineFile, std::string infSurfFile, double calcTimeStep, size_t minGVW);
 
-    void OutputGeneral(bool write_time_history = false, bool write_each_event = false, bool write_fatigue_event = false, size_t write_buffer_size = 10000);
-    void OutputVehicleFile(bool write_vehicle_file = false, size_t vehicle_file_format = 4, std::string vehicle_file_name = "Vehicles.txt", size_t buffer_size = 10000, bool write_flow_stats = false);
-    void OutputBlockMax(bool write_blockmax = false, bool write_vehicle = false, bool write_summary = false, bool write_mixed = false, size_t block_size_days = 1, size_t block_size_secs = 0, size_t buffer_size = 10000);
-    void OutputPOT(bool write_pot = false, bool write_vehicle = false, bool write_summary = false, bool write_counter = false, size_t pot_size_days = 1, size_t pot_size_secs = 0, size_t buffer_size = 10000);
-    void OutputStats(bool write_stats = false, bool write_cumulative = false, bool write_intervals = false, size_t interval_size = 3600, size_t buffer_size = 10000);
-    void OutputFatigue(bool do_rainflow = false, int decimal = 3, double cut_off_value = 0.0, size_t buffer_size = 10000);
+    void OutputGeneral(bool writeTimeHistory = false, bool writeEachEvent = false, bool writeFatigueEvent = false, size_t writeBufferSize = 10000);
+    void OutputVehicleFile(bool writeVehicleFile = false, size_t vehicleFileFormat = 4, std::string vehicleFileName = "Vehicles.txt", size_t bufferSize = 10000, bool writeFlowStats = false);
+    void OutputBlockMax(bool writeBM = false, bool writeVehicle = false, bool writeSummary = false, bool write_mixed = false, size_t blockSizeDays = 1, size_t blockSizeSecs = 0, size_t bufferSize = 10000);
+    void OutputPOT(bool writePOT = false, bool writeVehicle = false, bool writeSummary = false, bool writeCounter = false, size_t POTSizeDays = 1, size_t POTSizeSecs = 0, size_t bufferSize = 10000);
+    void OutputStats(bool writeStats = false, bool writeCumulative = false, bool writeIntervals = false, size_t intervalSize = 3600, size_t bufferSize = 10000);
+    void OutputFatigue(bool doRainflow = false, int decimal = 3, double cutOffValue = 0.0, size_t bufferSize = 10000);
 
 
 private:

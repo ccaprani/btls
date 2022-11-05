@@ -7,7 +7,7 @@
 #include <vector>
 #include <memory>
 #include "CSVParse.h"
-#include "TriModalNormal.h"
+#include "MultiModalNormal.h"
 #include "ConfigData.h"
 
 typedef std::vector<double> vec;
@@ -26,6 +26,24 @@ enum EVehicleModel
 	eVM_Grave = 0,
 	eVM_Garage,
 	eVM_Constant
+};
+
+enum EKernelType
+{
+	eKT_Normal = 0,
+	eKT_Triangle
+};
+
+struct KernelParams
+{
+	KernelParams(double loc, double scale)
+	{
+		Location = loc;
+		Scale = scale;
+	};
+	KernelParams():Location(0.0), Scale(0.0){};
+	double Location;
+	double Scale;
 };
 
 struct Normal

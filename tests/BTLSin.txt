@@ -19,9 +19,11 @@
 190.0
 // Standard deviation of eccentricity in lane (cm) (about 20 cm usually)
 0
+// Kernel type for traffic generation (0 - Normal, 1 - Triangle)
+1
 // Vehicle Generation Model to be used
-// (0 - Grave, 1 - Constant, 2 - Garage)
-2
+// (0 - Grave, 1 - Nominal, 2 - Garage)
+0
 // Headway model to be used:
 // (0 - Auxerre NHM, 1 - Constant, 5 - Congestion (w/ or w/out cars), 6 - free-flow, cars included)
 6

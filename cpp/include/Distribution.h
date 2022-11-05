@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "TriModalNormal.h"
+#include "MultiModalNormal.h"
 #include <random>
 
 class CRNGWrapper
@@ -36,7 +36,7 @@ public:
 	double GenerateUniform();
 	double GenerateNormal();	
 	double GenerateNormal(double mean, double stdev);
-	double GenerateTriModalNormal(CTriModalNormal TMN);
+	double GenerateMultiModalNormal(CMultiModalNormal MMN);
 	double GenerateExponential();
 	double GenerateLogNormal();
 	double GenerateGamma();
@@ -44,6 +44,7 @@ public:
 	double GeneratePoisson();
 	double GenerateGEV();	
 	double GenerateTriangular();
+	double GenerateTriangular(double loc, double w);
 
 private:
 	double BoxMuller();

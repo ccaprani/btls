@@ -1,24 +1,24 @@
-// TriModalNormal.cpp: implementation of the CTriModalNormal class.
+// MultiModalNormal.cpp: implementation of the CMultiModalNormal class.
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "TriModalNormal.h"
+#include "MultiModalNormal.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CTriModalNormal::CTriModalNormal()
+CMultiModalNormal::CMultiModalNormal()
 {
 
 }
 
-CTriModalNormal::~CTriModalNormal()
+CMultiModalNormal::~CMultiModalNormal()
 {
 
 }
 
-void CTriModalNormal::AddMode(double w, double m, double s)
+void CMultiModalNormal::AddMode(double w, double m, double s)
 {
 	Mode temp;
 	temp.Weight = w;

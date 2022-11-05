@@ -8,7 +8,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CBlockMaxEvent::CBlockMaxEvent(size_t file_format) : FILE_FORMAT(file_format)
+CBlockMaxEvent::CBlockMaxEvent(size_t fileFormat) : FILE_FORMAT(fileFormat)
 {
 	m_NoEvents = 0;
 	m_ID = 0;

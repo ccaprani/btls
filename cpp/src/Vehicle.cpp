@@ -801,8 +801,8 @@ double CVehicle::getTime() const
 	size_t s_per_day = SECS_PER_HOUR*HOURS_PER_DAY;
 
 	// Note: No. days is double to prevent overflow in the time calculation line
-	double no_days = m_Year * (double)(MTS_PER_YR * DAYS_PER_MT) + (m_Month - 1) * (double)(DAYS_PER_MT) + (m_Day-1);
-	double time = no_days * s_per_day + m_Hour * s_per_hr + m_Min * SECS_PER_MIN + m_Sec;
+	double noDays = m_Year * (double)(MTS_PER_YR * DAYS_PER_MT) + (m_Month - 1) * (double)(DAYS_PER_MT) + (m_Day-1);
+	double time = noDays * s_per_day + m_Hour * s_per_hr + m_Min * SECS_PER_MIN + m_Sec;
 
 	return time;
 }

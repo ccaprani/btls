@@ -4,6 +4,7 @@ from PyBTLS.py.config_data import ConfigData
 
 config = ConfigData()
 
+
 def get_vehicle_classification():
     global config
     if config.Traffic.CLASSIFICATION == 1:
@@ -18,9 +19,11 @@ def prepare_bridges():
 
     read_IL = ReadILFile()
 
-    bridge_file = BridgeFile(config, 
-                             read_IL.get_inf_lines(config.Sim.INFLINE_FILE, 0),
-                             read_IL.get_inf_lines(config.Sim.INFSURF_FILE, 1))
+    bridge_file = BridgeFile(
+        config,
+        read_IL.get_inf_lines(config.Sim.INFLINE_FILE, 0),
+        read_IL.get_inf_lines(config.Sim.INFSURF_FILE, 1),
+    )
 
     bridge_list = bridge_file.get_bridges()
     config.Gen.NO_OVERLAP_LENGTH = bridge_file.get_max_bridge_length()
@@ -34,7 +37,7 @@ def prepare_bridges():
 def get_generator_lanes(vehicle_classification, start_time):
     global config
 
-    end_time = (config.Gen.NO_DAYS)*24*3600.0
+    end_time = (config.Gen.NO_DAYS) * 24 * 3600.0
 
     lane_flow_data = LaneFlowData(config)
     lane_flow_data.read_data_in()
@@ -48,18 +51,22 @@ def get_generator_lanes(vehicle_classification, start_time):
     lane_list = []
     for i in range(lane_flow_data.get_no_lanes()):
         lane = LaneGenTraffic(config)
-        lane.set_lane_data(vehicle_classification, lane_flow_data.get_lane_composition(i), start_time)
+        lane.set_lane_data(
+            vehicle_classification, lane_flow_data.get_lane_composition(i), start_time
+        )
         lane_list.append(lane)
 
     return lane_list, end_time
 
 
-def do_simulation(vehicle_classification, bridge_list, lane_list, sim_start_time, sim_end_time):
+def do_simulation(
+    vehicle_classification, bridge_list, lane_list, sim_start_time, sim_end_time
+):
     global config
 
-    vehicle_buffer = VehicleBuffer(config,vehicle_classification, sim_start_time)
+    vehicle_buffer = VehicleBuffer(config, vehicle_classification, sim_start_time)
     current_time = sim_start_time
-    current_day = int(sim_start_time/86400)
+    current_day = int(sim_start_time / 86400)
     sim_process_print = ""
 
     print("Starting simulation...")
@@ -79,7 +86,7 @@ def do_simulation(vehicle_classification, bridge_list, lane_list, sim_start_time
                     bridge_list[i].add_vehicle(vehicle)
 
         current_time = vehicle.get_time()
-        if current_time > 86400*(current_day+1):
+        if current_time > 86400 * (current_day + 1):
             current_day += 1
             sim_process_print += "\t" + str(current_day)
             if current_day % 10 == 0:
@@ -102,13 +109,13 @@ def run():
 
     bridge_list = []
     if config.Sim.CALC_LOAD_EFFECTS:
-        bridge_list = prepare_bridges() 
+        bridge_list = prepare_bridges()
 
-    lane_list, end_time = get_generator_lanes(vehicle_classification,start_time)
+    lane_list, end_time = get_generator_lanes(vehicle_classification, start_time)
     for i in range(len(bridge_list)):
         bridge_list[i].initialize_data_manager(start_time)
 
-    do_simulation(vehicle_classification,bridge_list,lane_list,start_time,end_time)
+    do_simulation(vehicle_classification, bridge_list, lane_list, start_time, end_time)
 
 
 if __name__ == "__main__":
