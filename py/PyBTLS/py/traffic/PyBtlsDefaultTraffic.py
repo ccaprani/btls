@@ -24,12 +24,12 @@ auxerre_axle_class_pct = PyBtlsTraffic.ClassPercentage()
 auxerre_axle_class_pct.load_default("Auxerre/CLASS%.csv")
 
 Auxerre = PyBtlsTraffic.BtlsTraffic(
-    axle_spacing = auxerre_axle_spacing,
-    axle_track_width = auxerre_track_width,
-    axle_weight_23 = auxerre_axle_weight_23,
-    axle_weight_45 = auxerre_axle_weight_45,
-    gross_vehicle_weight = auxerre_axle_gvw,
-    headway = auxerre_axle_headway,
-    flow_rate = auxerre_axle_flowrate,
-    class_percentage = auxerre_axle_class_pct
+    axle_spacing=auxerre_axle_spacing,
+    axle_track_width=auxerre_track_width,
+    axle_weight_23=auxerre_axle_weight_23,
+    axle_weight_45=auxerre_axle_weight_45,
+    gross_vehicle_weight=auxerre_axle_gvw,
+    headway=auxerre_axle_headway,
+    flow_rate=auxerre_axle_flowrate,
+    class_percentage=auxerre_axle_class_pct,
 )

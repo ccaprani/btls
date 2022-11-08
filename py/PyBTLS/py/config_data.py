@@ -8,6 +8,7 @@ def singleton(cls):
         if cls not in _instance:
             _instance[cls] = cls()
         return _instance[cls]
+
     return inner
 
 

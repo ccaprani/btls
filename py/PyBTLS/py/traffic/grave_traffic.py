@@ -5,20 +5,24 @@ import os
 
 from PyBTLS.py.utils_interface._helper_class import _DfBased
 
+
 class AxleSpacing(_DfBased):
     def _from_txt_to_dataframe_kwargs(self, txt, *args, **kwargs):
-        txt = txt.split('\n')
+        txt = txt.split("\n")
         data = [t.split(",") for t in txt]
-        if (len(data[-1] == 0)) or (len(data[-1]) == 1 and data[-1] == ''):
+        if (len(data[-1] == 0)) or (len(data[-1]) == 1 and data[-1] == ""):
             data = data[0:-1]
-        data = data.split(',')
-        header = [[f"rho_{i+1}_{i+2}", f"mu_{i+1}_{i+2}", f"sigma_{i+1}_{i+2}"] for i in range (0, 5)]
-        
-        raise NotImplementedError()
+        data = data.split(",")
+        header = [
+            [f"rho_{i+1}_{i+2}", f"mu_{i+1}_{i+2}", f"sigma_{i+1}_{i+2}"]
+            for i in range(0, 5)
+        ]
 
+        raise NotImplementedError()
 
     def write_as_csv(self, path):
         raise NotImplementedError()
+
 
 """
 class AxleSpacing():
