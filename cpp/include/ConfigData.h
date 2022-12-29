@@ -164,7 +164,7 @@ public:
     void Simulation(std::string bridgeFile, std::string infLineFile, std::string infSurfFile, double calcTimeStep, size_t minGVW);
 
     void OutputGeneral(bool writeTimeHistory = false, bool writeEachEvent = false, bool writeFatigueEvent = false, size_t writeBufferSize = 10000);
-    void OutputVehicleFile(bool writeVehicleFile = false, size_t vehicleFileFormat = 4, std::string vehicleFileName = "Vehicles.txt", size_t bufferSize = 10000, bool writeFlowStats = false);
+    void OutputVehicleFile(bool writeVehicleFile = false, size_t vehicleFileFormat = 4, std::string vehicleFileName = "test_vehicle_file.txt", size_t bufferSize = 10000, bool writeFlowStats = false);
     void OutputBlockMax(bool writeBM = false, bool writeVehicle = false, bool writeSummary = false, bool write_mixed = false, size_t blockSizeDays = 1, size_t blockSizeSecs = 0, size_t bufferSize = 10000);
     void OutputPOT(bool writePOT = false, bool writeVehicle = false, bool writeSummary = false, bool writeCounter = false, size_t POTSizeDays = 1, size_t POTSizeSecs = 0, size_t bufferSize = 10000);
     void OutputStats(bool writeStats = false, bool writeCumulative = false, bool writeIntervals = false, size_t intervalSize = 3600, size_t bufferSize = 10000);

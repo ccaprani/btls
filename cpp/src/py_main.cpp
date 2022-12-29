@@ -35,7 +35,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("traffic_read", &CConfigDataCore::TrafficRead, py::arg("traffic_file"), py::arg("file_format"), py::arg("use_constant_speed"), py::arg("use_ave_speed"), py::arg("const_speed"))
 			.def("simulation", &CConfigDataCore::Simulation, py::arg("bridge_file"), py::arg("infline_file"), py::arg("infsurf_file"), py::arg("calc_time_step"), py::arg("min_gvw"))
 			.def("output_general", &CConfigDataCore::OutputGeneral, py::arg("write_time_history")=false, py::arg("write_each_event")=false, py::arg("write_fatigue_event")=false, py::arg("write_buffer_size")=1000)
-			.def("output_vehicle_file", &CConfigDataCore::OutputVehicleFile, py::arg("write_vehicle_file")=false, py::arg("vehicle_file_format")=4, py::arg("vehicle_file_name")="Vehicles.txt", py::arg("buffer_size")=10000, py::arg("write_flow_stats")=false)
+			.def("output_vehicle_file", &CConfigDataCore::OutputVehicleFile, py::arg("write_vehicle_file")=false, py::arg("vehicle_file_format")=4, py::arg("vehicle_file_name")="test_vehicle_file.txt", py::arg("buffer_size")=10000, py::arg("write_flow_stats")=false)
 			.def("output_BM", &CConfigDataCore::OutputBlockMax, py::arg("write_blockmax")=false, py::arg("write_vehicle")=false, py::arg("write_summary")=false, py::arg("write_mixed")=false, py::arg("block_size_days")=1, py::arg("block_size_secs")=0, py::arg("buffer_size")=10000)
 			.def("output_POT", &CConfigDataCore::OutputPOT, py::arg("write_pot")=false, py::arg("write_vehicle")=false, py::arg("write_summary")=false, py::arg("write_counter")=false, py::arg("pot_size_days")=1, py::arg("pot_size_secs")=0, py::arg("buffer_size")=10000)
 			.def("output_stats", &CConfigDataCore::OutputStats, py::arg("write_stats")=false, py::arg("write_cumulative")=false, py::arg("write_intervals")=false, py::arg("interval_size")=3600, py::arg("buffer_size")=10000)
@@ -58,6 +58,7 @@ PYBIND11_MODULE(_core, m) {
 				.def_readwrite("NO_DAYS", &CConfigDataCore::Gen_Config::NO_DAYS)
 				.def_readwrite("TRUCK_TRACK_WIDTH", &CConfigDataCore::Gen_Config::TRUCK_TRACK_WIDTH)
 				.def_readwrite("LANE_ECCENTRICITY_STD", &CConfigDataCore::Gen_Config::LANE_ECCENTRICITY_STD)
+				.def_readwrite("KERNEL_TYPE", &CConfigDataCore::Gen_Config::KERNEL_TYPE)
 				.def_readwrite("NO_OVERLAP_LENGTH", &CConfigDataCore::Gen_Config::NO_OVERLAP_LENGTH);
 		py::class_<CConfigDataCore::Read_Config> read_config(cconfigdatacore, "Read_Config");
 			read_config.def_readwrite("READ_FILE", &CConfigDataCore::Read_Config::READ_FILE)
@@ -316,7 +317,7 @@ PYBIND11_MODULE(_core, m) {
 	py::class_<CVehicleTrafficFile> cvehicletrafficfile(m, "VehicleTrafficFile");
 		cvehicletrafficfile.def(py::init<CVehicleClassification_sp, bool, bool, double>(), py::arg("vehicle_classification"), py::arg("use_const_speed"), py::arg("use_ave_speed"), py::arg("const_speed_value"))
 			.def("read", &CVehicleTrafficFile::Read, py::arg("file"), py::arg("format"))
-			.def("get_noDays", &CVehicleTrafficFile::getNoDays)
+			.def("get_no_days", &CVehicleTrafficFile::getNoDays)
 			.def("get_no_lanes", &CVehicleTrafficFile::getNoLanes)
 			.def("get_no_dirn", &CVehicleTrafficFile::getNoDirn)
 			.def("get_no_lanes_dir1", &CVehicleTrafficFile::getNoLanesDir1)

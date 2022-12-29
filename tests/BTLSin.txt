@@ -19,7 +19,7 @@
 190.0
 // Standard deviation of eccentricity in lane (cm) (about 20 cm usually)
 0
-// Kernel type for traffic generation (0 - Normal, 1 - Triangle)
+// Kernel type for traffic generation (0 - Normal, 1 - Triangle) (only for Nominal or Garage Vehicle Generation)
 1
 // Vehicle Generation Model to be used
 // (0 - Grave, 1 - Nominal, 2 - Garage)
