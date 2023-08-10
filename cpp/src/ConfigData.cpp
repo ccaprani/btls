@@ -288,8 +288,8 @@ void CConfigDataCore::OutputGeneral(bool writeTimeHistory, bool writeEachEvent, 
 {
     Output.WRITE_TIME_HISTORY = writeTimeHistory;
     Output.WRITE_EACH_EVENT = writeEachEvent;
-    Output.WRITE_EVENT_BUFFER_SIZE = writeFatigueEvent;
-    Output.WRITE_FATIGUE_EVENT = writeBufferSize;
+    Output.WRITE_FATIGUE_EVENT = writeFatigueEvent;
+    Output.WRITE_EVENT_BUFFER_SIZE = writeBufferSize;
 }
 
 void CConfigDataCore::OutputVehicleFile(bool writeVehicleFile, size_t vehicleFileFormat, std::string vehicleFileName, size_t bufferSize, bool writeFlowStats) 

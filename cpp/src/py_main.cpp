@@ -34,7 +34,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("flow_gen_freeflow", &CConfigDataCore::FlowGenFreeFlow, py::arg("vehicle_classification"))
 			.def("traffic_read", &CConfigDataCore::TrafficRead, py::arg("traffic_file"), py::arg("file_format"), py::arg("use_constant_speed"), py::arg("use_ave_speed"), py::arg("const_speed"))
 			.def("simulation", &CConfigDataCore::Simulation, py::arg("bridge_file"), py::arg("infline_file"), py::arg("infsurf_file"), py::arg("calc_time_step"), py::arg("min_gvw"))
-			.def("output_general", &CConfigDataCore::OutputGeneral, py::arg("write_time_history")=false, py::arg("write_each_event")=false, py::arg("write_fatigue_event")=false, py::arg("write_buffer_size")=1000)
+			.def("output_general", &CConfigDataCore::OutputGeneral, py::arg("write_time_history")=false, py::arg("write_each_event")=false, py::arg("write_fatigue_event")=false, py::arg("write_buffer_size")=10000)
 			.def("output_vehicle_file", &CConfigDataCore::OutputVehicleFile, py::arg("write_vehicle_file")=false, py::arg("vehicle_file_format")=4, py::arg("vehicle_file_name")="test_vehicle_file.txt", py::arg("buffer_size")=10000, py::arg("write_flow_stats")=false)
 			.def("output_BM", &CConfigDataCore::OutputBlockMax, py::arg("write_blockmax")=false, py::arg("write_vehicle")=false, py::arg("write_summary")=false, py::arg("write_mixed")=false, py::arg("block_size_days")=1, py::arg("block_size_secs")=0, py::arg("buffer_size")=10000)
 			.def("output_POT", &CConfigDataCore::OutputPOT, py::arg("write_pot")=false, py::arg("write_vehicle")=false, py::arg("write_summary")=false, py::arg("write_counter")=false, py::arg("pot_size_days")=1, py::arg("pot_size_secs")=0, py::arg("buffer_size")=10000)
