@@ -1,15 +1,23 @@
 import numpy as np
 
-
-""" 
-Functions to convert from vehicle like data frame to text
-Useful for exporting to txt.
-
-"""
-
-
 def vehicle_df_to_txt(df, file_format):
+    """ 
+    Functions to convert from vehicle like data frame to text
+    Useful for exporting to txt.
 
+    Arguments:
+    ----------
+    df: pandas.DataFrame
+        The vehicle data frame.
+    file_format: str
+        Format of the vehicle text file.
+        Either "CASTOR", "BeDIT", "DITIS", or "MON".
+
+    Returns:
+    --------
+    str
+        The vehicle data frame as a string.
+    """
     if file_format == "MON":
         num_col = len(df.columns)
         char_length = np.array(

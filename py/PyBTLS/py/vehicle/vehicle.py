@@ -7,6 +7,20 @@ from PyBTLS.py.utils_interface._vehicle_event_writer import vehicle_df_to_txt
 
 
 class Vehicle(_DfBased):
+    """
+    PyBTLS Vehicle class.
+    Contains vehicle characteristic information,
+    such as the number of axles, axle weights, axle spacings, etc.
+
+    Arguments:
+    ----------
+    path: str
+        Path to the file.
+    file_format: str, optional
+        Format of the vehicle text file.
+        Either "CASTOR", "BeDIT", "DITIS", or "MON".
+        If not supplied, PyBTLS will attempt to auto detect the format.
+    """
     def _from_txt_to_dataframe_kwargs(self, txt, *args, **kwargs):
         if not "file_format" in kwargs:
             raise ValueError(

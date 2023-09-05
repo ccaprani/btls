@@ -1,27 +1,30 @@
 import pandas as pd
 from abc import abstractmethod, abstractproperty
 
-"""
-Base class for expanded pandas dataframe
-Allows importing data from a file, str object, or specified as dataframe by the user
-Input:
-    Select ONE of the following:
-    1. Constructing from a file:
-        'path': the path to the file to be imported
-        **kwargs: Other kwargs as required, e.g. file_format for BtlsVehicle object
-        After initialisation use import_from_file() method
-    2. Constructing from a text:
-        'text': The text to be converted into the object
-        **kwargs: Other kwargs as required
-        After initialisation use import_from_file() method
-    3. Constructing as pandas DataFrame:
-        Use pandas dataframe args and kwargs. Refer to pandas DataFrame documentation
-        Not wholly supported after initialisation, though user can manipulate the existing DataFrame like regular
-"""
-
-
 class _DfBased(pd.DataFrame):
+    """
+    Base class for expanded pandas dataframe
+    """
     def __init__(self, *args, **kwargs) -> None:
+        """
+        Construct a DataFrame like object, with importing data from a file, str object, or specified as dataframe by the user
+
+        Parameters:
+        ----------
+        Select ONE of the following:
+         Select ONE of the following:
+        1. Constructing from a file:
+            'path': the path to the file to be imported
+            **kwargs: Other keyword arguments as required, e.g. file_format for BtlsVehicle object
+            After initialisation use import_from_file() method
+        2. Constructing from a text:
+            'text': The text to be converted into the object
+            **kwargs: Other keyword arguments as required.
+            After initialisation use import_from_file() method
+        3. Constructing as pandas DataFrame:
+            Use pandas dataframe args and kwargs. Refer to pandas DataFrame documentation for keyword arguments.
+            Not wholly supported after initialisation, though user can manipulate the existing DataFrame like regular
+        """
         self._check_args(*args, **kwargs)
         if "path" in kwargs:
             self._init_via_file(*args, **kwargs)
@@ -31,6 +34,13 @@ class _DfBased(pd.DataFrame):
             self._init_via_df(*args, **kwargs)
 
     def _check_args(self, *args, **kwargs):
+        """
+        Check that only one of the three initialisation methods is used.
+        The three initialization methods are:
+        1. "path" - Using imported file
+        2. "text" - Using text string
+        3. pandas DataFrame constructor args and kwargs - Using pandas DataFrame
+        """
         # Either supply path + file_format, text, or dataframe constructor args and kwargs
         num_mode_supplied = 0
         if "path" in kwargs:
@@ -54,7 +64,7 @@ class _DfBased(pd.DataFrame):
         else:
             return 1
 
-    # Separate the initialisation method so further classes can modify the behavious separately easily
+    # Separate the initialisation method so further classes can modify the behaviour separately easily
     def _init_via_df(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -86,23 +96,37 @@ class _DfBased(pd.DataFrame):
     def __repr__(self) -> str:
         return super().__repr__()
 
-
-r"""
-ListLike base class. Provide a class where indexing is possible, just like a list
-"""
-
-
 class _ListLike:
+    """
+    Base class for list like objects. 
+
+    Provide a class where indexing is possible, just like a list, but only accept a certain type of object.
+    To set the acceptable object type, change the __setitem_acceptable_type__ property.
+    """
     @abstractproperty
     def __primarykey__(self):
+        """
+        Name of the primary key, where the list of objects is stored.
+        This is just the private property name for internal use by the object.
+        e.g., if this key is set to "_bridges", then the list of bridges is stored in the private property self._bridges.
+        When the user evaluates the object, e.g., by calling bridges[3], this object will then call self._bridges[3].
+        """
         pass
 
     @abstractproperty
     def __setitem_acceptable_type__(self):
+        """
+        Set the acceptable type of object to be stored in the list like object.
+        """
         pass
 
     @property
     def __str_quantifier__(self):
+        """
+        Object quantifier for __str__ and __repr__ methods.
+        e.g., if this ListLike base class is to be used for bridges, then set the __str_quantifier__ to "bridges".
+        It will then print "5 bridge(s) object at 0x...." when there are 5 bridges in the object.
+        """
         return "x"
 
     @property

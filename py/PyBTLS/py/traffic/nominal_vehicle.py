@@ -7,12 +7,15 @@ from PyBTLS.py.utils_interface._helper_functions import (
 )
 
 
-"""
-
-"""
-
-
 class NominalVehicle(_DfBased):
+    """
+    Nominal vehicle object.
+    Used to generate a single vehicle type in PyBTLS.
+    Contains two columns: `axle_spacing` and `axle_weight`.
+
+    Use the `load_default` method to load the default nominal vehicle.
+    It can be easily manipulated using pandas DataFrame methods.
+    """
     def _from_txt_to_dataframe_kwargs(self, txt, *args, **kwargs):
         txt = txt.split("\n")
         data = [t.split(",") for t in txt]

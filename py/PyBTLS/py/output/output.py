@@ -8,6 +8,11 @@ from PyBTLS.py.utils_interface._helper_functions import data_enforce_type
 
 
 class _BtlsWrapper_DefaultOutputs:
+    """
+    This class is meant to wrap the default outputs from BTLS.
+    Currently unused.
+    This should be changed (or removed) depending on the architecture of PyBTLS in the future.
+    """
     def __init__(self):
         self.interval_statistics = "No Output Set"
         self.vehicles = "No Output Set"
@@ -18,6 +23,17 @@ class _BtlsWrapper_DefaultOutputs:
 
 
 class CumulativeStatistics(_DfBased):
+    """
+    Cumulative Statistics output.
+    This contains information such as the average load effect, standard deviation, minimum and maximum of the entire period of the simulation.
+    It is recommended that the user use the `read_cumulative_statistics_file` function to read the file.
+
+    Arguments:
+    ----------
+    path: str
+        Path to the file.
+        This usually has the name /SS_C_*.txt
+    """
     def _from_txt_to_dataframe_kwargs(self, txt, *args, **kwargs):
         if isinstance(txt, str):
             # Attempt to separate by string
@@ -74,6 +90,17 @@ class CumulativeStatistics(_DfBased):
 
 
 class IntervalStatistics(_DfBased):
+    """
+    Interval Statistics output.
+    This contains information such as the average load effect, standard deviation, minimum and maximum of each day (or period) of the simulation.
+    It is recommended that the user use the `read_interval_statistics_file` function to read the file.
+
+    Arguments:
+    ----------
+    path: str
+        Path to the file.
+        This usually has the name /SS_S_*_Eff_*.txt
+    """
     descriptor = None
 
     def __init__(self, descriptor=None, *args, **kwargs) -> None:
@@ -152,6 +179,17 @@ class IntervalStatistics(_DfBased):
 
 
 class BlockMaximaSummary(_DfBased):
+    """
+    Block Maxima summary output.
+    Contain the maxima of each day (or period), separated by event type.
+
+    Arguments:
+    ----------
+    path: str
+        Path to the file.
+        This usually has the name /BM_S_*_Eff_*.txt
+    """
+
     descriptor = None
 
     def __init__(self, descriptor=None, *args, **kwargs) -> None:
