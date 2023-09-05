@@ -3,11 +3,11 @@
 """
 import re
 import numpy as np
-from PyBTLS.py.utils_interface._helper_class import _DfBased
+from PyBTLS.py.utils_interface._helper_class import DFBased
 from PyBTLS.py.utils_interface._helper_functions import data_enforce_type
 
 
-class _BtlsWrapper_DefaultOutputs:
+class BtlsWrapper_DefaultOutputs:
     """
     This class is meant to wrap the default outputs from BTLS.
     Currently unused.
@@ -22,7 +22,7 @@ class _BtlsWrapper_DefaultOutputs:
         return super().__str__()
 
 
-class CumulativeStatistics(_DfBased):
+class CumulativeStatistics(DFBased):
     """
     Cumulative Statistics output.
     This contains information such as the average load effect, standard deviation, minimum and maximum of the entire period of the simulation.
@@ -89,7 +89,7 @@ class CumulativeStatistics(_DfBased):
         return {"data": data_enforce_type(data, column_type)}
 
 
-class IntervalStatistics(_DfBased):
+class IntervalStatistics(DFBased):
     """
     Interval Statistics output.
     This contains information such as the average load effect, standard deviation, minimum and maximum of each day (or period) of the simulation.
@@ -178,7 +178,7 @@ class IntervalStatistics(_DfBased):
         return f"{head}{df}"
 
 
-class BlockMaximaSummary(_DfBased):
+class BlockMaximaSummary(DFBased):
     """
     Block Maxima summary output.
     Contain the maxima of each day (or period), separated by event type.

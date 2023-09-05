@@ -1,7 +1,7 @@
 import pandas as pd
 from abc import abstractmethod, abstractproperty
 
-class _DfBased(pd.DataFrame):
+class DFBased(pd.DataFrame):
     """
     Base class for expanded pandas dataframe
     """
@@ -96,7 +96,7 @@ class _DfBased(pd.DataFrame):
     def __repr__(self) -> str:
         return super().__repr__()
 
-class _ListLike:
+class ListLike:
     """
     Base class for list like objects. 
 

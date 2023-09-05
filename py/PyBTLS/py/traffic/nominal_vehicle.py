@@ -1,13 +1,13 @@
 import numpy as np
 import pandas as pd
-from PyBTLS.py.utils_interface._helper_class import _DfBased
+from PyBTLS.py.utils_interface._helper_class import DFBased
 from PyBTLS.py.utils_interface._helper_functions import (
     data_enforce_type,
     read_default_file,
 )
 
 
-class NominalVehicle(_DfBased):
+class NominalVehicle(DFBased):
     """
     Nominal vehicle object.
     Used to generate a single vehicle type in PyBTLS.

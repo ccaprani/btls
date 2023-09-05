@@ -1,12 +1,12 @@
 import numpy as np
-from PyBTLS.py.utils_interface._helper_class import _DfBased
+from PyBTLS.py.utils_interface._helper_class import DFBased
 from PyBTLS.py.utils_interface._vehicle_event_parser import (
     parse_from_vehicle_text_list_to_df_kwargs,
 )
 from PyBTLS.py.utils_interface._vehicle_event_writer import vehicle_df_to_txt
 
 
-class Vehicle(_DfBased):
+class Vehicle(DFBased):
     """
     PyBTLS Vehicle class.
     Contains vehicle characteristic information,

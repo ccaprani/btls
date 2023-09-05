@@ -1,5 +1,5 @@
 import numpy as np
-from PyBTLS.py.utils_interface._helper_class import _DfBased
+from PyBTLS.py.utils_interface._helper_class import DFBased
 from PyBTLS.py.utils_interface._helper_functions import (
     data_enforce_type,
     read_default_file,
@@ -25,7 +25,7 @@ class Garage(Vehicle):
         return super().write_as_txt(path, file_format)
 
 
-class Kernels(_DfBased):
+class Kernels(DFBased):
     """
     Vehicle kernel object.
     Define the randomness of the vehicle characteristics in PyBTLS.

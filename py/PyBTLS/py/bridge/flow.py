@@ -4,9 +4,9 @@ from PyBTLS.py.utils_interface._helper_functions import (
     data_enforce_type,
     read_default_file,
 )
-from PyBTLS.py.utils_interface._helper_class import _DfBased, _ListLike
+from PyBTLS.py.utils_interface._helper_class import DFBased, ListLike
 
-class LaneFlow(_DfBased):
+class LaneFlow(DFBased):
     """
     Object containing the lane flow definition.
     
@@ -96,14 +96,14 @@ class LaneFlow(_DfBased):
         qualname = type(self).__qualname__
         return f"Lane {self.lane_num} with direction {self.lane_dir}; {qualname} object at {hex(id(self))}"
 
-class BridgeFlow(_ListLike):
+class BridgeFlow(ListLike):
     """
     List like object containing LaneFlow objects for each lane on a bridge.
     """
     def __init__(self, lane_flow=None):
         """
         This object holds all the lane flow definition for each lane on a bridge.
-        Users can easily access the lane flow a particular lane using list notation.
+        Users can easily access the lane flow in a particular lane using list notation.
         Example:
         ```
         # Create the bridge flow objects

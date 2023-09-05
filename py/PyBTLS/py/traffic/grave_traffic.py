@@ -3,7 +3,7 @@ import numpy as np
 import warnings
 import os
 
-from PyBTLS.py.utils_interface._helper_class import _DfBased
+from PyBTLS.py.utils_interface._helper_class import DFBased
 
 
 """
@@ -16,7 +16,7 @@ An advantage of this class is it is based on DataFrame object, allowing it to be
 However, the challenge is to convert the information in each txt and csv files into DataFrames object.
 """
 
-class AxleSpacing(_DfBased):
+class AxleSpacing(DFBased):
     def _from_txt_to_dataframe_kwargs(self, txt, *args, **kwargs):
         txt = txt.split("\n")
         data = [t.split(",") for t in txt]

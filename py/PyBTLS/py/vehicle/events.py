@@ -1,12 +1,12 @@
 from PyBTLS.py.utils_interface._helper_functions import data_enforce_type
-from PyBTLS.py.utils_interface._helper_class import _DfBased
+from PyBTLS.py.utils_interface._helper_class import DFBased
 from PyBTLS.py.utils_interface._vehicle_event_parser import (
     parse_from_event_text_list_to_event_data,
 )
 from PyBTLS.py.vehicle.vehicle import Vehicle
 
 
-class Event(_DfBased):
+class Event(DFBased):
     """
     PyBTLS event class.
     An event is characterized by 
