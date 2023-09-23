@@ -4,31 +4,35 @@ from PyBTLS.py.utils_interface._helper_functions import (
     parse_fixed_width_text,
 )
 
-r"""
-Helper function to parse vehicle data from raw txt to kwargs of pandas dataframe
-Inputs:
-    txt_list: A list of string objects containing the vehicle information. MUST BE A LIST.
-    file_format: the file format of the vehicle text. Either 'CASTOR', 'BeDIT', 'DITIS', or 'MON'
-Return:
-    A dictionary object:
-        {
-            "data": np.ndarray(),
-            "columns": 
-            {
-                "column header 1": column type,
-                ...
-            }
-        }
-    Returned output is a dictionary kwargs ready to be unpacked and passed to pd.DataFrame constructor
-
-Usage Example:
-    text = [vehicle_1_text, vehicle_2_text, ...]
-    kwargs = parse_from_vehicle_text_list_to_df_kwargs(text, "MON")
-    df = pd.DataFrame(**kwargs)
-"""
-
-
 def parse_from_vehicle_text_list_to_df_kwargs(txt_list, file_format):
+    r"""
+    Helper function to parse vehicle data from raw txt to kwargs of pandas dataframe
+    Parameters
+    ----------
+        txt_list: A list of string objects containing the vehicle information. MUST BE A LIST.
+        file_format: the file format of the vehicle text. Either 'CASTOR', 'BeDIT', 'DITIS', or 'MON'
+
+    Returns
+    -------
+        A dictionary object:
+            {
+                "data": np.ndarray(),
+                "columns": 
+                {
+                    "column header 1": column type,
+                    ...
+                }
+            }
+        Returned output is a dictionary kwargs ready to be unpacked and passed to pd.DataFrame constructor
+
+    Usage Example
+    -------------
+    ```
+        text = [vehicle_1_text, vehicle_2_text, ...]
+        kwargs = parse_from_vehicle_text_list_to_df_kwargs(text, "MON")
+        df = pd.DataFrame(**kwargs)
+    ```
+    """
     if file_format in ["CASTOR", "BeDIT"]:
         header = [
             "head",
@@ -217,17 +221,25 @@ def parse_from_vehicle_text_list_to_df_kwargs(txt_list, file_format):
     return {"data": data_enforce_type(data, column_type)}
 
 
-r"""
-Function to parse block maxima event file/text
-WARNING: this function is slow as it depends on list.append(). If we can preallocate the list, this would be a whole lot faster.
-Two ways to achieve this:
-    1. Know the number of days in advance, so we can preallocate list of exactly that size, or
-    2. See if there's any pattern between the day, event info, and vehicle info rows. If there's, we could use list comprehension rather than appending
-Or open to any other suggestions
-"""
-
-
 def parse_from_event_text_list_to_event_data(text):
+    r"""
+    Function to parse block maxima event file/text
+    WARNING: this function is slow as it depends on list.append(). If we can preallocate the list, this would be a whole lot faster.
+    Two ways to achieve this:
+        1. Know the number of days in advance, so we can preallocate list of exactly that size, or
+        2. See if there's any pattern between the day, event info, and vehicle info rows. If there's, we could use list comprehension rather than appending
+    Or open to any other suggestions
+
+    Parameters:
+    ----------
+    text: string
+        The raw text of the event file.
+
+    Returns:
+    -------
+    event_info_list: list
+        A list of strings of event information.
+    """
     # Determinations of current line
     # 0: Event info or day line
     # 1++: Vehicle info line

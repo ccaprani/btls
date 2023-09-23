@@ -48,6 +48,11 @@ double CFlowGenerator::Generate()
 	return gap;
 }
 
+void CFlowGenerator::setMaxBridgeLength(double length) 
+{
+	m_MaxBridgeLength = length;
+}
+
 void CFlowGenerator::updateBlock(double time)
 {
 	// This is now made more generic: 

@@ -3,10 +3,20 @@ import numpy as np
 import warnings
 import os
 
-from PyBTLS.py.utils_interface._helper_class import _DfBased
+from PyBTLS.py.utils_interface._helper_class import DFBased
 
 
-class AxleSpacing(_DfBased):
+"""
+Grave Traffic Definition.
+Currently unused. This is meant to replace the current Grave traffic definition in the future.
+The current class (see PyBTLS.py.traffic.PyBtlsTraffic) is based on reading the default txt/csv file.
+It is not easily editable by the user as the data is stored as string, and user must manipulate it as string.
+
+An advantage of this class is it is based on DataFrame object, allowing it to be manipulated easily.
+However, the challenge is to convert the information in each txt and csv files into DataFrames object.
+"""
+
+class AxleSpacing(DFBased):
     def _from_txt_to_dataframe_kwargs(self, txt, *args, **kwargs):
         txt = txt.split("\n")
         data = [t.split(",") for t in txt]

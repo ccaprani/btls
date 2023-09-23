@@ -4,14 +4,27 @@
 CVehModelDataNominal::CVehModelDataNominal(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc)
 	: CVehicleModelData(config, eVM_Constant, pVC, lfc, 1) // MAGIC NUMBER - truck class count
 	, m_pNominalVehicle(nullptr)
-    , m_KernelType(eKT_Normal)
 {
     // MAGIC NUMBER = bias of 1.0
-	m_KernelAW 	= KernelParams(1.0,0.05);
 	m_KernelAS 	= KernelParams(1.0,0.05);
+    m_KernelAW 	= KernelParams(1.0,0.05);
 
     makeNominalVehicle();
 	ReadDataIn();
+}
+
+CVehModelDataNominal::CVehModelDataNominal(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CVehicle_sp pVeh, std::vector<double> vCOV)
+	: CVehicleModelData(config, eVM_Constant, pVC, lfc, 1) // MAGIC NUMBER - truck class count
+	, m_pNominalVehicle(nullptr)
+{
+    // MAGIC NUMBER = bias of 1.0
+	m_KernelAS 	= KernelParams(1.0,0.05);
+    m_KernelAW 	= KernelParams(1.0,0.05);
+
+    m_KernelAS.Scale = vCOV.at(0);
+    m_KernelAW.Scale = vCOV.at(1);
+
+    setNominalVehicle(pVeh);
 }
 
 CVehModelDataNominal::~CVehModelDataNominal()
@@ -78,6 +91,12 @@ void CVehModelDataNominal::readNominal()
         m_pNominalVehicle->setGVW(gvw);
         m_pNominalVehicle->setHead(1001);
     }
+}
+
+void CVehModelDataNominal::setNominalVehicle(CVehicle_sp pVeh)
+{
+    pVeh->setHead(1001);
+    m_pNominalVehicle = pVeh;
 }
 
 void CVehModelDataNominal::makeNominalVehicle()

@@ -6,6 +6,7 @@ class CVehModelDataNominal : public CVehicleModelData
 {
 public:
     CVehModelDataNominal(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc);
+    CVehModelDataNominal(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc, CVehicle_sp pVeh, std::vector<double> vCOV);
 	virtual ~CVehModelDataNominal();
 
 	virtual void ReadDataIn();
@@ -16,11 +17,10 @@ public:
 
 private:
 	void readNominal();
+    void setNominalVehicle(CVehicle_sp pVeh);
     void makeNominalVehicle();
 
     CVehicle_sp m_pNominalVehicle;
-
-    EKernelType m_KernelType;
 
     KernelParams m_KernelAW;
     KernelParams m_KernelAS;

@@ -1,12 +1,24 @@
 from PyBTLS.py.utils_interface._helper_functions import data_enforce_type
-from PyBTLS.py.utils_interface._helper_class import _DfBased
+from PyBTLS.py.utils_interface._helper_class import DFBased
 from PyBTLS.py.utils_interface._vehicle_event_parser import (
     parse_from_event_text_list_to_event_data,
 )
 from PyBTLS.py.vehicle.vehicle import Vehicle
 
 
-class Event(_DfBased):
+class Event(DFBased):
+    """
+    PyBTLS event class.
+    An event is characterized by 
+    the number of vehicles (`num_trucks`), 
+    the axle configurations of each vehicles (`vehicles`),
+    and the distance to the datum (`dist_to_datum`).
+
+    Arguments:
+    ----------
+    path: str
+        Path to the file.
+    """
     def _from_txt_to_dataframe_kwargs(self, txt, *args, **kwargs):
         if not "file_format" in kwargs:
             raise ValueError(
@@ -74,6 +86,20 @@ class Event(_DfBased):
 
 
 class BlockMaximaEvent(Event):
+    """
+    PyBTLS block maxima event class.
+    Contains information of the event producing the maximum load effect for each day (or period).
+    See the PyBTLS Event class for the definition of an event.
+
+    Arguments:
+    ----------
+    path: str
+        Path to the file.
+    file_format: str, optional
+        Format of the vehicle text file.
+        Either "CASTOR", "BeDIT", "DITIS", or "MON".
+        If not supplied, PyBTLS will attempt to auto detect the format.
+    """
     def _get_columns(self):
         return {
             "day": int,

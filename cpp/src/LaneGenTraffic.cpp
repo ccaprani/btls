@@ -59,11 +59,11 @@ void CLaneGenTraffic::setLaneData(CVehicleClassification_sp pVC,
 		m_pFlowModelData = std::make_shared<CFlowModelDataNHM>(m_Config, lfc);
 		m_pFlowGen = std::make_shared<CFlowGenNHM>(std::dynamic_pointer_cast<CFlowModelDataNHM>(m_pFlowModelData));
 		break;
-	case 1:		// Constant test
+	case 1:		// Constant
 		m_pFlowModelData = std::make_shared<CFlowModelDataConstant>(m_Config, lfc);
 		m_pFlowGen = std::make_shared<CFlowGenConstant>(std::dynamic_pointer_cast<CFlowModelDataConstant>(m_pFlowModelData));
 		break;
-	case 5:		// Congestion
+	case 5:		// Congested
 		m_pFlowModelData = std::make_shared<CFlowModelDataCongested>(m_Config, lfc);
 		m_pFlowGen = std::make_shared<CFlowGenCongested>(std::dynamic_pointer_cast<CFlowModelDataCongested>(m_pFlowModelData));
 		break;

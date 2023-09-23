@@ -23,7 +23,7 @@ public:
 private:
 	void ReadLaneFlow(std::string file);
 	void SetRoadProperties();
-	void ReadGarageFile();
+	// void ReadGarageFile();
 	
 	size_t m_NoLanes;
 	size_t m_NoDir;

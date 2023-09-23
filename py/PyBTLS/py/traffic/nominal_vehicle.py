@@ -1,18 +1,21 @@
 import numpy as np
 import pandas as pd
-from PyBTLS.py.utils_interface._helper_class import _DfBased
+from PyBTLS.py.utils_interface._helper_class import DFBased
 from PyBTLS.py.utils_interface._helper_functions import (
     data_enforce_type,
     read_default_file,
 )
 
 
-"""
+class NominalVehicle(DFBased):
+    """
+    Nominal vehicle object.
+    Used to generate a single vehicle type in PyBTLS.
+    Contains two columns: `axle_spacing` and `axle_weight`.
 
-"""
-
-
-class NominalVehicle(_DfBased):
+    Use the `load_default` method to load the default nominal vehicle.
+    It can be easily manipulated using pandas DataFrame methods.
+    """
     def _from_txt_to_dataframe_kwargs(self, txt, *args, **kwargs):
         txt = txt.split("\n")
         data = [t.split(",") for t in txt]

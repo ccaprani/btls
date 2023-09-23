@@ -39,8 +39,8 @@ public:
         double TRUCK_TRACK_WIDTH;
         double LANE_ECCENTRICITY_STD;
         int KERNEL_TYPE;
-        double NO_OVERLAP_LENGTH; // assigned in program   
-    } Gen = {"../Traffic/Auxerre/", false, 1, 190.0, 0.0, 0, 100.0};
+        double NO_OVERLAP_LENGTH; // assigned in program, but we can just use a relatively big magic number? 
+    } Gen = {"../Traffic/Auxerre/", false, 1, 190.0, 0.0, 0, 120.0};
 
     struct Read_Config
     {
@@ -150,14 +150,14 @@ public:
         size_t SECS_PER_MIN;
     } Time = {25, 10, 24, 3600, 60, 60};
 
-    void VehGenGrave(std::string lanesFile, std::string trafficFolder, size_t noDays, double truckTrackWidth, double laneEccentricityStd);
-    void VehGenGarage(std::string lanesFile, std::string garageFile, size_t fileFormat, std::string kernelFile, size_t noDays, double laneEccentricityStd, int kernelType);
-    void VehGenNominal(std::string lanesFile, std::string constantFile, size_t noDays, double laneEccentricityStd, int kernelType);
+    void VehGenGrave(int classifier, std::string trafficFolder, double truckTrackWidth, double laneEccentricityStd, int kernelType);
+    void VehGenGarage(int classifier, std::string garageFile, size_t fileFormat, std::string kernelFile, double laneEccentricityStd, int kernelType);
+    void VehGenNominal(int classifier, std::string nominalVehFile, double laneEccentricityStd, int kernelType);
 
-    void FlowGenNHM(int classification, std::string trafficFolder);
-    void FlowGenConstant(int classification, double constantSpeed, double constantGap);
-    void FlowGenCongestion(int classification, double congestedSpacing, double congestedSpeed, double congestedGapCOV);
-    void FlowGenFreeFlow(int classification);
+    void FlowGenNHM(std::string lanesFile, std::string trafficFolder, size_t noDays);
+    void FlowGenConstant(std::string lanesFile, double constantSpeed, double constantGap, size_t noDays);
+    void FlowGenCongested(std::string lanesFile, double congestedSpacing, double congestedSpeed, double congestedGapCOV, size_t noDays);
+    void FlowGenFreeFlow(std::string lanesFile, size_t noDays);
 
     void TrafficRead(std::string trafficFile, size_t fileFormat, bool useConstantSpeed, bool useAveSpeed, double constSpeed);
 

@@ -11,6 +11,11 @@ import os
 
 
 class BaseTrafficFile:
+    """
+    Basic class to contain Grave traffic properties, such as axle spacing, axle weight, etc.
+    Not to be used directly, but rather as a parent class for the other traffic property classes.
+    Change the `_default_fname` property to change the default file name when reading using `.load_default()`
+    """
     def __init__(self, data=None, path=None):
         self.data = data
         self.txt = ""
@@ -58,54 +63,81 @@ class BaseTrafficFile:
 
 
 class AxleSpacing(BaseTrafficFile):
+    """
+    Axle spacing distribution.
+    """
     @property
     def _default_fname(self):
         return "ASall.csv"
 
 
 class AxleTrackWidth(BaseTrafficFile):
+    """
+    Axle track width distribution.
+    """
     @property
     def _default_fname(self):
         return "ATW.csv"
 
 
 class AxleWeight23(BaseTrafficFile):
+    """
+    Axle weight distribution for Axle 2 and 3 of a 4 or 5 axle truck.
+    """
     @property
     def _default_fname(self):
         return "AW2&3.csv"
 
 
 class AxleWeight45(BaseTrafficFile):
+    """
+    Axle weight distribution for Axle 4 and 5 of a 4 or 5 axle truck.
+    """
     @property
     def _default_fname(self):
         return "AW4&5.csv"
 
 
 class GrossVehicleWeight(BaseTrafficFile):
+    """
+    Gross vehicle weight distribution.
+    """
     @property
     def _default_fname(self):
         return "GVWpdf.csv"
 
 
 class Headway(BaseTrafficFile):
+    """
+    Headway definition class
+    """
     @property
     def _default_fname(self):
         return "NHM.csv"
 
 
 class FlowRate(BaseTrafficFile):
+    """
+    Traffic flow rate definition
+    """
     @property
     def _default_fname(self):
         return "FlowR.csv"
 
 
 class ClassPercentage(BaseTrafficFile):
+    """
+    Percentage of truck class to be generated
+    """
     @property
     def _default_fname(self):
         return "CLASS%.csv"
 
 
 class BtlsTraffic:
+    """
+    Parent class of Grave traffic.
+    """
     def __init__(
         self,
         axle_spacing=None,

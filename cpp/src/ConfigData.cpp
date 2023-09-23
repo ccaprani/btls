@@ -183,24 +183,23 @@ std::string CConfigDataCore::returnInt(int i)
 }
 */
 
-void CConfigDataCore::VehGenGrave(std::string lanesFile, std::string trafficFolder, size_t noDays, double truckTrackWidth, double laneEccentricityStd) 
+void CConfigDataCore::VehGenGrave(int classifier, std::string trafficFolder, double truckTrackWidth, double laneEccentricityStd, int kernelType) 
 {
     Gen.GEN_TRAFFIC = true;
     Read.READ_FILE = false;
-    Road.LANES_FILE = lanesFile;
+	Traffic.CLASSIFICATION = classifier;  // 0 number of axle, 1 axle pattern
     Gen.TRAFFIC_FOLDER = trafficFolder;
-    Gen.NO_DAYS = noDays;
     Gen.TRUCK_TRACK_WIDTH = truckTrackWidth;
     Gen.LANE_ECCENTRICITY_STD = laneEccentricityStd;
+	Gen.KERNEL_TYPE = kernelType;
     Traffic.VEHICLE_MODEL = 0;
 }
 
-void CConfigDataCore::VehGenGarage(std::string lanesFile, std::string garageFile, size_t fileFormat, std::string kernelFile, size_t noDays, double laneEccentricityStd, int kernelType) 
+void CConfigDataCore::VehGenGarage(int classifier, std::string garageFile, size_t fileFormat, std::string kernelFile, double laneEccentricityStd, int kernelType) 
 {
     Gen.GEN_TRAFFIC = true;
     Read.READ_FILE = false;
-    Road.LANES_FILE = lanesFile;
-    Gen.NO_DAYS = noDays;
+	Traffic.CLASSIFICATION = classifier;  // 0 number of axle, 1 axle pattern
     Gen.LANE_ECCENTRICITY_STD = laneEccentricityStd;
 	Gen.KERNEL_TYPE = kernelType;
     Read.GARAGE_FILE = garageFile;
@@ -209,55 +208,58 @@ void CConfigDataCore::VehGenGarage(std::string lanesFile, std::string garageFile
     Traffic.VEHICLE_MODEL = 2;
 }
 
-void CConfigDataCore::VehGenNominal(std::string lanesFile, std::string constantFile, size_t noDays, double laneEccentricityStd, int kernelType) 
+void CConfigDataCore::VehGenNominal(int classifier, std::string nominalVehFile, double laneEccentricityStd, int kernelType) 
 {
     Gen.GEN_TRAFFIC = true;
     Read.READ_FILE = false;
-    Road.LANES_FILE = lanesFile;
-    Gen.NO_DAYS = noDays;
+	Traffic.CLASSIFICATION = classifier;  // 0 number of axle, 1 axle pattern
     Gen.LANE_ECCENTRICITY_STD = laneEccentricityStd;
 	Gen.KERNEL_TYPE = kernelType;
-    Read.NOMINAL_FILE = constantFile;
+    Read.NOMINAL_FILE = nominalVehFile;
     Traffic.VEHICLE_MODEL = 1;
 }
 
-void CConfigDataCore::FlowGenNHM(int classification, std::string trafficFolder) 
+void CConfigDataCore::FlowGenNHM(std::string lanesFile, std::string trafficFolder, size_t noDays) 
 {
     Gen.GEN_TRAFFIC = true;
     Read.READ_FILE = false;
     Traffic.HEADWAY_MODEL = 0;
-    Traffic.CLASSIFICATION = classification;  // 0 no_ of axle, 1 axle pattern
+	Road.LANES_FILE = lanesFile;
     Gen.TRAFFIC_FOLDER = trafficFolder;
+	Gen.NO_DAYS = noDays;
 }
 
-void CConfigDataCore::FlowGenConstant(int classification, double constantSpeed, double constantGap) 
+void CConfigDataCore::FlowGenConstant(std::string lanesFile, double constantSpeed, double constantGap, size_t noDays) 
 {
     Gen.GEN_TRAFFIC = true;
     Read.READ_FILE = false;
     Traffic.HEADWAY_MODEL = 1;
-    Traffic.CLASSIFICATION = classification;  // 0 no_ of axle, 1 axle pattern
+	Road.LANES_FILE = lanesFile;
     Traffic.CONSTANT_SPEED = constantSpeed/3.6;  // km/h to m/s
     Traffic.CONSTANT_GAP = constantGap;
+	Gen.NO_DAYS = noDays;
 }
 
-void CConfigDataCore::FlowGenCongestion(int classification, double congestedSpacing, double congestedSpeed, double congestedGapCOV) 
+void CConfigDataCore::FlowGenCongested(std::string lanesFile, double congestedSpacing, double congestedSpeed, double congestedGapCOV, size_t noDays) 
 {
     Gen.GEN_TRAFFIC = true;
     Read.READ_FILE = false;
     Traffic.HEADWAY_MODEL = 5;
-    Traffic.CLASSIFICATION = classification;  // 0 no. of axle, 1 axle pattern
+	Road.LANES_FILE = lanesFile;
     Traffic.CONGESTED_SPACING = congestedSpacing;
     Traffic.CONGESTED_SPEED = congestedSpeed/3.6;  // km/h to m/s
 	Traffic.CONGESTED_GAP = Traffic.CONGESTED_SPACING/Traffic.CONGESTED_SPEED;
     Traffic.CONGESTED_GAP_COEF_VAR = congestedGapCOV;
+	Gen.NO_DAYS = noDays;
 }
 
-void CConfigDataCore::FlowGenFreeFlow(int classification) 
+void CConfigDataCore::FlowGenFreeFlow(std::string lanesFile, size_t noDays) 
 {
     Gen.GEN_TRAFFIC = true;
     Read.READ_FILE = false;
     Traffic.HEADWAY_MODEL = 6;
-    Traffic.CLASSIFICATION = classification;  // 0 no. of axle, 1 axle pattern
+	Road.LANES_FILE = lanesFile;
+	Gen.NO_DAYS = noDays;
 }
 
 

@@ -1,5 +1,5 @@
 import numpy as np
-from PyBTLS.py.utils_interface._helper_class import _DfBased
+from PyBTLS.py.utils_interface._helper_class import DFBased
 from PyBTLS.py.utils_interface._helper_functions import (
     data_enforce_type,
     read_default_file,
@@ -9,6 +9,14 @@ from PyBTLS.py.vehicle.vehicle import Vehicle
 
 
 class Garage(Vehicle):
+    """
+    Vehicle garage object.
+    Used to generate vehicles from a garage of vehicles in PyBTLS.
+    Randomness can be added to the vehicle characteristics by defining the Kernel object.
+
+    Use the `load_default` method to load the default Garage vehicles.
+    It can be easily manipulated using pandas DataFrame methods.
+    """
     def load_default(self):
         txt = read_default_file_raw("garage.txt")
         super()._init_via_txt(text=txt, file_format="MON")
@@ -17,7 +25,15 @@ class Garage(Vehicle):
         return super().write_as_txt(path, file_format)
 
 
-class Kernels(_DfBased):
+class Kernels(DFBased):
+    """
+    Vehicle kernel object.
+    Define the randomness of the vehicle characteristics in PyBTLS.
+    Contains two columns: `bias` and `std_dev`.
+
+    Use the `load_default` method to load the default Garage vehicles.
+    It can be easily manipulated using pandas DataFrame methods.
+    """
     def _from_txt_to_dataframe_kwargs(self, txt, *args, **kwargs):
         txt = txt.split("\n")
         data = [t.split(",") for t in txt]

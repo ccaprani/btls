@@ -20,7 +20,7 @@ CVehicleModelData::~CVehicleModelData()
 
 }
 
-vec CVehicleModelData::getComposition(size_t i) const
+vec CVehicleModelData::getComposition(size_t i) const // This is only used by the Grave vehicle generator
 {
 	return m_mComposition.at(i);
 }
