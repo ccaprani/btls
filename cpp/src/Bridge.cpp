@@ -16,9 +16,7 @@ CBridge::CBridge(CConfigDataCore& config)
 	, m_NoLoadEffects(0)
 	, m_NoVehs(0)
 {
-	NO_LANES_DIR1		= config.Road.NO_LANES_DIR1;
-	NO_DIRS				= config.Road.NO_DIRS;
-	NO_LANES			= config.Road.NO_LANES;
+
 }
 
 CBridge::~CBridge()
@@ -202,10 +200,15 @@ double CBridge::getLength(void)
 	return m_Length;
 }
 
-CBridgeLane& CBridge::getBridgeLane(size_t iLane)
+// CBridgeLane& CBridge::getBridgeLane(size_t iLane)
+// {
+// 	CBridgeLane& lane = m_vLanes.at(iLane);
+// 	return lane;
+// }
+
+void CBridge::addBridgeLaneLoadEffect(size_t iLane, CInfluenceLine IL, double weight)
 {
-	CBridgeLane& lane = m_vLanes.at(iLane);
-	return lane;
+	m_vLanes.at(iLane).addLoadEffect(IL, weight);
 }
 
 size_t CBridge::getNoLanes()

@@ -25,13 +25,13 @@ PYBIND11_MODULE(_core, m) {
 	py::class_<CConfigDataCore> cconfigdatacore(m, "ConfigDataCore");
 		cconfigdatacore.def(py::init<>())
 			.def("read_data", &CConfigDataCore::ReadData, py::arg("in_file"))
-			.def("veh_gen_grave", &CConfigDataCore::VehGenGrave, py::arg("lanes_file"), py::arg("traffic_folder"), py::arg("no_days"), py::arg("truck_track_width"), py::arg("lane_eccentricity_std"))
-			.def("veh_gen_garage", &CConfigDataCore::VehGenGarage, py::arg("lanes_file"), py::arg("garage_file"), py::arg("file_format"), py::arg("kernel_file"), py::arg("no_days"), py::arg("lane_eccentricity_std"), py::arg("kernel_type"))
-			.def("veh_gen_nominal", &CConfigDataCore::VehGenNominal, py::arg("lanes_file"), py::arg("nominal_file"), py::arg("no_days"), py::arg("lane_eccentricity_std"), py::arg("kernel_type"))
-			.def("flow_gen_NHM", &CConfigDataCore::FlowGenNHM, py::arg("vehicle_classification"), py::arg("traffic_folder"))
-			.def("flow_gen_constant", &CConfigDataCore::FlowGenConstant, py::arg("vehicle_classification"), py::arg("constant_speed"), py::arg("constant_gap"))
-			.def("flow_gen_congestion", &CConfigDataCore::FlowGenCongestion, py::arg("vehicle_classification"), py::arg("congested_spacing"), py::arg("congested_speed"), py::arg("congested_gap_coef_var"))
-			.def("flow_gen_freeflow", &CConfigDataCore::FlowGenFreeFlow, py::arg("vehicle_classification"))
+			.def("veh_gen_grave", &CConfigDataCore::VehGenGrave, py::arg("vehicle_classifier"), py::arg("traffic_folder"), py::arg("truck_track_width"), py::arg("lane_eccentricity_std"), py::arg("kernel_type"))
+			.def("veh_gen_garage", &CConfigDataCore::VehGenGarage, py::arg("vehicle_classifier"), py::arg("garage_file"), py::arg("file_format"), py::arg("kernel_file"), py::arg("lane_eccentricity_std"), py::arg("kernel_type"))
+			.def("veh_gen_nominal", &CConfigDataCore::VehGenNominal, py::arg("vehicle_classifier"), py::arg("nominal_file"), py::arg("lane_eccentricity_std"), py::arg("kernel_type"))
+			.def("flow_gen_NHM", &CConfigDataCore::FlowGenNHM, py::arg("lanes_file"), py::arg("traffic_folder"), py::arg("no_days"))
+			.def("flow_gen_constant", &CConfigDataCore::FlowGenConstant, py::arg("lanes_file"), py::arg("constant_speed"), py::arg("constant_gap"), py::arg("no_days"))
+			.def("flow_gen_congested", &CConfigDataCore::FlowGenCongestion, py::arg("lanes_file"), py::arg("congested_spacing"), py::arg("congested_speed"), py::arg("congested_gap_coef_var"), py::arg("no_days"))
+			.def("flow_gen_freeflow", &CConfigDataCore::FlowGenFreeFlow, py::arg("lanes_file"), py::arg("no_days"))
 			.def("traffic_read", &CConfigDataCore::TrafficRead, py::arg("traffic_file"), py::arg("file_format"), py::arg("use_constant_speed"), py::arg("use_ave_speed"), py::arg("const_speed"))
 			.def("simulation", &CConfigDataCore::Simulation, py::arg("bridge_file"), py::arg("infline_file"), py::arg("infsurf_file"), py::arg("calc_time_step"), py::arg("min_gvw"))
 			.def("output_general", &CConfigDataCore::OutputGeneral, py::arg("write_time_history")=false, py::arg("write_each_event")=false, py::arg("write_fatigue_event")=false, py::arg("write_buffer_size")=1000)
@@ -202,12 +202,12 @@ PYBIND11_MODULE(_core, m) {
 		cinfluenceline.def(py::init<>())
 			.def("get_ordinate", &CInfluenceLine::getOrdinate, py::arg("x"))
 			.def("get_no_points", &CInfluenceLine::getNoPoints)
-			.def("get_load_ffect", &CInfluenceLine::getLoadEffect, py::arg("axle_list"))
+			.def("get_load_effect", &CInfluenceLine::getLoadEffect, py::arg("axle_list"))
 			.def("get_type", &CInfluenceLine::getType, "return: 1-expression, 2-discrete, 3-Surface")
 			.def("get_inf_surface", &CInfluenceLine::getIS)
-			.def("set_inf_line", py::overload_cast<size_t, double>(&CInfluenceLine::setIL), py::arg("intergrated_inf_line_index"), py::arg("bridge_length"))
-			.def("set_inf_line", py::overload_cast<std::vector<double>, std::vector<double> >(&CInfluenceLine::setIL), py::arg("h_ordinate_list"), py::arg("v_ordinate_list"))
-			.def("set_inf_line", py::overload_cast<CInfluenceSurface>(&CInfluenceLine::setIL), py::arg("inf_surface"))
+			.def("_set_IL", py::overload_cast<size_t, double>(&CInfluenceLine::setIL), py::arg("intergrated_inf_line_index"), py::arg("bridge_length"))
+			.def("_set_IL", py::overload_cast<std::vector<double>, std::vector<double> >(&CInfluenceLine::setIL), py::arg("h_ordinate_list"), py::arg("v_ordinate_list"))
+			.def("_set_IL", py::overload_cast<CInfluenceSurface>(&CInfluenceLine::setIL), py::arg("inf_surface"))
 			.def("get_length", &CInfluenceLine::getLength)
 			.def("set_index", &CInfluenceLine::setIndex, py::arg("index"))
 			.def("get_index", &CInfluenceLine::getIndex)
@@ -329,11 +329,12 @@ PYBIND11_MODULE(_core, m) {
 	py::class_<CVehModelDataNominal, CVehicleModelData, CVehModelDataNominal_sp> cvehmodeldataconstant(m, "VehModelDataNominal");
 		cvehmodeldataconstant.def(py::init<CConfigDataCore&, CVehicleClassification_sp, CLaneFlowComposition>(), py::arg("config"), py::arg("vehicle_classification"), py::arg("lane_flow_composition"));
 	py::class_<CVehModelDataGarage, CVehicleModelData, CVehModelDataGarage_sp> cvehmodeldatagarage(m, "VehModelDataGarage");
-		cvehmodeldatagarage.def(py::init<CConfigDataCore&, CVehicleClassification_sp, CLaneFlowComposition>(), py::arg("config"), py::arg("vehicle_classification"), py::arg("lane_flow_composition"))
-			.def("assign_garage", &CVehModelDataGarage::assignGarage, py::arg("vehicle_list"));
+		cvehmodeldatagarage.def(py::init<CConfigDataCore&, CVehicleClassification_sp, CLaneFlowComposition, std::vector<CVehicle_sp>, std::vector<std::vector<double>>>(), py::arg("config"), py::arg("vehicle_classification"), py::arg("lane_flow_composition"), py::arg("garage"), py::arg("kernel"));
 	py::class_<CVehModelDataGrave, CVehicleModelData, CVehModelDataGrave_sp> cvehmodeldatagrave(m, "VehModelDataGrave");
 		cvehmodeldatagrave.def(py::init<CConfigDataCore&, CVehicleClassification_sp, CLaneFlowComposition>(), py::arg("config"), py::arg("vehicle_classification"), py::arg("lane_flow_composition"));
 	py::class_<Normal> normal(m, "Normal");
+	py::class_<KernelParams> kernelparams(m, "KernelParams");
 	py::enum_<EFlowModel>(m, "EFlowModel").export_values();
 	py::enum_<EVehicleModel>(m, "EVehicleModel").export_values();
+	py::enum_<EKernelType>(m, "EKernelType").export_values();
 };

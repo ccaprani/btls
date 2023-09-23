@@ -78,7 +78,7 @@ void CReadILFile::ReadInfSurfFile(std::string file)
 	{
 		CInfluenceLine infline;
 		CInfluenceSurface IS;
-		infline.setIndex( m_CSV.stringToInt( m_CSV.getfield(0) ) );
+		infline.setIndex(m_CSV.stringToInt(m_CSV.getfield(0)));
 		size_t nrows = m_CSV.stringToInt(m_CSV.getfield(1));
 		size_t nLanes = m_CSV.stringToInt(m_CSV.getfield(2));
 		// set the lanes

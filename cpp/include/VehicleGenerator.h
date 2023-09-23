@@ -19,6 +19,8 @@ public:
 	
 	CVehicle_sp Generate(size_t iHour);
 	virtual void update(CFlowModelData_sp pFMD);
+	void setModelHasCars(bool modelHasCars);
+	void setCarPercent(vec carPercent);
 
 protected:
 	virtual void GenerateVehicle(CVehicle_sp pVeh);

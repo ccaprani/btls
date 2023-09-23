@@ -25,7 +25,7 @@
 // (0 - Grave, 1 - Nominal, 2 - Garage)
 0
 // Headway model to be used:
-// (0 - Auxerre NHM, 1 - Constant, 5 - Congestion (w/ or w/out cars), 6 - free-flow, cars included)
+// (0 - Auxerre NHM (without car), 1 - Constant (with car), 5 - Congestion (with car), 6 - free-flow (with car))
 6
 // Traffic Classification System to be used:
 // (0 - No. of Axles, 1 - Axle Pattern)
