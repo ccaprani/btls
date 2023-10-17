@@ -1,0 +1,173 @@
+// ---------------------------------------------
+// START OF BRIDGE TRAFFIC LOAD SIMULATION INPUT
+// ---------------------------------------------
+//
+// ---------------------------------------------
+//        *** INPUT SPECIFICATIONS ***
+// ---------------------------------------------
+//
+// Program Mode (1 - Gen & Sim, 2 - Gen, 3 - Read & Sim)
+1
+//
+// TRAFFIC GENERATION PARAMETERS
+// ---------------------------------------------
+// No. of days of traffic simulation:
+10
+// Location of Traffic folders
+../../py/PyBTLS/data/GraveParameters/Auxerre
+// Default truck track width (cm) (Vehicle Gen. Model 0 only)
+190.0
+// Standard deviation of eccentricity in lane (cm) (about 20 cm usually)
+0
+// Kernel type for traffic generation (0 - Normal, 1 - Triangle) (only for Nominal or Garage Vehicle Generation)
+1
+// Vehicle Generation Model to be used
+// (0 - Grave, 1 - Nominal, 2 - Garage)
+0
+// Headway model to be used:
+// (0 - Auxerre NHM (without car), 1 - Constant (with car), 5 - Congested (with car), 6 - free-flow (with car))
+6
+// Traffic Classification System to be used:
+// (0 - No. of Axles, 1 - Axle Pattern)
+1
+// Lane and flow definition file:
+LaneFlowData_80.csv
+// Nominal congested spacing, front to back (m) (Headway model 5 only):
+26.1
+// Congested speed (km/h) (Headway model 5 only):
+49.7
+// Congested gaps coefficient of variation (Headway model 5 only):
+0.05
+// Constant speed (km/h) (Headway model 1 only):
+36.0
+// Constant gap (s) (Headway model 1 only):
+10.0
+//
+// TRAFFIC GARAGE PARAMETERS
+// ---------------------------------------------
+// Garage file as basis for generation (in "Traffic input file format" below):
+garage.txt
+// Kernels (mean, std) file for randomizing the garage vehicles (lines in order GVW, AW, AS)
+kernels.csv
+//
+// CONSTANT TRAFFIC PARAMETERS
+// ---------------------------------------------
+// Nominal vehicle file:
+nominal_vehicle.csv
+//
+// TRAFFIC INPUT FILE PARAMETERS
+// ---------------------------------------------
+// Traffic input file to be analysed:
+test_traffic_file.txt
+// Traffic input file format (CASTOR - 1, BeDIT - 2, DITIS - 3, MON - 4):
+4
+// Impose constant speed on all vehicles (1 or 0):
+0
+// Use average speed of vehicles in file if constant speed imposed (1 or 0)
+1
+// Constant speed of vehicles if not average used (km/h):
+80
+//
+// LOAD EFFECT CALCULATION PARAMETERS
+// ---------------------------------------------
+// Bridge definition file:
+1-ABT6111Bridges.txt
+// Influence Line definition file:
+1-ABT6111ILS.txt
+// Influence Surface definition file:
+IS.txt
+// Time step (s):
+0.05
+// Minimum GVW for inclusion in calculations (t*10):
+0
+//
+// ---------------------------------------------
+//        *** OUTPUT SPECIFICATIONS ***
+// ---------------------------------------------
+//
+// MISC. OUTPUT PARAMETERS
+// ---------------------------------------------
+//
+// Write full time history - slow & large file (1 or 0):
+0
+// Write each loading event value (1 or 0):
+0
+// Write each event buffer size:
+10000
+// Write a fatigue event file (1 or 0)
+0
+// FATIGUE RAINFLOW FILE
+// ---------------------------------------------
+// Conduct Rainflow algorithm for fatigue (1 or 0)
+1
+// Number of decimals left for Rainflow algorithm
+5
+// Cutoff value for Fatigue
+2.0
+// Rainflow-out file buffer size
+100000
+//
+// VEHICLE FILE
+// ---------------------------------------------
+// Write vehicle file (1 or 0)
+// WARNING: a large file may result in long-run simulations
+0
+// Traffic output file format (CASTOR - 1, BeDIT - 2, DITIS - 3, MON - 4):
+4
+// Vehicle file name
+test_traffic_file.txt
+// Vehicle file buffer size
+100000
+// Write vehicle file flow statistics (1 or 0)
+1
+//
+// BLOCK MAXIMUM LOAD EFFECTS
+// ---------------------------------------------
+// Analyse for Block Max (overrides remaining params) (1 or 0)
+0
+// Block size for maxima (days):
+1
+// Block size for maxima (seconds):
+0
+// Write block max separated vehicle files (1 or 0):
+1
+// Write block max summary files (1 or 0):
+1
+// Do and write block max mixed vehicle analysis (1 or 0):
+0
+// Write block max buffer size:
+10000
+//
+// PEAKS OVER THRESHOLD LOAD EFFECTS
+// ---------------------------------------------
+// Analyse for POT (overrides remaining params) (1 or 0)
+0
+// Write POT vehicle files (1 or 0):
+0
+// Write POT summary files (1 or 0):
+1
+// Write POT counter files (1 or 0):
+1
+// POT counter size (days):
+1
+// POT counter (seconds):
+0
+// Write POT buffer size:
+10000
+//
+// LOAD EFFECT STATISTICS OUTPUT
+// ---------------------------------------------
+// Analyse for Statistics (overrides remaining params) (1 or 0)
+1
+// Write cumulative statistics file (1 or 0)
+1
+// Write statistics at intervals files (1 or 0)
+0
+// Interval size for statistics output (seconds)
+3600
+// Write interval statistics buffer size:
+10000
+//
+// ---------------------------------------------
+// END OF BRIDGE TRAFFIC LOAD SIMULATION INPUT
+// ---------------------------------------------

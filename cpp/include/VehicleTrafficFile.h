@@ -13,6 +13,7 @@ public:
 	~CVehicleTrafficFile(void);
 
 	void Read(std::string file, int filetype);
+	void AssignTraffic(std::vector<CVehicle_sp> vVehicles);
 
 	size_t getNoDays();
 	size_t getNoLanes();
@@ -27,6 +28,7 @@ public:
 	double getEndTime();
 
 private:
+	void AnalyseTraffic();
 	void UpdateProperties();
 	void SetSpeed();
 

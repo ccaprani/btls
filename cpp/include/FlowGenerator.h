@@ -15,6 +15,8 @@ public:
 	double Generate();
 
 	virtual void prepareNextGen(double time, CVehicle_sp pPrevVeh, CVehicle_sp pNextVeh);
+
+	void setMaxBridgeLength(double length);
 	
 	size_t getCurBlock() {return m_CurBlock;};
 

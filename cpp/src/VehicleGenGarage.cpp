@@ -35,6 +35,7 @@ void CVehicleGenGarage::GenerateVehicle(CVehicle_sp pVeh)
 		// Now randomize the vehicle
 		randomize(pVeh);
 	}
+	m_pVehClassification->setClassification(pVeh);
 }
 
 void CVehicleGenGarage::randomize(CVehicle_sp pVeh)

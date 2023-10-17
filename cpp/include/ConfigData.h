@@ -13,6 +13,8 @@ class CConfigDataCore
 
 public:
     CConfigDataCore();
+    CConfigDataCore(const CConfigDataCore& other);
+
     ~CConfigDataCore() {};
 
     bool ReadData(std::string inFile);
@@ -39,8 +41,8 @@ public:
         double TRUCK_TRACK_WIDTH;
         double LANE_ECCENTRICITY_STD;
         int KERNEL_TYPE;
-        double NO_OVERLAP_LENGTH; // assigned in program   
-    } Gen = {"../Traffic/Auxerre/", false, 1, 190.0, 0.0, 0, 100.0};
+        double NO_OVERLAP_LENGTH; // assigned in program, but we can just use a relatively big magic number? 
+    } Gen = {"../Traffic/Auxerre/", false, 1, 190.0, 0.0, 0, 120.0};
 
     struct Read_Config
     {
@@ -134,7 +136,7 @@ public:
         } Fatigue;
 
     } Output = {false, false, 10000, false, 
-                {false, 4, "vehicles.txt", 10000, false},   // VehicleFile_Config
+                {false, 4, "test_traffic_file.txt", 10000, false},   // VehicleFile_Config
                 {false, false, false, false, 1, 0, 10000},  // BlockMax_Config
                 {false, false, false, false, 1, 0, 10000},  // POT_Config
                 {false, false, false, 3600, 10000},         // Stats_Config
@@ -150,25 +152,27 @@ public:
         size_t SECS_PER_MIN;
     } Time = {25, 10, 24, 3600, 60, 60};
 
-    void VehGenGrave(std::string lanesFile, std::string trafficFolder, size_t noDays, double truckTrackWidth, double laneEccentricityStd);
-    void VehGenGarage(std::string lanesFile, std::string garageFile, size_t fileFormat, std::string kernelFile, size_t noDays, double laneEccentricityStd, int kernelType);
-    void VehGenNominal(std::string lanesFile, std::string constantFile, size_t noDays, double laneEccentricityStd, int kernelType);
+    void setVehGenGrave(int classifier, std::string trafficFolder, double truckTrackWidth, double laneEccentricityStd);
+    void setVehGenGarage(int classifier, std::string garageFile, size_t fileFormat, std::string kernelFile, double laneEccentricityStd, int kernelType);
+    void setVehGenNominal(int classifier, std::string nominalVehFile, double laneEccentricityStd, int kernelType);
 
-    void FlowGenNHM(int classification, std::string trafficFolder);
-    void FlowGenConstant(int classification, double constantSpeed, double constantGap);
-    void FlowGenCongestion(int classification, double congestedSpacing, double congestedSpeed, double congestedGapCOV);
-    void FlowGenFreeFlow(int classification);
+    void setFlowGenNHM(std::string lanesFile, std::string trafficFolder, size_t noDays);
+    void setFlowGenConstant(std::string lanesFile, double constantSpeed, double constantGap, size_t noDays);
+    void setFlowGenCongested(std::string lanesFile, double congestedSpacing, double congestedSpeed, double congestedGapCOV, size_t noDays);
+    void setFlowGenFreeflow(std::string lanesFile, size_t noDays);
 
-    void TrafficRead(std::string trafficFile, size_t fileFormat, bool useConstantSpeed, bool useAveSpeed, double constSpeed);
+    void setTrafficRead(std::string trafficFile, size_t fileFormat, bool useConstantSpeed, bool useAveSpeed, double constSpeed);
 
-    void Simulation(std::string bridgeFile, std::string infLineFile, std::string infSurfFile, double calcTimeStep, size_t minGVW);
+    void setLoadEffectCalc(std::string bridgeFile, std::string infLineFile, std::string infSurfFile, double calcTimeStep, size_t minGVW);
 
-    void OutputGeneral(bool writeTimeHistory = false, bool writeEachEvent = false, bool writeFatigueEvent = false, size_t writeBufferSize = 10000);
-    void OutputVehicleFile(bool writeVehicleFile = false, size_t vehicleFileFormat = 4, std::string vehicleFileName = "Vehicles.txt", size_t bufferSize = 10000, bool writeFlowStats = false);
-    void OutputBlockMax(bool writeBM = false, bool writeVehicle = false, bool writeSummary = false, bool write_mixed = false, size_t blockSizeDays = 1, size_t blockSizeSecs = 0, size_t bufferSize = 10000);
-    void OutputPOT(bool writePOT = false, bool writeVehicle = false, bool writeSummary = false, bool writeCounter = false, size_t POTSizeDays = 1, size_t POTSizeSecs = 0, size_t bufferSize = 10000);
-    void OutputStats(bool writeStats = false, bool writeCumulative = false, bool writeIntervals = false, size_t intervalSize = 3600, size_t bufferSize = 10000);
-    void OutputFatigue(bool doRainflow = false, int decimal = 3, double cutOffValue = 0.0, size_t bufferSize = 10000);
+    void setEventOutput(bool writeTimeHistory = false, bool writeEachEvent = false, size_t writeBufferSize = 10000);
+    void setVehicleFileOutput(bool writeVehicleFile = false, size_t vehicleFileFormat = 4, std::string vehicleFileName = "test_traffic_file.txt", size_t bufferSize = 10000);
+    void setBlockMaxOutput(bool writeVehicle = false, bool writeSummary = false, bool write_mixed = false, size_t blockSizeDays = 1, size_t blockSizeSecs = 0, size_t bufferSize = 10000);
+    void setPOTOutput(bool writeVehicle = false, bool writeSummary = false, bool writeCounter = false, size_t POTSizeDays = 1, size_t POTSizeSecs = 0, size_t bufferSize = 10000);
+    void setStatsOutput(bool writeFlowStats = false, bool writeOverall = false, bool writeIntervals = false, size_t intervalSize = 3600, size_t bufferSize = 10000);
+    void setFatigueOutput(bool writeFatigueEvent = false, bool writeRainflowOut = false, int rainflowDecimal = 1, double rainflowCutOff = 0.0, size_t bufferSize = 10000);
+
+    void setRoadProperties(size_t noLanes, size_t noDirs, size_t noLanesDir1, size_t noLanesDir2);
 
 
 private:

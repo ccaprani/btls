@@ -18,6 +18,9 @@ public:
 	virtual CVehicle_sp GetNextVehicle();
 	
 	void setLaneData(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const double starttime);
+	void setLaneData(size_t laneDirn, size_t laneIndex, CVehicleGenerator_sp pVehicleGen, CFlowGenerator_sp pFlowGen, const double startTime);
+
+	void initLane(CFlowModelData_sp pFlowModelData);
 
 private:
 	void GenNextArrival();

@@ -36,6 +36,8 @@ private:
 	double LoadEffect5(double x);
 	double LoadEffect6(double x);
 	double LoadEffect7(double x);
+	double LoadEffect8(double x);
+	double LoadEffect9(double x);
 
 	size_t m_Type;			// 1 - expression, 2 - discrete, 3 - Surface
 	size_t m_ILFunctionNo;	// If Type = 1, then the IL function no.
@@ -51,6 +53,6 @@ private:
 	// pointer to correct load effect function to avoid decision each call
 	typedef double (CInfluenceLine::*LEfptr)(double x);
 	std::vector<LEfptr> m_vLEfptr;
-	LEfptr m_LEfptr;	
+	LEfptr m_LEfptr;
 };
 

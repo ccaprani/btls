@@ -230,7 +230,7 @@ void CVehicle::createMONVehicle(const std::string data)
 	m_Trns		= atoi(data.substr(46, 4).c_str());
 
 	m_Year -= MON_BASE_YEAR;	// Reduce time of first vehicle
-	m_Dir += 1;					// Dir in BeDIT file is zero-based
+	m_Dir += 1;					// Dir in MON file is zero-based
 	m_Length /= 1000;			// Length = length/1000 for mm to meters 
 	m_Velocity /= 3.6;			// Vel = vel / 3.6 for km/h to meters/second
 	m_GVW *= KG_TO_KN;			// kg to kN
@@ -602,17 +602,17 @@ void CVehicle::setLength(double length)
 }
 
 // Set local lane number within its direction, 1-based
-void CVehicle::setLocalLane(size_t lane)
+void CVehicle::setLocalLane(size_t localLaneIndex)
 {
-	m_Lane = lane;
+	m_Lane = localLaneIndex;
 }
 
 // Set local lane number within its direction, 1-based, from global lane number
-void CVehicle::setGlobalLane(size_t l, size_t nRoadLanes)
+void CVehicle::setLocalFromGlobalLane(size_t globalLaneIndex, size_t nRoadLanes)
 {
 	// The passed in lane index is in 1-based cumulative lane numbering
 	// so convert to local direction lane numbering
-	m_Lane = m_Dir == 1 ? l : nRoadLanes - l + 1;
+	m_Lane = m_Dir == 1 ? globalLaneIndex : nRoadLanes - globalLaneIndex + 1;
 }
 
 void CVehicle::setDirection(size_t dir)
@@ -665,10 +665,10 @@ void CVehicle::setAT(size_t i, double tw)
 	m_vAxles[i].TrackWidth = tw;
 }
 
-void CVehicle::setNoAxles(size_t axNo)
+void CVehicle::setNoAxles(size_t noAxle)
 {
 	m_vAxles.clear();
-	m_NoAxles = axNo;
+	m_NoAxles = noAxle;
 	for (size_t i = 0; i < m_NoAxles + 1; i++)
 	{
 		Axle temp;
@@ -677,6 +677,11 @@ void CVehicle::setNoAxles(size_t axNo)
 		temp.TrackWidth = m_TrackWidth;
 		m_vAxles.push_back(temp);
 	}
+}
+
+void CVehicle::setNoAxleGroups(size_t noAxleGroup)
+{
+	m_NoAxleGroups = noAxleGroup;
 }
 
 void CVehicle::setTrns(double trans)
@@ -764,9 +769,13 @@ size_t CVehicle::getLocalLane()
 size_t CVehicle::getGlobalLane(size_t nRoadLanes)
 {
 	if (m_Dir == 1)
+	{
 		return m_Lane;
-	else if (m_Dir == 2 && m_Lane < nRoadLanes)
+	}
+	else if (m_Dir == 2 && m_Lane <= nRoadLanes)
+	{
 		return nRoadLanes - m_Lane + 1;
+	}
 	else
 	{
 		std::cout << "**** Warning: Lane error Vehicle " << m_Head << std::endl;
@@ -819,6 +828,11 @@ std::string CVehicle::getTimeStr()
 size_t CVehicle::getNoAxles()
 {
 	return m_NoAxles;
+}
+
+size_t CVehicle::getNoAxleGroups()
+{
+	return m_NoAxleGroups;
 }
 
 double CVehicle::getAS(size_t i)

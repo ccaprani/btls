@@ -35,17 +35,15 @@ CVehicleBuffer::CVehicleBuffer(CConfigDataCore& config, CVehicleClassification_s
 	
 	if(WRITE_VEHICLE_FILE)
 	{
-		m_OutFile.open(VEHICLE_FILENAME.c_str(), std::ios::out);
+		m_OutFileVeh.open(VEHICLE_FILENAME.c_str(), std::ios::out);
 		m_vVehicles.reserve(WRITE_VEHICLE_BUFFER_SIZE);	
 	}
 }
 
 CVehicleBuffer::~CVehicleBuffer()
 {
-	if(m_OutFile.is_open())
-		m_OutFile.close();
-
-	writeFlowData();
+	if(m_OutFileVeh.is_open())
+		m_OutFileVeh.close();
 }
 
 void CVehicleBuffer::AddVehicle(const CVehicle_sp& pVeh)
@@ -74,27 +72,32 @@ void CVehicleBuffer::AddVehicle(const CVehicle_sp& pVeh)
 
 void CVehicleBuffer::FlushBuffer()
 {
-	if(!WRITE_VEHICLE_FILE)
-		return;
-
-	size_t nVehs = m_vVehicles.size();
-	if(nVehs > 0)
+	if(WRITE_VEHICLE_FILE)
 	{
-		CVehicle_up& pVeh = m_vVehicles.at(nVehs-1);
-		std::cout << std::endl  << "Flushing buffer of " 
-			<< nVehs << " vehicles at " << pVeh->getTimeStr() <<  std::endl;
-		
-		for (size_t i = 0; i < nVehs; i++)
-			m_OutFile << m_vVehicles.at(i)->Write(FILE_FORMAT) << '\n';
-		
-		// clear the memory
-		for (unsigned int i = 0; i < nVehs; i++)
-			m_vVehicles.at(i) = nullptr;
+		size_t nVehs = m_vVehicles.size();
+		if(nVehs > 0)
+		{
+			CVehicle_up& pVeh = m_vVehicles.at(nVehs-1);
+			std::cout << std::endl  << "Flushing buffer of " 
+				<< nVehs << " vehicles at " << pVeh->getTimeStr() <<  std::endl;
+			
+			for (size_t i = 0; i < nVehs; i++)
+				m_OutFileVeh << m_vVehicles.at(i)->Write(FILE_FORMAT) << '\n';
+			
+			// clear the memory
+			for (unsigned int i = 0; i < nVehs; i++)
+				m_vVehicles.at(i) = nullptr;
+		}
+
+		m_NoVehicles = 0;
+		m_vVehicles.clear();
+		m_vVehicles.reserve(WRITE_VEHICLE_BUFFER_SIZE);
 	}
 
-	m_NoVehicles = 0;
-	m_vVehicles.clear();
-	m_vVehicles.reserve(WRITE_VEHICLE_BUFFER_SIZE);
+	if(WRITE_FLOW_STATS)
+	{
+		writeFlowData();
+	}
 }
 
 void CVehicleBuffer::updateFlowData(const CVehicle_sp& pV)
@@ -137,8 +140,9 @@ void CVehicleBuffer::writeFlowData()
 	for(unsigned int iLane = 0; iLane < NO_LANES; iLane++)
 	{
 		int dir = iLane < NO_LANES_DIR1 ? 1 : 2;
-		std::string file = "FlowData_" + to_string(dir) + "_" + to_string(iLane+1) + ".txt";
-		std::ofstream outFile(file.c_str(), std::ios::out ); 
+
+		std::string file = ("FlowData_" + to_string(dir) + "_" + to_string(iLane+1) + ".txt");
+		m_OutFileFlow.open(file.c_str(), std::ios::out);
 
 		std::ostringstream oStr;
 		oStr.width(12);		oStr << std::right << "Hour";
@@ -153,7 +157,7 @@ void CVehicleBuffer::writeFlowData()
 			oStr << std::right << str;
 		}
 		// oStr << std::ends;
-		outFile << oStr.str() << '\n';
+		m_OutFileFlow << oStr.str() << '\n';
 		oStr.str(""); //clears the stringstream
 
 		for(size_t i = 0; i < m_vFlowData.size(); i++)
@@ -169,11 +173,11 @@ void CVehicleBuffer::writeFlowData()
 				oStr.width(20); oStr << std::right << data.m_vClassCount.at(j);
 			}
 			// oStr << std::ends;
-			outFile << oStr.str() << '\n';
+			m_OutFileFlow << oStr.str() << '\n';
 			oStr.str("");
 		}
 	
-		outFile.close();
+		m_OutFileFlow.close();
 	}
 }
 

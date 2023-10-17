@@ -13,14 +13,17 @@ CLaneFileTraffic::~CLaneFileTraffic(void)
 
 CVehicle_sp CLaneFileTraffic::GetNextVehicle()
 {
-	if(m_vVehicles.size() == 0)	return nullptr;
+	if(m_vVehicles.empty())	
+		return nullptr;
 
 	// store pointer to vehicle
-	CVehicle_sp pVeh = m_vVehicles.front();
+	CVehicle_sp pVeh = std::make_shared<CVehicle>();
+	*pVeh = *m_vVehicles.front();  // This has to be this, otherwise Python freezes when multiprocessing 
+
 	// delete entry in vector
 	m_vVehicles.erase(m_vVehicles.begin());
 	// check now if no vehicles left
-	if(m_vVehicles.size() == 0)
+	if(m_vVehicles.empty())
 		m_NextArrivalTime = 1e300;	// MAGIC NUMBER a really big number
 	else
 	{

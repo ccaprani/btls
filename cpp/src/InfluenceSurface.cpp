@@ -32,13 +32,21 @@ CInfluenceSurface::~CInfluenceSurface(void)
 
 void CInfluenceSurface::setLanes(std::vector<double> ylanes)
 {
+	for (std::size_t i = 0; i < ylanes.size()-1; i++)
+		m_Ylanes.push_back(std::make_pair(ylanes.at(i),ylanes.at(i+1)));	// the y-coords of the near-side edges of the lanes
+
+	m_NoLanes = m_Ylanes.size();
+}
+
+void CInfluenceSurface::setLanes(std::vector<std::pair<double,double>> ylanes)
+{
 	m_Ylanes = ylanes;	// the y-coords of the near-side edges of the lanes
 	m_NoLanes = m_Ylanes.size();
 }
 
-double CInfluenceSurface::getLaneWidth(std::size_t iLane)
+double CInfluenceSurface::getLaneWidth(std::size_t iLane)	// iLane is 0-based global lane index
 {
-	double width = m_Ylanes.at(iLane+1)-m_Ylanes.at(iLane);
+	double width = abs(m_Ylanes.at(iLane).second - m_Ylanes.at(iLane).first);
 	return width;
 }
 
@@ -79,8 +87,8 @@ double CInfluenceSurface::giveOrdinate(double x, double laneEccentricity, std::s
 	// x is the position along the length of the bridge
 	// ylocal is the transverse position within lane number iLane
 
-	//if(iLane > m_NoLanes) return 0.0; // better off to crash here though?
-	double yLaneCentre = (m_Ylanes.at(iLane)+m_Ylanes.at(iLane+1))/2;
+	//if(iLane > m_NoLanes-1) return 0.0; // better off to crash here though?
+	double yLaneCentre = (m_Ylanes.at(iLane).first+m_Ylanes.at(iLane).second)/2;	// iLane is 0-based global lane index
 	double y = yLaneCentre + laneEccentricity; // y is now global wrt influence surface
 
 	// check we are within the bounds of the surface

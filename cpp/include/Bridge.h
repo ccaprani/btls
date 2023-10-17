@@ -6,14 +6,13 @@
 
 //#include <boost/thread.hpp>
 //#include <boost/ref.hpp>
+#include <memory>
 #include "BridgeLane.h"
 #include "EventManager.h"
 #include "Vehicle.h"
 #include "CalcEffect.h"
 #include "ConfigData.h"
-#include <memory>
 
-class CBridge;  typedef std::shared_ptr<CBridge> CBridge_sp;
 
 class CBridge  
 {
@@ -39,13 +38,13 @@ public:
 	void setNoLoadEffects(size_t nLE);
 	size_t getNoLoadEffects(void);
 	void InitializeDataMgr(double SimStartTime);
-	CBridgeLane& getBridgeLane(size_t iLane);
+	// CBridgeLane& getBridgeLane(size_t iLane);
+	void addBridgeLaneLoadEffect(size_t iLane, CInfluenceLine IL, double weight);
 	size_t getNoLanes();
 
 private:
 	bool	lane_compare(const CBridgeLane* pL1, const CBridgeLane* pL2);
 	double	TimeNextVehOffBridge();
-	double	EventEndTime();	
 	const std::vector<CVehicle_sp> AssembleVehicles(void);
 	
 	CEventManager				m_EventMgr;
@@ -69,3 +68,4 @@ private:
 
 //	boost::thread m_Thread;	
 };
+typedef std::shared_ptr<CBridge> CBridge_sp;

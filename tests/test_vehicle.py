@@ -25,7 +25,12 @@ def print_vehicle(veh):
 def print_test(veh_list, veh_format):
     for veh_str in veh_list:
         veh = PyBTLS.Vehicle()
-        veh.create(veh_str, veh_format)
+        veh.create(veh_str, veh_format)  # we dont need to expose this. change later!
+
+        # output = pb.Output()
+        # vehicle_classifier = pb.Library.BTLS_collections._VehClassPattern()
+        # vehicle_buffer = pb.Library.BTLS_collections._VehicleBuffer(output, vehicle_classifier, 0.0)
+
         print(80 * "*")
         print(veh_str)
         print(80 * "*")

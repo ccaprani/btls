@@ -13,6 +13,8 @@ CInfluenceLine::CInfluenceLine(void)
 	m_vLEfptr.push_back(&CInfluenceLine::LoadEffect5);
 	m_vLEfptr.push_back(&CInfluenceLine::LoadEffect6);
 	m_vLEfptr.push_back(&CInfluenceLine::LoadEffect7);
+	m_vLEfptr.push_back(&CInfluenceLine::LoadEffect8);
+	m_vLEfptr.push_back(&CInfluenceLine::LoadEffect9);
 }
 
 
@@ -266,4 +268,64 @@ double CInfluenceLine::LoadEffect7(double x)
 		return 0.0;
 	else
 		return 1.0;
+}
+
+// bending moment over the second support of three-span beam
+double CInfluenceLine::LoadEffect8(double x)
+{
+	double L = m_Length;
+	double s = L/3;
+	double K = 15*s*s;
+	double ordinate = 0.0;
+
+	if((x < 0.0) || (x > L))
+		ordinate = 0.0;
+	else
+	{
+		if(x < s)
+		{
+			ordinate = 2 * x/s * (1 - x/s) * (1 + x/s) * s*s * (2*s) / K;
+		}
+		else if(x < 2*s)
+		{
+			x = x - s;
+			ordinate = x/s * (1 - x/s) * s*s * (3 * s * (1 - x/s) + 2 * s * (2 - x/s)) / K;
+		}
+		else
+		{
+			x = x - 2*s;
+			ordinate = -x/s * (1 - x/s) * (2 - x/s) * s*s*s / K;
+		}
+	}
+	return ordinate;
+}
+
+// bending moment over the third support of three-span beam
+double CInfluenceLine::LoadEffect9(double x)
+{
+	double L = m_Length;
+	double s = L/3;
+	double K = 15*s*s;
+	double ordinate = 0.0;
+
+	if((x < 0.0) || (x > L))
+		ordinate = 0.0;
+	else
+	{
+		if(x < s)
+		{
+			ordinate = x/s * (1 - x/s) * (1 + x/s) * s*s*s / -K;
+		}
+		else if(x < 2*s)
+		{
+			x = x - s;
+			ordinate = x/s * (1 - x/s) * s*s * (3 * x/s * s + 2 * s * (1 + x/s)) / K;
+		}
+		else
+		{
+			x = x - 2*s;
+			ordinate = 2 * x/s * (1 - x/s) * (2 - x/s) * s*s * (s + s) / K;
+		}
+	}
+	return ordinate;
 }

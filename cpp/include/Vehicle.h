@@ -32,11 +32,12 @@ public:
 	void	setTime(double time);
 	void	setLength(double length);
 	void	setVelocity(double velocity);
-	void	setLocalLane(size_t l);
-	void	setGlobalLane(size_t l, size_t nRoadLanes);
+	void	setLocalLane(size_t localLaneIndex);
+	void	setLocalFromGlobalLane(size_t globalLaneIndex, size_t nRoadLanes);
 	void	setDirection(size_t d);
 	void	setGVW(double weight);
-	void	setNoAxles(size_t axNo);
+	void	setNoAxles(size_t noAxle);
+	void	setNoAxleGroups(size_t noAxleGroup);
 	void	setAW(size_t i, double w);
 	void	setAS(size_t i, double s);
 	void	setAT(size_t i, double tw);
@@ -59,6 +60,7 @@ public:
 	size_t	getDirection();
 	double	getGVW();
 	size_t	getNoAxles();
+	size_t	getNoAxleGroups();
 	double	getAW(size_t i);
 	double	getAS(size_t i);
 	double	getAT(size_t i);

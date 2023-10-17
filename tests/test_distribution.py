@@ -2,6 +2,7 @@ import PyBTLS
 import matplotlib.pyplot as plt  # should remove for CI/CD pytest
 import numpy as np
 
+
 dist = PyBTLS.Distribution()
 n = 5000
 x = np.array([None] * n)

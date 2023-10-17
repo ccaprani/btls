@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <math.h>
 
 class CInfluenceSurface
 {
@@ -11,6 +12,7 @@ public:
 	double giveOrdinate(double x, double laneEccentricity, std::size_t iLane);
 	void setIS(std::vector< std::vector<double> > ISmat);
 	void setLanes(std::vector<double> ylanes);
+	void setLanes(std::vector<std::pair<double,double>> ylanes);
 	double getLength();
 	double getLaneWidth(std::size_t iLane);
 
@@ -18,7 +20,7 @@ private:
 	std::vector< std::vector<double> > m_ISords;
 	std::vector<double> m_X; //coordinates;
 	std::vector<double> m_Y;
-	std::vector<double> m_Ylanes;
+	std::vector<std::pair<double,double>> m_Ylanes;
 
 	double m_Xmin, m_Xmax, m_Ymin, m_Ymax;
 	double m_Length;
