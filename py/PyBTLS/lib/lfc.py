@@ -117,10 +117,10 @@ class LaneFlowComposition():
             The hourly car percentage data in percent.
 
         hourly_speed_mean : list[float]\n
-            The hourly mean speed data in km/h.
+            The hourly mean speed data in dm/s.
 
         hourly_speed_std : list[float]\n
-            The hourly standard deviation of speed data in km/h.
+            The hourly standard deviation of speed data in dm/s.
 
         hourly_truck_composition : list[list[float]]\n
             The hourly truck composition data in percent. The list should only consist of four truck percentages.

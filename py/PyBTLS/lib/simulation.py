@@ -113,7 +113,7 @@ class Simulation():
         bridge_length = bridge.length
         vehicle_time_gap = 2 * (bridge_length+vehicle.get_length())/1.0  # in s
 
-        vehicle.set_velocity(10.0)  # 1 m/s
+        vehicle.set_velocity(1.0)  # 1 m/s
 
         no_lane_dir_1 = [bridge.no_lane,0]
         no_lane_dir_2 = [0,bridge.no_lane]
