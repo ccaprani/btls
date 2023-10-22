@@ -208,7 +208,7 @@ class TrafficGenerator():
 
             headway_gen._setMaxBridgeLength(bridge_length)  # This is its right place, absolutely! 
 
-            traffic_generator._setLaneData(self._lanes[i].dir, self._lanes[i].index-1, vehicle_gen, headway_gen, self._lanes[i].start_time)  # 0-based global index here
+            traffic_generator._setLaneData(lfc, vehicle_gen, headway_gen, self._lanes[i].start_time)  # 0-based global index here
             traffic_generator._initLane(headway_gen_data)
 
             generator_list[i] = traffic_generator

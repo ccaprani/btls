@@ -27,8 +27,8 @@ public:
 	void Update(double NextArrivalTime, double curTime);
 	void setThresholds(std::vector<double> vThresholds);
 
-    //void UpdateMT(double NextArrivalTime, double curTime);
-    //void join();
+	//void UpdateMT(double NextArrivalTime, double curTime);
+	//void join();
 
 	void Finish();
 	size_t getIndex(void);

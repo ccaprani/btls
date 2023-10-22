@@ -27,11 +27,7 @@ CLaneGenTraffic::~CLaneGenTraffic(void)
 void CLaneGenTraffic::setLaneData(CVehicleClassification_sp pVC, 
 									CLaneFlowComposition lfc, const double startTime)
 {
-	m_NextArrivalTime = startTime;
-
-	m_Direction = lfc.getDirn();
-	// Map vehicles to global lane using zero based cumulative lane no.
-	m_LaneIndex = lfc.getGlobalLaneNo();
+	setLaneAttributes(lfc, startTime);
 
 	// Vehicle model must come first for NHM temporary
 	switch (VEHICLE_MODEL)
@@ -74,12 +70,9 @@ void CLaneGenTraffic::setLaneData(CVehicleClassification_sp pVC,
 }
 
 
-void CLaneGenTraffic::setLaneData(size_t laneDirn, size_t laneIndex, CVehicleGenerator_sp pVehicleGen, CFlowGenerator_sp pFlowGen, const double startTime)
+void CLaneGenTraffic::setLaneData(CLaneFlowComposition lfc, CVehicleGenerator_sp pVehicleGen, CFlowGenerator_sp pFlowGen, const double startTime)
 {
-	m_NextArrivalTime = startTime;
-
-	m_Direction = laneDirn;
-	m_LaneIndex = laneIndex;  // zero based cumulative lane no.
+	setLaneAttributes(lfc, startTime);
 
 	m_pVehicleGen = pVehicleGen;
 	m_pFlowGen = pFlowGen;

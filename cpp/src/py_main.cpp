@@ -262,7 +262,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("_getNextVehicle", &CLaneFileTraffic::GetNextVehicle, py::return_value_policy::take_ownership);
 	py::class_<CLaneGenTraffic, CLane, CLaneGenTraffic_sp> clanegentraffic(m, "_TrafficGenerator");
 		clanegentraffic.def(py::init<CConfigDataCore&>(), py::arg("config"))
-			.def("_setLaneData", py::overload_cast<size_t, size_t, CVehicleGenerator_sp, CFlowGenerator_sp, const double>(&CLaneGenTraffic::setLaneData), py::arg("lane_dirn"), py::arg("lane_index"), py::arg("vehicle_generator"), py::arg("headway_generator"), py::arg("start_time"))
+			.def("_setLaneData", py::overload_cast<CLaneFlowComposition, CVehicleGenerator_sp, CFlowGenerator_sp, const double>(&CLaneGenTraffic::setLaneData), py::arg("lane_flow_composition"), py::arg("vehicle_generator"), py::arg("headway_generator"), py::arg("start_time"))
 			.def("_initLane", &CLaneGenTraffic::initLane, py::arg("flow_model_data"))
 			.def("_getNextVehicle", &CLaneGenTraffic::GetNextVehicle, py::return_value_policy::take_ownership);
 

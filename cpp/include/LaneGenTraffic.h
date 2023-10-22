@@ -18,7 +18,7 @@ public:
 	virtual CVehicle_sp GetNextVehicle();
 	
 	void setLaneData(CVehicleClassification_sp pVC, CLaneFlowComposition lfc, const double starttime);
-	void setLaneData(size_t laneDirn, size_t laneIndex, CVehicleGenerator_sp pVehicleGen, CFlowGenerator_sp pFlowGen, const double startTime);
+	void setLaneData(CLaneFlowComposition lfc, CVehicleGenerator_sp pVehicleGen, CFlowGenerator_sp pFlowGen, const double startTime);
 
 	void initLane(CFlowModelData_sp pFlowModelData);
 
@@ -26,6 +26,12 @@ private:
 	void GenNextArrival();
 	void GenNextTime();
 	void GenNextVehicle();
+
+	inline void setLaneAttributes(CLaneFlowComposition lfc, const double startTime) {
+		m_NextArrivalTime = startTime;
+		m_Direction = lfc.getDirn();
+		m_LaneIndex = lfc.getGlobalLaneNo();	// Map vehicles to global lane using zero based cumulative lane no.
+	}
 
 	CConfigDataCore& m_Config;
 	
