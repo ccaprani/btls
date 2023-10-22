@@ -61,7 +61,7 @@ class Simulation():
         Keyword Arguments
         -----------------
         overlap_avoid_distance : float, optional\n
-            The minimum chase distance (in m) between two vehicles to avoid overlap (should equal to bridge length). If the bridge argument has an input then no need to specify this argument. The default is 120.0.
+            The minimum chase distance (in m) between two vehicles to avoid overlap (should equal to bridge length). If the bridge argument has an input then no need to specify this argument. The default is 100.0.
 
         track_progress : bool, optional\n
             Whether to track the simulation progress. A single-vehicle simulation will ignore this argument. The default is False.
@@ -73,7 +73,7 @@ class Simulation():
         else:
             sim_tag = tag
 
-        overlap_avoid_distance = kwargs.get("min_chase_distance", 120.0)
+        overlap_avoid_distance = kwargs.get("min_chase_distance", 100.0)
         track_progress = kwargs.get("track_progress", False)
 
         self._sim_argument.append((bridge, traffic_generator, no_day, output_config, time_step, min_gvw, vehicle, active_lane, sim_tag, overlap_avoid_distance, track_progress))
@@ -89,7 +89,7 @@ class Simulation():
         else:
             raise ValueError("Either traffic_generator or vehicle should be provided.")
         
-    def _single_vehicle_sim(self, bridge, vehicle, active_lane, sim_tag) -> None:  # need to set lane and direction as input
+    def _single_vehicle_sim(self, bridge, vehicle, active_lane, sim_tag) -> None:
 
         os.mkdir(str(sim_tag))
         os.chdir(str(sim_tag))
