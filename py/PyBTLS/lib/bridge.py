@@ -124,7 +124,7 @@ class Bridge():
                     temp_IL = temp_IL_file._get_IL()
 
                 temp_IL.setIndex(int(load_case))
-                if temp_IL.getLength() < self._length:
+                if temp_IL.getLength() < (self._length-0.01):
                     raise RuntimeError(f"Influence line or surface for lane {i+1} load case {load_case} is shorter than the bridge.")
 
                 brige_lane = bridge.getBridgeLane(i)  # bridge_lane is a CBridgeLane& object from C++. 

@@ -3,21 +3,24 @@ import pycba as cba
 import matplotlib.pyplot as plt
 
 
-# For now, this just provides a general idea. It will not be the final test_func. 
-def test_compress_IL(x, y, e):
-    bridge_string = "P10P10P10P10P"
+# For now, this just provides a general idea. It will not be the final test_func. (x, y, e)
+def test_compress_IL():
+    
+    bridge_span = 38.0
+
+    bridge_string_base = ["P"]*4
+    bridge_string = str(bridge_span).join(bridge_string_base)
     (L, EI, R, eType) = cba.parse_beam_string(bridge_string)
     ils = cba.InfluenceLines(L, EI, R, eType)
-    ils.create_ils(step=40/100)
+    ils.create_ils(step=bridge_span*3/100)
+    position, ordinate = ils.get_il(bridge_span*3/2, "M")
 
-    x, y = ils.get_il(40/2, "M")
-    e = 0.01
-    xs, ys = _compress_discrete_IL(x, y, e)
+    position_comp, ordinate_comp = _compress_discrete_IL(position, ordinate, 0.01)
     
     plt.figure()
-    plt.plot(x, y, "b-")
-    plt.plot(xs, ys, "r-")
+    plt.plot(position, ordinate, "b-")
+    plt.plot(position_comp, ordinate_comp, "r-")
     plt.show()
     
-    print(len(x), len(xs))
+    print(len(position), len(position_comp))
 
