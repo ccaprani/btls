@@ -213,6 +213,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("set_local_from_global_lane", &CVehicle::setLocalFromGlobalLane, "Set the local lane index of the vehicle from its 1-based global index.", py::arg("global_lane_index"), py::arg("no_lanes"))
 			.def("set_direction", &CVehicle::setDirection, "Set the direction of the vehicle.", py::arg("direction"))
 			.def("set_time", &CVehicle::setTime, "Set the showing time of the vehicle.", py::arg("time"))
+			.def("_setHead", &CVehicle::setHead, "Set the head of the vehicle.", py::arg("head"))
 			.def("_setLocalLane", &CVehicle::setLocalLane, "Set the local lane index of the vehicle.", py::arg("local_lane_index"))
 			.def("_setGVW", &CVehicle::setGVW, "Set the gross vehicle weight of the vehicle.", py::arg("weight"))
 			.def("_setLength", &CVehicle::setLength, "Set the length of the vehicle.", py::arg("length"))

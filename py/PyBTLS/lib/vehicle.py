@@ -17,6 +17,7 @@ class Vehicle(_Vehicle):
         super().__init__()
         self._setNoAxles(no_axle)
 
+        self._setHead(0)
         self.set_time(0.0)
         self.set_velocity(0.0)
         self._setLocalLane(1)
