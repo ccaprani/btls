@@ -1,5 +1,5 @@
 """
-This demo is for the case generating a traffic flow and passing them over a bridge. 
+This demo is for the case reading a traffic flow and passing them over a bridge. 
 
 The bridge: 
     - Has four 3.5m-width lanes. 

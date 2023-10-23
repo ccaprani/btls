@@ -17,8 +17,7 @@ CVehicle_sp CLaneFileTraffic::GetNextVehicle()
 		return nullptr;
 
 	// store pointer to vehicle
-	CVehicle_sp pVeh = std::make_shared<CVehicle>();
-	*pVeh = *m_vVehicles.front();  // This has to be this, otherwise Python freezes when multiprocessing 
+	CVehicle_sp pVeh = m_vVehicles.front();
 
 	// delete entry in vector
 	m_vVehicles.erase(m_vVehicles.begin());
