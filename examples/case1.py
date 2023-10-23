@@ -5,7 +5,7 @@ The bridge:
     - Has two 3.5m-width lanes. 
     - Has a length of 20m.
     - Has a width of 9m.
-    - Has two load effects being considered. 
+    - Has two load effects being considered (they are the same for simplification, mid-span BM). 
 
 The vehicle:
     - Has 3 axles, with axle weights of 100kN, 100kN, and 100kN.
@@ -23,10 +23,10 @@ def main():
     # set the first load effect by using a 2D influence surface
     lanes_position = [(0.5,4.0), (5.0,8.5)]  # 1m gap between lane 1 and lane 2. 
     IS_matrix = [
-        [0.0, 0.0, 2.0, 4.5, 7.0, 9.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [10.0, 0.0, 2.5, 5.0, 2.5, 0.0],
-        [20.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        [0.0, 0.0, 4.5, 9.0],
+        [0.0, 0.0, 0.0, 0.0],
+        [10.0, 5.0, 5.0, 5.0],
+        [20.0, 0.0, 0.0, 0.0]
         ]
     load_effect_1 = pb.InfluenceSurface()
     load_effect_1.set_IS(IS_matrix, lanes_position)
@@ -34,8 +34,8 @@ def main():
     # set the second load effect by using discrete influence lines
     load_effect_2_lane_1 = pb.InfluenceLine('discrete')
     load_effect_2_lane_1.set_IL(
-        position=[0.0, 5.0, 10.0, 15.0, 20.0], 
-        ordinate=[0.0, 3.75, 2.5, 1.25, 0.0]
+        position=[0.0, 10.0, 20.0], 
+        ordinate=[0.0, 5.0, 0.0]
         )
     load_effect_2_lane_2 = pb.InfluenceLine('built-in')
     load_effect_2_lane_2.set_IL(

@@ -37,7 +37,6 @@ public:
 	void	setDirection(size_t d);
 	void	setGVW(double weight);
 	void	setNoAxles(size_t noAxle);
-	void	setNoAxleGroups(size_t noAxleGroup);
 	void	setAW(size_t i, double w);
 	void	setAS(size_t i, double s);
 	void	setAT(size_t i, double tw);
@@ -60,7 +59,6 @@ public:
 	size_t	getDirection();
 	double	getGVW();
 	size_t	getNoAxles();
-	size_t	getNoAxleGroups();
 	double	getAW(size_t i);
 	double	getAS(size_t i);
 	double	getAT(size_t i);

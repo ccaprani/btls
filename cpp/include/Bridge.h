@@ -38,8 +38,7 @@ public:
 	void setNoLoadEffects(size_t nLE);
 	size_t getNoLoadEffects(void);
 	void InitializeDataMgr(double SimStartTime);
-	// CBridgeLane& getBridgeLane(size_t iLane);
-	void addBridgeLaneLoadEffect(size_t iLane, CInfluenceLine IL, double weight);
+	CBridgeLane& getBridgeLane(size_t iLane);
 	size_t getNoLanes();
 
 private:

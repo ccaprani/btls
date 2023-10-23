@@ -12,7 +12,7 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(_core, m) {
 	m.doc() = ("PyBTLS is for short-to-mid span bridge traffic loading simulation.");
-	m.def("get_info", &get_info);
+	m.def("get_info", &getInfo);
 	m.def("run", &run, "Run the simulation.", py::arg("in_file")="./BTLSin.txt");
 	py::class_<CConfigDataCore> cconfigdatacore(m, "_ConfigDataCore");
 		cconfigdatacore.def(py::init<>())
@@ -196,13 +196,15 @@ PYBIND11_MODULE(_core, m) {
 			.def("_setLength", &CBridge::setLength, "in metre.", py::arg("length"))
 			.def("_setNoLoadEffects", &CBridge::setNoLoadEffects, py::arg("no_LE"))
 			.def("_initializeLanes", &CBridge::InitializeLanes, py::arg("no_lane"))
-			.def("_addBridgeLaneLoadEffect", &CBridge::addBridgeLaneLoadEffect, py::arg("lane_index"), py::arg("IL"), py::arg("weight"))
+			.def("_getBridgeLane", &CBridge::getBridgeLane, py::arg("lane_index"), py::return_value_policy::reference)
 			.def("_setThresholds", &CBridge::setThresholds, py::arg("threshold_list"))
 			.def("_addVehicle", &CBridge::AddVehicle, py::arg("vehicle"))
 			.def("_setCalcTimeStep", &CBridge::setCalcTimeStep, py::arg("time_step"))
 			.def("_update", &CBridge::Update, py::arg("next_arrival_time"), py::arg("current_time"))
 			.def("_finish", &CBridge::Finish)
 			.def("_initializeDataMgr", &CBridge::InitializeDataMgr, py::arg("sim_start_time"));
+	py::class_<CBridgeLane> cbridgelane(m, "_BridgeLane");
+		cbridgelane.def("_addLoadEffect", &CBridgeLane::addLoadEffect, py::arg("IL"), py::arg("weight"));
 
 
 	py::class_<CVehicle, CVehicle_sp> cvehicle(m, "_Vehicle");
@@ -211,6 +213,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("set_local_from_global_lane", &CVehicle::setLocalFromGlobalLane, "Set the local lane index of the vehicle from its 1-based global index.", py::arg("global_lane_index"), py::arg("no_lanes"))
 			.def("set_direction", &CVehicle::setDirection, "Set the direction of the vehicle.", py::arg("direction"))
 			.def("set_time", &CVehicle::setTime, "Set the showing time of the vehicle.", py::arg("time"))
+			.def("_setLocalLane", &CVehicle::setLocalLane, "Set the local lane index of the vehicle.", py::arg("local_lane_index"))
 			.def("_setGVW", &CVehicle::setGVW, "Set the gross vehicle weight of the vehicle.", py::arg("weight"))
 			.def("_setLength", &CVehicle::setLength, "Set the length of the vehicle.", py::arg("length"))
 			.def("_setNoAxles", &CVehicle::setNoAxles, "Set the number of axles of the vehicle.", py::arg("no_axles"))
@@ -224,7 +227,6 @@ PYBIND11_MODULE(_core, m) {
 			.def("get_axle_weight", &CVehicle::getAW, "Get the weight of the specified axle.", py::arg("axle_index"))
 			.def("get_axle_spacing", &CVehicle::getAS, "Get the value of the specified axle spacing.", py::arg("axle_index"))
 			.def("get_axle_width", &CVehicle::getAT, "Get the width of the specified axle.", py::arg("axle_index"))
-			.def("get_class", &CVehicle::getClass, "Get the class of the vehicle.")
 			.def("get_time", &CVehicle::getTime, "Get the showing time of the vehicle.")
 			.def("_getGlobalLane", &CVehicle::getGlobalLane, "Get the 1-based global lane index of the vehicle.", py::arg("no_lanes"))
 			.def(py::pickle(

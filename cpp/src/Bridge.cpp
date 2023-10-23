@@ -202,15 +202,10 @@ double CBridge::getLength(void)
 	return m_Length;
 }
 
-// CBridgeLane& CBridge::getBridgeLane(size_t iLane)
-// {
-// 	CBridgeLane& lane = m_vLanes.at(iLane);
-// 	return lane;
-// }
-
-void CBridge::addBridgeLaneLoadEffect(size_t iLane, CInfluenceLine IL, double weight)
+CBridgeLane& CBridge::getBridgeLane(size_t iLane)
 {
-	m_vLanes.at(iLane).addLoadEffect(IL, weight);
+	CBridgeLane& lane = m_vLanes.at(iLane);
+	return lane;
 }
 
 size_t CBridge::getNoLanes()

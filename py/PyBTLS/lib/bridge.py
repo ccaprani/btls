@@ -127,7 +127,8 @@ class Bridge():
                 if temp_IL._getLength() < self._length:
                     raise RuntimeError(f"Influence line or surface for lane {i+1} load case {load_case} is shorter than the bridge.")
 
-                bridge._addBridgeLaneLoadEffect(i,temp_IL,temp_weight)
+                brige_lane = bridge._getBridgeLane(i)  # bridge_lane is a CBridgeLane& object from C++. 
+                brige_lane._addLoadEffect(temp_IL,temp_weight)
 
         bridge._setThresholds(self._threshold_list)
 

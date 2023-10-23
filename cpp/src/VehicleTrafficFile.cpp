@@ -7,6 +7,7 @@ CVehicleTrafficFile::CVehicleTrafficFile(CVehicleClassification_sp pVC,
 	m_NoVehs = 0;
 	m_NoDays = 0;
 	m_NoLanes = 0;
+	m_NoDirn = 0;
 	m_NoLanesDir1 = 0;
 	m_NoLanesDir2 = 0;
 	

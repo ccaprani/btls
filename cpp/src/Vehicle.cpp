@@ -566,7 +566,7 @@ std::string CVehicle::writeMONData()
 	oFile.width(3);	oFile << velocity;
 	oFile.width(5);	oFile << length;
 	oFile.width(1);	oFile << m_Lane;	// local lane no in direction
-	oFile.width(1);	oFile << m_Dir - 1;	// dir is zero-based in BeDIT files
+	oFile.width(1);	oFile << m_Dir - 1;	// dir is zero-based in MON file
 	oFile.width(4);	oFile << transPos;
 
 	// Notice ncludes last axle spacing to allow for calculation of overhangs
@@ -677,11 +677,6 @@ void CVehicle::setNoAxles(size_t noAxle)
 		temp.TrackWidth = m_TrackWidth;
 		m_vAxles.push_back(temp);
 	}
-}
-
-void CVehicle::setNoAxleGroups(size_t noAxleGroup)
-{
-	m_NoAxleGroups = noAxleGroup;
 }
 
 void CVehicle::setTrns(double trans)
@@ -828,11 +823,6 @@ std::string CVehicle::getTimeStr()
 size_t CVehicle::getNoAxles()
 {
 	return m_NoAxles;
-}
-
-size_t CVehicle::getNoAxleGroups()
-{
-	return m_NoAxleGroups;
 }
 
 double CVehicle::getAS(size_t i)

@@ -94,8 +94,10 @@ double CBridgeFile::ReadLoadEffect(CBridge_sp pBridge, std::vector<CInfluenceLin
 					IL.setIL(ILno,pBridge->getLength());
 
 				IL.setIndex(index);
+				IL.setWeight(ILweight);
 
-				pBridge->addBridgeLaneLoadEffect(i,IL,ILweight);
+				CBridgeLane& lane = pBridge->getBridgeLane(i);
+				lane.addLoadEffect(IL,ILweight);
 			}
 		} break;
 
@@ -108,7 +110,10 @@ double CBridgeFile::ReadLoadEffect(CBridge_sp pBridge, std::vector<CInfluenceLin
 				std::cout << "**ERROR: Influence Surface does not exist. Bridge " << pBridge->getIndex() << " : Load effect " << index << std::endl;
 					
 			for (size_t i = 0; i < NoLanes; i++)
-				pBridge->addBridgeLaneLoadEffect(i,vInfSurf.at(ISno-1),1.0);
+			{
+				CBridgeLane& lane = pBridge->getBridgeLane(i);
+				lane.addLoadEffect(vInfSurf.at(ISno-1),1.0);
+			}
 
 		} break;
 
@@ -133,11 +138,11 @@ double CBridgeFile::ReadLoadEffect(CBridge_sp pBridge, std::vector<CInfluenceLin
 				IL.setIL(ILno,pBridge->getLength());
 
 			IL.setIndex(index);
-
 			for (size_t j = 0; j < NoLanes; j++)
 			{
 				double weight = m_CSV.stringToDouble(m_CSV.getfield(2 + j));
-				pBridge->addBridgeLaneLoadEffect(j,IL,weight);
+				CBridgeLane& lane = pBridge->getBridgeLane(j);
+				lane.addLoadEffect(IL,weight);
 			}
 		}
 	}

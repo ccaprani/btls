@@ -17,6 +17,11 @@ class Vehicle(_Vehicle):
         super().__init__()
         self._setNoAxles(no_axle)
 
+        self.set_time(0.0)
+        self.set_velocity(0.0)
+        self._setLocalLane(1)
+        self.set_direction(1)
+
     def set_axle_weights(self, axle_weights:list) -> None:
         """
         Set axle weights. 
