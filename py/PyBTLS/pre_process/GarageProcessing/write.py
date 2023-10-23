@@ -43,8 +43,8 @@ def write_garage_file(vehicle_list:list[_Vehicle], out_garage_path:str, out_gara
     vehicle_buffer = _VehicleBuffer(config,vehicle_classification,0.0)
 
     for vehicle in vehicle_list:
-        vehicle_buffer._addVehicle(vehicle)
+        vehicle_buffer.addVehicle(vehicle)
 
-    vehicle_buffer._flushBuffer()
+    vehicle_buffer.flushBuffer()
     return None
 

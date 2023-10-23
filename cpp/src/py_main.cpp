@@ -12,7 +12,7 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(_core, m) {
 	m.doc() = ("PyBTLS is for short-to-mid span bridge traffic loading simulation.");
-	m.def("get_info", &getInfo);
+	m.def("get_info", &preamble);
 	m.def("run", &run, "Run the simulation.", py::arg("in_file")="./BTLSin.txt");
 	py::class_<CConfigDataCore> cconfigdatacore(m, "_ConfigDataCore");
 		cconfigdatacore.def(py::init<>())
@@ -180,31 +180,31 @@ PYBIND11_MODULE(_core, m) {
 
 	py::class_<CInfluenceLine> cinfluenceline(m, "_InfluenceLine");
 		cinfluenceline.def(py::init<>())
-			.def("_setIndex", &CInfluenceLine::setIndex, py::arg("IL_index"))
-			.def("_setIL", py::overload_cast<size_t, double>(&CInfluenceLine::setIL), py::arg("built_in_IL_no"), py::arg("length"))
-			.def("_setIL", py::overload_cast<std::vector<double>, std::vector<double> >(&CInfluenceLine::setIL), py::arg("positions"), py::arg("ordinates"))
-			.def("_setIL", py::overload_cast<CInfluenceSurface>(&CInfluenceLine::setIL), py::arg("inf_surface"))
-			.def("_getLength", &CInfluenceLine::getLength);
+			.def("setIndex", &CInfluenceLine::setIndex, py::arg("IL_index"))
+			.def("setIL", py::overload_cast<size_t, double>(&CInfluenceLine::setIL), py::arg("built_in_IL_no"), py::arg("length"))
+			.def("setIL", py::overload_cast<std::vector<double>, std::vector<double> >(&CInfluenceLine::setIL), py::arg("positions"), py::arg("ordinates"))
+			.def("setIL", py::overload_cast<CInfluenceSurface>(&CInfluenceLine::setIL), py::arg("inf_surface"))
+			.def("getLength", &CInfluenceLine::getLength);
 	py::class_<CInfluenceSurface> cinfluencesurface(m, "_InfluenceSurface");
 		cinfluencesurface.def(py::init<>())
-			.def("_setLanes", py::overload_cast<std::vector<std::pair<double,double>>>(&CInfluenceSurface::setLanes), py::arg("lane_positions"))
-			.def("_setIS", &CInfluenceSurface::setIS, py::arg("IS_matrix"));
+			.def("setLanes", py::overload_cast<std::vector<std::pair<double,double>>>(&CInfluenceSurface::setLanes), py::arg("lane_positions"))
+			.def("setIS", &CInfluenceSurface::setIS, py::arg("IS_matrix"));
 
 	py::class_<CBridge, CBridge_sp> cbridge(m, "_Bridge");
 		cbridge.def(py::init<CConfigDataCore&>(), py::arg("config"))
-			.def("_setIndex", &CBridge::setIndex, py::arg("index"))
-			.def("_setLength", &CBridge::setLength, "in metre.", py::arg("length"))
-			.def("_setNoLoadEffects", &CBridge::setNoLoadEffects, py::arg("no_LE"))
-			.def("_initializeLanes", &CBridge::InitializeLanes, py::arg("no_lane"))
-			.def("_getBridgeLane", &CBridge::getBridgeLane, py::arg("lane_index"), py::return_value_policy::reference)
-			.def("_setThresholds", &CBridge::setThresholds, py::arg("threshold_list"))
-			.def("_addVehicle", &CBridge::AddVehicle, py::arg("vehicle"))
-			.def("_setCalcTimeStep", &CBridge::setCalcTimeStep, py::arg("time_step"))
-			.def("_update", &CBridge::Update, py::arg("next_arrival_time"), py::arg("current_time"))
-			.def("_finish", &CBridge::Finish)
-			.def("_initializeDataMgr", &CBridge::InitializeDataMgr, py::arg("sim_start_time"));
+			.def("setIndex", &CBridge::setIndex, py::arg("index"))
+			.def("setLength", &CBridge::setLength, "in metre.", py::arg("length"))
+			.def("setNoLoadEffects", &CBridge::setNoLoadEffects, py::arg("no_LE"))
+			.def("initializeLanes", &CBridge::InitializeLanes, py::arg("no_lane"))
+			.def("getBridgeLane", &CBridge::getBridgeLane, py::arg("lane_index"), py::return_value_policy::reference)
+			.def("setThresholds", &CBridge::setThresholds, py::arg("threshold_list"))
+			.def("addVehicle", &CBridge::AddVehicle, py::arg("vehicle"))
+			.def("setCalcTimeStep", &CBridge::setCalcTimeStep, py::arg("time_step"))
+			.def("update", &CBridge::Update, py::arg("next_arrival_time"), py::arg("current_time"))
+			.def("finish", &CBridge::Finish)
+			.def("initializeDataMgr", &CBridge::InitializeDataMgr, py::arg("sim_start_time"));
 	py::class_<CBridgeLane> cbridgelane(m, "_BridgeLane");
-		cbridgelane.def("_addLoadEffect", &CBridgeLane::addLoadEffect, py::arg("IL"), py::arg("weight"));
+		cbridgelane.def("addLoadEffect", &CBridgeLane::addLoadEffect, py::arg("IL"), py::arg("weight"));
 
 
 	py::class_<CVehicle, CVehicle_sp> cvehicle(m, "_Vehicle");
@@ -254,25 +254,25 @@ PYBIND11_MODULE(_core, m) {
 
 
 	py::class_<CLane, CLane_sp> clane(m, "_Lane");
-		clane.def("_getNextArrivalTime", &CLane::GetNextArrivalTime);
+		clane.def("getNextArrivalTime", &CLane::GetNextArrivalTime);
 	py::class_<CLaneFileTraffic, CLane, CLaneFileTraffic_sp> clanefiletraffic(m, "_TrafficLoader");
 		clanefiletraffic.def(py::init<>())
-			.def("_setLaneData", &CLaneFileTraffic::setLaneData, py::arg("dirn"), py::arg("lane_index"))
-			.def("_addVehicle", &CLaneFileTraffic::addVehicle, py::arg("vehicle"))
-			.def("_setFirstArrivalTime", &CLaneFileTraffic::setFirstArrivalTime)
-			.def("_getNoVehicles", &CLaneFileTraffic::GetNoVehicles)
-			.def("_getNextVehicle", &CLaneFileTraffic::GetNextVehicle, py::return_value_policy::take_ownership);
+			.def("setLaneData", &CLaneFileTraffic::setLaneData, py::arg("dirn"), py::arg("lane_index"))
+			.def("addVehicle", &CLaneFileTraffic::addVehicle, py::arg("vehicle"))
+			.def("setFirstArrivalTime", &CLaneFileTraffic::setFirstArrivalTime)
+			.def("getNoVehicles", &CLaneFileTraffic::GetNoVehicles)
+			.def("getNextVehicle", &CLaneFileTraffic::GetNextVehicle, py::return_value_policy::take_ownership);
 	py::class_<CLaneGenTraffic, CLane, CLaneGenTraffic_sp> clanegentraffic(m, "_TrafficGenerator");
 		clanegentraffic.def(py::init<CConfigDataCore&>(), py::arg("config"))
-			.def("_setLaneData", py::overload_cast<CLaneFlowComposition, CVehicleGenerator_sp, CFlowGenerator_sp, const double>(&CLaneGenTraffic::setLaneData), py::arg("lane_flow_composition"), py::arg("vehicle_generator"), py::arg("headway_generator"), py::arg("start_time"))
-			.def("_initLane", &CLaneGenTraffic::initLane, py::arg("flow_model_data"))
-			.def("_getNextVehicle", &CLaneGenTraffic::GetNextVehicle, py::return_value_policy::take_ownership);
+			.def("setLaneData", py::overload_cast<CLaneFlowComposition, CVehicleGenerator_sp, CFlowGenerator_sp, const double>(&CLaneGenTraffic::setLaneData), py::arg("lane_flow_composition"), py::arg("vehicle_generator"), py::arg("headway_generator"), py::arg("start_time"))
+			.def("initLane", &CLaneGenTraffic::initLane, py::arg("flow_model_data"))
+			.def("getNextVehicle", &CLaneGenTraffic::GetNextVehicle, py::return_value_policy::take_ownership);
 
 
 	py::class_<CLaneFlowComposition> claneflowcomposition(m, "_LaneFlowComposition");
 		claneflowcomposition.def(py::init<size_t, size_t, size_t>(), py::arg("lane_index"), py::arg("lane_dir"), py::arg("block_size"))
-			.def("_addBlockData", &CLaneFlowComposition::addBlockData, py::arg("hourly_data"))
-			.def("_completeData", &CLaneFlowComposition::completeData);
+			.def("addBlockData", &CLaneFlowComposition::addBlockData, py::arg("hourly_data"))
+			.def("completeData", &CLaneFlowComposition::completeData);
 
 	py::class_<CGenerator, CGenerator_sp> cgenerator(m, "_Generator");
 	py::class_<CModelData, CModelData_sp> cmodeldata(m, "_ModelData");
@@ -317,21 +317,21 @@ PYBIND11_MODULE(_core, m) {
 
 	py::class_<CVehicleTrafficFile> cvehicletrafficfile(m, "_VehicleTrafficFile");
 		cvehicletrafficfile.def(py::init<CVehicleClassification_sp, bool, bool, double>(), py::arg("vehicle_classification"), py::arg("use_const_speed"), py::arg("use_average_speed"), py::arg("const_speed_value"))
-			.def("_read", &CVehicleTrafficFile::Read, py::arg("file"), py::arg("format"))
-			.def("_assignTraffic", &CVehicleTrafficFile::AssignTraffic, py::arg("vehicle_list"))
-			.def("_getNoDays", &CVehicleTrafficFile::getNoDays)
-			.def("_getNoLanes", &CVehicleTrafficFile::getNoLanes)
-			.def("_getNoDirn", &CVehicleTrafficFile::getNoDirn)
-			.def("_getNoLanesDir1", &CVehicleTrafficFile::getNoLanesDir1)
-			.def("_getNoLanesDir2", &CVehicleTrafficFile::getNoLanesDir2)
-			.def("_getNoVehicles", &CVehicleTrafficFile::getNoVehicles)
-			.def("_getNextVehicle", &CVehicleTrafficFile::getNextVehicle, py::return_value_policy::take_ownership)
-			.def("_getVehicles", &CVehicleTrafficFile::getVehicles, py::return_value_policy::take_ownership);
+			.def("read", &CVehicleTrafficFile::Read, py::arg("file"), py::arg("format"))
+			.def("assignTraffic", &CVehicleTrafficFile::AssignTraffic, py::arg("vehicle_list"))
+			.def("getNoDays", &CVehicleTrafficFile::getNoDays)
+			.def("getNoLanes", &CVehicleTrafficFile::getNoLanes)
+			.def("getNoDirn", &CVehicleTrafficFile::getNoDirn)
+			.def("getNoLanesDir1", &CVehicleTrafficFile::getNoLanesDir1)
+			.def("getNoLanesDir2", &CVehicleTrafficFile::getNoLanesDir2)
+			.def("getNoVehicles", &CVehicleTrafficFile::getNoVehicles)
+			.def("getNextVehicle", &CVehicleTrafficFile::getNextVehicle, py::return_value_policy::take_ownership)
+			.def("getVehicles", &CVehicleTrafficFile::getVehicles, py::return_value_policy::take_ownership);
 
 	py::class_<CVehicleBuffer> cvehiclebuffer(m, "_VehicleBuffer");
 		cvehiclebuffer.def(py::init<CConfigDataCore&, CVehicleClassification_sp, double>(), py::arg("config"), py::arg("vehicle_classifier"), py::arg("start_time"))
-			.def("_addVehicle", &CVehicleBuffer::AddVehicle, py::arg("vehicle"))
-			.def("_flushBuffer", &CVehicleBuffer::FlushBuffer);
+			.def("addVehicle", &CVehicleBuffer::AddVehicle, py::arg("vehicle"))
+			.def("flushBuffer", &CVehicleBuffer::FlushBuffer);
 
 
 	py::class_<CMultiModalNormal> cmultimodalnormal(m, "_MultiModalNormal");

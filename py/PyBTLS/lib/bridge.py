@@ -105,11 +105,11 @@ class Bridge():
         """
 
         bridge = _Bridge(output_config)
-        bridge._setIndex(self._bridge_index)
-        bridge._setLength(self._length)
-        bridge._setNoLoadEffects(self._no_load_effect)
+        bridge.setIndex(self._bridge_index)
+        bridge.setLength(self._length)
+        bridge.setNoLoadEffects(self._no_load_effect)
 
-        bridge._initializeLanes(self._no_lane)
+        bridge.initializeLanes(self._no_lane)
 
         for load_case in list(self._inf_file_dict.keys()):
             for i in range(self._no_lane):
@@ -123,14 +123,14 @@ class Bridge():
                     temp_IL_file.set_IL(inf_surf=temp_inf_file)
                     temp_IL = temp_IL_file._get_IL()
 
-                temp_IL._setIndex(int(load_case))
-                if temp_IL._getLength() < self._length:
+                temp_IL.setIndex(int(load_case))
+                if temp_IL.getLength() < self._length:
                     raise RuntimeError(f"Influence line or surface for lane {i+1} load case {load_case} is shorter than the bridge.")
 
-                brige_lane = bridge._getBridgeLane(i)  # bridge_lane is a CBridgeLane& object from C++. 
-                brige_lane._addLoadEffect(temp_IL,temp_weight)
+                brige_lane = bridge.getBridgeLane(i)  # bridge_lane is a CBridgeLane& object from C++. 
+                brige_lane.addLoadEffect(temp_IL,temp_weight)
 
-        bridge._setThresholds(self._threshold_list)
+        bridge.setThresholds(self._threshold_list)
 
         return bridge
     

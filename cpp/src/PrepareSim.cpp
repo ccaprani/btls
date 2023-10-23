@@ -1,7 +1,7 @@
 #include "PrepareSim.h"
 
 
-void getInfo() 
+void preamble() 
 {
 	std::cout << "---------------------------------------------" << std::endl;
 	std::cout << "This is based on the work from:			   " << std::endl;
@@ -160,7 +160,7 @@ void doSimulation(CVehicleClassification_sp pVC, std::vector<CBridge_sp> vBridge
 
 void run(std::string inFile) 
 {
-	getInfo();
+	preamble();
 
 	std::cout << "CWD: " << std::filesystem::current_path() << std::endl << std::endl;
 

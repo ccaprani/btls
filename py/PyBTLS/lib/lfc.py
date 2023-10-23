@@ -205,9 +205,9 @@ class LaneFlowComposition():
             for j in range(len(self._hourly_truck_composition[i])):
                 data_vector.append(self._hourly_truck_composition[i][j])
             
-            lfc._addBlockData(data_vector)  # C++ function
+            lfc.addBlockData(data_vector)  # C++ function
 
-        lfc._completeData()  # C++ function
+        lfc.completeData()  # C++ function
 
         return lfc
         

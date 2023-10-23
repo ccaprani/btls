@@ -148,11 +148,11 @@ class InfluenceLine():
         inf_line = _InfluenceLine()
 
         if self._IL_type == "discrete":
-            inf_line._setIL(self._data_dict["position"], self._data_dict["ordinate"]) 
+            inf_line.setIL(self._data_dict["position"], self._data_dict["ordinate"]) 
         elif self._IL_type == "built-in":
-            inf_line._setIL(self._data_dict["type"], self._data_dict["length"])
+            inf_line.setIL(self._data_dict["type"], self._data_dict["length"])
         elif self._IL_type == "surface":
-            inf_line._setIL(self._data_dict["inf_surf"]._get_IS())
+            inf_line.setIL(self._data_dict["inf_surf"]._get_IS())
 
         return inf_line
     
@@ -235,8 +235,8 @@ class InfluenceSurface():
 
         inf_surf = _InfluenceSurface()
         
-        inf_surf._setLanes(self._data_dict["lane_position"])
-        inf_surf._setIS(self._data_dict["IS_matrix"])
+        inf_surf.setLanes(self._data_dict["lane_position"])
+        inf_surf.setIS(self._data_dict["IS_matrix"])
 
         return inf_surf
 

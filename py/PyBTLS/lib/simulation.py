@@ -130,8 +130,8 @@ class Simulation():
             output_config._setRoadProperties(bridge.no_lane, 1, no_lane_dir_1[i], no_lane_dir_2[i])
             load_calc = bridge._get_bridge(output_config)  # vehicle drive from one dirn then another
 
-            load_calc._initializeDataMgr(current_time)
-            load_calc._setCalcTimeStep(0.01)
+            load_calc.initializeDataMgr(current_time)
+            load_calc.setCalcTimeStep(0.01)
 
             for j,lane_index in enumerate(lane_for_calc):
                 next_arrival_time = (j+1) * vehicle_time_gap
@@ -139,12 +139,12 @@ class Simulation():
 
                 vehicle.set_direction(i+1)
                 vehicle.set_local_from_global_lane(lane_index,bridge.no_lane)
-                load_calc._addVehicle(vehicle)
-                load_calc._update(next_arrival_time, current_time)
+                load_calc.addVehicle(vehicle)
+                load_calc.update(next_arrival_time, current_time)
     
                 current_time = next_arrival_time
 
-            load_calc._finish()
+            load_calc.finish()
             os.chdir("..")
 
         os.chdir("..")
@@ -187,8 +187,8 @@ class Simulation():
             load_calc = bridge._get_bridge(output_config)
             if bridge.no_lane != traffic_generator.no_lane:
                 raise RuntimeError("The number of lanes in the bridge and traffic generator are not equal.")
-            load_calc._initializeDataMgr(current_time)
-            load_calc._setCalcTimeStep(time_step)
+            load_calc.initializeDataMgr(current_time)
+            load_calc.setCalcTimeStep(time_step)
             bridge_length = bridge.length
 
         if isinstance(traffic_generator, TrafficGenerator):
@@ -208,19 +208,19 @@ class Simulation():
             lane_for_calc = [lane_list[i-1] for i in active_lane]
 
         while current_time <= end_time:
-            lane_for_calc = sorted(lane_for_calc, key=lambda t: t._getNextArrivalTime())
+            lane_for_calc = sorted(lane_for_calc, key=lambda t: t.getNextArrivalTime())
 
-            next_arrival_time = lane_for_calc[0]._getNextArrivalTime()
-            vehicle = lane_for_calc[0]._getNextVehicle()
+            next_arrival_time = lane_for_calc[0].getNextArrivalTime()
+            vehicle = lane_for_calc[0].getNextVehicle()
 
             if vehicle == None:  # This is to skip the empty (NoneType) vehicle at the end of Read&Sim
                 break
 
-            vehicle_buffer._addVehicle(vehicle)
+            vehicle_buffer.addVehicle(vehicle)
             if isinstance(bridge, Bridge):
-                load_calc._update(next_arrival_time, current_time)
+                load_calc.update(next_arrival_time, current_time)
                 if vehicle.get_gvw() > int(min_gvw):  # BTLS requires in size_t kN
-                    load_calc._addVehicle(vehicle)
+                    load_calc.addVehicle(vehicle)
 
             current_time = vehicle.get_time()
 
@@ -233,9 +233,9 @@ class Simulation():
                         sim_progress_print = ""
 
         if isinstance(bridge, Bridge):
-            load_calc._finish()
+            load_calc.finish()
 
-        vehicle_buffer._flushBuffer()
+        vehicle_buffer.flushBuffer()
 
         os.chdir("..")
 

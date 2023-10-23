@@ -35,9 +35,9 @@ def load_garage_file(garage_path:str, garage_format:int=4, **kwargs) -> list[_Ve
         vehicle_classification = _VehClassPattern()
 
     garage_txt = _VehicleTrafficFile(vehicle_classification, False, False, 80.0)
-    garage_txt._read(garage_path,garage_format)
+    garage_txt.read(garage_path,garage_format)
 
-    return garage_txt._getVehicles()
+    return garage_txt.getVehicles()
 
 
 def get_gvw_from_garage(vehicle_list:list[_Vehicle]) -> list[float]:

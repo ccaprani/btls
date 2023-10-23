@@ -1,4 +1,5 @@
 #pragma once
+
 #include "VehicleModelData.h"
 #include "VehicleTrafficFile.h"
 

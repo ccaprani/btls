@@ -39,5 +39,5 @@ void GetGeneratorLanes(CVehicleClassification_sp pVC, std::vector<CLane_sp>& vpL
 void GetTrafficFileLanes(CVehicleClassification_sp pVC, std::vector<CLane_sp>& vpLanes, double& StartTime, double& EndTime);
 void doSimulation(CVehicleClassification_sp pVC, std::vector<CBridge_sp> pBridges, std::vector<CLane_sp> pLanes, double SimStartTime, double SimEndTime);
 void run(std::string inFile);
-void getInfo();
+void preamble();
 // inline bool lane_compare(const CLane_sp& pL1, const CLane_sp& pL2);

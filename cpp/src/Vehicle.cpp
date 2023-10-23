@@ -764,13 +764,9 @@ size_t CVehicle::getLocalLane()
 size_t CVehicle::getGlobalLane(size_t nRoadLanes)
 {
 	if (m_Dir == 1)
-	{
 		return m_Lane;
-	}
 	else if (m_Dir == 2 && m_Lane <= nRoadLanes)
-	{
 		return nRoadLanes - m_Lane + 1;
-	}
 	else
 	{
 		std::cout << "**** Warning: Lane error Vehicle " << m_Head << std::endl;
@@ -874,15 +870,15 @@ template <typename T>
 std::string CVehicle::to_string(T const& value)
 {
 	std::stringstream sstr;
-    sstr << value;
-    return sstr.str();
+	sstr << value;
+	return sstr.str();
 }
 
 template <typename T>
 std::string CVehicle::truncate(T const& value, unsigned int digits)
 {
 	std::stringstream sstr;
-    sstr << value;
+	sstr << value;
 	std::string str = sstr.str();
 	size_t length = str.length();
 	if(length <= digits)

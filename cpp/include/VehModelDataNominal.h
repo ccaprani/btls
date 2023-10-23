@@ -16,8 +16,8 @@ public:
     CVehicle_sp getNominalVehicle() {return m_pNominalVehicle;};
 
 private:
-	void readNominal();
-    void setNominalVehicle(CVehicle_sp pVeh);
+	void readNominalVehicle();
+    void assignNominalVehicle(CVehicle_sp pVeh);
     void makeNominalVehicle();
 
     CVehicle_sp m_pNominalVehicle;

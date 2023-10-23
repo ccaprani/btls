@@ -103,22 +103,22 @@ class TrafficLoader():
         if traffic_file is not None:
             if file_format is None:
                 raise ValueError("Traffic file_format is not specified.")
-            traffic_data._read(traffic_file,self._file_format_convert(file_format))
+            traffic_data.read(traffic_file,self._file_format_convert(file_format))
         elif vehicle_list is not None:
-            traffic_data._assignTraffic(vehicle_list)
+            traffic_data.assignTraffic(vehicle_list)
         else:
             raise ValueError("Either traffic_file or vehicle_list should be provided.")
         
-        if self._no_lane != traffic_data._getNoLanes():
+        if self._no_lane != traffic_data.getNoLanes():
             raise RuntimeError(f"Number of lanes included in traffic file is not equal to {self._no_lane}.")
-        self._sim_day = traffic_data._getNoDays()
-        self._no_dir = traffic_data._getNoDirn()
-        self._no_lane_dir_1 = traffic_data._getNoLanesDir1()
-        self._no_lane_dir_2 = traffic_data._getNoLanesDir2()
+        self._sim_day = traffic_data.getNoDays()
+        self._no_dir = traffic_data.getNoDirn()
+        self._no_lane_dir_1 = traffic_data.getNoLanesDir1()
+        self._no_lane_dir_2 = traffic_data.getNoLanesDir2()
         self._check_traffic()
 
-        for _ in range(traffic_data._getNoVehicles()):
-            temp_vehicle = traffic_data._getNextVehicle()
+        for _ in range(traffic_data.getNoVehicles()):
+            temp_vehicle = traffic_data.getNextVehicle()
             self._lanes_vehicles[temp_vehicle._getGlobalLane(self._no_lane)-1].append(temp_vehicle)
 
     def _get_traffic_loader(self) -> list[_TrafficLoader]:
@@ -136,12 +136,12 @@ class TrafficLoader():
             else:
                 lane_dir = 2
 
-            traffic_loader._setLaneData(lane_dir,i)
+            traffic_loader.setLaneData(lane_dir,i)
             for vehicle in self._lanes_vehicles[i]:
-                traffic_loader._addVehicle(vehicle)
+                traffic_loader.addVehicle(vehicle)
 
-            if traffic_loader._getNoVehicles() > 0:
-                traffic_loader._setFirstArrivalTime()
+            if traffic_loader.getNoVehicles() > 0:
+                traffic_loader.setFirstArrivalTime()
             else:
                 raise Warning(f"No vehicle in lane {i+1}.")
             
