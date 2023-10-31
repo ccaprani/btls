@@ -45,9 +45,9 @@ double CFlowGenerator::Generate()
 		gen_count++;
 		if (gen_count > 10000)
 		{
-			std::cout << "***ERROR: overlap cannot be prevented due to long vehicle" << std::endl;
-			system("PAUSE");
-			exit( 1 );
+			std::cout << "***Warning: overlap may not be prevented due to long vehicle, use MinGap (s) " << m_MinGap << std::endl;
+			gap = m_MinGap;
+			break;
 		}
 	}
 

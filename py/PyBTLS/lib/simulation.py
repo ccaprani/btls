@@ -132,6 +132,7 @@ class Simulation():
 
             load_calc.initializeDataMgr(current_time)
             load_calc.setCalcTimeStep(0.01)
+            load_calc.update(0.0, 0.0)
 
             for j,lane_index in enumerate(lane_for_calc):
                 next_arrival_time = (j+1) * vehicle_time_gap
