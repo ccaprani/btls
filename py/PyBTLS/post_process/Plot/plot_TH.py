@@ -22,7 +22,7 @@ def plot_TH(file_path:str, plot_save_path:str=None) -> None:
     plt.figure()
 
     # Read data
-    TH_data = pd.read_csv(file_path, sep='[\t]+', skiprows=1, header=None, engine='python')
+    TH_data = pd.read_csv(file_path, sep='[\s\t]+', header=None, skiprows=1, engine='python')
     no_load_effects = len(TH_data.columns)-2
 
     # Set column ids
