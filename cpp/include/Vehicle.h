@@ -40,7 +40,7 @@ public:
 	void	setAW(size_t i, double w);
 	void	setAS(size_t i, double s);
 	void	setAT(size_t i, double tw);
-	void	setTrns(double trans);
+	void	setTrans(double trans);
 	void	setBridgeTimes(double BridgeLength);
 	void	setTimeOnBridge();
 	void	setBridgeLaneNo(size_t BridgeLaneNo);

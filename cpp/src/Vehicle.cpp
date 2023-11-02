@@ -679,7 +679,7 @@ void CVehicle::setNoAxles(size_t noAxle)
 	}
 }
 
-void CVehicle::setTrns(double trans)
+void CVehicle::setTrans(double trans)
 {
 	m_Trns = trans;
 }

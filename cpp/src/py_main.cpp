@@ -213,6 +213,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("set_local_from_global_lane", &CVehicle::setLocalFromGlobalLane, "Set the local lane index of the vehicle from its 1-based global index.", py::arg("global_lane_index"), py::arg("no_lanes"))
 			.def("set_direction", &CVehicle::setDirection, "Set the direction of the vehicle.", py::arg("direction"))
 			.def("set_time", &CVehicle::setTime, "Set the showing time of the vehicle.", py::arg("time"))
+			.def("set_trans", &CVehicle::setTrans, "Set the vehicle transverse position.", py::arg("trans"))
 			.def("_setHead", &CVehicle::setHead, "Set the head of the vehicle.", py::arg("head"))
 			.def("_setLocalLane", &CVehicle::setLocalLane, "Set the local lane index of the vehicle.", py::arg("local_lane_index"))
 			.def("_setGVW", &CVehicle::setGVW, "Set the gross vehicle weight of the vehicle.", py::arg("weight"))
@@ -229,6 +230,7 @@ PYBIND11_MODULE(_core, m) {
 			.def("get_axle_spacing", &CVehicle::getAS, "Get the value of the specified axle spacing.", py::arg("axle_index"))
 			.def("get_axle_width", &CVehicle::getAT, "Get the width of the specified axle.", py::arg("axle_index"))
 			.def("get_time", &CVehicle::getTime, "Get the showing time of the vehicle.")
+			.def("get_trans", &CVehicle::getTrans, "Get the vehicle transverse position.")
 			.def("_getGlobalLane", &CVehicle::getGlobalLane, "Get the 1-based global lane index of the vehicle.", py::arg("no_lanes"))
 			.def(py::pickle(
 				[](CVehicle& self) {  // __getstate__

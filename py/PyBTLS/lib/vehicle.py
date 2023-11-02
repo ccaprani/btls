@@ -22,6 +22,7 @@ class Vehicle(_Vehicle):
         self.set_velocity(0.0)
         self._setLocalLane(1)
         self.set_direction(1)
+        self.set_trans(1.8)
 
     def set_axle_weights(self, axle_weights:list) -> None:
         """
