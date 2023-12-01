@@ -127,7 +127,7 @@ class Simulation():
 
             os.mkdir("dir"+str(i+1))
             os.chdir("dir"+str(i+1))
-            output_config._setRoadProperties(bridge.no_lane, 1, no_lane_dir_1[i], no_lane_dir_2[i])
+            output_config._setRoad(bridge.no_lane, 1, no_lane_dir_1[i], no_lane_dir_2[i])
             load_calc = bridge._get_bridge(output_config)  # vehicle drive from one dirn then another
 
             load_calc.initializeDataMgr(current_time)
@@ -164,7 +164,7 @@ class Simulation():
         if not isinstance(output_config, OutputConfig):
             raise TypeError("Argument output needs to be OutputConfig type.")
         
-        output_config._setRoadProperties(traffic_generator.no_lane, traffic_generator.no_dir, traffic_generator.no_lane_dir_1, traffic_generator.no_lane_dir_2)  # this info is used by VehBuffer and EventManager(in CBridge)
+        output_config._setRoad(traffic_generator.no_lane, traffic_generator.no_dir, traffic_generator.no_lane_dir_1, traffic_generator.no_lane_dir_2)  # this info is used by VehBuffer and EventManager(in CBridge)
 
         if traffic_generator.vehicle_classifier == 0:
             vehicle_classifier = _VehClassAxle()

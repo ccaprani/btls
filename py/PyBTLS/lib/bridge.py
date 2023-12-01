@@ -3,6 +3,7 @@ from .influence_line import InfluenceLine, InfluenceSurface
 from .output_config import OutputConfig
 from collections import defaultdict
 from typing import Union
+from numpy import isclose
 __all__ = ["Bridge"]
 
 
@@ -124,7 +125,7 @@ class Bridge():
                     temp_IL = temp_IL_file._get_IL()
 
                 temp_IL.setIndex(int(load_case))
-                if temp_IL.getLength() < (self._length-0.01):
+                if not isclose(temp_IL.getLength(), self._length, atol=1e-2):  # centimeter level matching
                     raise RuntimeError(f"Influence line or surface for lane {i+1} load case {load_case} is shorter than the bridge.")
 
                 brige_lane = bridge.getBridgeLane(i)  # bridge_lane is a CBridgeLane& object from C++. 

@@ -196,7 +196,7 @@ class TrafficGenerator():
         generator_list = [None]*self._no_lane
 
         config = _ConfigData()
-        config._setRoadProperties(self._no_lane, self._no_dir, self._no_lane_dir_1, self._no_lane_dir_2)
+        config._setRoad(self._no_lane, self._no_dir, self._no_lane_dir_1, self._no_lane_dir_2)
 
         for i in range(self._no_lane):
             traffic_generator = _TrafficGenerator(config)

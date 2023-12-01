@@ -75,9 +75,8 @@ class VehicleGenNominal():
         lane_eccentricity_std = kwargs.get("lane_eccentricity_std", 0.0)
         kernel_type = kwargs.get("kernel_type", 1)
 
-        self._config._setVehGenNominal(
+        self._config.set_veh_gen_nominal(
             vehicle_classifier=classifier_type, 
-            nominal_file="", 
             lane_eccentricity_std=lane_eccentricity_std,  # in cm
             kernel_type=kernel_type
             )
@@ -165,11 +164,11 @@ class VehicleGenGrave():
 
         traffic_folder = str(pkg_resources.files('PyBTLS').joinpath('data/GraveParameters/'+self._traffic_site))
 
-        self._config._setVehGenGrave(
+        self._config.set_veh_gen_grave(
             vehicle_classifier=classifier_type,
             traffic_folder=traffic_folder,
             truck_track_width=self._truck_track_width,
-            lane_eccentricity_std=lane_eccentricity_std,  # in cm
+            lane_eccentricity_std=lane_eccentricity_std  # in cm
             )
 
     def _check_lfc(self, lfc:LaneFlowComposition):
@@ -267,11 +266,8 @@ class VehicleGenGarage():
         lane_eccentricity_std = kwargs.get("lane_eccentricity_std", 0.0)
         kernel_type = kwargs.get("kernel_type", 1)
 
-        self._config._setVehGenGarage(
+        self._config.set_veh_gen_garage(
             vehicle_classifier=classifier_type, 
-            garage_file="", 
-            file_format=4, 
-            kernel_file="", 
             lane_eccentricity_std=lane_eccentricity_std,  # in cm
             kernel_type=kernel_type
             ) 

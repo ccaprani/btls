@@ -39,10 +39,8 @@ class HeadwayGenNHM():
 
         traffic_folder = str(pkg_resources.files('PyBTLS').joinpath('data/GraveParameters/Auxerre'))
 
-        self._config._setFlowGenNHM(
-            lanes_file="", 
-            traffic_folder=traffic_folder,
-            no_days=0
+        self._config.set_headway_gen_NHM(
+            traffic_folder=traffic_folder
             )
 
     def _check_lfc(self, lfc:LaneFlowComposition):
@@ -104,11 +102,9 @@ class HeadwayGenConstant():
 
     def _set_config(self, **kwargs):
 
-        self._config._setFlowGenConstant(
-            lanes_file="", 
+        self._config.set_headway_gen_constant(
             constant_speed=self._constant_speed, 
-            constant_gap=self._constant_gap, 
-            no_days=0
+            constant_gap=self._constant_gap
             )
 
     def _check_lfc(self, lfc:LaneFlowComposition):
@@ -176,12 +172,11 @@ class HeadwayGenCongested():
 
         congested_gap_coef_var = kwargs.get("congested_gap_coef_var", 0.05)
 
-        self._config._setFlowGenCongested(
-            lanes_file="", 
+        self._config.set_headway_gen_congested(
             congested_spacing=self._congested_spacing, 
             congested_speed=self._congested_speed, 
-            congested_gap_coef_var=congested_gap_coef_var, 
-            no_days=0)
+            congested_gap_coef_var=congested_gap_coef_var
+            )
 
     def _check_lfc(self, lfc:LaneFlowComposition):
         
@@ -230,9 +225,7 @@ class HeadwayGenFreeflow():
 
     def _set_config(self, **kwargs):
 
-        self._config._setFlowGenFreeflow(
-            lanes_file="", 
-            no_days=0)
+        self._config.set_headway_gen_freeflow()
 
     def _check_lfc(self, lfc:LaneFlowComposition):
         

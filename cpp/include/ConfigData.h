@@ -152,28 +152,7 @@ public:
 		size_t SECS_PER_MIN;
 	} Time = {25, 10, 24, 3600, 60, 60};
 
-	void setVehGenGrave(int classifier, std::string trafficFolder, double truckTrackWidth, double laneEccentricityStd);
-	void setVehGenGarage(int classifier, std::string garageFile, size_t fileFormat, std::string kernelFile, double laneEccentricityStd, int kernelType);
-	void setVehGenNominal(int classifier, std::string nominalVehFile, double laneEccentricityStd, int kernelType);
-
-	void setFlowGenNHM(std::string lanesFile, std::string trafficFolder, size_t noDays);
-	void setFlowGenConstant(std::string lanesFile, double constantSpeed, double constantGap, size_t noDays);
-	void setFlowGenCongested(std::string lanesFile, double congestedSpacing, double congestedSpeed, double congestedGapCOV, size_t noDays);
-	void setFlowGenFreeflow(std::string lanesFile, size_t noDays);
-
-	void setTrafficRead(std::string trafficFile, size_t fileFormat, bool useConstantSpeed, bool useAveSpeed, double constSpeed);
-
-	void setLoadEffectCalc(std::string bridgeFile, std::string infLineFile, std::string infSurfFile, double calcTimeStep, size_t minGVW);
-
-	void setEventOutput(bool writeTimeHistory = false, bool writeEachEvent = false, size_t writeBufferSize = 10000);
-	void setVehicleFileOutput(bool writeVehicleFile = false, size_t vehicleFileFormat = 4, std::string vehicleFileName = "output_traffic.txt", size_t bufferSize = 10000);
-	void setBlockMaxOutput(bool writeVehicle = false, bool writeSummary = false, bool write_mixed = false, size_t blockSizeDays = 1, size_t blockSizeSecs = 0, size_t bufferSize = 10000);
-	void setPOTOutput(bool writeVehicle = false, bool writeSummary = false, bool writeCounter = false, size_t POTSizeDays = 1, size_t POTSizeSecs = 0, size_t bufferSize = 10000);
-	void setStatsOutput(bool writeFlowStats = false, bool writeOverall = false, bool writeIntervals = false, size_t intervalSize = 3600, size_t bufferSize = 10000);
-	void setFatigueOutput(bool writeFatigueEvent = false, bool writeRainflowOut = false, int rainflowDecimal = 1, double rainflowCutOff = 0.0, size_t bufferSize = 10000);
-
-	void setRoadProperties(size_t noLanes, size_t noDirs, size_t noLanesDir1, size_t noLanesDir2);
-
+	void setRoad(size_t noLanes, size_t noDirs, size_t noLanesDir1, size_t noLanesDir2);
 
 private:
 	CCSVParse m_CSV;
