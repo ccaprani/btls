@@ -31,6 +31,8 @@ def do_gvw_stat(vehicle_list:list[_Vehicle], visualise:bool=False, plot_type:str
         The x-axis limit.
     ylim: tuple
         The y-axis limit.
+    binwidth : int
+        The bin width for histogram.
 
     Returns
     -------
@@ -73,6 +75,8 @@ def do_axle_weight_stat(vehicle_list:list[_Vehicle], visualise:bool=False, plot_
         The x-axis limit.
     ylim: tuple
         The y-axis limit.
+    binwidth : int
+        The bin width for histogram.
 
     Returns
     -------
@@ -124,6 +128,8 @@ def do_vehicle_length_stat(vehicle_list:list[_Vehicle], visualise:bool=False, pl
         The x-axis limit.
     ylim: tuple
         The y-axis limit.
+    binwidth : int
+        The bin width for histogram.
 
     Returns
     -------
@@ -166,6 +172,8 @@ def do_axle_spacing_stat(vehicle_list:list[_Vehicle], visualise:bool=False, plot
         The x-axis limit.
     ylim: tuple
         The y-axis limit.
+    binwidth : int
+        The bin width for histogram.
 
     Returns
     -------
@@ -243,16 +251,22 @@ def quick_plot(data:np.ndarray, plot_type:str, ax:plt.Figure, **kwargs) -> None:
     -----------------
     plot_save_path : str
         The path to save the plot.
+    binwidth : int
+        The bin width for histogram.
 
     Returns
     -------
     None
     """
 
+    binwidth = kwargs.get("binwidth") if kwargs.get("binwidth") != None else 10
+
     if plot_type == 'hist':
-        sns.histplot(data, ax=ax)
+
+        sns.histplot(data, binwidth=binwidth, stat='density', edgecolor='black', kde=True)
     else:
         sns.kdeplot(data, ax=ax)
+        
     if kwargs.get("plot_save_path") == None:
         plt.show()
     else:
