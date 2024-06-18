@@ -162,7 +162,7 @@ class VehicleGenGrave():
         classifier_type = 0 if kwargs.get("classifier_type") == "axle" else 1
         lane_eccentricity_std = kwargs.get("lane_eccentricity_std", 0.0)
 
-        traffic_folder = str(pkg_resources.files('PyBTLS').joinpath('data/GraveParameters/'+self._traffic_site))
+        traffic_folder = str(pkg_resources.files('pybtls').joinpath('data/GraveParameters/'+self._traffic_site))
 
         self._config.set_veh_gen_grave(
             vehicle_classifier=classifier_type,

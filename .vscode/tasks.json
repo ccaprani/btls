@@ -1,0 +1,42 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "build",
+        "type": "shell",
+        "command": "python",
+        "args": [
+          "setup.py",
+          "build"
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "build-debug",
+        "type": "shell",
+        "command": "python",
+        "args": [
+          "setup.py",
+          "build_ext",
+          "--debug-build",
+          "install"
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": false
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Echo CONDA_PREFIX",
+        "type": "shell",
+        "command": "echo ${env:CONDA_PREFIX}",
+        "problemMatcher": []
+    }
+    ]
+  }
+  

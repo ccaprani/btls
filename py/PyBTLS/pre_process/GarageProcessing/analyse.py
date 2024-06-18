@@ -3,7 +3,7 @@ import scipy.stats as sps
 import seaborn as sns
 import matplotlib.pyplot as plt
 from collections import defaultdict
-from PyBTLS.lib.BTLS_collections import _Vehicle
+from pybtls.lib.BTLS_collections import _Vehicle
 from .load import get_gvw_from_garage, get_vehicle_length_from_garage
 __all__ = ['do_gvw_stat', 'do_axle_weight_stat', 'do_vehicle_length_stat', 'do_axle_spacing_stat', 'quick_stat', 'quick_plot', 'quick_plot_setting']
 

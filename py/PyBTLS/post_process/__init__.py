@@ -1,2 +1,2 @@
-import PyBTLS.post_process.Plot as Plot
+import pybtls.post_process.Plot as Plot
 

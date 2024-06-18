@@ -1,16 +1,16 @@
-from PyBTLS.lib import OutputConfig
-from PyBTLS.lib.BTLS_collections import _VehClassAxle, _VehClassPattern, _VehicleBuffer, _Vehicle
+from pybtls.lib import OutputConfig
+from pybtls.lib.BTLS_collections import _VehClassAxle, _VehClassPattern, _VehicleBuffer, _Vehicle
 __all__ = ['write_garage_file']
 
 
 def write_garage_file(vehicle_list:list[_Vehicle], out_garage_path:str, out_garage_format:int=4, **kwargs) -> None:
     """
-    Write a .txt garage file from the list of :class:`PyBTLS.lib.Vehicle` objects.
+    Write a .txt garage file from the list of :class:`pybtls.lib.Vehicle` objects.
     
     Parameters
     ----------
     vehicle_list : list[Vehicle]
-        A list of :class:`PyBTLS.lib.Vehicle` objects.
+        A list of :class:`pybtls.lib.Vehicle` objects.
     out_garage_path : str
         The path of the output garage file.
     out_garage_format : int, optional

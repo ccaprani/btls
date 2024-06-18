@@ -1,13 +1,13 @@
 import random
 from collections import defaultdict
-from PyBTLS.lib.BTLS_collections import _Vehicle
+from pybtls.lib.BTLS_collections import _Vehicle
 from .load import load_garage_file
 __all__ = ['assemble_garage']
 
 
 def assemble_garage(source_garage_path:list[str], source_garage_percentage:list[float], source_garage_format:int=4, garage_size:int=1000000, **kwargs) -> list[_Vehicle]:
     """
-    Assemble a list of :class:`PyBTLS.lib.Vehicle` objects from the source .txt garage files
+    Assemble a list of :class:`pybtls.lib.Vehicle` objects from the source .txt garage files
 
     Parameters
     ----------
@@ -35,7 +35,7 @@ def assemble_garage(source_garage_path:list[str], source_garage_percentage:list[
     Returns
     -------
     return_garage : list[Vehicle]
-        The assembled list of :class:`PyBTLS.lib.Vehicle` objects.
+        The assembled list of :class:`pybtls.lib.Vehicle` objects.
     """
 
     if len(source_garage_path) != len(source_garage_percentage):

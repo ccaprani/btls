@@ -1,4 +1,4 @@
-from PyBTLS import Distribution
+from pybtls import Distribution
 import multiprocessing
 
 

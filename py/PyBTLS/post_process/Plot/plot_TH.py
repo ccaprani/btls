@@ -5,7 +5,7 @@ __all__ = ['plot_TH']
 
 def plot_TH(file_path:str, plot_save_path:str=None) -> None:
     """
-    Plot the time history data from PyBTLS results. 
+    Plot the time history data from pybtls results. 
     
     Parameters
     ----------

@@ -1,5 +1,5 @@
 """
-PyBTLS - Bridge Traffic Load Simulation - Garage Processing Module
+pybtls - Bridge Traffic Load Simulation - Garage Processing Module
 """
 
 from .load import *

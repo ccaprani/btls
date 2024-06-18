@@ -1,10 +1,10 @@
-from PyBTLS.lib.BTLS_collections import _VehClassAxle, _VehClassPattern, _VehicleTrafficFile, _Vehicle
+from pybtls.lib.BTLS_collections import _VehClassAxle, _VehClassPattern, _VehicleTrafficFile, _Vehicle
 __all__ = ['load_garage_file', 'get_gvw_from_garage', 'get_vehicle_length_from_garage']
 
 
 def load_garage_file(garage_path:str, garage_format:int=4, **kwargs) -> list[_Vehicle]:
     """
-    Load a list of :class:`PyBTLS.lib.Vehicle` objects from a .txt garage file.
+    Load a list of :class:`pybtls.lib.Vehicle` objects from a .txt garage file.
     
     Parameters
     ----------
@@ -26,7 +26,7 @@ def load_garage_file(garage_path:str, garage_format:int=4, **kwargs) -> list[_Ve
     Returns
     -------
     vehicle_list : list[Vehicle]
-        A list of :class:`PyBTLS.lib.Vehicle` objects.
+        A list of :class:`pybtls.lib.Vehicle` objects.
     """
 
     if kwargs.get("vehicle_class_type") == "axle":
@@ -42,12 +42,12 @@ def load_garage_file(garage_path:str, garage_format:int=4, **kwargs) -> list[_Ve
 
 def get_gvw_from_garage(vehicle_list:list[_Vehicle]) -> list[float]:
     """
-    Get the gross vehicle weights from the list of :class:`PyBTLS.lib.Vehicle` objects.
+    Get the gross vehicle weights from the list of :class:`pybtls.lib.Vehicle` objects.
 
     Parameters
     ----------
     vehicle_list : list[Vehicle]
-        A list of :class:`PyBTLS.lib.Vehicle` objects.
+        A list of :class:`pybtls.lib.Vehicle` objects.
 
     Returns
     -------
@@ -63,12 +63,12 @@ def get_gvw_from_garage(vehicle_list:list[_Vehicle]) -> list[float]:
 
 def get_vehicle_length_from_garage(vehicle_list:list[_Vehicle]) -> list[float]:
     """
-    Get the vehicle lengths from the list of :class:`PyBTLS.lib.Vehicle` objects.
+    Get the vehicle lengths from the list of :class:`pybtls.lib.Vehicle` objects.
 
     Parameters
     ----------
     vehicle_list : list[Vehicle]
-        A list of :class:`PyBTLS.lib.Vehicle` objects.
+        A list of :class:`pybtls.lib.Vehicle` objects.
 
     Returns
     -------

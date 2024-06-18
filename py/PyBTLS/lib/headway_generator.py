@@ -37,7 +37,7 @@ class HeadwayGenNHM():
 
     def _set_config(self, **kwargs):
 
-        traffic_folder = str(pkg_resources.files('PyBTLS').joinpath('data/GraveParameters/Auxerre'))
+        traffic_folder = str(pkg_resources.files('pybtls').joinpath('data/GraveParameters/Auxerre'))
 
         self._config.set_headway_gen_NHM(
             traffic_folder=traffic_folder

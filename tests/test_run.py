@@ -1,4 +1,4 @@
-import PyBTLS as pb
+import pybtls as pb
 import os
 import shutil
 

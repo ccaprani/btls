@@ -1,17 +1,46 @@
 [build-system]
 requires = [
     "setuptools>=42",
-    "wheel",
     "pybind11>=2.10.0",
+    "wheel",
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.cibuildwheel]
-test-command = "python {project}/tests/*.py"
-test-skip = "*universal2:arm64"
-
-[tool.pytest.ini_options]
-minversion = "6.0"
-testpaths = [
-    "tests"
+[project]
+name = "pybtls"
+version = "0.3.5"
+description = "A package for short-to-mid span bridge traffic loading simulation"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    { name="Ziyi Zhou", email="ziyi.zhou@monash.edu" },
+    { name="Colin Caprani", email="colin.caprani@monash.edu" }, 
+    { name="Akbar Rizqiansyah", email="akbar.rizqiansyah@monash.edu" }
 ]
+license = { text = "GNU GPL v3" }
+keywords = ["bridge", "traffic", "simulation"]
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "openpyxl",
+    "scipy",
+    "seaborn"
+]
+optional-dependencies = { test = ["pytest"] }
+
+[project.urls]
+Documentation = "https://github.com/ccaprani/btls"
+Source = "https://github.com/ccaprani/btls"
+Tracker = "https://github.com/ccaprani/btls/issues"
+
+[tool.setuptools.packages.find]
+where = ["py"]
+
+[tool.setuptools.package-data]  # https://stackoverflow.com/questions/69647590/specifying-package-data-in-pyproject-toml
+pybtls = ["data/*/*/*.csv"]
+
+[tool.cibuildwheel]
+test-command = "pytest {project}/tests/"
+# test-skip = "*universal2:arm64"
+

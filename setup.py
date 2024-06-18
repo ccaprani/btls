@@ -1,59 +1,95 @@
+"""
+setup example see https://github.com/pybind/python_example/blob/master/setup.py
+"""
+
 import platform
 from glob import glob
 from setuptools import setup
+from setuptools.command.build_ext import build_ext as _build_ext
 from pybind11.setup_helpers import Pybind11Extension, ParallelCompile, naive_recompile
 
-__version__ = "0.3.5"
+# Install parallel compilation
+ParallelCompile(
+    "NPY_NUM_BUILD_JOBS", needs_recompile=naive_recompile, default=4
+).install()
 
-# `N` is to set the bumer of threads
-# `naive_recompile` makes it recompile only if the source file changes. It does not check header files!
-ParallelCompile("NPY_NUM_BUILD_JOBS", needs_recompile=naive_recompile, default=4).install()
+# Custom build_ext command to handle the debug flag
+"""
+Usage:
+For a Regular Build or Install:
 
-# could only be relative paths, otherwise the `build` command would fail if you use a MANIFEST.in to distribute your package
-# only source files (.cpp, .c, .cc) are needed
+Run the setup script without any additional arguments:
+
+    pip install .
+
+For a Debug Build or Install:
+
+    pip install . --config-settings="build_ext.debug_build=true"
+    
+To clean for recompilation:
+
+    python setup.py clean --all
+
+"""
+
+
+class build_ext(_build_ext):
+    def finalize_options(self):
+        super().finalize_options()
+        if self.distribution.get_option_dict("build_ext").get("debug_build"):
+            self.debug_build = self.distribution.get_option_dict("build_ext")[
+                "debug_build"
+            ][1]
+        else:
+            self.debug_build = None
+
+    def build_extensions(self):
+        cpp_extra_compile_args = ["-fPIC"]
+
+        # Check for macOS and add specific flags
+        if platform.system() == "Darwin":
+            cpp_extra_compile_args.extend(
+                ["-stdlib=libc++", "-mmacosx-version-min=10.15", "-std=c++17"]
+            )
+
+        # Check for Windows and add specific flags
+        elif platform.system() == "Windows":
+            cpp_extra_compile_args.append("/std:c++17")
+
+        # Check for other Unix-like systems and add specific flags
+        else:
+            cpp_extra_compile_args.append("-std=c++17")
+
+        # Add debug flag if needed
+        if self.debug_build:
+            cpp_extra_compile_args.append("-g")
+
+        # Apply the compile args to each extension
+        for ext in self.extensions:
+            ext.extra_compile_args = cpp_extra_compile_args
+
+        super().build_extensions()
+
+
 source_files = sorted(glob("./cpp/src/*.cpp", recursive=True))
 try:
     source_files.remove("./cpp/src/main.cpp")  # for MacOS and Linux
 except ValueError:
     source_files.remove("./cpp/src\\main.cpp")  # for Windows
 
-# If any libraries are used, e.g. libabc.so
-include_dirs = ["./cpp/include"]
-# library_dirs = ["LINK_DIR"]
-# (optional) if the library is not in the dir like `/usr/lib/`
-# either to add its dir to `runtime_library_dirs` or to the env variable "LD_LIBRARY_PATH"
-# MUST be absolute path
-# runtime_library_dirs = [os.path.abspath("LINK_DIR")]
-# libraries = ["abc"]
 
-# Extra parameters to the compiler
-cpp_extra_compile_args = []
-if platform.system() == "Darwin":
-    # cpp_extra_compile_args.append('-stdlib=libc++')
-    cpp_extra_compile_args.append('-mmacosx-version-min=10.15')
-    # cpp_extra_link_args.append('-stdlib=libc++')
-    # cpp_extra_link_args.append('-mmacosx-version-min=10.7')
-
-# Set ext modules.
 ext_modules = [
     Pybind11Extension(
-        name="PyBTLS.lib._core", # depends on the structure of your package
-        extra_compile_args = cpp_extra_compile_args,
+        name="pybtls.lib.libbtls",
         sources=source_files,
-        # Example: passing in the version to the compiled code
-        # define_macros=[("VERSION_INFO", __version__)],
-        include_dirs=include_dirs,
-        # library_dirs=library_dirs,
-        # runtime_library_dirs=runtime_library_dirs,
-        # libraries=libraries,
+        include_dirs=["cpp/include"],
         cxx_std=17,
-        language="c++"
+        language="c++",
     ),
 ]
 
-
-# Finish setup()
 setup(
-    version = __version__,
+    name="pybtls",
+    cmdclass={"build_ext": build_ext},
     ext_modules=ext_modules,
 )

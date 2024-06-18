@@ -1,6 +1,6 @@
 from collections import defaultdict
 from types import SimpleNamespace
-from PyBTLS.lib.BTLS_collections import _Vehicle
+from pybtls.lib.BTLS_collections import _Vehicle
 from .region_criteria import *
 from .load import get_gvw_from_garage, get_vehicle_length_from_garage
 from .write import write_garage_file
@@ -14,7 +14,7 @@ class SubWIMDict(SimpleNamespace):
     Attributes
     ----------
     data : defaultdict
-        The data attribute stores the divided list of :class:`PyBTLS.lib.Vehicle` objectss.
+        The data attribute stores the divided list of :class:`pybtls.lib.Vehicle` objectss.
     tag : str
         The tag attribute indicates the data information.
     """
@@ -41,14 +41,14 @@ def divide_by_regional_classification(vehicle_list:list[_Vehicle], region_criter
     Parameters
     ----------
     vehicle_list : list[Vehicle]
-        A list of :class:`PyBTLS.lib.Vehicle` objects.
+        A list of :class:`pybtls.lib.Vehicle` objects.
     region_criterion : CriterionBase
         A CriterionBase object representing the classification criterion (AUCriterion, EUCriterion, etc.).
 
     Returns
     -------
     sub_WIM_dict : SubWIMDict
-        A SubWIMDict object containing the divided list of :class:`PyBTLS.lib.Vehicle` objectss and the tag of the criterion.
+        A SubWIMDict object containing the divided list of :class:`pybtls.lib.Vehicle` objectss and the tag of the criterion.
     """
 
     sub_WIM_dict = SubWIMDict(defaultdict(list))
@@ -69,12 +69,12 @@ def divide_by_no_axle(vehicle_list:list[_Vehicle]) -> SubWIMDict:
     Parameters
     ----------
     vehicle_list : list[Vehicle]
-        A list of :class:`PyBTLS.lib.Vehicle` objects.
+        A list of :class:`pybtls.lib.Vehicle` objects.
 
     Returns
     -------
     sub_WIM_dict : SubWIMDict
-        A SubWIMDict object containing the divided list of :class:`PyBTLS.lib.Vehicle` objectss and the tag of the criterion.
+        A SubWIMDict object containing the divided list of :class:`pybtls.lib.Vehicle` objectss and the tag of the criterion.
     """
 
     sub_WIM_dict = SubWIMDict(defaultdict(list))
@@ -93,14 +93,14 @@ def divide_by_gvw_percentile(vehicle_list:list[_Vehicle], gvw_div_percentile_lis
     Parameters
     ----------
     vehicle_list : list[Vehicle]
-        A list of :class:`PyBTLS.lib.Vehicle` objects.
+        A list of :class:`pybtls.lib.Vehicle` objects.
     gvw_div_percentile_list : list[float]
         A list of percentiles (in decimal) for division.
 
     Returns
     -------
     sub_WIM_dict : SubWIMDict
-        A SubWIMDict object containing the divided list of :class:`PyBTLS.lib.Vehicle` objectss and the tag of the criterion.
+        A SubWIMDict object containing the divided list of :class:`pybtls.lib.Vehicle` objectss and the tag of the criterion.
     """
 
     gvw_list = get_gvw_from_garage(vehicle_list)
@@ -118,14 +118,14 @@ def divide_by_gvw_value(vehicle_list:list[_Vehicle], gvw_div_value_list:list, **
     Parameters
     ----------
     vehicle_list : list[Vehicle]
-        A list of :class:`PyBTLS.lib.Vehicle` objects.
+        A list of :class:`pybtls.lib.Vehicle` objects.
     gvw_div_value_list : list[float]
         A list of gvw values for division.
 
     Returns
     -------
     sub_WIM_dict : SubWIMDict
-        A SubWIMDict object containing the divided list of :class:`PyBTLS.lib.Vehicle` objectss and the tag of the criterion.
+        A SubWIMDict object containing the divided list of :class:`pybtls.lib.Vehicle` objectss and the tag of the criterion.
     """
 
     if "gvw_list" in kwargs.keys():
@@ -146,14 +146,14 @@ def divide_by_vehicle_length_percentile(vehicle_list:list[_Vehicle], vehicle_len
     Parameters
     ----------
     vehicle_list : list[Vehicle]
-        A list of :class:`PyBTLS.lib.Vehicle` objects.
+        A list of :class:`pybtls.lib.Vehicle` objects.
     vehicle_length_div_percentile_list : list[float]
         A list of percentiles (in decimal) for division.
 
     Returns
     -------
     sub_WIM_dict : SubWIMDict
-        A SubWIMDict object containing the divided list of :class:`PyBTLS.lib.Vehicle` objectss and the tag of the criterion.
+        A SubWIMDict object containing the divided list of :class:`pybtls.lib.Vehicle` objectss and the tag of the criterion.
     """
 
     vehicle_length_list = get_vehicle_length_from_garage(vehicle_list)
@@ -171,14 +171,14 @@ def divide_by_vehicle_length_value(vehicle_list:list[_Vehicle], vehicle_length_d
     Parameters
     ----------
     vehicle_list : list[Vehicle]
-        A list of :class:`PyBTLS.lib.Vehicle` objects.
+        A list of :class:`pybtls.lib.Vehicle` objects.
     vehicle_length_div_value_list : list[float]
         A list of vehicle length values for division.
 
     Returns
     -------
     sub_WIM_dict : SubWIMDict
-        A SubWIMDict object containing the divided list of :class:`PyBTLS.lib.Vehicle` objectss and the tag of the criterion.
+        A SubWIMDict object containing the divided list of :class:`pybtls.lib.Vehicle` objectss and the tag of the criterion.
     """
 
     if "vehicle_length_list" in kwargs.keys():
@@ -224,7 +224,7 @@ def _divide_by_value(vehicle_list:list[_Vehicle], vehicle_property_list:list[flo
     Parameters
     ----------
     vehicle_list : list[Vehicle]
-        A list of :class:`PyBTLS.lib.Vehicle` objects.
+        A list of :class:`pybtls.lib.Vehicle` objects.
     vehicle_property_list : list[float]
         A list of vehicle property values.
     div_value_list : list[float]
@@ -233,7 +233,7 @@ def _divide_by_value(vehicle_list:list[_Vehicle], vehicle_property_list:list[flo
     Returns
     -------
     sub_WIM_dict : SubWIMDict
-        A SubWIMDict object containing the divided list of :class:`PyBTLS.lib.Vehicle` objectss (without tag).
+        A SubWIMDict object containing the divided list of :class:`pybtls.lib.Vehicle` objectss (without tag).
     """
 
     vehicle_list_copy = vehicle_list.copy()
@@ -253,12 +253,12 @@ def _divide_by_value(vehicle_list:list[_Vehicle], vehicle_property_list:list[flo
 
 def write_divide_garage_file(sub_WIM_dict:SubWIMDict, output_folder_path:str, out_garage_format:int=4, **kwargs) -> None:
     """
-    Write the divided list of :class:`PyBTLS.lib.Vehicle` objectss from sub_WIM_dict to a specified folder. 
+    Write the divided list of :class:`pybtls.lib.Vehicle` objectss from sub_WIM_dict to a specified folder. 
 
     Parameters
     ----------
     sub_WIM_dict : SubWIMDict
-        A SubWIMDict object containing the divided list of :class:`PyBTLS.lib.Vehicle` objectss and the tag of the criterion.
+        A SubWIMDict object containing the divided list of :class:`pybtls.lib.Vehicle` objectss and the tag of the criterion.
     output_folder_path : str
         The path of the folder to save the output divided garages.
     out_garage_format : int, optional

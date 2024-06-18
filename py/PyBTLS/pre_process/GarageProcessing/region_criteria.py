@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod, abstractproperty
-from PyBTLS.lib.BTLS_collections import _Vehicle
+from pybtls.lib.BTLS_collections import _Vehicle
 __all__ = ['CriterionBase','AUCriterion']
 
 

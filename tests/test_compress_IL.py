@@ -1,4 +1,4 @@
-from PyBTLS.lib.utils import _compress_discrete_IL
+from pybtls.lib.utils import _compress_discrete_IL
 import pycba as cba
 import matplotlib.pyplot as plt
 

@@ -14,7 +14,7 @@
 // No. of days of traffic simulation:
 10
 // Location of Traffic folders
-../../py/PyBTLS/data/GraveParameters/Auxerre
+../../py/pybtls/data/GraveParameters/Auxerre
 // Default truck track width (cm) (Vehicle Gen. Model 0 only)
 190.0
 // Standard deviation of eccentricity in lane (cm) (about 20 cm usually)

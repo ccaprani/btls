@@ -20,7 +20,7 @@ The program features:
 
 To **install** this project online as a Python package: 
 
-1. Run `pip install PyBTLS`. 
+1. Run `pip install pybtls`. 
 
 
 To **build** this project locally as a program (requires CMake and g++): 

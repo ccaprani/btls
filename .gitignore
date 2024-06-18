@@ -1,9 +1,8 @@
 # Build
 .DS_Store
-.vscode
 bin
 build
-PyBTLS.egg*
+pybtls.egg*
 __pycache__
 *.so
 *.exe

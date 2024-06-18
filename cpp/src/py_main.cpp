@@ -10,8 +10,7 @@
 namespace py = pybind11;
 
 
-PYBIND11_MODULE(_core, m) {
-	m.doc() = ("PyBTLS is for short-to-mid span bridge traffic loading simulation.");
+PYBIND11_MODULE(libbtls, m) {
 	m.def("get_info", &preamble);
 	m.def("run", &run, "Run the simulation.", py::arg("BTLSin_file"));
 	py::class_<CConfigDataCore> cconfigdatacore(m, "_ConfigDataCore");

@@ -1,4 +1,4 @@
-import PyBTLS
+import pybtls
 
 
 def print_vehicle(veh):
@@ -24,7 +24,7 @@ def print_vehicle(veh):
 
 def print_test(veh_list, veh_format):
     for veh_str in veh_list:
-        veh = PyBTLS.Vehicle()
+        veh = pybtls.Vehicle()
         veh.create(veh_str, veh_format)  # we dont need to expose this. change later!
 
         # output = pb.Output()
