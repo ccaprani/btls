@@ -4,13 +4,14 @@ from .output_config import OutputConfig
 from collections import defaultdict
 from typing import Union
 from numpy import isclose
+
 __all__ = ["Bridge"]
 
 
-class Bridge():
+class Bridge:
     _Bridge_Index = 0
 
-    def __init__(self, length:float, no_lane:int):
+    def __init__(self, length: float, no_lane: int):
         """
         A Bridge instance in Python stores the data for creating a CBridge instance in C++.
 
@@ -43,7 +44,7 @@ class Bridge():
         attribute_dict["inf_file_dict"] = self._inf_file_dict
         attribute_dict["threshold_list"] = self._threshold_list
         return attribute_dict
-    
+
     def __setstate__(self, attribute_dict):
         self._bridge_index = attribute_dict["bridge_index"]
         self._length = attribute_dict["length"]
@@ -52,7 +53,12 @@ class Bridge():
         self._inf_file_dict = attribute_dict["inf_file_dict"]
         self._threshold_list = attribute_dict["threshold_list"]
 
-    def add_load_effect(self, inf_line_surf:Union[InfluenceLine,list[InfluenceLine],InfluenceSurface], inf_weight:list[float]=None, threshold:float=0.0) -> None:
+    def add_load_effect(
+        self,
+        inf_line_surf: Union[InfluenceLine, list[InfluenceLine], InfluenceSurface],
+        inf_weight: list[float] = None,
+        threshold: float = 0.0,
+    ) -> None:
         """
         Add a load effect to the bridge.
 
@@ -72,35 +78,45 @@ class Bridge():
         None.
         """
 
-        if isinstance(inf_line_surf,list):
-        
-            if not all(isinstance(inf_line, InfluenceLine) for inf_line in inf_line_surf):
+        if isinstance(inf_line_surf, list):
+            if not all(
+                isinstance(inf_line, InfluenceLine) for inf_line in inf_line_surf
+            ):
                 raise TypeError("All influence line should be InfluenceLine objects.")
-            
+
             if len(inf_line_surf) != self._no_lane:
-                raise ValueError("The number of influence lines should be equal to the number of lanes.")
-            
+                raise ValueError(
+                    "The number of influence lines should be equal to the number of lanes."
+                )
+
             self._no_load_effect += 1
             self._inf_file_dict[str(self._no_load_effect)]["inf_line"] = inf_line_surf
 
-        elif isinstance(inf_line_surf,(InfluenceLine,InfluenceSurface)):
-
+        elif isinstance(inf_line_surf, (InfluenceLine, InfluenceSurface)):
             self._no_load_effect += 1
-            self._inf_file_dict[str(self._no_load_effect)]["inf_line"] = [inf_line_surf]*self._no_lane
+            self._inf_file_dict[str(self._no_load_effect)]["inf_line"] = [
+                inf_line_surf
+            ] * self._no_lane
 
         else:
-            raise TypeError("The influence line or surface must be InfluenceLine or InfluenceSurface object(s).")
-        
+            raise TypeError(
+                "The influence line or surface must be InfluenceLine or InfluenceSurface object(s)."
+            )
+
         if inf_weight is None:
-            self._inf_file_dict[str(self._no_load_effect)]["weight"] = [1.0]*self._no_lane
+            self._inf_file_dict[str(self._no_load_effect)]["weight"] = [
+                1.0
+            ] * self._no_lane
         else:
             if len(inf_weight) != self._no_lane:
-                raise ValueError("The length of inf_weight should be equal to the number of lanes.")
+                raise ValueError(
+                    "The length of inf_weight should be equal to the number of lanes."
+                )
             self._inf_file_dict[str(self._no_load_effect)]["weight"] = inf_weight
-        
+
         self._threshold_list.append(threshold)
 
-    def _get_bridge(self, output_config:OutputConfig) -> _Bridge:
+    def _get_bridge(self, output_config: OutputConfig) -> _Bridge:
         """
         Get the created C++ CBridge instance.
         """
@@ -125,21 +141,26 @@ class Bridge():
                     temp_IL = temp_IL_file._get_IL()
 
                 temp_IL.setIndex(int(load_case))
-                if not isclose(temp_IL.getLength(), self._length, atol=1e-2):  # centimeter level matching
-                    raise RuntimeError(f"Influence line or surface for lane {i+1} load case {load_case} is shorter than the bridge.")
+                if not isclose(
+                    temp_IL.getLength(), self._length, atol=1e-2
+                ):  # centimeter level matching
+                    raise RuntimeError(
+                        f"Influence line or surface for lane {i+1} load case {load_case} is shorter than the bridge."
+                    )
 
-                brige_lane = bridge.getBridgeLane(i)  # bridge_lane is a CBridgeLane& object from C++. 
-                brige_lane.addLoadEffect(temp_IL,temp_weight)
+                brige_lane = bridge.getBridgeLane(
+                    i
+                )  # bridge_lane is a CBridgeLane& object from C++.
+                brige_lane.addLoadEffect(temp_IL, temp_weight)
 
         bridge.setThresholds(self._threshold_list)
 
         return bridge
-    
+
     @property
     def no_lane(self) -> int:
         return self._no_lane
-    
+
     @property
     def length(self) -> float:
         return self._length
-

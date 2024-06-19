@@ -1,13 +1,18 @@
 from .BTLS_collections import _ConfigDataCore
+
 __all__ = ["OutputConfig"]
 
 
 class OutputConfig(_ConfigDataCore):
-
     def __init__(self):
         super().__init__()
 
-    def set_event_output(self, write_time_history:bool=False, write_each_event:bool=False, buffer_size:int=10000) -> None:
+    def set_event_output(
+        self,
+        write_time_history: bool = False,
+        write_each_event: bool = False,
+        buffer_size: int = 10000,
+    ) -> None:
         """
         Config for recording all load events to HDD.
 
@@ -27,7 +32,13 @@ class OutputConfig(_ConfigDataCore):
         self._Output.WRITE_EACH_EVENT = write_each_event
         self._Output.WRITE_EVENT_BUFFER_SIZE = buffer_size
 
-    def set_vehicle_file_output(self, write_vehicle_file:bool=False, vehicle_file_format:int=4, vehicle_file_name:str="output_traffic.txt", buffer_size:int=10000) -> None:
+    def set_vehicle_file_output(
+        self,
+        write_vehicle_file: bool = False,
+        vehicle_file_format: int = 4,
+        vehicle_file_name: str = "output_traffic.txt",
+        buffer_size: int = 10000,
+    ) -> None:
         """
         Config for recording the vehicles (in the generated traffic) to HDD.
 
@@ -51,7 +62,15 @@ class OutputConfig(_ConfigDataCore):
         self._Output.VehicleFile.VEHICLE_FILENAME = vehicle_file_name
         self._Output.VehicleFile.WRITE_VEHICLE_BUFFER_SIZE = buffer_size
 
-    def set_BM_output(self, write_vehicle:bool=False, write_summary:bool=False, write_mixed:bool=False, block_size_days:int=1, block_size_secs:int=0, buffer_size:int=10000) -> None:
+    def set_BM_output(
+        self,
+        write_vehicle: bool = False,
+        write_summary: bool = False,
+        write_mixed: bool = False,
+        block_size_days: int = 1,
+        block_size_secs: int = 0,
+        buffer_size: int = 10000,
+    ) -> None:
         """
         Config for conducting block-max analysis to load events and writing data to HDD.
 
@@ -84,7 +103,15 @@ class OutputConfig(_ConfigDataCore):
         self._Output.BlockMax.BLOCK_SIZE_SECS = block_size_secs
         self._Output.BlockMax.WRITE_BM_BUFFER_SIZE = buffer_size
 
-    def set_POT_output(self, write_vehicle:bool=False, write_summary:bool=False, write_counter:bool=False, POT_size_days:int=1, POT_size_secs:int=0, buffer_size:int=10000) -> None:
+    def set_POT_output(
+        self,
+        write_vehicle: bool = False,
+        write_summary: bool = False,
+        write_counter: bool = False,
+        POT_size_days: int = 1,
+        POT_size_secs: int = 0,
+        buffer_size: int = 10000,
+    ) -> None:
         """
         Config for conducting peak-over-threshold analysis to load events and writing data to HDD.
 
@@ -117,7 +144,14 @@ class OutputConfig(_ConfigDataCore):
         self._Output.POT.POT_COUNT_SIZE_SECS = POT_size_secs
         self._Output.POT.WRITE_POT_BUFFER_SIZE = buffer_size
 
-    def set_stats_output(self, write_flow_stats:bool=False, write_overall:bool=False, write_intervals:bool=False, interval_size:int=3600, buffer_size:int=10000) -> None:
+    def set_stats_output(
+        self,
+        write_flow_stats: bool = False,
+        write_overall: bool = False,
+        write_intervals: bool = False,
+        interval_size: int = 3600,
+        buffer_size: int = 10000,
+    ) -> None:
         """
         Config for doing statistic to the flow and writing data to HDD.
 
@@ -146,10 +180,17 @@ class OutputConfig(_ConfigDataCore):
         self._Output.Stats.WRITE_SS_INTERVAL_SIZE = interval_size
         self._Output.Stats.WRITE_SS_BUFFER_SIZE = buffer_size
 
-    def set_fatigue_output(self, write_fatigue_event:bool=False, write_rainflow_output:bool=False, rainflow_decimal:int=1, rainflow_cut_off:float=0.0, buffer_size:int=10000) -> None:
+    def set_fatigue_output(
+        self,
+        write_fatigue_event: bool = False,
+        write_rainflow_output: bool = False,
+        rainflow_decimal: int = 1,
+        rainflow_cut_off: float = 0.0,
+        buffer_size: int = 10000,
+    ) -> None:
         """
         Config for recording fatigue event, doing rainflow count and writing data to HDD.
-        
+
         Parameters
         ----------
         write_fatigue_event : bool, optional\n
@@ -174,4 +215,3 @@ class OutputConfig(_ConfigDataCore):
         self._Output.Fatigue.RAINFLOW_CUTOFF = rainflow_cut_off
         self._Output.WRITE_EVENT_BUFFER_SIZE = buffer_size
         self._Output.Fatigue.WRITE_RAINFLOW_BUFFER_SIZE = buffer_size
-

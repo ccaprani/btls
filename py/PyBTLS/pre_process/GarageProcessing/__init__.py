@@ -7,4 +7,3 @@ from .analyse import *
 from .write import *
 from .divide import *
 from .assemble import *
-

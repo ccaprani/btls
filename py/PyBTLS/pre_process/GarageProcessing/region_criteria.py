@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod, abstractproperty
 from pybtls.lib.BTLS_collections import _Vehicle
-__all__ = ['CriterionBase','AUCriterion']
+
+__all__ = ["CriterionBase", "AUCriterion"]
 
 
 # Classification base
@@ -25,7 +26,7 @@ class CriterionBase(ABC):
     _vehicle_no_axle_groups : int
         The number of axle groups of a vehicle.
     """
-    
+
     def __init__(self):
         """
         Constructor of CriterionBase.
@@ -41,7 +42,7 @@ class CriterionBase(ABC):
         self._vehicle_no_axle_groups = None
 
     @abstractmethod
-    def set_vehicle_property(self, vehicle:_Vehicle) -> None:
+    def set_vehicle_property(self, vehicle: _Vehicle) -> None:
         """
         To set the attributes from the input vehicle object.
 
@@ -69,10 +70,10 @@ class CriterionBase(ABC):
         """
 
         pass
-    
+
     def _get_vehicle_axle_spacing(self, vehicle):
         vehicle_axle_spacings_list = []
-        for i in range(0, self._vehicle_no_axles-1):
+        for i in range(0, self._vehicle_no_axles - 1):
             vehicle_axle_spacings_list.append(vehicle.get_axle_spacing(i))
         return vehicle_axle_spacings_list
 
@@ -90,12 +91,14 @@ class AUCriterion(CriterionBase):
     AUCriterion is a class for Austroads' classification.
     """
 
-    def __init__(self, group_spacing:float=2.1, light_vehicle_weight_limit:float=30.0):
+    def __init__(
+        self, group_spacing: float = 2.1, light_vehicle_weight_limit: float = 30.0
+    ):
         super().__init__()
         self.group_spacing = group_spacing
         self.light_vehicle_weight_limit = light_vehicle_weight_limit
 
-    def set_vehicle_property(self, vehicle:_Vehicle) -> None:
+    def set_vehicle_property(self, vehicle: _Vehicle) -> None:
         self._vehicle_weight = vehicle.get_gvw()
         self._vehicle_length = vehicle.get_length()
         self._vehicle_no_axles = vehicle.get_no_axles()
@@ -129,11 +132,10 @@ class AUCriterion(CriterionBase):
             return "class_12"
         else:
             return "unknown"
-    
+
 
 if __name__ == "__main__":
     vehicle = _Vehicle()
     criterion = AUCriterion(13, 2.1, 30.0)
     criterion.set_vehicle_property(vehicle)
     print(criterion.get_vehicle_class())
-

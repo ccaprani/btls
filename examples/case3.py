@@ -15,48 +15,39 @@ from pathlib import Path
 
 
 def main():
-
     # set lane flow compositions
-    lfc_1 = pb.LaneFlowComposition(lane_index=1,lane_dir=1)
+    lfc_1 = pb.LaneFlowComposition(lane_index=1, lane_dir=1)
     lfc_1.assign_lane_data(
-        hourly_truck_flow=[100]*24,
-        hourly_car_flow=[0]*24,
-        hourly_speed_mean=[80/3.6*10]*24,
-        hourly_speed_std=[10.0]*24,
-        hourly_truck_composition=[[25.0,25.0,25.0,25.0] for _ in range(24)]  # only the Grave model requires this info. 
-        )
+        hourly_truck_flow=[100] * 24,
+        hourly_car_flow=[0] * 24,
+        hourly_speed_mean=[80 / 3.6 * 10] * 24,
+        hourly_speed_std=[10.0] * 24,
+        hourly_truck_composition=[
+            [25.0, 25.0, 25.0, 25.0] for _ in range(24)
+        ],  # only the Grave model requires this info.
+    )
 
-    lfc_2 = pb.LaneFlowComposition(lane_index=2,lane_dir=1)
-    lfc_2.assign_lane_data(
-        hourly_truck_flow=[100]*24,
-        hourly_car_flow=[0]*24
-        )
+    lfc_2 = pb.LaneFlowComposition(lane_index=2, lane_dir=1)
+    lfc_2.assign_lane_data(hourly_truck_flow=[100] * 24, hourly_car_flow=[0] * 24)
 
-    lfc_3 = pb.LaneFlowComposition(lane_index=3,lane_dir=2)
-    lfc_3.assign_lane_data(
-        hourly_truck_flow=[100]*24,
-        hourly_car_flow=[0]*24
-        )
+    lfc_3 = pb.LaneFlowComposition(lane_index=3, lane_dir=2)
+    lfc_3.assign_lane_data(hourly_truck_flow=[100] * 24, hourly_car_flow=[0] * 24)
 
-    lfc_4 = pb.LaneFlowComposition(lane_index=4,lane_dir=2)
+    lfc_4 = pb.LaneFlowComposition(lane_index=4, lane_dir=2)
     lfc_4.assign_lane_data(
-        hourly_truck_flow=[100]*24,
-        hourly_car_flow=[0]*24,
-        hourly_speed_mean=[80/3.6*10]*24,
-        hourly_speed_std=[10.0]*24
-        )
-
+        hourly_truck_flow=[100] * 24,
+        hourly_car_flow=[0] * 24,
+        hourly_speed_mean=[80 / 3.6 * 10] * 24,
+        hourly_speed_std=[10.0] * 24,
+    )
 
     # set the Garage vehicle generator
-    garage_list = pb.GarageProcessing.load_garage_file(Path(__file__).parent/"garage.txt")
-    kernel = [
-        [1.0, 0.08],
-        [1.0, 0.05],
-        [1.0, 0.02]
-        ]
+    garage_list = pb.GarageProcessing.load_garage_file(
+        Path(__file__).parent / "garage.txt"
+    )
+    kernel = [[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]
 
     vehicle_gen_Garage = pb.VehicleGenGarage(garage=garage_list, kernel=kernel)
-
 
     # set the Nominal vehicle generator
     vehicle = pb.Vehicle(no_axle=3)
@@ -64,48 +55,58 @@ def main():
     vehicle.set_axle_spacings([3.0, 7.0])
     vehicle.set_axle_widths([2.0, 2.0, 2.0])
 
-    vehicle_gen_Nominal = pb.VehicleGenNominal(nominal_vehicle=vehicle,COV_list=[1.0,0.1])
-
+    vehicle_gen_Nominal = pb.VehicleGenNominal(
+        nominal_vehicle=vehicle, COV_list=[1.0, 0.1]
+    )
 
     # set the Grave vehicle generator
     vehicle_gen_Grave = pb.VehicleGenGrave(traffic_site="Auxerre")
 
-
     # set the headway generators
     headway_gen_NHM = pb.HeadwayGenNHM()
 
-    headway_gen_Congested = pb.HeadwayGenCongested(congested_spacing=26.1, congested_speed=36.0, congested_gap_coef_var=0.05)
+    headway_gen_Congested = pb.HeadwayGenCongested(
+        congested_spacing=26.1, congested_speed=36.0, congested_gap_coef_var=0.05
+    )
 
     headway_gen_Constant = pb.HeadwayGenConstant(constant_speed=36.0, constant_gap=5.0)
 
     headway_gen_Freeflow = pb.HeadwayGenFreeflow()
 
-
     # # assemble traffic generator
     traffic_gen = pb.TrafficGenerator(no_lane=4)
-    traffic_gen.add_lane(vehicle_gen=vehicle_gen_Grave, headway_gen=headway_gen_NHM, lfc=lfc_1)
-    traffic_gen.add_lane(vehicle_gen=vehicle_gen_Nominal, headway_gen=headway_gen_Congested, lfc=lfc_2)
-    traffic_gen.add_lane(vehicle_gen=vehicle_gen_Garage, headway_gen=headway_gen_Constant, lfc=lfc_3)
-    traffic_gen.add_lane(vehicle_gen=vehicle_gen_Garage, headway_gen=headway_gen_Freeflow, lfc=lfc_4)
-    # traffic_gen.set_start_time(0.0)  # optional, the default start_time is 0.0 unless you want to change it. 
-
+    traffic_gen.add_lane(
+        vehicle_gen=vehicle_gen_Grave, headway_gen=headway_gen_NHM, lfc=lfc_1
+    )
+    traffic_gen.add_lane(
+        vehicle_gen=vehicle_gen_Nominal, headway_gen=headway_gen_Congested, lfc=lfc_2
+    )
+    traffic_gen.add_lane(
+        vehicle_gen=vehicle_gen_Garage, headway_gen=headway_gen_Constant, lfc=lfc_3
+    )
+    traffic_gen.add_lane(
+        vehicle_gen=vehicle_gen_Garage, headway_gen=headway_gen_Freeflow, lfc=lfc_4
+    )
+    # traffic_gen.set_start_time(0.0)  # optional, the default start_time is 0.0 unless you want to change it.
 
     # set output, which will be written to HDD (here we only want the generated traffic)
     output_config = pb.OutputConfig()
-    output_config.set_vehicle_file_output(write_vehicle_file=True,vehicle_file_format=4,vehicle_file_name="test_traffic_file.txt")
-
+    output_config.set_vehicle_file_output(
+        write_vehicle_file=True,
+        vehicle_file_format=4,
+        vehicle_file_name="test_traffic_file.txt",
+    )
 
     # set simulation
     sim_task = pb.Simulation(Path(__file__).parent)
     sim_task.add_sim(
-        traffic=traffic_gen, 
-        no_day=10, 
-        output_config=output_config, 
-        # active_lane=[1,2,3,4],  # optional, if not set, all lanes will be active. 
-        # track_progress=False,  # optional, if True, the progress print will show up. 
-        tag="Case3"
-        )
-    
+        traffic=traffic_gen,
+        no_day=10,
+        output_config=output_config,
+        # active_lane=[1,2,3,4],  # optional, if not set, all lanes will be active.
+        # track_progress=False,  # optional, if True, the progress print will show up.
+        tag="Case3",
+    )
 
     # run simulation
     sim_task.run(no_core=1)
@@ -113,4 +114,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

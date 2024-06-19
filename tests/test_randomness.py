@@ -2,14 +2,14 @@ from pybtls import Distribution
 import multiprocessing
 
 
-def gen_randomness(id:int):
+def gen_randomness(id: int):
     dist = Distribution()
     normal_values = []
-    
+
     for _ in range(100):
         normal_values.append(dist.gen_normal(0.0, 1.0))
 
-    print(str(id)+": ", normal_values)
+    print(str(id) + ": ", normal_values)
 
 
 def test_randomness():

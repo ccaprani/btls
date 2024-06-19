@@ -1,12 +1,20 @@
-from pybtls.lib.BTLS_collections import _VehClassAxle, _VehClassPattern, _VehicleTrafficFile, _Vehicle
+from pybtls.lib.BTLS_collections import (
+    _VehClassAxle,
+    _VehClassPattern,
+    _VehicleTrafficFile,
+    _Vehicle,
+)
 from pathlib import Path
-__all__ = ['load_garage_file', 'get_gvw_from_garage', 'get_vehicle_length_from_garage']
+
+__all__ = ["load_garage_file", "get_gvw_from_garage", "get_vehicle_length_from_garage"]
 
 
-def load_garage_file(garage_path:Path, garage_format:int=4, **kwargs) -> list[_Vehicle]:
+def load_garage_file(
+    garage_path: Path, garage_format: int = 4, **kwargs
+) -> list[_Vehicle]:
     """
     Load a list of :class:`pybtls.lib.Vehicle` objects from a .txt garage file.
-    
+
     Parameters
     ----------
     garage_path : Path
@@ -35,15 +43,17 @@ def load_garage_file(garage_path:Path, garage_format:int=4, **kwargs) -> list[_V
     else:
         vehicle_classification = _VehClassPattern()
 
-    garage_path = Path(garage_path) if not isinstance(garage_path,Path) else garage_path
+    garage_path = (
+        Path(garage_path) if not isinstance(garage_path, Path) else garage_path
+    )
 
     garage_txt = _VehicleTrafficFile(vehicle_classification, False, False, 80.0)
-    garage_txt.read(garage_path,garage_format)
+    garage_txt.read(garage_path, garage_format)
 
     return garage_txt.getVehicles()
 
 
-def get_gvw_from_garage(vehicle_list:list[_Vehicle]) -> list[float]:
+def get_gvw_from_garage(vehicle_list: list[_Vehicle]) -> list[float]:
     """
     Get the gross vehicle weights from the list of :class:`pybtls.lib.Vehicle` objects.
 
@@ -64,7 +74,7 @@ def get_gvw_from_garage(vehicle_list:list[_Vehicle]) -> list[float]:
     return gvw_list
 
 
-def get_vehicle_length_from_garage(vehicle_list:list[_Vehicle]) -> list[float]:
+def get_vehicle_length_from_garage(vehicle_list: list[_Vehicle]) -> list[float]:
     """
     Get the vehicle lengths from the list of :class:`pybtls.lib.Vehicle` objects.
 
@@ -83,4 +93,3 @@ def get_vehicle_length_from_garage(vehicle_list:list[_Vehicle]) -> list[float]:
     for vehicle in vehicle_list:
         vehicle_length_list.append(vehicle.get_length())
     return vehicle_length_list
-

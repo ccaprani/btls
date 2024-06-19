@@ -14,4 +14,3 @@ from .traffic_loader import *
 from .simulation import *
 from .output_config import *
 from .output_manager import *
-

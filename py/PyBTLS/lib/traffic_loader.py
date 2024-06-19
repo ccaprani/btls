@@ -1,12 +1,18 @@
-from .BTLS_collections import _TrafficLoader, _VehicleTrafficFile, _Vehicle, _VehClassPattern, _VehClassAxle
+from .BTLS_collections import (
+    _TrafficLoader,
+    _VehicleTrafficFile,
+    _Vehicle,
+    _VehClassPattern,
+    _VehClassAxle,
+)
 from typing import Literal
 from pathlib import Path
+
 __all__ = ["TrafficLoader"]
 
 
-class TrafficLoader():
-
-    def __init__(self, no_lane:int):
+class TrafficLoader:
+    def __init__(self, no_lane: int):
         """
         The TrafficLoader instance stores the information for creating CTrafficLoader instances for each lane.
 
@@ -17,7 +23,7 @@ class TrafficLoader():
         """
 
         self._tag = "HistoryTraffic"
-        
+
         self._no_lane = no_lane
         self._sim_day = None
         self._no_dir = None
@@ -28,7 +34,6 @@ class TrafficLoader():
         self._lanes_vehicles = [[] for _ in range(no_lane)]
 
     def __getstate__(self):
-
         attribute_dict = {}
 
         attribute_dict["tag"] = self._tag
@@ -52,7 +57,16 @@ class TrafficLoader():
         self._vehicle_classifier = attribute_dict["vehicle_classifier"]
         self._lanes_vehicles = attribute_dict["lanes_vehicles"]
 
-    def add_traffic(self, traffic_file:Path=None, file_format:Literal["CASTOR","BEDIT","DITIS","MON"]=None, vehicle_list:list[_Vehicle]=None, use_average_speed:bool=False, use_const_speed:bool=False, const_speed_value:float=0.0, **kwargs) -> None:
+    def add_traffic(
+        self,
+        traffic_file: Path = None,
+        file_format: Literal["CASTOR", "BEDIT", "DITIS", "MON"] = None,
+        vehicle_list: list[_Vehicle] = None,
+        use_average_speed: bool = False,
+        use_const_speed: bool = False,
+        const_speed_value: float = 0.0,
+        **kwargs,
+    ) -> None:
         """
         Add a recorded traffic from either a .txt file or a vehicle list.
 
@@ -87,11 +101,15 @@ class TrafficLoader():
         """
 
         if use_average_speed and use_const_speed:
-            raise ValueError("use_average_speed and use_const_speed cannot both be True.")
-        
+            raise ValueError(
+                "use_average_speed and use_const_speed cannot both be True."
+            )
+
         if use_const_speed and const_speed_value <= 0.0:
-            raise ValueError("const_speed_value should be positive non-zero if use_const_speed is True.")
-        
+            raise ValueError(
+                "const_speed_value should be positive non-zero if use_const_speed is True."
+            )
+
         if kwargs.get("classifier_type") == "axle":
             vehicle_classifier = _VehClassAxle()
             self._vehicle_classifier = 0
@@ -99,20 +117,28 @@ class TrafficLoader():
             vehicle_classifier = _VehClassPattern()
             self._vehicle_classifier = 1
 
-        traffic_data = _VehicleTrafficFile(vehicle_classifier,use_const_speed,use_average_speed,const_speed_value)
+        traffic_data = _VehicleTrafficFile(
+            vehicle_classifier, use_const_speed, use_average_speed, const_speed_value
+        )
 
         if traffic_file is not None:
             if file_format is None:
                 raise ValueError("Traffic file_format is not specified.")
-            traffic_file = Path(traffic_file) if not isinstance(traffic_file,Path) else traffic_file
-            traffic_data.read(traffic_file,self._file_format_convert(file_format))
+            traffic_file = (
+                Path(traffic_file)
+                if not isinstance(traffic_file, Path)
+                else traffic_file
+            )
+            traffic_data.read(traffic_file, self._file_format_convert(file_format))
         elif vehicle_list is not None:
             traffic_data.assignTraffic(vehicle_list)
         else:
             raise ValueError("Either traffic_file or vehicle_list should be provided.")
-        
+
         if self._no_lane != traffic_data.getNoLanes():
-            raise RuntimeError(f"Number of lanes included in traffic file is not equal to {self._no_lane}.")
+            raise RuntimeError(
+                f"Number of lanes included in traffic file is not equal to {self._no_lane}."
+            )
         self._sim_day = traffic_data.getNoDays()
         self._no_dir = traffic_data.getNoDirn()
         self._no_lane_dir_1 = traffic_data.getNoLanesDir1()
@@ -121,14 +147,16 @@ class TrafficLoader():
 
         for _ in range(traffic_data.getNoVehicles()):
             temp_vehicle = traffic_data.getNextVehicle()
-            self._lanes_vehicles[temp_vehicle._getGlobalLane(self._no_lane)-1].append(temp_vehicle)
+            self._lanes_vehicles[temp_vehicle._getGlobalLane(self._no_lane) - 1].append(
+                temp_vehicle
+            )
 
     def _get_traffic_loader(self) -> list[_TrafficLoader]:
         """
         Get a list of CTrafficLoader instances for each lane.
         """
 
-        loader_list = [None]*self._no_lane
+        loader_list = [None] * self._no_lane
 
         for i in range(self._no_lane):
             traffic_loader = _TrafficLoader()
@@ -138,7 +166,7 @@ class TrafficLoader():
             else:
                 lane_dir = 2
 
-            traffic_loader.setLaneData(lane_dir,i)
+            traffic_loader.setLaneData(lane_dir, i)
             for vehicle in self._lanes_vehicles[i]:
                 traffic_loader.addVehicle(vehicle)
 
@@ -146,31 +174,31 @@ class TrafficLoader():
                 traffic_loader.setFirstArrivalTime()
             else:
                 raise Warning(f"No vehicle in lane {i+1}.")
-            
+
             loader_list[i] = traffic_loader
 
         return loader_list
-    
+
     @property
     def sim_day(self) -> int:
         return self._sim_day
-    
+
     @property
     def tag(self) -> str:
         return self._tag
-    
+
     @property
     def no_lane(self) -> int:
         return self._no_lane
-    
+
     @property
     def no_dir(self) -> int:
         return self._no_dir
-    
+
     @property
     def no_lane_dir_1(self) -> int:
         return self._no_lane_dir_1
-    
+
     @property
     def no_lane_dir_2(self) -> int:
         return self._no_lane_dir_2
@@ -178,7 +206,7 @@ class TrafficLoader():
     @property
     def vehicle_classifier(self) -> int:
         return self._vehicle_classifier
-    
+
     def _check_traffic(self) -> None:
         if self._sim_day == 0:
             raise ValueError("No traffic in vehicle file.")
@@ -187,14 +215,10 @@ class TrafficLoader():
         if self._no_dir == 0:
             raise ValueError("No directions in vehicle file.")
         if self._no_dir == 2 and self._no_lane == 1:
-            raise ValueError("Two directions traffic found but only one lane specified.")
+            raise ValueError(
+                "Two directions traffic found but only one lane specified."
+            )
 
-    def _file_format_convert(self, file_format:str) -> int:
-        format_str2int = {
-            "CASTOR":1,
-            "BEDIT":2,
-            "DITIS":3,
-            "MON":4
-        }
+    def _file_format_convert(self, file_format: str) -> int:
+        format_str2int = {"CASTOR": 1, "BEDIT": 2, "DITIS": 3, "MON": 4}
         return format_str2int[file_format]
-

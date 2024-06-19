@@ -1,11 +1,18 @@
 from .BTLS_collections import _LaneFlowComposition
 from typing import Literal
+
 __all__ = ["LaneFlowComposition"]
 
 
-class LaneFlowComposition():
-    
-    def __init__(self, lane_index:int, lane_dir:Literal[1,2], no_block:int=24, block_size:int=3600, tag:str="Now"):
+class LaneFlowComposition:
+    def __init__(
+        self,
+        lane_index: int,
+        lane_dir: Literal[1, 2],
+        no_block: int = 24,
+        block_size: int = 3600,
+        tag: str = "Now",
+    ):
         """
         The LaneFlowComposition instance stores the data for creating a CLaneFlowComposition instance in C++.
         Lane flow composition. The hourly flow, speed, and truck composition data for a lane.
@@ -16,7 +23,7 @@ class LaneFlowComposition():
             The index of the lane. 1-based global index.
 
         lane_dir : Literal[1,2]\n
-            The direction of the lane. 
+            The direction of the lane.
 
         no_block : int, optional\n
             The number of blocks in a day. The default is 24.
@@ -35,11 +42,13 @@ class LaneFlowComposition():
         self._no_block = no_block
         self._block_size = block_size
 
-        self._hourly_truck_flow = [1]*no_block  # in veh/h
-        self._hourly_car_percentage = [0.0]*no_block  # in percent
-        self._hourly_speed_mean = [248]*no_block  # in dm/s
-        self._hourly_speed_std = [10]*no_block  # in dm/s
-        self._hourly_truck_composition = [[100.0] for _ in range(no_block)]  # in percent
+        self._hourly_truck_flow = [1] * no_block  # in veh/h
+        self._hourly_car_percentage = [0.0] * no_block  # in percent
+        self._hourly_speed_mean = [248] * no_block  # in dm/s
+        self._hourly_speed_std = [10] * no_block  # in dm/s
+        self._hourly_truck_composition = [
+            [100.0] for _ in range(no_block)
+        ]  # in percent
 
         self._flow_assigned = False  # garage, grave, nominal need hourly flow
         self._speed_assigned = False  # NHM, freeflow need hourly speed
@@ -61,7 +70,7 @@ class LaneFlowComposition():
         attribute_dict["speed_assigned"] = self._speed_assigned
         attribute_dict["truck_composition_assigned"] = self._truck_composition_assigned
         return attribute_dict
-    
+
     def __setstate__(self, attribute_dict):
         self._tag = attribute_dict["tag"]
         self._lane_index = attribute_dict["lane_index"]
@@ -84,7 +93,7 @@ class LaneFlowComposition():
     @property
     def lane_index(self) -> int:
         return self._lane_index
-    
+
     @property
     def lane_dir(self) -> int:
         return self._lane_dir
@@ -92,11 +101,11 @@ class LaneFlowComposition():
     @property
     def flow_assigned(self) -> bool:
         return self._flow_assigned
-    
+
     @property
     def speed_assigned(self) -> bool:
         return self._speed_assigned
-    
+
     @property
     def truck_composition_assigned(self) -> bool:
         return self._truck_composition_assigned
@@ -130,61 +139,87 @@ class LaneFlowComposition():
         None.
         """
 
-        if kwargs.get("hourly_truck_flow") is not None and kwargs.get("hourly_car_flow") is not None:
-            self._set_hourly_flow1(kwargs.get("hourly_truck_flow"), kwargs.get("hourly_car_flow"))
-        elif kwargs.get("hourly_truck_flow") is not None and kwargs.get("hourly_car_percentage") is not None:
-            self._set_hourly_flow2(kwargs.get("hourly_truck_flow"), kwargs.get("hourly_car_percentage"))
+        if (
+            kwargs.get("hourly_truck_flow") is not None
+            and kwargs.get("hourly_car_flow") is not None
+        ):
+            self._set_hourly_flow1(
+                kwargs.get("hourly_truck_flow"), kwargs.get("hourly_car_flow")
+            )
+        elif (
+            kwargs.get("hourly_truck_flow") is not None
+            and kwargs.get("hourly_car_percentage") is not None
+        ):
+            self._set_hourly_flow2(
+                kwargs.get("hourly_truck_flow"), kwargs.get("hourly_car_percentage")
+            )
 
-        if kwargs.get("hourly_speed_mean") is not None and kwargs.get("hourly_speed_std") is not None:
-            self._set_hourly_speed(kwargs.get("hourly_speed_mean"), kwargs.get("hourly_speed_std"))
+        if (
+            kwargs.get("hourly_speed_mean") is not None
+            and kwargs.get("hourly_speed_std") is not None
+        ):
+            self._set_hourly_speed(
+                kwargs.get("hourly_speed_mean"), kwargs.get("hourly_speed_std")
+            )
 
         if kwargs.get("hourly_truck_composition") is not None:
             self._set_hourly_truck_composition(kwargs.get("hourly_truck_composition"))
 
     def _set_hourly_flow1(self, hourly_truck_flow, hourly_car_flow):
-
-        if len(hourly_truck_flow) != self._no_block or len(hourly_car_flow) != self._no_block:
+        if (
+            len(hourly_truck_flow) != self._no_block
+            or len(hourly_car_flow) != self._no_block
+        ):
             raise ValueError("Length of hourly flow data does not match.")
-        
+
         self._hourly_truck_flow = hourly_truck_flow
         for i in range(self._no_block):
-            self._hourly_car_percentage[i] = hourly_car_flow[i]/(hourly_car_flow[i]+hourly_truck_flow[i])*100
+            self._hourly_car_percentage[i] = (
+                hourly_car_flow[i] / (hourly_car_flow[i] + hourly_truck_flow[i]) * 100
+            )
 
         self._flow_assigned = True
 
     def _set_hourly_flow2(self, hourly_truck_flow, hourly_car_percentage):
-
-        if len(hourly_truck_flow) != self._no_block or len(hourly_car_percentage) != self._no_block:
+        if (
+            len(hourly_truck_flow) != self._no_block
+            or len(hourly_car_percentage) != self._no_block
+        ):
             raise ValueError("Length of hourly flow data does not match.")
-        
+
         self._hourly_truck_flow = hourly_truck_flow
         self._hourly_car_percentage = hourly_car_percentage
 
         self._flow_assigned = True
 
     def _set_hourly_speed(self, hourly_speed_mean, hourly_speed_std):
-        
-        if len(hourly_speed_mean) != self._no_block or len(hourly_speed_std) != self._no_block:
+        if (
+            len(hourly_speed_mean) != self._no_block
+            or len(hourly_speed_std) != self._no_block
+        ):
             raise ValueError("Length of hourly speed data does not match.")
-        
+
         self._hourly_speed_mean = hourly_speed_mean
         self._hourly_speed_std = hourly_speed_std
 
         self._speed_assigned = True
 
-    def _set_hourly_truck_composition(self, hourly_truck_composition:list[list[float]]):
-
+    def _set_hourly_truck_composition(
+        self, hourly_truck_composition: list[list[float]]
+    ):
         if not isinstance(hourly_truck_composition[0], list):
             raise TypeError("Hourly Truck composition data should be a list of lists.")
 
         if len(hourly_truck_composition) != self._no_block:
             raise ValueError("Length of hourly Truck composition data does not match.")
-        
+
         if not all(len(sublist) == 4 for sublist in hourly_truck_composition):
-            raise ValueError("The hourly truck composition data should only consist of four truck percentages.")
-        
+            raise ValueError(
+                "The hourly truck composition data should only consist of four truck percentages."
+            )
+
         self._hourly_truck_composition = hourly_truck_composition
-        
+
         self._truck_composition_assigned = True
 
     def _get_LFC(self):
@@ -192,8 +227,10 @@ class LaneFlowComposition():
         Get a CLaneFlowComposition instance (lane flow composition).
         """
 
-        lfc = _LaneFlowComposition(self._lane_index-1, self._lane_dir, self._block_size)  # in C++ BTLS, lane_index is 0-based when create CLFC in CReadLaneData
-        
+        lfc = _LaneFlowComposition(
+            self._lane_index - 1, self._lane_dir, self._block_size
+        )  # in C++ BTLS, lane_index is 0-based when create CLFC in CReadLaneData
+
         for i in range(self._no_block):
             data_vector = []
 
@@ -204,10 +241,9 @@ class LaneFlowComposition():
             data_vector.append(self._hourly_car_percentage[i])
             for j in range(len(self._hourly_truck_composition[i])):
                 data_vector.append(self._hourly_truck_composition[i][j])
-            
+
             lfc.addBlockData(data_vector)  # C++ function
 
         lfc.completeData()  # C++ function
 
         return lfc
-        
