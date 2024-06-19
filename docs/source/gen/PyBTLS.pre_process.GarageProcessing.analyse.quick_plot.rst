@@ -1,6 +1,6 @@
-PyBTLS.pre\_process.GarageProcessing.analyse.quick\_plot
+pybtls.pre\_process.GarageProcessing.analyse.quick\_plot
 ========================================================
 
-.. currentmodule:: PyBTLS.pre_process.GarageProcessing.analyse
+.. currentmodule:: pybtls.pre_process.GarageProcessing.analyse
 
 .. autofunction:: quick_plot

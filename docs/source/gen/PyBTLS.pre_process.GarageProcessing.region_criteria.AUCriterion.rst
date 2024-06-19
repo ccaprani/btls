@@ -1,7 +1,7 @@
-PyBTLS.pre\_process.GarageProcessing.region\_criteria.AUCriterion
+pybtls.pre\_process.GarageProcessing.region\_criteria.AUCriterion
 =================================================================
 
-.. currentmodule:: PyBTLS.pre_process.GarageProcessing.region_criteria
+.. currentmodule:: pybtls.pre_process.GarageProcessing.region_criteria
 
 .. autoclass:: AUCriterion
    :members:

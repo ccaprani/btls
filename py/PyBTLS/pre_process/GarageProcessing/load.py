@@ -1,4 +1,4 @@
-from pybtls.lib.BTLS_collections import (
+from pybtls.lib.BTLS import (
     _VehClassAxle,
     _VehClassPattern,
     _VehicleTrafficFile,

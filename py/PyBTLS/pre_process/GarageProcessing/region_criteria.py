@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod, abstractproperty
-from pybtls.lib.BTLS_collections import _Vehicle
+from abc import ABC, abstractmethod
+from pybtls.lib.BTLS import _Vehicle
 
 __all__ = ["CriterionBase", "AUCriterion"]
 
@@ -132,10 +132,3 @@ class AUCriterion(CriterionBase):
             return "class_12"
         else:
             return "unknown"
-
-
-if __name__ == "__main__":
-    vehicle = _Vehicle()
-    criterion = AUCriterion(13, 2.1, 30.0)
-    criterion.set_vehicle_property(vehicle)
-    print(criterion.get_vehicle_class())

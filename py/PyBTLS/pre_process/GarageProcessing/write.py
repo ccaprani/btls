@@ -1,5 +1,5 @@
-from pybtls.lib import OutputConfig
-from pybtls.lib.BTLS_collections import (
+from pybtls.output import OutputConfig
+from pybtls.lib.BTLS import (
     _VehClassAxle,
     _VehClassPattern,
     _VehicleBuffer,

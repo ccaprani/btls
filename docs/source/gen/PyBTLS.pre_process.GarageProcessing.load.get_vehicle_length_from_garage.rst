@@ -1,6 +1,6 @@
-PyBTLS.pre\_process.GarageProcessing.load.get\_vehicle\_length\_from\_garage
+pybtls.pre\_process.GarageProcessing.load.get\_vehicle\_length\_from\_garage
 ============================================================================
 
-.. currentmodule:: PyBTLS.pre_process.GarageProcessing.load
+.. currentmodule:: pybtls.pre_process.GarageProcessing.load
 
 .. autofunction:: get_vehicle_length_from_garage

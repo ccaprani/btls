@@ -1,7 +1,7 @@
-PyBTLS.pre\_process.GarageProcessing.region\_criteria.CriterionBase
+pybtls.pre\_process.GarageProcessing.region\_criteria.CriterionBase
 ===================================================================
 
-.. currentmodule:: PyBTLS.pre_process.GarageProcessing.region_criteria
+.. currentmodule:: pybtls.pre_process.GarageProcessing.region_criteria
 
 .. autoclass:: CriterionBase
    :members:

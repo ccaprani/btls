@@ -1,7 +1,7 @@
-﻿PyBTLS.post\_process.Plot
+﻿pybtls.post\_process.Plot
 =========================
 
-.. automodule:: PyBTLS.post_process.Plot
+.. automodule:: pybtls.post_process.Plot
 
    
    
@@ -26,5 +26,6 @@
    :template: custom-module-template.rst
    :recursive:
 
-   PyBTLS.post_process.Plot.plot_TH
+   pybtls.post_process.Plot.plot_BM
+   pybtls.post_process.Plot.plot_TH
 

@@ -1,7 +1,7 @@
-﻿PyBTLS.pre\_process.GarageProcessing
+﻿pybtls.pre\_process.GarageProcessing
 ====================================
 
-.. automodule:: PyBTLS.pre_process.GarageProcessing
+.. automodule:: pybtls.pre_process.GarageProcessing
 
    
    
@@ -26,10 +26,10 @@
    :template: custom-module-template.rst
    :recursive:
 
-   PyBTLS.pre_process.GarageProcessing.analyse
-   PyBTLS.pre_process.GarageProcessing.assemble
-   PyBTLS.pre_process.GarageProcessing.divide
-   PyBTLS.pre_process.GarageProcessing.load
-   PyBTLS.pre_process.GarageProcessing.region_criteria
-   PyBTLS.pre_process.GarageProcessing.write
+   pybtls.pre_process.GarageProcessing.analyse
+   pybtls.pre_process.GarageProcessing.assemble
+   pybtls.pre_process.GarageProcessing.divide
+   pybtls.pre_process.GarageProcessing.load
+   pybtls.pre_process.GarageProcessing.region_criteria
+   pybtls.pre_process.GarageProcessing.write
 

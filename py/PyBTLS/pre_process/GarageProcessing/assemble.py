@@ -1,6 +1,6 @@
 import random
 from collections import defaultdict
-from pybtls.lib.BTLS_collections import _Vehicle
+from pybtls.lib.BTLS import _Vehicle
 from .load import load_garage_file
 
 __all__ = ["assemble_garage"]

@@ -1,7 +1,7 @@
-PyBTLS.pre\_process.GarageProcessing.load
+pybtls.pre\_process.GarageProcessing.load
 =========================================
 
-.. automodule:: PyBTLS.pre_process.GarageProcessing.load
+.. automodule:: pybtls.pre_process.GarageProcessing.load
 
    
    

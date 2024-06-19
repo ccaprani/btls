@@ -9,9 +9,14 @@ Package Modules
     :template: custom-module-template.rst
     :recursive:
 
-    PyBTLS.lib
-    PyBTLS.pre_process.GarageProcessing
-    PyBTLS.post_process.Plot
-    .. PyBTLS.pre_process.FileWriter
-    .. PyBTLS.post_process.XXXXX
+    pybtls.bridge
+    pybtls.traffic
+    pybtls.output
+    pybtls.lib
+    pybtls.simulation
+    pybtls.vehicle
+    pybtls.utils
+    pybtls.pre_process.GarageProcessing
+    pybtls.post_process.Plot
+    .. pybtls.post_process.XXXXX
 

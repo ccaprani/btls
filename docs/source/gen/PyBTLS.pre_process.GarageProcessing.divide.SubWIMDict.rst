@@ -1,7 +1,7 @@
-PyBTLS.pre\_process.GarageProcessing.divide.SubWIMDict
+pybtls.pre\_process.GarageProcessing.divide.SubWIMDict
 ======================================================
 
-.. currentmodule:: PyBTLS.pre_process.GarageProcessing.divide
+.. currentmodule:: pybtls.pre_process.GarageProcessing.divide
 
 .. autoclass:: SubWIMDict
    :members:

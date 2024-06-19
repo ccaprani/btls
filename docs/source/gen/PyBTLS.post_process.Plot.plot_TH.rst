@@ -1,7 +1,7 @@
-PyBTLS.post\_process.Plot.plot\_TH
+pybtls.post\_process.Plot.plot\_TH
 ==================================
 
-.. automodule:: PyBTLS.post_process.Plot.plot_TH
+.. automodule:: pybtls.post_process.Plot.plot_TH
 
    
    

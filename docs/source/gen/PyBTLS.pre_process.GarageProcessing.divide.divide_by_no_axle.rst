@@ -1,6 +1,6 @@
-PyBTLS.pre\_process.GarageProcessing.divide.divide\_by\_no\_axle
+pybtls.pre\_process.GarageProcessing.divide.divide\_by\_no\_axle
 ================================================================
 
-.. currentmodule:: PyBTLS.pre_process.GarageProcessing.divide
+.. currentmodule:: pybtls.pre_process.GarageProcessing.divide
 
 .. autofunction:: divide_by_no_axle

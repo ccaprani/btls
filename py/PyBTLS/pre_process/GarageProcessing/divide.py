@@ -1,6 +1,6 @@
 from collections import defaultdict
 from types import SimpleNamespace
-from pybtls.lib.BTLS_collections import _Vehicle
+from pybtls.lib.BTLS import _Vehicle
 from .region_criteria import *
 from .load import get_gvw_from_garage, get_vehicle_length_from_garage
 from .write import write_garage_file

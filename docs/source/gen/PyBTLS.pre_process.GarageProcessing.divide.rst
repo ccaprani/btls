@@ -1,7 +1,7 @@
-PyBTLS.pre\_process.GarageProcessing.divide
+pybtls.pre\_process.GarageProcessing.divide
 ===========================================
 
-.. automodule:: PyBTLS.pre_process.GarageProcessing.divide
+.. automodule:: pybtls.pre_process.GarageProcessing.divide
 
    
    
