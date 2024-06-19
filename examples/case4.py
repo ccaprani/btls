@@ -80,7 +80,7 @@ def main():
     # run simulation
     sim_task.run(no_core=1)
 
-    print(sim_task.get_output()[0].get_summary())
+    # print(sim_task.get_output()[0].get_summary())
 
 
 if __name__ == "__main__":

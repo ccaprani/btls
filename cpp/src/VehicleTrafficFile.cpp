@@ -26,28 +26,25 @@ CVehicleTrafficFile::~CVehicleTrafficFile(void)
 
 void CVehicleTrafficFile::Read(std::filesystem::path file, int filetype)
 {
-	std::ifstream inFile( file.c_str(), std::ios::in );
-	// check to see if file was created
-	if( !inFile )
+	std::ifstream inFile(file, std::ios::in); // Since C++17, can directly use std::filesystem::path
+	if (!inFile)	// check to see if file was created
 	{
 		std::cout << "Input traffic file: " << file << " could not be opened" << std::endl;
 		system("PAUSE");
-		exit( 1 );
+		exit(1);
 	}
 
 	std::string str;
-	while(!inFile.eof())
+	while(std::getline(inFile, str))	// Improved reading loop
 	{
-		std::getline(inFile, str, '\n');
-		if(str != "")
+		if(!str.empty())
 		{
-			CVehicle_sp pVeh = std::make_shared<CVehicle>(); //new CVehicle;
+			CVehicle_sp pVeh = std::make_shared<CVehicle>();	//new CVehicle;
 			pVeh->create(str, filetype);
 			m_pVehClassification->setClassification(pVeh);
 			m_vVehicles.push_back(pVeh);
 		}
 	}
-	inFile.close();
 
 	AnalyseTraffic();
 }
