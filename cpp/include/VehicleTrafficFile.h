@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <filesystem>
 #include "Vehicle.h"
 
 class CVehicleTrafficFile
@@ -12,7 +13,7 @@ public:
 	CVehicleTrafficFile(CVehicleClassification_sp pVC, bool UseConstSpeed, bool UseAveSpeed, double ConstSpeed);
 	~CVehicleTrafficFile(void);
 
-	void Read(std::string file, int filetype);
+	void Read(std::filesystem::path file, int filetype);
 	void AssignTraffic(std::vector<CVehicle_sp> vVehicles);
 
 	size_t getNoDays();

@@ -4,7 +4,9 @@ from .traffic_generator import TrafficGenerator
 from .traffic_loader import TrafficLoader
 from .vehicle import Vehicle
 from .output_config import OutputConfig
+from .output_manager import OutputManager
 from typing import Union
+from pathlib import Path
 import multiprocessing
 import os
 __all__ = ["Simulation"]
@@ -12,9 +14,14 @@ __all__ = ["Simulation"]
 
 class Simulation():
 
-    def __init__(self):
+    def __init__(self, output_dir:Union[str,Path]="./"):
         """
         This is the class for setting and running simulations.
+
+        Parameters
+        ----------
+        output_dir : str, optional\n
+            The output directory for the simulation results. The default is "./".
         """
 
         try:
@@ -24,8 +31,10 @@ class Simulation():
 
         self._sim_count = 0
         self._sim_argument = []
+        self._sim_output = []
+        self._output_root = Path(output_dir) if isinstance(output_dir, str) else output_dir
 
-    def add_sim(self, bridge:Bridge=None, traffic_generator:Union[TrafficGenerator,TrafficLoader]=None, no_day:int=None, output_config:OutputConfig=None, time_step:float=0.1, min_gvw:int=0, vehicle:Vehicle=None, active_lane:list[int]=None, tag:str=None, **kwargs) -> None:
+    def add_sim(self, bridge:Bridge=None, traffic:Union[TrafficGenerator,TrafficLoader]=None, no_day:int=None, output_config:OutputConfig=None, time_step:float=0.1, min_gvw:int=0, vehicle:Vehicle=None, active_lane:list[int]=None, tag:str=None, **kwargs) -> None:
         """
         Add a simulation to the simulation queue.
 
@@ -34,8 +43,8 @@ class Simulation():
         bridge : Bridge, optional\n
             The bridge to be calculated load effect. If not provided, there will not be load effect calculation.
 
-        traffic_generator : Union[TrafficGenerator,TrafficLoader], optional\n
-            The traffic generator is to provide the traffics (either generated or recorded).
+        traffic : Union[TrafficGenerator,TrafficLoader], optional\n
+            The traffic can be either generated or recorded.
 
         no_day : int, optional\n
             The number of days to be simulated (in day). If not provided, the number of days will be the same as the recorded traffic (if given). A single-vehicle simulation will ignore this argument.
@@ -76,23 +85,24 @@ class Simulation():
         overlap_avoid_distance = kwargs.get("min_chase_distance", 100.0)
         track_progress = kwargs.get("track_progress", False)
 
-        self._sim_argument.append((bridge, traffic_generator, no_day, output_config, time_step, min_gvw, vehicle, active_lane, sim_tag, overlap_avoid_distance, track_progress))
+        self._sim_argument.append((bridge, traffic, no_day, output_config, time_step, min_gvw, vehicle, active_lane, sim_tag, overlap_avoid_distance, track_progress, self._output_root))
 
-    def _single_sim(self, args:tuple) -> None:
+    def _single_sim(self, args:tuple) -> OutputManager:
 
-        bridge, traffic_generator, no_day, output_config, time_step, min_gvw, vehicle, active_lane, sim_tag, overlap_avoid_distance, track_progress = args
+        bridge, traffic, no_day, output_config, time_step, min_gvw, vehicle, active_lane, sim_tag, overlap_avoid_distance, track_progress, output_root = args
 
-        if traffic_generator is not None:
-            self._single_traffic_sim(bridge, traffic_generator, no_day, output_config, time_step, min_gvw, active_lane, sim_tag, overlap_avoid_distance, track_progress)
+        if traffic is not None:
+            return self._single_traffic_sim(bridge, traffic, no_day, output_config, time_step, min_gvw, active_lane, sim_tag, overlap_avoid_distance, track_progress, output_root)
         elif vehicle is not None:
-            self._single_vehicle_sim(bridge, vehicle, active_lane, sim_tag)
+            return self._single_vehicle_sim(bridge, vehicle, active_lane, sim_tag, output_root)
         else:
-            raise ValueError("Either traffic_generator or vehicle should be provided.")
+            raise ValueError("Either traffic or vehicle should be provided.")
         
-    def _single_vehicle_sim(self, bridge, vehicle, active_lane, sim_tag) -> None:
+    def _single_vehicle_sim(self, bridge, vehicle, active_lane, sim_tag, output_root) -> OutputManager:
 
-        os.mkdir(str(sim_tag))
-        os.chdir(str(sim_tag))
+        sim_root = Path("./")
+        os.makedirs(output_root / str(sim_tag), exist_ok=False)
+        os.chdir(output_root / str(sim_tag))
 
         if not isinstance(bridge, Bridge):
             raise TypeError("Argument bridge needs to be Bridge type.")
@@ -147,26 +157,29 @@ class Simulation():
             load_calc.finish()
             os.chdir("..")
 
-        os.chdir("..")
-    
-    def _single_traffic_sim(self, bridge, traffic_generator, no_day, output_config, time_step, min_gvw, active_lane, sim_tag, overlap_avoid_distance, track_progress) -> None:
+        os.chdir(sim_root)
 
-        os.mkdir(str(sim_tag))
-        os.chdir(str(sim_tag))
+        return OutputManager(output_root, sim_tag, None)
+    
+    def _single_traffic_sim(self, bridge, traffic, no_day, output_config, time_step, min_gvw, active_lane, sim_tag, overlap_avoid_distance, track_progress, output_root) -> OutputManager:
+
+        sim_root = Path("./")
+        os.makedirs(output_root / str(sim_tag), exist_ok=False)
+        os.chdir(output_root / str(sim_tag))
         
-        if isinstance(traffic_generator, TrafficGenerator) and no_day is None:
+        if isinstance(traffic, TrafficGenerator) and no_day is None:
             raise ValueError("Argument no_day is not given.")
-        elif isinstance(traffic_generator, TrafficLoader) and no_day is None:
-            no_day = traffic_generator.sim_day
+        elif isinstance(traffic, TrafficLoader) and no_day is None:
+            no_day = traffic.sim_day
         else:
             no_day = int(no_day)
         
         if not isinstance(output_config, OutputConfig):
             raise TypeError("Argument output needs to be OutputConfig type.")
         
-        output_config._setRoad(traffic_generator.no_lane, traffic_generator.no_dir, traffic_generator.no_lane_dir_1, traffic_generator.no_lane_dir_2)  # this info is used by VehBuffer and EventManager(in CBridge)
+        output_config._setRoad(traffic.no_lane, traffic.no_dir, traffic.no_lane_dir_1, traffic.no_lane_dir_2)  # this info is used by VehBuffer and EventManager(in CBridge)
 
-        if traffic_generator.vehicle_classifier == 0:
+        if traffic.vehicle_classifier == 0:
             vehicle_classifier = _VehClassAxle()
         else:
             vehicle_classifier = _VehClassPattern()
@@ -185,25 +198,25 @@ class Simulation():
 
         if isinstance(bridge, Bridge):
             load_calc = bridge._get_bridge(output_config)
-            if bridge.no_lane != traffic_generator.no_lane:
+            if bridge.no_lane != traffic.no_lane:
                 raise RuntimeError("The number of lanes in the bridge and traffic generator are not equal.")
             load_calc.initializeDataMgr(current_time)
             load_calc.setCalcTimeStep(time_step)
             bridge_length = bridge.length
 
-        if isinstance(traffic_generator, TrafficGenerator):
-            lane_list = traffic_generator._get_traffic_generator(bridge_length)
-        elif isinstance(traffic_generator, TrafficLoader):
-            lane_list = traffic_generator._get_traffic_loader()
+        if isinstance(traffic, TrafficGenerator):
+            lane_list = traffic._get_traffic_generator(bridge_length)
+        elif isinstance(traffic, TrafficLoader):
+            lane_list = traffic._get_traffic_loader()
         else:
-            raise TypeError("traffic_generator should be either TrafficGenerator or TrafficLoader.")
+            raise TypeError("traffic should be either TrafficGenerator or TrafficLoader.")
         
         if active_lane is None:
             lane_for_calc = lane_list
         else:
             if not isinstance(active_lane, list):
                 raise TypeError("Argument active_lane needs to be a list.")
-            if max(active_lane) > traffic_generator.no_lane:
+            if max(active_lane) > traffic.no_lane:
                 raise ValueError("The maximum lane index in active_lane is larger than the number of lanes on the bridge.")
             lane_for_calc = [lane_list[i-1] for i in active_lane]
 
@@ -236,21 +249,44 @@ class Simulation():
             load_calc.finish()
 
         vehicle_buffer.flushBuffer()
+        os.chdir(sim_root)
 
-        os.chdir("..")
+        return OutputManager(output_root, sim_tag, output_config)
 
     def run(self, no_core:int=None) -> None:
         """
-        Run the simulations.
-        If no_core is one or there is only one added simulation, the running will be single-core. Otherwise, the running will be multi-core.
+        Run the simulations. \n
+        If no_core is one or there is only one added simulation, the running will be single-core. Otherwise, the running will be multi-core. \n
         By default, (no_cpu_logic_core - 2) processes will be used for multi-core running. 
         """
 
         if no_core == 1 or len(self._sim_argument) == 1:
-            for sim_arg in self._sim_argument:
-                self._single_sim(sim_arg)
+            self._sim_output = [self._single_sim(sim_arg) for sim_arg in self._sim_argument]
         else:
             no_processes = no_core if no_core is not None else multiprocessing.cpu_count() - 2
             with multiprocessing.Pool(processes=no_processes) as pool:
-                pool.map(self._single_sim, self._sim_argument)
+                self._sim_output = pool.map(self._single_sim, self._sim_argument)
 
+    def get_output(self) -> list[OutputManager]:
+        """
+        Get the output manager for each simulation.
+
+        Returns
+        -------
+        list[OutputManager]
+            The list of output manager for each simulation.
+        """
+
+        return self._sim_output
+
+    def get_no_sim(self) -> int:
+        """
+        Get the number of simulations.
+
+        Returns
+        -------
+        int
+            The number of simulations.
+        """
+
+        return self._sim_count

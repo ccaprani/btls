@@ -15,7 +15,8 @@ The vehicle:
 **Notice**: Due to Python multiprocessing, it is essential to define the simulation in a function. 
 """
 
-import PyBTLS as pb
+import pybtls as pb
+from pathlib import Path
 
 
 def main():
@@ -58,7 +59,7 @@ def main():
 
 
     # set simulation
-    sim_task = pb.Simulation()
+    sim_task = pb.Simulation(Path(__file__).parent)
     sim_task.add_sim(
         bridge=bridge, 
         vehicle=vehicle,

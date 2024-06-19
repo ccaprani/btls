@@ -1,14 +1,15 @@
 from pybtls.lib.BTLS_collections import _VehClassAxle, _VehClassPattern, _VehicleTrafficFile, _Vehicle
+from pathlib import Path
 __all__ = ['load_garage_file', 'get_gvw_from_garage', 'get_vehicle_length_from_garage']
 
 
-def load_garage_file(garage_path:str, garage_format:int=4, **kwargs) -> list[_Vehicle]:
+def load_garage_file(garage_path:Path, garage_format:int=4, **kwargs) -> list[_Vehicle]:
     """
     Load a list of :class:`pybtls.lib.Vehicle` objects from a .txt garage file.
     
     Parameters
     ----------
-    garage_path : str
+    garage_path : Path
         The path of the garage file.
     garage_format : int, optional
         The format of the .txt garage file.
@@ -33,6 +34,8 @@ def load_garage_file(garage_path:str, garage_format:int=4, **kwargs) -> list[_Ve
         vehicle_classification = _VehClassAxle()
     else:
         vehicle_classification = _VehClassPattern()
+
+    garage_path = Path(garage_path) if not isinstance(garage_path,Path) else garage_path
 
     garage_txt = _VehicleTrafficFile(vehicle_classification, False, False, 80.0)
     garage_txt.read(garage_path,garage_format)

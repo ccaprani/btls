@@ -1,5 +1,6 @@
 from .BTLS_collections import _TrafficLoader, _VehicleTrafficFile, _Vehicle, _VehClassPattern, _VehClassAxle
 from typing import Literal
+from pathlib import Path
 __all__ = ["TrafficLoader"]
 
 
@@ -51,13 +52,13 @@ class TrafficLoader():
         self._vehicle_classifier = attribute_dict["vehicle_classifier"]
         self._lanes_vehicles = attribute_dict["lanes_vehicles"]
 
-    def add_traffic(self, traffic_file:str=None, file_format:Literal["CASTOR","BEDIT","DITIS","MON"]=None, vehicle_list:list[_Vehicle]=None, use_average_speed:bool=False, use_const_speed:bool=False, const_speed_value:float=0.0, **kwargs) -> None:
+    def add_traffic(self, traffic_file:Path=None, file_format:Literal["CASTOR","BEDIT","DITIS","MON"]=None, vehicle_list:list[_Vehicle]=None, use_average_speed:bool=False, use_const_speed:bool=False, const_speed_value:float=0.0, **kwargs) -> None:
         """
         Add a recorded traffic from either a .txt file or a vehicle list.
 
         Parameters
         ----------
-        traffic_file : str, optional\n
+        traffic_file : Path, optional\n
             The path to the traffic file. The default is None.
 
         file_format : Literal["CASTOR","BEDIT","DITIS","MON"], optional\n
@@ -103,6 +104,7 @@ class TrafficLoader():
         if traffic_file is not None:
             if file_format is None:
                 raise ValueError("Traffic file_format is not specified.")
+            traffic_file = Path(traffic_file) if not isinstance(traffic_file,Path) else traffic_file
             traffic_data.read(traffic_file,self._file_format_convert(file_format))
         elif vehicle_list is not None:
             traffic_data.assignTraffic(vehicle_list)

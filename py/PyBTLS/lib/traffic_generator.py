@@ -78,8 +78,8 @@ class Lane():
         self._start_time = start_time
 
 
-# 实际上lfc中所记录的数据，除truck composition之外，vehicle generator中并未读取。vehicle generator是通过其update()方法来接收headway model data中读取的lfc的相关数据...
-# Veh 和 Headway Gens 都不记录lfc中的关于lane的方向数据.
+# In fact, the data recorded in the lfc, aside from truck composition, is not accessed by the vehicle generator. The vehicle generator receives relevant data from the lfc through its `update()` method, which reads from the headway model data.
+# Moreover, both the Vehicle Generator and the Headway Generator do not record any lane direction data from the lfc.
 class TrafficGenerator(): 
 
     def __init__(self, no_lane:int):

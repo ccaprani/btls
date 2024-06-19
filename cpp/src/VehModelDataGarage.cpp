@@ -41,7 +41,7 @@ void CVehModelDataGarage::readGarage()
 	CVehicleTrafficFile TrafficFile(m_pVehClassification, false, false, 0.0);
 	std::cout << "Reading traffic garage file..." << std::endl;
 	std::filesystem::path file = m_Config.Read.GARAGE_FILE;
-	TrafficFile.Read(file.string(), m_Config.Read.FILE_FORMAT);
+	TrafficFile.Read(file, m_Config.Read.FILE_FORMAT);
 
 	assignGarage(TrafficFile.getVehicles());
 }

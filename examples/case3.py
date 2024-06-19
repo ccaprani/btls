@@ -10,7 +10,8 @@ There are four lanes of traffic:
 **Notice**: Due to Python multiprocessing, it is essential to define the simulation in a function. 
 """
 
-import PyBTLS as pb
+import pybtls as pb
+from pathlib import Path
 
 
 def main():
@@ -47,7 +48,7 @@ def main():
 
 
     # set the Garage vehicle generator
-    garage_list = pb.GarageProcessing.load_garage_file("garage.txt")
+    garage_list = pb.GarageProcessing.load_garage_file(Path(__file__).parent/"garage.txt")
     kernel = [
         [1.0, 0.08],
         [1.0, 0.05],
@@ -95,9 +96,9 @@ def main():
 
 
     # set simulation
-    sim_task = pb.Simulation()
+    sim_task = pb.Simulation(Path(__file__).parent)
     sim_task.add_sim(
-        traffic_generator=traffic_gen, 
+        traffic=traffic_gen, 
         no_day=10, 
         output_config=output_config, 
         # active_lane=[1,2,3,4],  # optional, if not set, all lanes will be active. 

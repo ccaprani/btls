@@ -13,7 +13,8 @@ The traffic flow:
 **Notice**: Due to Python multiprocessing, it is essential to define the simulation in a function. 
 """
 
-import PyBTLS as pb
+import pybtls as pb
+from pathlib import Path
 
 
 def main():
@@ -37,7 +38,7 @@ def main():
 
     # or, use traffic loader
     traffic_gen = pb.TrafficLoader(no_lane=4)
-    traffic_gen.add_traffic("./test_traffic_file.txt", file_format="MON", use_average_speed=False, use_const_speed=False, const_speed_value=36.0)
+    traffic_gen.add_traffic(str(Path(__file__).parent/"test_traffic_file.txt"), file_format="MON", use_average_speed=False, use_const_speed=False, const_speed_value=36.0)
 
 
     # set output, which will be written to HDD (here we output all possible results)
@@ -51,10 +52,10 @@ def main():
 
 
     # set simulation
-    sim_task = pb.Simulation()
+    sim_task = pb.Simulation(Path(__file__).parent)
     sim_task.add_sim(
         bridge=bridge, 
-        traffic_generator=traffic_gen, 
+        traffic=traffic_gen, 
         output_config=output_config, 
         time_step=0.1, 
         min_gvw=35, 
@@ -66,6 +67,8 @@ def main():
 
     # run simulation
     sim_task.run(no_core=1)
+
+    print(sim_task.get_output()[0].get_summary())
 
 
 if __name__ == "__main__":

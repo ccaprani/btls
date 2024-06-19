@@ -14,7 +14,8 @@ The traffic flow:
 **Notice**: Due to Python multiprocessing, it is essential to define the simulation in a function. 
 """
 
-import PyBTLS as pb
+import pybtls as pb
+from pathlib import Path
 
 
 def main():
@@ -71,7 +72,7 @@ def main():
 
 
     # set vehicle generator
-    garage_list = pb.GarageProcessing.load_garage_file("garage.txt")
+    garage_list = pb.GarageProcessing.load_garage_file(Path(__file__).parent/"garage.txt")
     kernel = [
         [1.0, 0.08],
         [1.0, 0.05],
@@ -105,10 +106,10 @@ def main():
 
 
     # set simulation
-    sim_task = pb.Simulation()
+    sim_task = pb.Simulation(Path(__file__).parent)
     sim_task.add_sim(
         bridge=bridge, 
-        traffic_generator=traffic_gen, 
+        traffic=traffic_gen, 
         no_day=10, 
         output_config=output_config, 
         time_step=0.1, 

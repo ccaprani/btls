@@ -24,7 +24,7 @@ CVehicleTrafficFile::~CVehicleTrafficFile(void)
 {
 }
 
-void CVehicleTrafficFile::Read(std::string file, int filetype)
+void CVehicleTrafficFile::Read(std::filesystem::path file, int filetype)
 {
 	std::ifstream inFile( file.c_str(), std::ios::in );
 	// check to see if file was created
