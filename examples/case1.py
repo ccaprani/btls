@@ -49,7 +49,7 @@ def main():
     vehicle.set_axle_widths([2.0, 2.0, 2.0])
 
     # set simulation
-    sim_task = pb.Simulation(Path(__file__).parent/"output")
+    sim_task = pb.Simulation(Path(__file__).parent / "output")
     sim_task.add_sim(
         bridge=bridge, vehicle=vehicle, active_lane=[1], tag="Case1-Lane1"
     )  # vehicle passes lane 1

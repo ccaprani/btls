@@ -7,7 +7,7 @@ import pandas as pd
 __all__ = ["read_traffic"]
 
 
-def read_traffic(file_path: Path, traffic_format: Literal[1,2,3,4]) -> pd.DataFrame:
+def read_traffic(file_path: Path, traffic_format: Literal[1, 2, 3, 4]) -> pd.DataFrame:
     """
     Read the traffic data from pybtls results.
 

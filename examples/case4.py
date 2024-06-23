@@ -65,7 +65,7 @@ def main():
     )
 
     # set simulation
-    sim_task = pb.Simulation(Path(__file__).parent/"output")
+    sim_task = pb.Simulation(Path(__file__).parent / "output")
     sim_task.add_sim(
         bridge=bridge,
         traffic=traffic_gen,

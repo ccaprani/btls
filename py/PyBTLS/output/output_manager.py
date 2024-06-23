@@ -122,7 +122,11 @@ class _OutputManager:
                 return_list.append(read_AE(path))
         elif key == "traffic":
             for path in self._summary[key]:
-                return_list.append(read_traffic(path, self._output_config._Output.VehicleFile.FILE_FORMAT))
+                return_list.append(
+                    read_traffic(
+                        path, self._output_config._Output.VehicleFile.FILE_FORMAT
+                    )
+                )
         elif key == "BM_by_no_trucks":
             for path in self._summary[key]:
                 pass

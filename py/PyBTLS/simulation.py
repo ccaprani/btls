@@ -132,7 +132,7 @@ class Simulation:
             The number of cores to be used for multi-core running. \n
             If no_core is one or there is only one added simulation, the running will be single-core. \n
             Otherwise, the running will be multi-core. \n
-            By default, (no_cpu_logic_core - 2) processes will be used for multi-core running. 
+            By default, (no_cpu_logic_core - 2) processes will be used for multi-core running.
 
         Returns
         -------
@@ -159,7 +159,7 @@ class Simulation:
         -------
         dict[str, _OutputManager]
             A dict storing output manager for each simulation.\n
-            The keys are the sim_tags. 
+            The keys are the sim_tags.
         """
 
         return self._sim_output
@@ -407,6 +407,10 @@ class Simulation:
         This method writes the Python and pybtls version information to the output directory.
         """
 
+        try:
+            os.makedirs(self._output_root, exist_ok=False)
+        except FileExistsError:
+            pass
         version_file_path = self._output_root / "sim_version_info.txt"
 
         python_version = sys.version

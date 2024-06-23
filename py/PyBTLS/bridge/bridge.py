@@ -4,7 +4,7 @@ The methods and classes that are not defined in Python are defined in C++ py_mai
 
 from ..lib.BTLS import _Bridge
 from .influence_line import InfluenceLine, InfluenceSurface
-from ..output import OutputConfig
+from ..output.output_config import OutputConfig
 from collections import defaultdict
 from typing import Union
 from numpy import isclose

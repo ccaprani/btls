@@ -2,7 +2,7 @@
 The methods and classes that are not defined in Python are defined in C++ py_main.cpp. 
 """
 
-from ..output import _OutputManager
+from ..output.output_manager import _OutputManager
 from pathlib import Path
 import pickle
 
@@ -24,7 +24,9 @@ def save_output(output: dict[str, _OutputManager], file_path: Path) -> None:
     """
 
     if not all(isinstance(obj, _OutputManager) for obj in output.values()):
-        raise ValueError("All values in the output dictionary must be of type _OutputManager.")
+        raise ValueError(
+            "All values in the output dictionary must be of type _OutputManager."
+        )
     file_path = Path(file_path) if not isinstance(file_path, Path) else file_path
     with open(file_path, "wb") as file:
         pickle.dump(output, file)

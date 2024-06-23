@@ -99,4 +99,3 @@ def df_to_vehicle_list(df: pd.DataFrame) -> list[Vehicle]:
         vehicle_list.append(vehicle)
 
     return vehicle_list
-    

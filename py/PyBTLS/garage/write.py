@@ -2,7 +2,7 @@
 The methods and classes that are not defined in Python are defined in C++ py_main.cpp. 
 """
 
-from ..output import OutputConfig
+from ..output.output_config import OutputConfig
 from ..lib.BTLS import (
     _VehClassAxle,
     _VehClassPattern,
