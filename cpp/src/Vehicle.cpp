@@ -64,35 +64,19 @@ CVehicle::CVehicle(size_t noAxles) : CVehicle()
 
 py::tuple CVehicle::getPropInTuple() 
 {
-
-	// propTuple.append(m_Head);
-	// propTuple.append(m_Day);
-	// propTuple.append(m_Month);
-	// propTuple.append(m_Year);
-	// propTuple.append(m_Hour);
-	// propTuple.append(m_Min);
-	// propTuple.append(m_Sec);
-	// propTuple.append(m_NoAxles);
-	// propTuple.append(m_NoAxleGroups);
-	// propTuple.append(m_GVW);  // in kN
-	// propTuple.append(m_Velocity);  // in m/s
-	// propTuple.append(m_Length);  // in meters
-	// propTuple.append(m_Lane);  // in local lane number in direction
-	// propTuple.append(m_Dir);  // in direction, 1 or 2
-	// propTuple.append(m_Trns);  // in meters
-
 	py::list axleWeights;
 	py::list axleSpacings;
-	for (size_t i = 0; i < 20; i++) 
+	py::list axleWidths;
+	for (size_t i = 0; i < m_NoAxles; i++) 
 	{
-		double weight = i < m_NoAxles ? this->getAW(i) : 0.0;
-		axleWeights.append(weight);  // in kN
+		axleWeights.append(this->getAW(i));  // in kN
 
-		double spacing = i < m_NoAxles ? this->getAS(i) : 0.0;
-		axleSpacings.append(spacing);  // in meters
+		axleSpacings.append(this->getAS(i));  // in meters
+
+		axleWidths.append(this->getAT(i));  // in meters
 	}
 
-	py::tuple propTuple = py::make_tuple(m_Head, m_Day, m_Month, m_Year, m_Hour, m_Min, m_Sec, m_NoAxles, m_NoAxleGroups, m_GVW, m_Velocity, m_Length, m_Lane, m_Dir, m_Trns, axleWeights, axleSpacings);
+	py::tuple propTuple = py::make_tuple(m_Head, m_Day, m_Month, m_Year, m_Hour, m_Min, m_Sec, m_NoAxles, m_NoAxleGroups, m_GVW, m_Velocity, m_Length, m_Lane, m_Dir, m_Trns, axleWeights, axleSpacings, axleWidths);
 
 	return propTuple;
 }
@@ -117,15 +101,16 @@ void CVehicle::setPropByTuple(py::tuple propTuple)
 	m_Dir = propTuple[13].cast<size_t>();
 	m_Trns = propTuple[14].cast<double>();
 
-	py::list axleWeights = propTuple[15];
-	py::list axleSpacings = propTuple[16];
+	std::vector<double> axleWeights = propTuple[15].cast<std::vector<double>>();
+	std::vector<double> axleSpacings = propTuple[16].cast<std::vector<double>>();
+	std::vector<double> axleWidths = propTuple[17].cast<std::vector<double>>();
 
+	setNoAxles(m_NoAxles);
 	for (size_t i = 0; i < m_NoAxles; i++) 
 	{
-		double weight = axleWeights[i].cast<double>();
-		this->setAW(i, weight);
-		double spacing = axleSpacings[i].cast<double>();
-		this->setAS(i, spacing);
+		this->setAW(i, axleWeights[i]);
+		this->setAS(i, axleSpacings[i]);
+		this->setAT(i, axleWidths[i]);
 	}
 }
 #endif
@@ -755,7 +740,7 @@ void CVehicle::setNoAxles(size_t noAxle)
 {
 	m_vAxles.clear();
 	m_NoAxles = noAxle;
-	for (size_t i = 0; i < m_NoAxles + 1; i++)
+	for (size_t i = 0; i < m_NoAxles + 1; i++)  // Not sure why +1 is needed
 	{
 		Axle temp;
 		temp.Spacing = 0.0;

@@ -68,8 +68,9 @@ def main():
     )
 
     # set vehicle generator
-    garage_list = pb.GarageProcessing.load_garage_file(
-        Path(__file__).parent / "garage.txt"
+    garage_list = pb.GarageProcessing.read_garage_file(
+        Path(__file__).parent / "garage.txt",
+        4
     )
     kernel = [[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]
 
@@ -108,7 +109,7 @@ def main():
     )
 
     # set simulation
-    sim_task = pb.Simulation(Path(__file__).parent)
+    sim_task = pb.Simulation(Path(__file__).parent/"output")
     sim_task.add_sim(
         bridge=bridge,
         traffic=traffic_gen,

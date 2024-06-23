@@ -1,6 +1,6 @@
 from .output_config import OutputConfig
-from pybtls.post_process.Read import read_TH, read_AE
-from pybtls.post_process.Plot import plot_TH, plot_AE
+from .Read import read_TH, read_AE, read_traffic
+from .Plot import plot_TH, plot_AE
 from pathlib import Path
 from typing import Literal
 import pandas as pd
@@ -13,7 +13,7 @@ class _OutputManager:
     def __init__(self, output_root: Path, sim_tag: str, output_config: OutputConfig):
         """
         The OutputManager class records the results' paths and provides methods to read these data. \n
-        Its instance should not be created by the user. 
+        Its instance should not be created by the user.
 
         Parameters
         ----------
@@ -57,7 +57,11 @@ class _OutputManager:
             The new root directory of all the output folders.
         """
 
-        self._output_root = Path(output_root).resolve() if not isinstance(output_root, Path) else output_root.resolve()
+        self._output_root = (
+            Path(output_root).resolve()
+            if not isinstance(output_root, Path)
+            else output_root.resolve()
+        )
         self._fetch_summary()
 
     def get_summary(self) -> dict:
@@ -116,15 +120,53 @@ class _OutputManager:
         elif key == "all_events":
             for path in self._summary[key]:
                 return_list.append(read_AE(path))
+        elif key == "traffic":
+            for path in self._summary[key]:
+                return_list.append(read_traffic(path, self._output_config._Output.VehicleFile.FILE_FORMAT))
+        elif key == "BM_by_no_trucks":
+            for path in self._summary[key]:
+                pass
+        elif key == "BM_by_mixed":
+            for path in self._summary[key]:
+                pass
+        elif key == "BM_summary":
+            for path in self._summary[key]:
+                pass
+        elif key == "POT_vehicle":
+            for path in self._summary[key]:
+                pass
+        elif key == "POT_summary":
+            for path in self._summary[key]:
+                pass
+        elif key == "POT_counter":
+            for path in self._summary[key]:
+                pass
+        elif key == "traffic_statistics":
+            for path in self._summary[key]:
+                pass
+        elif key == "E_cumulative_statistics":
+            for path in self._summary[key]:
+                pass
+        elif key == "E_interval_statistics":
+            for path in self._summary[key]:
+                pass
+        elif key == "fatigue_events":
+            for path in self._summary[key]:
+                pass
+        elif key == "fatigue_rainflow":
+            for path in self._summary[key]:
+                pass
 
         return return_list
+
+    # def plot_data(self):
+    #     pass
 
     @property
     def tag(self) -> str:
         return self._this_output_dir
 
     def _fetch_summary(self) -> None:
-
         if self._output_config is None:
             self._summary["time_history"] = self._search_file(
                 self._output_root / (self._this_output_dir + "dir1"), "TH_"

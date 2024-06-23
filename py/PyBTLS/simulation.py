@@ -1,5 +1,5 @@
 """
-The methods that are not defined in Python are defined in C++ py_main.cpp. 
+The methods and classes that are not defined in Python are defined in C++ py_main.cpp. 
 """
 
 from .lib.BTLS import Vehicle, _Vehicle, _VehClassPattern, _VehClassAxle, _VehicleBuffer
@@ -9,7 +9,9 @@ from .output import OutputConfig, _OutputManager
 from typing import Union
 from pathlib import Path
 import multiprocessing
+import pkg_resources
 import os
+import sys
 
 __all__ = ["Simulation"]
 
@@ -34,8 +36,11 @@ class Simulation:
         self._sim_argument = []
         self._sim_output = {}
         self._output_root = (
-            Path(output_dir).resolve() if not isinstance(output_dir, Path) else output_dir.resolve()
+            Path(output_dir).resolve()
+            if not isinstance(output_dir, Path)
+            else output_dir.resolve()
         )
+        self._write_version_info()
 
     def add_sim(
         self,
@@ -116,6 +121,60 @@ class Simulation:
                 self._output_root,
             )
         )
+
+    def run(self, no_core: int = None) -> None:
+        """
+        Run the simulations. \n
+
+        Parameters
+        ----------
+        no_core : int, optional\n
+            The number of cores to be used for multi-core running. \n
+            If no_core is one or there is only one added simulation, the running will be single-core. \n
+            Otherwise, the running will be multi-core. \n
+            By default, (no_cpu_logic_core - 2) processes will be used for multi-core running. 
+
+        Returns
+        -------
+        None
+        """
+
+        if no_core == 1 or len(self._sim_argument) == 1:
+            for sim_arg in self._sim_argument:
+                self._sim_output[sim_arg[8]] = self._single_sim(sim_arg)
+        else:
+            no_processes = (
+                no_core if no_core is not None else multiprocessing.cpu_count() - 2
+            )
+            with multiprocessing.Pool(processes=no_processes) as pool:
+                temp = pool.map(self._single_sim, self._sim_argument)
+            for i, sim_arg in enumerate(self._sim_argument):
+                self._sim_output[sim_arg[8]] = temp[i]
+
+    def get_output(self) -> dict[str, _OutputManager]:
+        """
+        Get the output manager for each simulation.
+
+        Returns
+        -------
+        dict[str, _OutputManager]
+            A dict storing output manager for each simulation.\n
+            The keys are the sim_tags. 
+        """
+
+        return self._sim_output
+
+    def get_no_sim(self) -> int:
+        """
+        Get the number of simulations.
+
+        Returns
+        -------
+        int
+            The number of simulations.
+        """
+
+        return self._sim_count
 
     def _single_sim(self, args: tuple) -> _OutputManager:
         (
@@ -343,45 +402,16 @@ class Simulation:
 
         return _OutputManager(output_root, sim_tag, output_config)
 
-    def run(self, no_core: int = None) -> None:
+    def _write_version_info(self):
         """
-        Run the simulations. \n
-        If no_core is one or there is only one added simulation, the running will be single-core. \n
-        Otherwise, the running will be multi-core. \n
-        By default, (no_cpu_logic_core - 2) processes will be used for multi-core running.
+        This method writes the Python and pybtls version information to the output directory.
         """
 
-        if no_core == 1 or len(self._sim_argument) == 1:
-            self._sim_output = [
-                self._single_sim(sim_arg) for sim_arg in self._sim_argument
-            ]
-        else:
-            no_processes = (
-                no_core if no_core is not None else multiprocessing.cpu_count() - 2
-            )
-            with multiprocessing.Pool(processes=no_processes) as pool:
-                sim_outputs = pool.map(self._single_sim, self._sim_argument)
+        version_file_path = self._output_root / "sim_version_info.txt"
 
-    def get_output(self) -> list[_OutputManager]:
-        """
-        Get the output manager for each simulation.
+        python_version = sys.version
+        pybtls_version = pkg_resources.get_distribution("pybtls").version
 
-        Returns
-        -------
-        list[_OutputManager]
-            The list of output manager for each simulation.
-        """
-
-        return self._sim_output
-
-    def get_no_sim(self) -> int:
-        """
-        Get the number of simulations.
-
-        Returns
-        -------
-        int
-            The number of simulations.
-        """
-
-        return self._sim_count
+        with open(version_file_path, "w") as version_file:
+            version_file.write(f"Python Version: {python_version}\n")
+            version_file.write(f"PyBTLS Version: {pybtls_version}\n")

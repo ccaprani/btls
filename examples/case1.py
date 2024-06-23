@@ -35,7 +35,7 @@ def main():
     load_effect_2_lane_1 = pb.InfluenceLine("discrete")
     load_effect_2_lane_1.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 5.0, 0.0])
     load_effect_2_lane_2 = pb.InfluenceLine("built-in")
-    load_effect_2_lane_2.set_IL(type="1MidSpanBM", length=20.0)
+    load_effect_2_lane_2.set_IL(type=1, length=20.0)
 
     # set the bridge
     bridge = pb.Bridge(length=20.0, no_lane=2)
@@ -43,13 +43,13 @@ def main():
     bridge.add_load_effect(inf_line_surf=[load_effect_2_lane_1, load_effect_2_lane_2])
 
     # set the vehicle
-    vehicle = pb.Vehicle(no_axle=3)
+    vehicle = pb.Vehicle(no_axles=3)
     vehicle.set_axle_weights([100.0, 100.0, 100.0])
-    vehicle.set_axle_spacings([3.0, 7.0])
+    vehicle.set_axle_spacings([3.0, 7.0, 0.0])
     vehicle.set_axle_widths([2.0, 2.0, 2.0])
 
     # set simulation
-    sim_task = pb.Simulation(Path(__file__).parent)
+    sim_task = pb.Simulation(Path(__file__).parent/"output")
     sim_task.add_sim(
         bridge=bridge, vehicle=vehicle, active_lane=[1], tag="Case1-Lane1"
     )  # vehicle passes lane 1

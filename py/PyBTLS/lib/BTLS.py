@@ -1,4 +1,5 @@
 """
+A collection of classes and functions wrapped from BTLS (cpp).\n
 The classes that are not defined in Python are defined in C++ py_main.cpp. 
 """
 
@@ -87,7 +88,7 @@ class Distribution(_Distribution):
 class _ConfigData(_ConfigDataCore):
     def __init__(self):
         """
-        Its instance should not be created by the user. 
+        Its instance should not be created by the user.
         """
 
         super().__init__()

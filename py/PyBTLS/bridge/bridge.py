@@ -1,10 +1,10 @@
 """
-The methods that are not defined in Python are defined in C++ py_main.cpp. 
+The methods and classes that are not defined in Python are defined in C++ py_main.cpp. 
 """
 
 from ..lib.BTLS import _Bridge
 from .influence_line import InfluenceLine, InfluenceSurface
-from ..output.output_config import OutputConfig
+from ..output import OutputConfig
 from collections import defaultdict
 from typing import Union
 from numpy import isclose
@@ -74,11 +74,11 @@ class Bridge:
             An InfluenceSurface (for all lanes).
 
         inf_weight : list[float], optional\n
-            Influence weight (0.0 to 1.0). 
+            Influence weight (0.0 to 1.0).
             The default is 1.0 for all lanes.
 
         threshold : float, optional\n
-            Threshold for POT analysis. 
+            Threshold for POT analysis.
             The default is 0.0.
 
         Returns

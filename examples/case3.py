@@ -42,17 +42,13 @@ def main():
     )
 
     # set the Garage vehicle generator
-    garage_list = pb.GarageProcessing.load_garage_file(
-        Path(__file__).parent / "garage.txt"
-    )
     kernel = [[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]
-
-    vehicle_gen_Garage = pb.VehicleGenGarage(garage=garage_list, kernel=kernel)
+    vehicle_gen_Garage = pb.VehicleGenGarage(garage=Path(__file__).parent / "garage.txt", kernel=kernel, garage_format=4)
 
     # set the Nominal vehicle generator
-    vehicle = pb.Vehicle(no_axle=3)
+    vehicle = pb.Vehicle(no_axles=3)
     vehicle.set_axle_weights([100.0, 100.0, 100.0])
-    vehicle.set_axle_spacings([3.0, 7.0])
+    vehicle.set_axle_spacings([3.0, 7.0, 0.0])
     vehicle.set_axle_widths([2.0, 2.0, 2.0])
 
     vehicle_gen_Nominal = pb.VehicleGenNominal(
@@ -98,7 +94,7 @@ def main():
     )
 
     # set simulation
-    sim_task = pb.Simulation(Path(__file__).parent)
+    sim_task = pb.Simulation(Path(__file__).parent/"output")
     sim_task.add_sim(
         traffic=traffic_gen,
         no_day=10,

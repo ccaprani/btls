@@ -1,5 +1,5 @@
 """
-The methods that are not defined in Python are defined in C++ py_main.cpp. 
+The methods and classes that are not defined in Python are defined in C++ py_main.cpp. 
 """
 
 from ..lib.BTLS import _InfluenceLine, _InfluenceSurface
@@ -80,7 +80,7 @@ class InfluenceLine:
                 8: The 2nd support hogging BM of a three-span continuous beam. \n
                 9: The 3rd support hogging BM of a three-span continuous beam. \n
                 (The support numbering starts from the left side.) \n
-                (Beams' first and last supports are pin.) 
+                (Beams' first and last supports are pin.)
 
             - length : float\n
                 Built-in influence line length.
@@ -94,7 +94,9 @@ class InfluenceLine:
             self._set_IL_discrete(**kwargs)
         elif self._IL_type == "built-in":
             self._set_IL_built_in(**kwargs)
-        elif self._IL_type == "surface":  # This is hidden in the doc to avoid user confusion, not an error. 
+        elif (
+            self._IL_type == "surface"
+        ):  # This is hidden in the doc to avoid user confusion, not an error.
             self._set_IL_surface(**kwargs)
         else:
             raise ValueError("Invalid influence line type.")
@@ -137,7 +139,7 @@ class InfluenceLine:
         if not isinstance(type, int) or not isinstance(length, float):
             raise TypeError("The type should be int and length should be float.")
 
-        if type not in [1,2,3,4,5,6,7,8,9]:
+        if type not in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
             raise ValueError("Please refer to the doc for the built-in IL type.")
 
         self._data_dict["type"] = type
@@ -221,7 +223,7 @@ class InfluenceSurface:
             Here's a simple illustration about the bridge coordinate:\n
             Observe the bridge from its plan view\n
             and regard its longitudinal direction as the horizontal.\n
-            Now the origin point is at the left down corner.\n 
+            Now the origin point is at the left down corner.\n
 
         lane_position : Union[list,np.ndarray]\n
             Lanes' transverse positions.\n

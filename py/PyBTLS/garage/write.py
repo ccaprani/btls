@@ -1,5 +1,9 @@
-from pybtls.output import OutputConfig
-from pybtls.lib.BTLS import (
+"""
+The methods and classes that are not defined in Python are defined in C++ py_main.cpp. 
+"""
+
+from ..output import OutputConfig
+from ..lib.BTLS import (
     _VehClassAxle,
     _VehClassPattern,
     _VehicleBuffer,
@@ -15,16 +19,16 @@ __all__ = ["write_garage_file"]
 def write_garage_file(
     vehicle_list: list[_Vehicle],
     out_path: Path,
-    out_garage_format: Literal[1,2,3,4],
+    out_garage_format: Literal[1, 2, 3, 4],
     **kwargs,
 ) -> None:
     """
-    Write a .txt garage file from the list of :class:`pybtls.lib.Vehicle` objects.
+    Write a .txt garage file from a list of Vehicle objects.
 
     Parameters
     ----------
-    vehicle_list : list[Vehicle] \n
-        A list of :class:`pybtls.lib.Vehicle` objects. \n
+    vehicle_list : list[_Vehicle] \n
+        A list of Vehicle objects. \n
     out_path : Path \n
         The path of the output garage file. \n
     out_garage_format : Literal[1,2,3,4] \n
@@ -39,15 +43,15 @@ def write_garage_file(
     vehicle_class_type : str, optional \n
         axle: Categorise vehicle by axle. \n
         pattern (Default): Categorise vehicle by pattern. \n
-
-    Returns
-    -------
-    None.
     """
 
     current_dir = Path("./").resolve()
     file_name = out_path.name
-    absolute_out_dir = Path(out_path).resolve().parent if not isinstance(out_path, Path) else out_path.resolve().parent
+    absolute_out_dir = (
+        Path(out_path).resolve().parent
+        if not isinstance(out_path, Path)
+        else out_path.resolve().parent
+    )
 
     os.chdir(absolute_out_dir)
 
@@ -70,4 +74,3 @@ def write_garage_file(
     vehicle_buffer.flushBuffer()
 
     os.chdir(current_dir)
-    return None

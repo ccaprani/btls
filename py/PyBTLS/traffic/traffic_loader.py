@@ -1,5 +1,5 @@
 """
-The methods that are not defined in Python are defined in C++ py_main.cpp. 
+The methods and classes that are not defined in Python are defined in C++ py_main.cpp. 
 """
 
 from ..lib.BTLS import (
@@ -64,8 +64,8 @@ class TrafficLoader:
 
     def add_traffic(
         self,
-        traffic: Union[Path,list[_Vehicle]],
-        traffic_format: Literal[1,2,3,4] = None,
+        traffic: Union[Path, list[_Vehicle]],
+        traffic_format: Literal[1, 2, 3, 4] = None,
         use_average_speed: bool = False,
         use_const_speed: bool = False,
         const_speed_value: float = 0.0,
@@ -77,7 +77,7 @@ class TrafficLoader:
         Parameters
         ----------
         traffic: Union[Path,list[_Vehicle]]\n
-            The path to the traffic file, 
+            The path to the traffic file,
             or a list of vehicles.
 
         traffic_format : Literal[1, 2, 3, 4], optional\n
@@ -96,7 +96,7 @@ class TrafficLoader:
             The default is False.
 
         const_speed_value : float, optional\n
-            The constant speed value. This will be an essential input if use_const_speed is True. \n
+            The constant speed value (in km/h). This will be an essential input if use_const_speed is True. \n
             The default is 0.0.
 
         Keyword Arguments
@@ -130,15 +130,13 @@ class TrafficLoader:
             vehicle_classifier, use_const_speed, use_average_speed, const_speed_value
         )
 
-        if isinstance(traffic, (Path,str)):
+        if isinstance(traffic, (Path, str)):
             if traffic_format is None:
                 raise ValueError("Argument traffic_format is not specified.")
-            traffic = (
-                Path(traffic)
-                if not isinstance(traffic, Path)
-                else traffic
-            )
-            traffic_data.read(traffic, traffic_format)  # The simulation requires traffic information before _get_traffic_loader is called.
+            traffic = Path(traffic) if not isinstance(traffic, Path) else traffic
+            traffic_data.read(
+                traffic, traffic_format
+            )  # The simulation requires traffic information before _get_traffic_loader is called.
         elif isinstance(traffic, list):
             if all(isinstance(vehicle, (Vehicle, _Vehicle)) for vehicle in traffic):
                 traffic_data.assignTraffic(traffic)

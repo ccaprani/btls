@@ -17,7 +17,7 @@ def read_AE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
         If not specified, all lines will be read.\n
     start_line : int, optional\n
         Default is 1.\n
-        The line to start reading data from. 
+        The line to start reading data from.
 
     Returns
     -------
@@ -30,7 +30,7 @@ def read_AE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
         file_path,
         sep="[\s\t]+",
         header=None,
-        skiprows=start_line-1,
+        skiprows=start_line - 1,
         nrows=no_lines,
         engine="python",
     )

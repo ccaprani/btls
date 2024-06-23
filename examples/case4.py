@@ -36,8 +36,8 @@ def main():
     # or, use traffic loader
     traffic_gen = pb.TrafficLoader(no_lane=4)
     traffic_gen.add_traffic(
-        str(Path(__file__).parent / "test_traffic_file.txt"),
-        file_format="MON",
+        traffic=Path(__file__).parent / "test_traffic_file.txt",
+        traffic_format=4,
         use_average_speed=False,
         use_const_speed=False,
         const_speed_value=36.0,
@@ -65,7 +65,7 @@ def main():
     )
 
     # set simulation
-    sim_task = pb.Simulation(Path(__file__).parent)
+    sim_task = pb.Simulation(Path(__file__).parent/"output")
     sim_task.add_sim(
         bridge=bridge,
         traffic=traffic_gen,

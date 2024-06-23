@@ -18,7 +18,7 @@ def read_TH(file_path: Path, no_lines: int = None, start_line: int = 2) -> pd.Da
     start_line : int, optional\n
         Default is 2. \n
         The line to start reading data from,
-        which must exclude the header line (line 1). 
+        which must exclude the header line (line 1).
 
     Returns
     -------
@@ -31,7 +31,7 @@ def read_TH(file_path: Path, no_lines: int = None, start_line: int = 2) -> pd.Da
         file_path,
         sep="[\s\t]+",
         header=None,
-        skiprows=start_line-1,
+        skiprows=start_line - 1,
         nrows=no_lines,
         engine="python",
     )

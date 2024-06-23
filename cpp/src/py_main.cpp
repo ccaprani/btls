@@ -339,9 +339,6 @@ PYBIND11_MODULE(libbtls, m) {
 					The 1-based local lane index of the vehicle.
 				)", 
 				py::arg("local_lane_index"))
-			// .def("_setGVW", &CVehicle::setGVW, "Set the gross vehicle weight of the vehicle.", py::arg("weight"))
-			// .def("_setLength", &CVehicle::setLength, "Set the length of the vehicle.", py::arg("length"))
-			// .def("_setNoAxles", &CVehicle::setNoAxles, "Set the number of axles of the vehicle.", py::arg("no_axles"))
 			.def("set_axle_weights", 
 				[](CVehicle_sp self, std::vector<double> weights) {
 					for (size_t i = 0; i < weights.size(); i++) {

@@ -1,7 +1,7 @@
 __all__ = ["compress_discrete_IL"]
 
 
-def compress_discrete_IL(x:list[float], y:list[float], e:float) -> tuple[list, list]:
+def compress_discrete_IL(x: list[float], y: list[float], e: float) -> tuple[list, list]:
     """
     Compresses a set of discrete points (x, y) \n
     by removing points that are within a certain error tolerance e of a line
@@ -22,7 +22,7 @@ def compress_discrete_IL(x:list[float], y:list[float], e:float) -> tuple[list, l
     tuple[list, list]\n
         A tuple containing two lists: the compressed x-coordinates and the compressed y-coordinates.
     """
-    
+
     n = len(x)
     xs = [x[0]]
     ys = [y[0]]

@@ -3,8 +3,7 @@ import pybtls.bridge as bridge
 import pybtls.traffic as traffic
 import pybtls.output as output
 import pybtls.simulation as simulation
-import pybtls.pre_process as pre_process
-import pybtls.post_process as post_process
+import pybtls.garage as garage
 import pybtls.utils as utils
 
 from .lib import (
@@ -27,7 +26,6 @@ from .traffic import (
     TrafficGenerator,
     TrafficLoader,
 )
-from .output import OutputConfig
+from .output import OutputConfig, Read, Plot
 from .simulation import Simulation
-from .pre_process import GarageProcessing
-from .post_process import Read, Plot
+from .utils import save_output, load_output
