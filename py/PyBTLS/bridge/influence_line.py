@@ -1,5 +1,9 @@
+"""
+The methods that are not defined in Python are defined in C++ py_main.cpp. 
+"""
+
 from ..lib.BTLS import _InfluenceLine, _InfluenceSurface
-from ..utils import _compress_discrete_IL
+from ..utils import compress_discrete_IL
 import numpy as np
 from typing import Union, Literal
 
@@ -9,13 +13,14 @@ __all__ = ["InfluenceLine", "InfluenceSurface"]
 class InfluenceLine:
     _IL_Index = 0
 
-    def __init__(self, IL_type: Literal["discrete", "built-in", "surface"]):
+    def __init__(self, IL_type: Literal["discrete", "built-in"]):
         """
-        An InfluenceLine instance in Python stores the data for creating a CInfluenceLine instance in C++. All length units are in m.
+        An InfluenceLine instance in Python stores the data for creating a CInfluenceLine instance in C++. \n
+        All length units are in m.
 
         Parameters
         ----------
-        IL_type : Literal["discrete","built-in","surface"]
+        IL_type : Literal["discrete","built-in"]\n
             Influence line type.
         """
 
@@ -57,19 +62,28 @@ class InfluenceLine:
             - ordinate : Union[list,np.ndarray]\n
                 Discrete influence line ordinate (Y).
 
-            - compress_error : float, optional\n
-                This argument is the maximum relative error (0.001~0.1) allowed for a discrete influence line to be simplified (to boost simulation). The default is None.
+            - compress_tolerance : float, optional\n
+                The maximum relative error (0.001~0.1) allowed for a discrete influence line to be simplified (to boost simulation). \n
+                The default is None.
 
         For built-in:\n
-            - type : Literal["1MidSpanBM","1LeftSupportSF","1RightSupportSF","2MidSupportBM","2LeftSupportSF","2RightSupportSF","TotalLoad","3MidLeftSupportBM","3MidRightSupportBM"]\n
-                Built-in influence line type.
+            - type : Literal[1,2,3,4,5,6,7,8,9]\n
+                Built-in influence line type. \n
+                What the number represents: \n
+                1: The mid-span sagging BM of a simply supported beam. \n
+                2: The 2nd support hogging BM of a two-span continuous beam. \n
+                3: The 1st support SF of a simply supported beam. \n
+                4: The 2nd support SF of a simply supported beam. \n
+                5: The 3rd support SF of a two-span continuous beam. \n
+                6: The 1st support SF of a two-span continuous beam. \n
+                7: The total weights of vehicle being on the beam. \n
+                8: The 2nd support hogging BM of a three-span continuous beam. \n
+                9: The 3rd support hogging BM of a three-span continuous beam. \n
+                (The support numbering starts from the left side.) \n
+                (Beams' first and last supports are pin.) 
 
             - length : float\n
                 Built-in influence line length.
-
-        For surface:\n
-            - inf_surf: InfluenceSurface\n
-                Influence surface instance.
 
         Returns
         -------
@@ -80,7 +94,7 @@ class InfluenceLine:
             self._set_IL_discrete(**kwargs)
         elif self._IL_type == "built-in":
             self._set_IL_built_in(**kwargs)
-        elif self._IL_type == "surface":
+        elif self._IL_type == "surface":  # This is hidden in the doc to avoid user confusion, not an error. 
             self._set_IL_surface(**kwargs)
         else:
             raise ValueError("Invalid influence line type.")
@@ -88,15 +102,15 @@ class InfluenceLine:
     def _set_IL_discrete(self, **kwargs) -> None:
         position = kwargs.get("position")
         ordinate = kwargs.get("ordinate")
-        compress_error = kwargs.get("compress_error")
+        compress_tolerance = kwargs.get("compress_tolerance")
 
-        if compress_error is not None:
-            if compress_error > 0.1:
+        if compress_tolerance is not None:
+            if compress_tolerance > 0.1:
                 raise Warning(
-                    "The compress_error is too large, which may cause the corresponding load effect significantly inaccurate."
+                    "The compress_tolerance is too large, which may cause the corresponding load effect significantly inaccurate."
                 )
-            position, ordinate = _compress_discrete_IL(
-                position, ordinate, compress_error
+            position, ordinate = compress_discrete_IL(
+                position, ordinate, compress_tolerance
             )
 
         if position is None or ordinate is None:
@@ -116,28 +130,17 @@ class InfluenceLine:
     def _set_IL_built_in(self, **kwargs) -> None:
         type = kwargs.get("type")
         length = kwargs.get("length")
-        type_to_index = {  # Yes, here is not a mistake.
-            "1MidSpanBM": 1,
-            "1LeftSupportSF": 3,
-            "1RightSupportSF": 4,
-            "2MidSupportBM": 2,
-            "2LeftSupportSF": 6,
-            "2RightSupportSF": 5,
-            "TotalLoad": 7,
-            "3MidLeftSupportBM": 8,
-            "3MidRightSupportBM": 9,
-        }
 
         if type is None or length is None:
             raise ValueError("Uncompleted input for built-in influence line.")
 
-        if not isinstance(type, str) or not isinstance(length, float):
-            raise TypeError("The type should be str and length should be float.")
+        if not isinstance(type, int) or not isinstance(length, float):
+            raise TypeError("The type should be int and length should be float.")
 
-        if type not in list(type_to_index.keys()):
+        if type not in [1,2,3,4,5,6,7,8,9]:
             raise ValueError("Please refer to the doc for the built-in IL type.")
 
-        self._data_dict["type"] = type_to_index[type]
+        self._data_dict["type"] = type
         self._data_dict["length"] = length
 
     def _set_IL_surface(self, **kwargs) -> None:
@@ -167,16 +170,16 @@ class InfluenceLine:
 
         return inf_line
 
-    def show(self) -> None:
-        """
-        Plot the influence line.
+    # def show(self) -> None:
+    #     """
+    #     Plot the influence line.
 
-        Returns
-        -------
-        None.
-        """
+    #     Returns
+    #     -------
+    #     None.
+    #     """
 
-        raise NotImplementedError()
+    #     raise NotImplementedError()
 
 
 class InfluenceSurface:
@@ -215,17 +218,15 @@ class InfluenceSurface:
             First row: The transverse position of the IS data points.\n
             First column: The longitudinal position of the IS data points.\n
             Rest of data: The corresponding values of the IS data points at the positions.\n
-            Here's a simple illustration about the bridge coordinate::
-
-                |========================|\n
-                |----->----->----->----->----->|\n
-                |========================|\n
-                |<-----<-----<-----<-----<-----|\n
-            Origin Point =================|
+            Here's a simple illustration about the bridge coordinate:\n
+            Observe the bridge from its plan view\n
+            and regard its longitudinal direction as the horizontal.\n
+            Now the origin point is at the left down corner.\n 
 
         lane_position : Union[list,np.ndarray]\n
             Lanes' transverse positions.\n
-            From the origin point: [(lane 1 left, lane 1 right), ..., (lane n left, lane n right)]
+            [(lane 1 left, lane 1 right), ..., (lane n left, lane n right)]\n
+            Lane 1 is the furthest lane to the origin point.
 
         Returns
         -------
@@ -257,13 +258,13 @@ class InfluenceSurface:
 
         return inf_surf
 
-    def show(self) -> None:
-        """
-        Plot the influence surface.
+    # def show(self) -> None:
+    #     """
+    #     Plot the influence surface.
 
-        Returns
-        -------
-        None.
-        """
+    #     Returns
+    #     -------
+    #     None.
+    #     """
 
-        raise NotImplementedError()
+    #     raise NotImplementedError()

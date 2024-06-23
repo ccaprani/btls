@@ -1,3 +1,7 @@
+"""
+The methods that are not defined in Python are defined in C++ py_main.cpp. 
+"""
+
 from ..lib.BTLS import _Bridge
 from .influence_line import InfluenceLine, InfluenceSurface
 from ..output.output_config import OutputConfig
@@ -64,14 +68,18 @@ class Bridge:
 
         Parameters
         ----------
-        inf_line_surf : Union[InfluenceLine,list[InfluenceLine],InfluenceSurface]\n
-            An InfluenceLine (same IL for all lanes), an InfluenceLine list (one IL per lane), or an InfluenceSurface (for all lanes).
+        inf_line_surf : Union[InfluenceLine,list[InfluenceLine],InfluenceSurface] \n
+            An InfluenceLine (same IL for all lanes); \n
+            An InfluenceLine list (one IL per lane); \n
+            An InfluenceSurface (for all lanes).
 
         inf_weight : list[float], optional\n
-            Influence weight (0.0 to 1.0). The default is 1.0 for all lanes.
+            Influence weight (0.0 to 1.0). 
+            The default is 1.0 for all lanes.
 
         threshold : float, optional\n
-            Threshold for POT analysis. The default is 0.0.
+            Threshold for POT analysis. 
+            The default is 0.0.
 
         Returns
         -------
@@ -145,7 +153,7 @@ class Bridge:
                     temp_IL.getLength(), self._length, atol=1e-2
                 ):  # centimeter level matching
                     raise RuntimeError(
-                        f"Influence line or surface for lane {i+1} load case {load_case} is shorter than the bridge."
+                        f"Influence line or surface for lane {i+1} load case {load_case} is shorter or longer than the bridge."
                     )
 
                 brige_lane = bridge.getBridgeLane(

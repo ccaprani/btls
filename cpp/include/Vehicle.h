@@ -16,10 +16,21 @@
 #include <math.h>
 #include "VehicleClassification.h"
 
+#ifdef PyBTLS
+#include "pybind11/pybind11.h"
+#include "pybind11/stl.h"
+
+namespace py = pybind11;
+#endif
+
+
 class CVehicle  
 {
 public:
 	CVehicle();
+#ifdef PyBTLS
+	CVehicle(size_t noAxles);
+#endif
 	virtual ~CVehicle();
 	
 	bool IsCar();
@@ -71,7 +82,13 @@ public:
 	double	getLaneEccentricity(void);
 	Classification getClass();
 
+#ifdef PyBTLS
+	py::tuple getPropInTuple();
+	void setPropByTuple(py::tuple propTuple);
+#endif
+
 private:
+	void setConstants();
 	int Round(double val) {return int(val + 0.5);};
 	template <typename T> std::string to_string(T const& value);
 	//template<typename T> T from_string(const std::string& s);

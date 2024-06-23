@@ -5,14 +5,17 @@ from pybtls.lib.BTLS import (
     _VehicleBuffer,
     _Vehicle,
 )
+from typing import Literal
+from pathlib import Path
+import os
 
 __all__ = ["write_garage_file"]
 
 
 def write_garage_file(
     vehicle_list: list[_Vehicle],
-    out_garage_path: str,
-    out_garage_format: int = 4,
+    out_path: Path,
+    out_garage_format: Literal[1,2,3,4],
     **kwargs,
 ) -> None:
     """
@@ -20,34 +23,38 @@ def write_garage_file(
 
     Parameters
     ----------
-    vehicle_list : list[Vehicle]
-        A list of :class:`pybtls.lib.Vehicle` objects.
-    out_garage_path : str
-        The path of the output garage file.
-    out_garage_format : int, optional
-        The format of the output .txt garage file.
-
-            - 1: CASTOR format.
-            - 2: BEDIT format.
-            - 3: DITIS format.
-            - 4 (Default): MON format.
+    vehicle_list : list[Vehicle] \n
+        A list of :class:`pybtls.lib.Vehicle` objects. \n
+    out_path : Path \n
+        The path of the output garage file. \n
+    out_garage_format : Literal[1,2,3,4] \n
+        The format of the output .txt garage file. \n
+        1: CASTOR format. \n
+        2: BEDIT format. \n
+        3: DITIS format. \n
+        4: MON format (Recommended).
 
     Keyword Arguments
     -----------------
-    vehicle_class_type : str, optional
-
-        - axle: Categorise vehicle by axle.
-        - pattern (Default): Categorise vehicle by pattern.
+    vehicle_class_type : str, optional \n
+        axle: Categorise vehicle by axle. \n
+        pattern (Default): Categorise vehicle by pattern. \n
 
     Returns
     -------
     None.
     """
 
+    current_dir = Path("./").resolve()
+    file_name = out_path.name
+    absolute_out_dir = Path(out_path).resolve().parent if not isinstance(out_path, Path) else out_path.resolve().parent
+
+    os.chdir(absolute_out_dir)
+
     config = OutputConfig()
     config.set_vehicle_file_output(
         write_vehicle_file=True,
-        vehicle_file_name=out_garage_path + ".txt",
+        vehicle_file_name=file_name,
         vehicle_file_format=out_garage_format,
     )
 
@@ -61,4 +68,6 @@ def write_garage_file(
         vehicle_buffer.addVehicle(vehicle)
 
     vehicle_buffer.flushBuffer()
+
+    os.chdir(current_dir)
     return None

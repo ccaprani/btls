@@ -1,3 +1,7 @@
+"""
+The methods that are not defined in Python are defined in C++ py_main.cpp. 
+"""
+
 from ..lib.BTLS import _ConfigDataCore
 
 __all__ = ["OutputConfig"]

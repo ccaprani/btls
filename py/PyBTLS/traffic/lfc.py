@@ -1,3 +1,7 @@
+"""
+The methods that are not defined in Python are defined in C++ py_main.cpp. 
+"""
+
 from ..lib.BTLS import _LaneFlowComposition
 from typing import Literal
 
@@ -14,8 +18,8 @@ class LaneFlowComposition:
         tag: str = "Now",
     ):
         """
-        The LaneFlowComposition instance stores the data for creating a CLaneFlowComposition instance in C++.
-        Lane flow composition. The hourly flow, speed, and truck composition data for a lane.
+        The LaneFlowComposition instance stores the data for creating a CLaneFlowComposition instance in C++. \n
+        The hourly flow, speed, and truck composition data for a lane.
 
         Parameters
         ----------

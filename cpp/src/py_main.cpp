@@ -262,42 +262,265 @@ PYBIND11_MODULE(libbtls, m) {
 
 
 	py::class_<CVehicle, CVehicle_sp> cvehicle(m, "_Vehicle");
-		cvehicle.def(py::init<>())
-			.def("set_velocity", &CVehicle::setVelocity, "Set the velocity (dm/s) of the vehicle.", py::arg("velocity"))
-			.def("set_local_from_global_lane", &CVehicle::setLocalFromGlobalLane, "Set the local lane index of the vehicle from its 1-based global index.", py::arg("global_lane_index"), py::arg("no_lanes"))
-			.def("set_direction", &CVehicle::setDirection, "Set the direction of the vehicle.", py::arg("direction"))
-			.def("set_time", &CVehicle::setTime, "Set the showing time of the vehicle.", py::arg("time"))
-			.def("set_trans", &CVehicle::setTrans, "Set the vehicle transverse position.", py::arg("trans"))
-			.def("_setHead", &CVehicle::setHead, "Set the head of the vehicle.", py::arg("head"))
-			.def("_setLocalLane", &CVehicle::setLocalLane, "Set the local lane index of the vehicle.", py::arg("local_lane_index"))
-			.def("_setGVW", &CVehicle::setGVW, "Set the gross vehicle weight of the vehicle.", py::arg("weight"))
-			.def("_setLength", &CVehicle::setLength, "Set the length of the vehicle.", py::arg("length"))
-			.def("_setNoAxles", &CVehicle::setNoAxles, "Set the number of axles of the vehicle.", py::arg("no_axles"))
-			.def("_setAxleWeight", &CVehicle::setAW, "Set the weight of the specified axle.", py::arg("axle_index"), py::arg("weight"))
-			.def("_setAxleSpacing", &CVehicle::setAS, "Set the value of the specified axle spacing.", py::arg("axle_index"), py::arg("spacing"))
-			.def("_setAxleWidth", &CVehicle::setAT, "Set the width of the specified axle.", py::arg("axle_index"), py::arg("width"))
-			.def("get_length", &CVehicle::getLength, "Get the length of the vehicle.")
-			.def("get_velocity", &CVehicle::getVelocity, "Get the velocity of the vehicle.")
+		cvehicle.def(py::init<size_t>(), 
+				R"(
+				The Vehicle class is inherited from the CVehicle class in the C++ BTLS library. \n
+				It is used to create a customized vehicle object. 
+
+				Parameters
+				----------
+				no_axles : int\n
+					Number of axles.
+				)", 
+				py::arg("no_axles"))
+			.def("set_velocity", &CVehicle::setVelocity, 
+				R"(
+				Set vehicle velocity.
+
+				Parameters
+				----------
+				velocity : float\n
+					The velocity of the vehicle, in m/s.
+				)", 
+				py::arg("velocity"))
+			.def("set_local_from_global_lane", &CVehicle::setLocalFromGlobalLane, 
+				R"(
+				Set the local lane index of the vehicle from its 1-based global index.\n
+				This method needs to be called after the vehicle direction is set. 
+
+				Parameters
+				----------
+				global_lane_index : int\n
+					The 1-based global lane index of the vehicle.\n
+				no_lanes : int\n
+					The number of lanes in the direction of the vehicle.
+				)", 
+				py::arg("global_lane_index"), py::arg("no_lanes"))
+			.def("set_direction", &CVehicle::setDirection, 
+				R"(
+				Set the direction of the vehicle.
+
+				Parameters
+				----------
+				direction : Literal[1,2]\n
+					The direction of the vehicle. 
+				)", 
+				py::arg("direction"))
+			.def("set_time", &CVehicle::setTime, 
+				R"(
+				Set the show-up time of the vehicle.
+
+				Parameters
+				----------
+				time : float\n
+					The showing time of the vehicle, in seconds.
+				)", 
+				py::arg("time"))
+			.def("set_trans", &CVehicle::setTrans, 
+				R"(
+				Set the vehicle transverse position.
+
+				Parameters
+				----------
+				trans : float\n
+					The transverse position of the vehicle on its lane, in metres.
+				)", 
+				py::arg("trans"))
+			.def("_setHead", &CVehicle::setHead, 
+				"Set the head id of the vehicle.", 
+				py::arg("head"))
+			.def("set_local_lane", &CVehicle::setLocalLane, 
+				R"(
+				Set the local lane index of the vehicle.
+
+				Parameters
+				----------
+				local_lane_index : int\n
+					The 1-based local lane index of the vehicle.
+				)", 
+				py::arg("local_lane_index"))
+			// .def("_setGVW", &CVehicle::setGVW, "Set the gross vehicle weight of the vehicle.", py::arg("weight"))
+			// .def("_setLength", &CVehicle::setLength, "Set the length of the vehicle.", py::arg("length"))
+			// .def("_setNoAxles", &CVehicle::setNoAxles, "Set the number of axles of the vehicle.", py::arg("no_axles"))
+			.def("set_axle_weights", 
+				[](CVehicle_sp self, std::vector<double> weights) {
+					for (size_t i = 0; i < weights.size(); i++) {
+						self->setAW(i, weights[i]);
+					}
+					self->setGVW(std::accumulate(weights.begin(), weights.end(), 0.0));
+				},
+				R"(
+				Set the vehicle axle weights.\n
+				The gross vehicle weight is calculated as the sum of the axle weights automatically.
+
+				Parameters
+				----------
+				weights : list[float]\n
+					The vehicle axle weights.
+				)", 
+				py::arg("axle_weights"))
+			.def("set_axle_weight", 
+				[](CVehicle_sp self, size_t index, double weight) {
+					self->setGVW(self->getGVW() + weight - self->getAW(index));
+					self->setAW(index, weight);
+				},
+				R"(
+				Set the specified axle weight.\n
+				The gross vehicle weight is updated automatically.
+
+				Parameters
+				----------
+				index : int\n
+					The 0-based index of the axle.\n
+				weight : float\n
+					The axle weight.
+				)", 
+				py::arg("index"), py::arg("weight"))
+			.def("set_axle_spacings", 
+				[](CVehicle_sp self, std::vector<double> spacings) {
+					for (size_t i = 0; i < spacings.size(); i++) {
+						self->setAS(i, spacings[i]);
+					}
+					self->setLength(std::accumulate(spacings.begin(), spacings.end(), 0.0));
+				},
+				R"(
+				Set the vehicle axle spacings.\n
+				The vehicle length is calculated as the sum of the axle spacings automatically.
+
+				Parameters
+				----------
+				spacings : list[float]\n
+					The vehicle axle spacings.\n
+					The last spacing should always be zero. 
+				)", 
+				py::arg("spacings"))
+			.def("set_axle_spacing", 
+				[](CVehicle_sp self, size_t index, double spacing) {
+					self->setLength(self->getLength() + spacing - self->getAS(index));
+					self->setAS(index, spacing);
+				},
+				R"(
+				Set the specified axle spacing.\n
+				The vehicle length is updated automatically.
+
+				Parameters
+				----------
+				index : int\n
+					The 0-based index of the axle.\n
+				spacing : float\n
+					The axle spacing.
+				)",
+				py::arg("index"), py::arg("spacing"))
+			.def("set_axle_widths", 
+				[](CVehicle_sp self, std::vector<double> widths) {
+					for (size_t i = 0; i < widths.size(); i++) {
+						self->setAT(i, widths[i]);
+					}
+				},
+				R"(
+				Set the vehicle axle widths.
+
+				Parameters
+				----------
+				widths : list[float]\n
+					The vehicle axle widths.
+				)",
+				py::arg("widths"))
+			.def("set_axle_width", 
+				[](CVehicle_sp self, size_t index, double width) {
+					self->setAT(index, width);
+				},
+				R"(
+				Set the specified axle width.
+
+				Parameters
+				----------
+				index : int\n
+					The 0-based index of the axle.\n
+				width : float\n
+					The axle width.
+				)",
+				py::arg("index"), py::arg("width"))
+			.def("get_length", &CVehicle::getLength, "Get the vehicle length.")
+			.def("get_velocity", &CVehicle::getVelocity, "Get the vehicle velocity.")
 			.def("get_gvw", &CVehicle::getGVW, "Get the gross vehicle weight of the vehicle.")
 			.def("get_no_axles", &CVehicle::getNoAxles, "Get the number of axles of the vehicle.")
-			.def("get_axle_weight", &CVehicle::getAW, "Get the weight of the specified axle.", py::arg("axle_index"))
-			.def("get_axle_spacing", &CVehicle::getAS, "Get the value of the specified axle spacing.", py::arg("axle_index"))
-			.def("get_axle_width", &CVehicle::getAT, "Get the width of the specified axle.", py::arg("axle_index"))
-			.def("get_time", &CVehicle::getTime, "Get the showing time of the vehicle.")
-			.def("get_trans", &CVehicle::getTrans, "Get the vehicle transverse position.")
-			.def("_getGlobalLane", &CVehicle::getGlobalLane, "Get the 1-based global lane index of the vehicle.", py::arg("no_lanes"))
-			.def(py::pickle(
-				[](CVehicle& self) {  // __getstate__
-					
-					std::string vehInfo = self.Write(4);  // Use MON format
-
-					return vehInfo;
+			.def("get_axle_weights", 
+				[](CVehicle_sp self) {
+					std::vector<double> weights;
+					for (size_t i = 0; i < self->getNoAxles(); i++) {
+						weights.push_back(self->getAW(i));
+					}
+					return weights;
 				},
-				[](std::string vehInfo) {  // __setstate__
+				"Get the vehicle axle weights.")
+			.def("get_axle_weight", &CVehicle::getAW, 
+				R"(
+				Get the specified axle weight.
+
+				Parameters
+				----------
+				index : int\n
+					The 0-based index of the axle.
+				)", 
+				py::arg("index"))
+			.def("get_axle_spacings", 
+				[](CVehicle_sp self) {
+					std::vector<double> spacings;
+					for (size_t i = 0; i < self->getNoAxles(); i++) {
+						spacings.push_back(self->getAS(i));
+					}
+					return spacings;
+				},
+				"Get the vehicle axle spacings.")
+			.def("get_axle_spacing", &CVehicle::getAS, 
+				R"(
+				Get the value of the specified axle spacing.
+
+				Parameters
+				----------
+				index : int\n
+					The 0-based index of the axle.
+				)", 
+				py::arg("index"))
+			.def("get_axle_widths", 
+				[](CVehicle_sp self) {
+					std::vector<double> widths;
+					for (size_t i = 0; i < self->getNoAxles(); i++) {
+						widths.push_back(self->getAT(i));
+					}
+					return widths;
+				},
+				"Get the vehicle axle widths.")
+			.def("get_axle_width", &CVehicle::getAT, 
+				R"(
+				Get the value of the specified axle width.
+
+				Parameters
+				----------
+				index : int\n
+					The 0-based index of the axle.
+				)", 
+				py::arg("index"))
+			.def("get_time", &CVehicle::getTime, "Get the show-up time of the vehicle.")
+			.def("get_trans", &CVehicle::getTrans, "Get the vehicle transverse position on its lane.")
+			.def("get_direction", &CVehicle::getDirection, "Get the vehicle direction (1 or 2).")
+			.def("_getGlobalLane", &CVehicle::getGlobalLane, "Get the 1-based global lane index of the vehicle.", py::arg("no_lanes"))
+			.def("get_local_lane", &CVehicle::getLocalLane, "Get the 1-based local lane index of the vehicle.")
+			.def("get_all_properties", &CVehicle::getPropInTuple, "Get all the vehicle properties in a tuple.")
+			.def("set_all_properties", &CVehicle::setPropByTuple, 
+				"Set all the vehicle properties from a tuple.", 
+				py::arg("prop_tuple"))
+			.def(py::pickle(
+				[](CVehicle_sp self) {  // __getstate__
+
+					return self->getPropInTuple();
+				},
+				[](py::tuple propTuple) {  // __setstate__
+
 					CVehicle_sp vehicle = std::make_shared<CVehicle>();
-
-					vehicle->create(vehInfo, 4);  // Use MON format
-
+					vehicle->setPropByTuple(propTuple);
+					
 					return vehicle;
 				}
 			));

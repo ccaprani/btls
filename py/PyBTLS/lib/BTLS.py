@@ -1,3 +1,7 @@
+"""
+The classes that are not defined in Python are defined in C++ py_main.cpp. 
+"""
+
 from .libbtls import (
     get_info,
     run,
@@ -46,8 +50,6 @@ __all__ = [
     "_TrafficGenerator",
     "_VehicleBuffer",
     "_LaneFlowComposition",
-    "MultiModalNormal",
-    "Distribution",
     "_FlowGenNHM",
     "_FlowGenCongested",
     "_FlowGenPoisson",
@@ -64,9 +66,14 @@ __all__ = [
     "_VehModelDataNominal",
     "_VehModelDataGarage",
     "_VehModelDataGrave",
+    "Vehicle",
     "MultiModalNormal",
     "Distribution",
 ]
+
+
+class Vehicle(_Vehicle):
+    pass
 
 
 class MultiModalNormal(_MultiModalNormal):
@@ -79,6 +86,10 @@ class Distribution(_Distribution):
 
 class _ConfigData(_ConfigDataCore):
     def __init__(self):
+        """
+        Its instance should not be created by the user. 
+        """
+
         super().__init__()
 
     def set_veh_gen_grave(

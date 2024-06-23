@@ -1,3 +1,7 @@
+"""
+The methods that are not defined in Python are defined in C++ py_main.cpp. 
+"""
+
 from ..lib.BTLS import (
     _ConfigData,
     _LaneFlowComposition,
@@ -24,8 +28,9 @@ __all__ = [
 class HeadwayGenNHM:
     def __init__(self, **kwargs):
         """
-        The HeadwayGenNHM instance in Python stores the data for creating a CFlowGenNHM instance in C++.
-        Headway generator - NHM. All heavy vehicles' headways will be generated based on the pre-studied distribution of Auxerre heavy vehicles' headways.
+        The HeadwayGenNHM instance in Python stores the data for creating a CFlowGenNHM instance in C++. \n
+        This is for a heavy-vehicle-only traffic. \n
+        All heavy vehicles' headways will be generated based on the pre-studied distribution of Auxerre heavy vehicles' headways.
         """
 
         self._tag = "NHM"
@@ -77,8 +82,8 @@ class HeadwayGenNHM:
 class HeadwayGenConstant:
     def __init__(self, constant_speed: float, constant_gap: float, **kwargs):
         """
-        The HeadwayGenConstant instance in Python stores the data for creating a CFlowGenConstant instance in C++.
-        Headway generator - constant. All heavy vehicles' headways will be generated based on the constant speed and gap.
+        The HeadwayGenConstant instance in Python stores the data for creating a CFlowGenConstant instance in C++. \n
+        All vehicles' headways will be generated based on the constant speed and gap.
 
         Parameters
         ----------
@@ -136,8 +141,8 @@ class HeadwayGenConstant:
 class HeadwayGenCongested:
     def __init__(self, congested_spacing: float, congested_speed: float, **kwargs):
         """
-        The HeadwayGenCongested instance in Python stores the data for creating a CFlowGenCongested instance in C++.
-        Headway generator - congested. All heavy vehicles' headways will be generated based on the congested speed and spacing.
+        The HeadwayGenCongested instance in Python stores the data for creating a CFlowGenCongested instance in C++. \n
+        All vehicles' headways will be generated based on the congested speed and spacing.
 
         Parameters
         ----------
@@ -204,8 +209,8 @@ class HeadwayGenCongested:
 class HeadwayGenFreeflow:
     def __init__(self, **kwargs):
         """
-        The HeadwayGenFreeflow instance in Python stores the data for creating a CFlowGenPoisson instance in C++.
-        Headway generator - freeflow. All heavy vehicles' headways will be generated based on the Poisson arrival theory.
+        The HeadwayGenFreeflow instance in Python stores the data for creating a CFlowGenPoisson instance in C++. \n
+        All vehicles' headways will be generated based on the Poisson arrival theory.
         """
 
         self._tag = "Freeflow"

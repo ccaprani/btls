@@ -14,7 +14,8 @@ def plot_BM(file_path: str, plot_save_path: str = None) -> None:
         The name of the file to read data from.
 
     save_path : str, optional\n
-        The path to save the plot to. If not specified, the plot will be displayed on screen.
+        The path to save the plot to. \n
+        If not specified, the plot will be displayed on screen.
 
     Returns
     -------

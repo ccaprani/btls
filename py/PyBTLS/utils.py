@@ -1,19 +1,28 @@
-__all__ = ["_compress_discrete_IL"]
+__all__ = ["compress_discrete_IL"]
 
 
-def _compress_discrete_IL(x, y, e):
+def compress_discrete_IL(x:list[float], y:list[float], e:float) -> tuple[list, list]:
     """
-    Compresses a set of discrete points (x, y) by removing points that are within a certain error tolerance e of a line
-    connecting the start point to a trial point. Returns the compressed set of points as two separate lists.
+    Compresses a set of discrete points (x, y) \n
+    by removing points that are within a certain error tolerance e of a line
+    connecting the start point to a trial point. \n
+    Returns the compressed set of points as two separate lists.
 
-    Args:
-        x (list): List of x-coordinates of the points.
-        y (list): List of y-coordinates of the points.
-        e (float): Maximum relative error allowed for a point to be considered part of the line.
+    Parameters
+    ----------
+    x : list[float]\n
+        List of x-coordinates of the points.\n
+    y : list[float]\n
+        List of y-coordinates of the points.\n
+    e : float\n
+        Maximum relative error allowed for a point to be considered part of the line.
 
-    Returns:
-        tuple: A tuple containing two lists: the compressed x-coordinates and the compressed y-coordinates.
+    Returns
+    -------
+    tuple[list, list]\n
+        A tuple containing two lists: the compressed x-coordinates and the compressed y-coordinates.
     """
+    
     n = len(x)
     xs = [x[0]]
     ys = [y[0]]

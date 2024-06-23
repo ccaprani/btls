@@ -1,3 +1,7 @@
+"""
+The methods that are not defined in Python are defined in C++ py_main.cpp. 
+"""
+
 from .vehicle_generator import VehicleGenNominal, VehicleGenGrave, VehicleGenGarage
 from .headway_generator import (
     HeadwayGenNHM,
@@ -192,7 +196,10 @@ class TrafficGenerator:
         Parameters
         ----------
         start_time : Union[float,list[float]]\n
-            The start time for the traffic generators. If a float is provided, all traffic generators will have the same start time. If a list of float is provided, the length of the list should be equal to the number of lanes on the bridge, and each traffic generator will have the corresponding start time.
+            The start time for the traffic generators. \n
+            If a float is provided, all traffic generators will have the same start time. \n
+            If a list of float is provided, the length of the list should be equal to the number of lanes on the bridge, \n
+            and each traffic generator will have the corresponding start time.
 
         Returns
         -------
@@ -217,7 +224,8 @@ class TrafficGenerator:
         Parameters
         ----------
         bridge_length : float\n
-            The length of the bridge in m. This bridge length is to prevent vehicle overlap.
+            The length of the bridge in m. \n
+            This bridge length is to prevent vehicle overlap.
         """
 
         self._check_vehicle_classifier()

@@ -1,8 +1,11 @@
-from .lib.BTLS import _Vehicle, _VehClassPattern, _VehClassAxle, _VehicleBuffer
+"""
+The methods that are not defined in Python are defined in C++ py_main.cpp. 
+"""
+
+from .lib.BTLS import Vehicle, _Vehicle, _VehClassPattern, _VehClassAxle, _VehicleBuffer
 from .bridge import Bridge
 from .traffic import TrafficGenerator, TrafficLoader
-from .vehicle import Vehicle
-from .output import OutputConfig, OutputManager
+from .output import OutputConfig, _OutputManager
 from typing import Union
 from pathlib import Path
 import multiprocessing
@@ -12,13 +15,13 @@ __all__ = ["Simulation"]
 
 
 class Simulation:
-    def __init__(self, output_dir: Union[str, Path] = "./"):
+    def __init__(self, output_dir: Path = Path("./")):
         """
         This is the class for setting and running simulations.
 
         Parameters
         ----------
-        output_dir : str, optional\n
+        output_dir : Path, optional\n
             The output directory for the simulation results. The default is "./".
         """
 
@@ -29,9 +32,9 @@ class Simulation:
 
         self._sim_count = 0
         self._sim_argument = []
-        self._sim_output = []
+        self._sim_output = {}
         self._output_root = (
-            Path(output_dir) if isinstance(output_dir, str) else output_dir
+            Path(output_dir).resolve() if not isinstance(output_dir, Path) else output_dir.resolve()
         )
 
     def add_sim(
@@ -42,7 +45,7 @@ class Simulation:
         output_config: OutputConfig = None,
         time_step: float = 0.1,
         min_gvw: int = 0,
-        vehicle: Vehicle = None,
+        vehicle: Union[Vehicle, _Vehicle] = None,
         active_lane: list[int] = None,
         tag: str = None,
         **kwargs,
@@ -70,7 +73,7 @@ class Simulation:
         min_gvw : int, optional\n
             The minimum gross vehicle weight (in kN) to be considered in the load effect calculation for traffic simulation. A single-vehicle simulation will ignore this argument.
 
-        vehicle : Vehicle, optional\n
+        vehicle : Union[Vehicle, _Vehicle], optional\n
             The vehicle for a single-vehicle simulation.
 
         active_lane : list[int], optional\n
@@ -114,7 +117,7 @@ class Simulation:
             )
         )
 
-    def _single_sim(self, args: tuple) -> OutputManager:
+    def _single_sim(self, args: tuple) -> _OutputManager:
         (
             bridge,
             traffic,
@@ -153,8 +156,8 @@ class Simulation:
 
     def _single_vehicle_sim(
         self, bridge, vehicle, active_lane, sim_tag, output_root
-    ) -> OutputManager:
-        sim_root = Path("./")
+    ) -> _OutputManager:
+        sim_root = Path("./").resolve()
         os.makedirs(output_root / str(sim_tag), exist_ok=False)
         os.chdir(output_root / str(sim_tag))
 
@@ -221,7 +224,7 @@ class Simulation:
 
         os.chdir(sim_root)
 
-        return OutputManager(output_root, sim_tag, None)
+        return _OutputManager(output_root, sim_tag, None)
 
     def _single_traffic_sim(
         self,
@@ -236,8 +239,8 @@ class Simulation:
         overlap_avoid_distance,
         track_progress,
         output_root,
-    ) -> OutputManager:
-        sim_root = Path("./")
+    ) -> _OutputManager:
+        sim_root = Path("./").resolve()
         os.makedirs(output_root / str(sim_tag), exist_ok=False)
         os.chdir(output_root / str(sim_tag))
 
@@ -338,12 +341,13 @@ class Simulation:
         vehicle_buffer.flushBuffer()
         os.chdir(sim_root)
 
-        return OutputManager(output_root, sim_tag, output_config)
+        return _OutputManager(output_root, sim_tag, output_config)
 
     def run(self, no_core: int = None) -> None:
         """
         Run the simulations. \n
-        If no_core is one or there is only one added simulation, the running will be single-core. Otherwise, the running will be multi-core. \n
+        If no_core is one or there is only one added simulation, the running will be single-core. \n
+        Otherwise, the running will be multi-core. \n
         By default, (no_cpu_logic_core - 2) processes will be used for multi-core running.
         """
 
@@ -356,15 +360,15 @@ class Simulation:
                 no_core if no_core is not None else multiprocessing.cpu_count() - 2
             )
             with multiprocessing.Pool(processes=no_processes) as pool:
-                self._sim_output = pool.map(self._single_sim, self._sim_argument)
+                sim_outputs = pool.map(self._single_sim, self._sim_argument)
 
-    def get_output(self) -> list[OutputManager]:
+    def get_output(self) -> list[_OutputManager]:
         """
         Get the output manager for each simulation.
 
         Returns
         -------
-        list[OutputManager]
+        list[_OutputManager]
             The list of output manager for each simulation.
         """
 

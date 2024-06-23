@@ -85,6 +85,7 @@ ext_modules = [
         include_dirs=["cpp/include"],
         cxx_std=17,
         language="c++",
+        define_macros=[("PyBTLS", "")],  # To unlock some C++ methods. 
     ),
 ]
 

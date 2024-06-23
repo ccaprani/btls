@@ -1,22 +1,26 @@
 from .output_config import OutputConfig
+from pybtls.post_process.Read import read_TH, read_AE
+from pybtls.post_process.Plot import plot_TH, plot_AE
 from pathlib import Path
+from typing import Literal
 import pandas as pd
 import glob
 
-__all__ = ["OutputManager"]
+__all__ = ["_OutputManager"]
 
 
-class OutputManager:
+class _OutputManager:
     def __init__(self, output_root: Path, sim_tag: str, output_config: OutputConfig):
         """
-        Constructor of the OutputManager class.
+        The OutputManager class records the results' paths and provides methods to read these data. \n
+        Its instance should not be created by the user. 
 
         Parameters
         ----------
         output_root : Path\n
-            The root directory of all the output folders.
+            The root directory of all the output folders.\n
         sim_tag : str\n
-            The tag of the simulation, which is same as the output folder name.
+            The tag of the simulation, which is same as the output folder name.\n
         output_config : OutputConfig\n
             The output configuration for the corresponding simulation.
         """
@@ -24,7 +28,22 @@ class OutputManager:
         self._output_root = output_root
         self._this_output_dir = sim_tag
         self._output_config = output_config
-        self._summary = {}  # Stores the paths of the output files.
+        self._summary = {
+            "time_history": None,
+            "all_events": None,
+            "traffic": None,
+            "BM_by_no_trucks": None,
+            "BM_by_mixed": None,
+            "BM_summary": None,
+            "POT_vehicle": None,
+            "POT_summary": None,
+            "POT_counter": None,
+            "traffic_statistics": None,
+            "E_cumulative_statistics": None,
+            "E_interval_statistics": None,
+            "fatigue_events": None,
+            "fatigue_rainflow": None,
+        }  # Stores the paths of the output files.
 
         self._fetch_summary()
 
@@ -38,7 +57,7 @@ class OutputManager:
             The new root directory of all the output folders.
         """
 
-        self._output_root = output_root
+        self._output_root = Path(output_root).resolve() if not isinstance(output_root, Path) else output_root.resolve()
         self._fetch_summary()
 
     def get_summary(self) -> dict:
@@ -53,14 +72,32 @@ class OutputManager:
 
         return self._summary
 
-    def read_data(self, key: str) -> list[pd.DataFrame]:
+    def read_data(
+        self,
+        key: Literal[
+            "time_history",
+            "all_events",
+            "traffic",
+            "BM_by_no_trucks",
+            "BM_by_mixed",
+            "BM_summary",
+            "POT_vehicle",
+            "POT_summary",
+            "POT_counter",
+            "traffic_statistics",
+            "E_cumulative_statistics",
+            "E_interval_statistics",
+            "fatigue_events",
+            "fatigue_rainflow",
+        ],
+    ) -> list[pd.DataFrame]:
         """
         Read the data from the recorded output file path.
 
         Parameters
         ----------
-        key : str\n
-            The key of the output file.
+        key : Literal["time_history", "all_events", "traffic", "BM_by_no_trucks", "BM_by_mixed", "BM_summary", "POT_vehicle", "POT_summary", "POT_counter", "traffic_statistics", "E_cumulative_statistics", "E_interval_statistics", "fatigue_events", "fatigue_rainflow"]\n
+            Choose an output file.
 
         Returns
         -------
@@ -73,8 +110,12 @@ class OutputManager:
 
         return_list: list[pd.DataFrame] = []
 
-        for file in self._summary[key]:
-            return_list.append(pd.read_csv(file))
+        if key == "time_history":
+            for path in self._summary[key]:
+                return_list.append(read_TH(path))
+        elif key == "all_events":
+            for path in self._summary[key]:
+                return_list.append(read_AE(path))
 
         return return_list
 
@@ -83,16 +124,15 @@ class OutputManager:
         return self._this_output_dir
 
     def _fetch_summary(self) -> None:
-        self._summary = {}
 
         if self._output_config is None:
-            self._summary["time_history_file"] = self._search_file(
+            self._summary["time_history"] = self._search_file(
                 self._output_root / (self._this_output_dir + "dir1"), "TH_"
             ) + self._search_file(
                 self._output_root / (self._this_output_dir + "dir2"), "TH_"
             )
 
-            self._summary["all_events_file"] = self._search_file(
+            self._summary["all_events"] = self._search_file(
                 self._output_root / (self._this_output_dir + "dir1"), "BL_*_AllEvents"
             ) + self._search_file(
                 self._output_root / (self._this_output_dir + "dir2"), "BL_*_AllEvents"
@@ -172,13 +212,13 @@ class OutputManager:
                 else None
             )
 
-            self._summary["LE_cumulative_statistics"] = (
+            self._summary["E_cumulative_statistics"] = (
                 self._search_file(self._output_root / self._this_output_dir, "SS_C_")
                 if self._output_config._Output.Stats.WRITE_SS_CUMULATIVE
                 else None
             )
 
-            self._summary["LE_interval_statistics"] = (
+            self._summary["E_interval_statistics"] = (
                 self._search_file(self._output_root / self._this_output_dir, "SS_S_")
                 if self._output_config._Output.Stats.WRITE_SS_INTERVALS
                 else None

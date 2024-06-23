@@ -5,37 +5,39 @@ from pybtls.lib.BTLS import (
     _Vehicle,
 )
 from pathlib import Path
+from typing import Literal
 
 __all__ = ["load_garage_file", "get_gvw_from_garage", "get_vehicle_length_from_garage"]
 
 
 def load_garage_file(
-    garage_path: Path, garage_format: int = 4, **kwargs
+    garage_path: Path, garage_format: Literal[1,2,3,4], **kwargs
 ) -> list[_Vehicle]:
     """
     Load a list of :class:`pybtls.lib.Vehicle` objects from a .txt garage file.
 
     Parameters
     ----------
-    garage_path : Path
+    garage_path : Path\n
         The path of the garage file.
-    garage_format : int, optional
-        The format of the .txt garage file.
-        1: CASTOR format.
-        2: BEDIT format.
-        3: DITIS format.
-        4 (Default): MON format.
+    
+    garage_format : Literal[1,2,3,4]\n
+        The format of the .txt garage file.\n
+        1: CASTOR format.\n
+        2: BEDIT format.\n
+        3: DITIS format.\n
+        4: MON format.
 
     Keyword Arguments
     -----------------
-    vehicle_class_type : str, optional
-        axle: Categorise vehicle by axle.
+    vehicle_class_type : str, optional\n
+        axle: Categorise vehicle by axle.\n
         pattern (Default): Categorise vehicle by pattern.
 
     Returns
     -------
-    vehicle_list : list[Vehicle]
-        A list of :class:`pybtls.lib.Vehicle` objects.
+    vehicle_list : list[_Vehicle]\n
+        A list of :class:`pybtls.lib._Vehicle` objects.
     """
 
     if kwargs.get("vehicle_class_type") == "axle":

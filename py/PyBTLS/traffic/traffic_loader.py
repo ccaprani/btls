@@ -1,11 +1,16 @@
+"""
+The methods that are not defined in Python are defined in C++ py_main.cpp. 
+"""
+
 from ..lib.BTLS import (
     _TrafficLoader,
     _VehicleTrafficFile,
+    Vehicle,
     _Vehicle,
     _VehClassPattern,
     _VehClassAxle,
 )
-from typing import Literal
+from typing import Literal, Union
 from pathlib import Path
 
 __all__ = ["TrafficLoader"]
@@ -59,9 +64,8 @@ class TrafficLoader:
 
     def add_traffic(
         self,
-        traffic_file: Path = None,
-        file_format: Literal["CASTOR", "BEDIT", "DITIS", "MON"] = None,
-        vehicle_list: list[_Vehicle] = None,
+        traffic: Union[Path,list[_Vehicle]],
+        traffic_format: Literal[1,2,3,4] = None,
         use_average_speed: bool = False,
         use_const_speed: bool = False,
         const_speed_value: float = 0.0,
@@ -72,23 +76,28 @@ class TrafficLoader:
 
         Parameters
         ----------
-        traffic_file : Path, optional\n
-            The path to the traffic file. The default is None.
+        traffic: Union[Path,list[_Vehicle]]\n
+            The path to the traffic file, 
+            or a list of vehicles.
 
-        file_format : Literal["CASTOR","BEDIT","DITIS","MON"], optional\n
-            The format of the traffic file. This will be an essential selection if traffic_file is specified. The default is None.
-
-        vehicle_list : list[_Vehicle], optional\n
-            The list of vehicles. The default is None.
+        traffic_format : Literal[1, 2, 3, 4], optional\n
+            The format of the .txt traffic file.\n
+            1: CASTOR format.\n
+            2: BEDIT format.\n
+            3: DITIS format.\n
+            4: MON format.
 
         use_average_speed : bool, optional\n
-            Whether to use the average speed of the vehicle. The default is False.
+            Whether to use the average speed of the vehicle. \n
+            The default is False.
 
         use_const_speed : bool, optional\n
-            Whether to use a constant speed for all vehicles. The default is False.
+            Whether to use a constant speed for all vehicles. \n
+            The default is False.
 
         const_speed_value : float, optional\n
-            The constant speed value. This will be an essential input if use_const_speed is True. The default is 0.0.
+            The constant speed value. This will be an essential input if use_const_speed is True. \n
+            The default is 0.0.
 
         Keyword Arguments
         -----------------
@@ -121,19 +130,22 @@ class TrafficLoader:
             vehicle_classifier, use_const_speed, use_average_speed, const_speed_value
         )
 
-        if traffic_file is not None:
-            if file_format is None:
-                raise ValueError("Traffic file_format is not specified.")
-            traffic_file = (
-                Path(traffic_file)
-                if not isinstance(traffic_file, Path)
-                else traffic_file
+        if isinstance(traffic, (Path,str)):
+            if traffic_format is None:
+                raise ValueError("Argument traffic_format is not specified.")
+            traffic = (
+                Path(traffic)
+                if not isinstance(traffic, Path)
+                else traffic
             )
-            traffic_data.read(traffic_file, self._file_format_convert(file_format))
-        elif vehicle_list is not None:
-            traffic_data.assignTraffic(vehicle_list)
+            traffic_data.read(traffic, traffic_format)  # The simulation requires traffic information before _get_traffic_loader is called.
+        elif isinstance(traffic, list):
+            if all(isinstance(vehicle, (Vehicle, _Vehicle)) for vehicle in traffic):
+                traffic_data.assignTraffic(traffic)
+            else:
+                raise ValueError("Existing non-Vehicle object in the traffic.")
         else:
-            raise ValueError("Either traffic_file or vehicle_list should be provided.")
+            raise ValueError("Invalid traffic data for traffic loader.")
 
         if self._no_lane != traffic_data.getNoLanes():
             raise RuntimeError(
@@ -218,7 +230,3 @@ class TrafficLoader:
             raise ValueError(
                 "Two directions traffic found but only one lane specified."
             )
-
-    def _file_format_convert(self, file_format: str) -> int:
-        format_str2int = {"CASTOR": 1, "BEDIT": 2, "DITIS": 3, "MON": 4}
-        return format_str2int[file_format]
