@@ -17,7 +17,7 @@ from ..lib.BTLS import (
     _Vehicle,
 )
 from .lfc import LaneFlowComposition
-from ..garage import read_garage_file
+from ..garage.read import read_garage_file
 from typing import Literal, Union
 from pathlib import Path
 import importlib.resources as pkg_resources

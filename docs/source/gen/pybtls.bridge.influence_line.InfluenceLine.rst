@@ -17,7 +17,6 @@ pybtls.bridge.influence\_line.InfluenceLine
       :nosignatures:
    
       ~InfluenceLine.set_IL
-      ~InfluenceLine.show
    
    
 

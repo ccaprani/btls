@@ -1,4 +1,4 @@
-﻿pybtls.bridge.influence\_line
+pybtls.bridge.influence\_line
 =============================
 
 .. automodule:: pybtls.bridge.influence_line

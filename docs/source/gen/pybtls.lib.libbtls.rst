@@ -1,4 +1,4 @@
-﻿pybtls.lib.libbtls
+pybtls.lib.libbtls
 ==================
 
 .. automodule:: pybtls.lib.libbtls

@@ -3,7 +3,7 @@ The methods and classes that are not defined in Python are defined in C++ py_mai
 """
 
 from ..lib.BTLS import _InfluenceLine, _InfluenceSurface
-from ..utils import compress_discrete_IL
+from ..utils.IL_compress import compress_discrete_IL
 import numpy as np
 from typing import Union, Literal
 

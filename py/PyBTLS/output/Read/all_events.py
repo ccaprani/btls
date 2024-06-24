@@ -6,7 +6,8 @@ __all__ = ["read_AE"]
 
 def read_AE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.DataFrame:
     """
-    Read the all events data from pybtls results.
+    Read the all events data from pybtls results.\n 
+    This output file does not have a header.
 
     Parameters
     ----------
@@ -30,7 +31,7 @@ def read_AE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
         file_path,
         sep="[\s\t]+",
         header=None,
-        skiprows=start_line - 1,
+        skiprows=max(0, start_line - 1),
         nrows=no_lines,
         engine="python",
     )

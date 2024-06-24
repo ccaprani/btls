@@ -1,4 +1,4 @@
-﻿pybtls.lib.BTLS
+pybtls.lib.BTLS
 ===============
 
 .. automodule:: pybtls.lib.BTLS
@@ -22,6 +22,7 @@
    
       Distribution
       MultiModalNormal
+      Vehicle
    
    
 

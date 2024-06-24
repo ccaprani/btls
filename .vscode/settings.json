@@ -164,5 +164,6 @@
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true
-  }
+  },
+  "svg.preview.background": "editor"
 }

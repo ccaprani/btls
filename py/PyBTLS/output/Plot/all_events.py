@@ -5,7 +5,7 @@ from pathlib import Path
 __all__ = ["plot_AE"]
 
 
-def plot_AE(data: pd.DataFrame, plot_save_path: Path = None) -> None:
+def plot_AE(data: pd.DataFrame, save_as: Path = None) -> None:
     """
     Plot the all events data from pybtls results.
 
@@ -14,7 +14,7 @@ def plot_AE(data: pd.DataFrame, plot_save_path: Path = None) -> None:
     data : pd.DataFrame\n
         The loaded all events from read_TH.
 
-    save_path : Path, optional\n
+    save_as : Path, optional\n
         The path to save the plot to. \n
         If not specified, the plot will be displayed on screen.
 
@@ -38,9 +38,9 @@ def plot_AE(data: pd.DataFrame, plot_save_path: Path = None) -> None:
     plt.legend()
 
     # Save or display the plot
-    if plot_save_path is not None:
+    if save_as is not None:
         plt.savefig(
-            plot_save_path + ".png",
+            save_as,
             format="png",
             dpi=500,
             pad_inches=0.1,

@@ -508,6 +508,7 @@ PYBIND11_MODULE(libbtls, m) {
 			.def("set_all_properties", &CVehicle::setPropByTuple, 
 				"Set all the vehicle properties from a tuple.", 
 				py::arg("prop_tuple"))
+			.def("_create", &CVehicle::create, py::arg("str"), py::arg("format"))
 			.def(py::pickle(
 				[](CVehicle_sp self) {  // __getstate__
 

@@ -1,6 +1,6 @@
 from .output_config import OutputConfig
-from .Read import read_TH, read_AE, read_traffic
-from .Plot import plot_TH, plot_AE
+from .Read import read_TH, read_AE, read_traffic, read_TS, read_BM_V, read_BM_All, read_BM_S, read_POT_S, read_POT_V, read_POT_C, read_E_CS, read_E_IS, read_FE, read_FR
+# from .Plot import plot_TH, plot_AE, plot_BM_S
 from pathlib import Path
 from typing import Literal
 import pandas as pd
@@ -96,72 +96,73 @@ class _OutputManager:
         ],
     ) -> list[pd.DataFrame]:
         """
-        Read the data from the recorded output file path.
+        Read the data from the recorded output file paths.
 
         Parameters
         ----------
         key : Literal["time_history", "all_events", "traffic", "BM_by_no_trucks", "BM_by_mixed", "BM_summary", "POT_vehicle", "POT_summary", "POT_counter", "traffic_statistics", "E_cumulative_statistics", "E_interval_statistics", "fatigue_events", "fatigue_rainflow"]\n
-            Choose an output file.
+            Choose a type of output file.
 
         Returns
         -------
-        list[pd.DataFrame]\n
-            The data.
+        dict[str, pd.DataFrame]\n
+            The data. The key is the file name without .txt. 
         """
 
         if self._summary[key] is None:
             raise ValueError(f"Output {key} is invalid.")
 
-        return_list: list[pd.DataFrame] = []
+        def create_file_key(file_path: Path) -> str:
+            return str(file_path).split("/")[-1].strip(".txt")
+
+        return_dict: dict[str, pd.DataFrame] = {}
 
         if key == "time_history":
             for path in self._summary[key]:
-                return_list.append(read_TH(path))
+                return_dict[create_file_key(path)] = read_TH(path)
         elif key == "all_events":
             for path in self._summary[key]:
-                return_list.append(read_AE(path))
+                return_dict[create_file_key(path)] = read_AE(path)
         elif key == "traffic":
             for path in self._summary[key]:
-                return_list.append(
-                    read_traffic(
-                        path, self._output_config._Output.VehicleFile.FILE_FORMAT
-                    )
+                return_dict[create_file_key(path)] = read_traffic(
+                    path, self._output_config._Output.VehicleFile.FILE_FORMAT
                 )
         elif key == "BM_by_no_trucks":
             for path in self._summary[key]:
-                pass
+                return_dict[create_file_key(path)] = read_BM_V(path)
         elif key == "BM_by_mixed":
             for path in self._summary[key]:
-                pass
+                return_dict[create_file_key(path)] = read_BM_All(path)
         elif key == "BM_summary":
             for path in self._summary[key]:
-                pass
+                return_dict[create_file_key(path)] = read_BM_S(path)
         elif key == "POT_vehicle":
             for path in self._summary[key]:
-                pass
+                return_dict[create_file_key(path)] = read_POT_V(path)
         elif key == "POT_summary":
             for path in self._summary[key]:
-                pass
+                return_dict[create_file_key(path)] = read_POT_S(path)
         elif key == "POT_counter":
             for path in self._summary[key]:
-                pass
+                return_dict[create_file_key(path)] = read_POT_C(path)
         elif key == "traffic_statistics":
             for path in self._summary[key]:
-                pass
+                return_dict[create_file_key(path)] = read_TS(path)
         elif key == "E_cumulative_statistics":
             for path in self._summary[key]:
-                pass
+                return_dict[create_file_key(path)] = read_E_CS(path)
         elif key == "E_interval_statistics":
             for path in self._summary[key]:
-                pass
+                return_dict[create_file_key(path)] = read_E_IS(path)
         elif key == "fatigue_events":
             for path in self._summary[key]:
-                pass
+                return_dict[create_file_key(path)] = read_FE(path)
         elif key == "fatigue_rainflow":
             for path in self._summary[key]:
-                pass
+                return_dict[create_file_key(path)] = read_FR(path)
 
-        return return_list
+        return return_dict
 
     # def plot_data(self):
     #     pass

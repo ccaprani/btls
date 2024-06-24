@@ -1,4 +1,4 @@
-﻿pybtls.output.output\_config
+pybtls.output.output\_config
 ============================
 
 .. automodule:: pybtls.output.output_config

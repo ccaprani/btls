@@ -1,4 +1,4 @@
-﻿pybtls.bridge.bridge
+pybtls.bridge.bridge
 ====================
 
 .. automodule:: pybtls.bridge.bridge

@@ -17,7 +17,6 @@ pybtls.bridge.influence\_line.InfluenceSurface
       :nosignatures:
    
       ~InfluenceSurface.set_IS
-      ~InfluenceSurface.show
    
    
 
