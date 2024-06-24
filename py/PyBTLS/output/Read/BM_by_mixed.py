@@ -7,7 +7,7 @@ __all__ = ["read_BM_All"]
 
 def read_BM_All(file_path: Path) -> pd.DataFrame:
     """
-    Read the BM by mixed no. trucks data from pybtls results.\n 
+    Read the BM by mixed no. trucks data from pybtls results.\n
     The "Index" column in the return df indicates the current block. \n
     This output file does not have a header.
 
@@ -23,4 +23,3 @@ def read_BM_All(file_path: Path) -> pd.DataFrame:
     """
 
     return read_event_file(file_path)
-    

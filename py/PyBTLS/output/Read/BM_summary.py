@@ -4,7 +4,9 @@ from pathlib import Path
 __all__ = ["read_BM_S"]
 
 
-def read_BM_S(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.DataFrame:
+def read_BM_S(
+    file_path: Path, no_lines: int = None, start_line: int = 1
+) -> pd.DataFrame:
     """
     Read the BM summary data from pybtls results.\n
     This output file does not have a header.
@@ -27,21 +29,36 @@ def read_BM_S(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.
     """
 
     # Read data
-    return_data = pd.read_csv(
-        file_path,
-        sep="[\s\t]+",
-        header=None,
-        skiprows=max(0, start_line - 1),
-        nrows=no_lines,
-        engine="python",
-    )
+    data_rows = []
+
+    with open(file_path, "r") as file:
+        for _ in range(max(0, start_line - 1)):
+            next(file)  # Skip the specified number of lines
+        i = 0
+
+        for line in file:
+            split_line = line.strip().split()  # Split by spaces or tabs
+            data_rows.append(split_line)
+
+            i += 1
+            if no_lines is not None and i >= no_lines:
+                break
+
+    # Convert to DataFrame
+    return_data = pd.DataFrame(data_rows)
     no_effect_types = len(return_data.columns) - 1
-    
+
     # Set column ids
-    column_ids = ["Block Index"]
-    for i in range(no_effect_types):
-        effect_type = f"{i + 1}-Truck Event"
-        column_ids.append(effect_type)
+    column_ids = ["Block Index"] + [
+        f"{i + 1}-Truck Event" for i in range(no_effect_types)
+    ]
     return_data.columns = column_ids
+
+    # Convert data types
+    return_data["Block Index"] = return_data["Block Index"].astype(int)
+    for i in range(no_effect_types):
+        return_data[f"{i + 1}-Truck Event"] = pd.to_numeric(
+            return_data[f"{i + 1}-Truck Event"], errors="coerce"
+        )
 
     return return_data

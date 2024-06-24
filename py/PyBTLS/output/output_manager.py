@@ -1,8 +1,24 @@
 from .output_config import OutputConfig
-from .Read import read_TH, read_AE, read_traffic, read_TS, read_BM_V, read_BM_All, read_BM_S, read_POT_S, read_POT_V, read_POT_C, read_E_CS, read_E_IS, read_FE, read_FR
+from .Read import (
+    read_TH,
+    read_AE,
+    read_traffic,
+    read_TS,
+    read_BM_V,
+    read_BM_All,
+    read_BM_S,
+    read_POT_S,
+    read_POT_V,
+    read_POT_C,
+    read_E_CS,
+    read_E_IS,
+    read_FE,
+    read_FR,
+)
+
 # from .Plot import plot_TH, plot_AE, plot_BM_S
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Union
 import pandas as pd
 import glob
 
@@ -64,17 +80,28 @@ class _OutputManager:
         )
         self._fetch_summary()
 
-    def get_summary(self) -> dict:
+    def get_summary(self, with_path: bool = False) -> Union[list, dict]:
         """
-        Get a dict storing the paths of the output files.
+        Get to know the available outputs.
+
+        Parameters
+        ----------
+        with_path : bool, optional\n
+            Default is False.\n
+            If True, the return will include the the output file paths.
 
         Returns
         -------
-        dict\n
-            The paths.
+        Union[list,dict]\n
+            The available outputs.
         """
 
-        return self._summary
+        filtered_summary = {k: v for k, v in self._summary.items() if v is not None}
+
+        if with_path:
+            return filtered_summary
+        else:
+            return list(filtered_summary.keys())
 
     def read_data(
         self,
@@ -106,14 +133,20 @@ class _OutputManager:
         Returns
         -------
         dict[str, pd.DataFrame]\n
-            The data. The key is the file name without .txt. 
+            The data. The key is the file name without .txt.
         """
 
         if self._summary[key] is None:
             raise ValueError(f"Output {key} is invalid.")
 
         def create_file_key(file_path: Path) -> str:
-            return str(file_path).split("/")[-1].strip(".txt")
+            file_path_split = str(file_path).split("/")
+            if self._output_config is None:
+                return file_path_split[
+                    -2
+                ]  # dir1 or dir2, enough for single-vehicle sim
+            else:
+                return file_path_split[-1].rstrip(".txt")
 
         return_dict: dict[str, pd.DataFrame] = {}
 
@@ -174,15 +207,15 @@ class _OutputManager:
     def _fetch_summary(self) -> None:
         if self._output_config is None:
             self._summary["time_history"] = self._search_file(
-                self._output_root / (self._this_output_dir + "dir1"), "TH_"
+                self._output_root / (self._this_output_dir + "/dir1"), "TH_"
             ) + self._search_file(
-                self._output_root / (self._this_output_dir + "dir2"), "TH_"
+                self._output_root / (self._this_output_dir + "/dir2"), "TH_"
             )
 
             self._summary["all_events"] = self._search_file(
-                self._output_root / (self._this_output_dir + "dir1"), "BL_*_AllEvents"
+                self._output_root / (self._this_output_dir + "/dir1"), "BL_*_AllEvents"
             ) + self._search_file(
-                self._output_root / (self._this_output_dir + "dir2"), "BL_*_AllEvents"
+                self._output_root / (self._this_output_dir + "/dir2"), "BL_*_AllEvents"
             )
 
         else:

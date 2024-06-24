@@ -31,6 +31,8 @@ def save_output(output: dict[str, _OutputManager], file_path: Path) -> None:
     with open(file_path, "wb") as file:
         pickle.dump(output, file)
 
+    print(f"Outputs have been successfully saved to {file_path}!")
+
 
 def load_output(file_path: Path) -> dict[str, _OutputManager]:
     """
@@ -53,5 +55,7 @@ def load_output(file_path: Path) -> dict[str, _OutputManager]:
 
     if not all(isinstance(obj, _OutputManager) for obj in output.values()):
         raise RuntimeError("The output pkl is damaged.")
+    else:
+        print(f"Outputs have been successfully loaded from {file_path}!")
 
     return output

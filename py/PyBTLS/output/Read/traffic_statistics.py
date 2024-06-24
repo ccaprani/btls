@@ -30,14 +30,37 @@ def read_TS(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     with open(file_path, "r") as file:
         headline = file.readline().strip()
     if "Axles" in headline:
-        column_names = ["Hour", "No. Vehicles", "No. Trucks", "No. Cars", "2-Axles", "3-Axles", "4-Axles", "5-Axles"]
+        column_names = [
+            "Hour",
+            "No. Vehicles",
+            "No. Trucks",
+            "No. Cars",
+            "2-Axles",
+            "3-Axles",
+            "4-Axles",
+            "5-Axles",
+        ]
     else:
-        column_names = ["Hour", "No. Vehicles", "No. Trucks", "No. Cars", "0: Default", "1: Car", "2: Pattern 11", "3: Pattern 123", "4: Pattern 12", "5: Pattern 1233", "6: Pattern 122", "7: Pattern 112", "8: Pattern 113"]
+        column_names = [
+            "Hour",
+            "No. Vehicles",
+            "No. Trucks",
+            "No. Cars",
+            "0: Default",
+            "1: Car",
+            "2: Pattern 11",
+            "3: Pattern 123",
+            "4: Pattern 12",
+            "5: Pattern 1233",
+            "6: Pattern 122",
+            "7: Pattern 112",
+            "8: Pattern 113",
+        ]
 
     # Read data
     return_data = pd.read_csv(
         file_path,
-        delimiter='\s+',
+        delimiter="\s+",
         names=column_names,
         skiprows=max(1, start_line),
         nrows=no_lines,

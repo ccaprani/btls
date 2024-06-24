@@ -29,25 +29,23 @@ def read_FE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     # Read data
     data_rows = []
 
-    with open(file_path, 'r') as file:
-
-        for _ in range(max(0, 2*(start_line - 1))):
+    with open(file_path, "r") as file:
+        for _ in range(max(0, 2 * (start_line - 1))):
             next(file)  # Skip the specified number of lines
         i = 0
 
         for line in file:
-
             split_line_1 = line.strip().split()  # Split by spaces or tabs
             split_line_2 = next(file).strip().split()  # Split by spaces or tabs
 
-            no_effects = len(split_line_1) - 1
+            no_effects = int((len(split_line_1) - 1) / 2)
 
             ordered_line = [split_line_1[0], split_line_2[0]]  # Event Time, No. Trucks
             for j in range(no_effects):
-                ordered_line.append(split_line_1[2*j + 1])  # Time Max
-                ordered_line.append(split_line_1[2*j + 2])  # Max
-                ordered_line.append(split_line_2[2*j + 1])  # Time Min
-                ordered_line.append(split_line_2[2*j + 2])  # Min
+                ordered_line.append(split_line_1[2 * j + 1])  # Time Max
+                ordered_line.append(split_line_1[2 * j + 2])  # Max
+                ordered_line.append(split_line_2[2 * j + 1])  # Time Min
+                ordered_line.append(split_line_2[2 * j + 2])  # Min
 
             data_rows.append(ordered_line)
 

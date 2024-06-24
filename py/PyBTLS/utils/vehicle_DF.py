@@ -92,7 +92,7 @@ def df_to_vehicle_list(df: pd.DataFrame) -> list[Vehicle]:
     ):
         raise ValueError("DataFrame must contain all the required columns.")
 
-    # Recalculate the GVW and Length just in case if AxleWeights and AxleSpacings are modified. The NoAxles should not be modified; instead, a new vehicle should be created if user wants to change the number of axles. 
+    # Recalculate the GVW and Length just in case if AxleWeights and AxleSpacings are modified. The NoAxles should not be modified; instead, a new vehicle should be created if user wants to change the number of axles.
     df["GVW"] = df["AxleWeights"].apply(lambda x: sum(x))
     df["Length"] = df["AxleSpacings"].apply(lambda x: sum(x))
 

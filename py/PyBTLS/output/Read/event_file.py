@@ -24,9 +24,8 @@ def read_event_file(file_path: Path) -> pd.DataFrame:
     # Read data
     data_rows = []
 
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         for line in file:
-
             if " " not in line:
                 index = line.strip()
                 continue
@@ -43,7 +42,15 @@ def read_event_file(file_path: Path) -> pd.DataFrame:
 
     # Convert to DataFrame
     return_data = pd.DataFrame(data_rows)
-    return_data.columns = ["Index", "Effect", "Value", "Time", "Position on Bridge", "No. Trucks", "Trucks"]  # The "Position on Bridge" means the distance of the first axle of the first truck on the bridge relative to the bridge datum, at the time of the crossing event maximum effect being reached.
+    return_data.columns = [
+        "Index",
+        "Effect",
+        "Value",
+        "Time",
+        "Position on Bridge",
+        "No. Trucks",
+        "Trucks",
+    ]  # The "Position on Bridge" means the distance of the first axle of the first truck on the bridge relative to the bridge datum, at the time of the crossing event maximum effect being reached.
 
     # Convert data types
     return_data["Index"] = return_data["Index"].astype(int)

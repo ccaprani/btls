@@ -40,10 +40,9 @@ def read_TH(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     no_effects = len(return_data.columns) - 2
 
     # Set column ids
-    column_ids = ["Time (s)", "No. Trucks"]
-    for i in range(no_effects):
-        effect_id = f"Effect {i + 1}"
-        column_ids.append(effect_id)
+    column_ids = ["Time (s)", "No. Trucks"] + [
+        f"Effect {i + 1}" for i in range(no_effects)
+    ]
     return_data.columns = column_ids
 
     return return_data

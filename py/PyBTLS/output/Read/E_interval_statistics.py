@@ -4,10 +4,12 @@ from pathlib import Path
 __all__ = ["read_E_IS"]
 
 
-def read_E_IS(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.DataFrame:
+def read_E_IS(
+    file_path: Path, no_lines: int = None, start_line: int = 1
+) -> pd.DataFrame:
     """
     Read the effect interval statistics data from pybtls results.\n
-    This output file has a header. 
+    This output file has a header.
 
     Parameters
     ----------
@@ -29,7 +31,7 @@ def read_E_IS(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.
     # Read data
     data_rows = []
 
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         for _ in range(max(1, start_line)):
             next(file)  # Skip the header and the specified number of lines
         i = 0
@@ -42,8 +44,21 @@ def read_E_IS(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.
 
     # Convert to DataFrame
     return_data = pd.DataFrame(data_rows)
-    return_data = return_data.drop(return_data.columns[10:], axis=1)  # Remove the useless truck presence counts
-    return_data.columns = ["Index", "Time", "No. Events", "No. Vehicles", "No. Trucks", "Mean", "Std Dev", "Variance", "Skewness", "Kurtosis"]
+    return_data = return_data.drop(
+        return_data.columns[10:], axis=1
+    )  # Remove the useless truck presence counts
+    return_data.columns = [
+        "Index",
+        "Time",
+        "No. Events",
+        "No. Vehicles",
+        "No. Trucks",
+        "Mean",
+        "Std Dev",
+        "Variance",
+        "Skewness",
+        "Kurtosis",
+    ]
 
     # Convert data types
     return_data["Index"] = return_data["Index"].astype(int)

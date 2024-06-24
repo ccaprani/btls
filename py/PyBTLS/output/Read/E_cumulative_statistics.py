@@ -6,7 +6,7 @@ __all__ = ["read_E_CS"]
 
 def read_E_CS(file_path: Path) -> pd.DataFrame:
     """
-    Read the effect cumulative statistics data from pybtls results.\n 
+    Read the effect cumulative statistics data from pybtls results.\n
     This output file has a header.
 
     Parameters
@@ -23,16 +23,26 @@ def read_E_CS(file_path: Path) -> pd.DataFrame:
     # Read data
     return_data = pd.read_csv(
         file_path,
-        delimiter='\s+',
+        delimiter="\s+",
         header=None,
         skiprows=1,
     )
 
-    # Remove the truck presence counts (it could mislead user to a wrong number of trucks presence since a truck could be involved in multiple events). 
+    # Remove the truck presence counts (it could mislead user to a wrong number of trucks presence since a truck could be involved in multiple events).
     return_data = return_data.drop(return_data.columns[9:], axis=1)
 
-    # Set the column names 
-    return_data.columns = ["Effect", "No. Events", "No. Vehicles", "No. Trucks", "Mean", "Std Dev", "Variance", "Skewness", "Kurtosis"]
+    # Set the column names
+    return_data.columns = [
+        "Effect",
+        "No. Events",
+        "No. Vehicles",
+        "No. Trucks",
+        "Mean",
+        "Std Dev",
+        "Variance",
+        "Skewness",
+        "Kurtosis",
+    ]
 
     return return_data
 

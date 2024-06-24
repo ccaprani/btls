@@ -4,7 +4,9 @@ from pathlib import Path
 __all__ = ["read_POT_S"]
 
 
-def read_POT_S(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.DataFrame:
+def read_POT_S(
+    file_path: Path, no_lines: int = None, start_line: int = 1
+) -> pd.DataFrame:
     """
     Read the POT summary data from pybtls results.\n
     This output file does not have a header.
@@ -29,7 +31,7 @@ def read_POT_S(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd
     # Read data
     return_data = pd.read_csv(
         file_path,
-        delimiter='\s+',
+        delimiter="\s+",
         names=["Peak Index", "Time", "No. Trucks", "Peak Value"],
         skiprows=max(0, start_line - 1),
         nrows=no_lines,

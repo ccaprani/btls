@@ -23,15 +23,15 @@ def read_FR(file_path: Path) -> pd.DataFrame:
     # Read data
     return_data = pd.read_csv(
         file_path,
-        delimiter='\s+',
+        delimiter="\s+",
         names=["Amplitude", "No. Cycles"],
         skiprows=1,
     )
 
     # Sort the DataFrame by 'Amplitude'
-    return_data.sort_values(by='Amplitude', inplace=True)
+    return_data.sort_values(by="Amplitude", inplace=True)
 
     # Group by 'Amplitude', sum 'No. Cycles' for duplicates, and reset index
-    return_data = return_data.groupby('Amplitude', as_index=False)['No. Cycles'].sum()
+    return_data = return_data.groupby("Amplitude", as_index=False)["No. Cycles"].sum()
 
     return return_data

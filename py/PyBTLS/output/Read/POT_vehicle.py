@@ -7,7 +7,7 @@ __all__ = ["read_POT_V"]
 
 def read_POT_V(file_path: Path) -> pd.DataFrame:
     """
-    Read the POT by certain no. trucks data from pybtls results.\n 
+    Read the POT by certain no. trucks data from pybtls results.\n
     The "Index" column in the return df indicates the particular loading event in legacy files. \n
     This output file does not have a header.
 
@@ -23,4 +23,3 @@ def read_POT_V(file_path: Path) -> pd.DataFrame:
     """
 
     return read_event_file(file_path)
-    
