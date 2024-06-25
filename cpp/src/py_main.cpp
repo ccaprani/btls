@@ -11,8 +11,18 @@ namespace py = pybind11;
 
 
 PYBIND11_MODULE(libbtls, m) {
-	m.def("get_info", &preamble);
-	m.def("run", &run, "Run the simulation.", py::arg("BTLSin_file"));
+	m.def("get_info", &preamble, "Print the information of the BTLS library.");
+	m.def("run", &run, 
+		R"(
+		Run the simulation in the traditional BTLS way. 
+
+		Parameters
+		----------
+		BTLSin_file : str \n
+			The path to the BTLS input file. \n
+			Refer to the BTLS manual for what it means.
+		)", 
+		py::arg("BTLSin_file"));
 	py::class_<CConfigDataCore> cconfigdatacore(m, "_ConfigDataCore");
 		cconfigdatacore.def(py::init<>())
 			.def_readwrite("_Road", &CConfigDataCore::Road)

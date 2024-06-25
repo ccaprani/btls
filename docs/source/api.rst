@@ -4,6 +4,8 @@ API Reference
 Package Modules
 ---------------
 
+The API will appear here
+
 .. autosummary::
     :toctree: gen
     :template: custom-module-template.rst
@@ -14,6 +16,5 @@ Package Modules
     pybtls.output
     pybtls.lib
     pybtls.simulation
-    pybtls.utils
     pybtls.garage
-
+    pybtls.utils

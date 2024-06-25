@@ -40,7 +40,7 @@ def write_garage_file(
 
     Keyword Arguments
     -----------------
-    vehicle_class_type : str, optional \n
+    vehicle_class_type : Literal["axle", "pattern"], optional \n
         axle: Categorise vehicle by axle. \n
         pattern (Default): Categorise vehicle by pattern. \n
     """

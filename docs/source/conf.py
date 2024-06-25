@@ -13,17 +13,36 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../../"))
+
+def get_version():
+    version = None
+    pyproject_path = os.path.join(os.path.dirname(__file__), "../../", "pyproject.toml")
+    with open(pyproject_path, "r") as f:
+        for line in f:
+            if line.startswith("version ="):
+                # Extract the version string
+                version = line.split('"')[1]
+                break
+    if version is None:
+        raise RuntimeError("Version not found in pyproject.toml")
+    return version
+
+
+ver = get_version()
 
 
 # -- Project information -----------------------------------------------------
 
 project = "PyBTLS"
-copyright = "2023, Colin Caprani"
-author = "Colin Caprani, Ziyi Zhou, Akbar Rizqiansyah"
+copyright = "2024, The PyBTLS Developers"
+author = "Ziyi Zhou, Colin Caprani, Akbar Rizqiansyah"
 
 # The full version, including alpha/beta/rc tags
-release = "0.4"
+# The short Major.Minor.Build version
+_v = ver.split(".")
+_build = "".join([c for c in _v[2] if c.isdigit()])
+version = _v[0] + "." + _v[1] + "." + _build
+release = ver
 
 
 # -- General configuration ---------------------------------------------------
@@ -33,12 +52,14 @@ release = "0.4"
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.doctest",
     "sphinx.ext.todo",
     "sphinx.ext.autosummary",
+    "sphinx.ext.coverage",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",  # See https://github.com/tox-dev/sphinx-autodoc-typehints/issues/15
     "sphinx_autodoc_typehints",
-    "sphinx.ext.coverage",
+    "sphinx.ext.mathjax",
     "sphinx.ext.githubpages",
     # .. "recommonmark",
     "nbsphinx",
@@ -81,7 +102,7 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "GitHub",
-            "url": "https://github.com/ccaprani/btls",
+            "url": "https://github.com/pybtls/pybtls",
             "icon": "fab fa-github-square",
         },
         {
@@ -93,17 +114,16 @@ html_theme_options = {
     "use_edit_page_button": True,
 }
 html_context = {
-    "github_user": "ccaprani",
-    "github_repo": "PyBTLS",
+    "github_user": "pybtls",
+    "github_repo": "pybtls",
     "github_version": "main",
     "doc_path": "docs/source/",
 }
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = "./images/PyBTLS_logo.png"
+html_logo = "./images/logo/PyBTLS_logo_small.png"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 # html_static_path = ["_static"]
-nbsphinx_execute = "never"

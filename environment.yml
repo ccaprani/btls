@@ -1,4 +1,4 @@
-name: pybtls
+name: pybtls-dev
 channels:
   - conda-forge
   - defaults

@@ -22,25 +22,25 @@ def read_garage_file(
 
     Parameters
     ----------
-    garage_path : Path\n
+    garage_path : Path \n
         The path of the garage file.
 
-    garage_format : Literal[1,2,3,4]\n
-        The format of the .txt garage file.\n
-        1: CASTOR format.\n
-        2: BEDIT format.\n
-        3: DITIS format.\n
+    garage_format : Literal[1,2,3,4] \n
+        The format of the .txt garage file. \n
+        1: CASTOR format. \n
+        2: BEDIT format. \n
+        3: DITIS format. \n
         4: MON format.
 
     Keyword Arguments
     -----------------
-    vehicle_class_type : str, optional\n
-        axle: Categorise vehicle by axle.\n
+    vehicle_class_type : Literal["axle", "pattern"], optional \n
+        axle: Categorise vehicle by axle. \n
         pattern (Default): Categorise vehicle by pattern.
 
     Returns
     -------
-    vehicle_list : list[_Vehicle]\n
+    vehicle_list : list[_Vehicle] \n
         A list of Vehicle objects.
     """
 

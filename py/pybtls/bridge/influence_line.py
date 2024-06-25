@@ -20,7 +20,7 @@ class InfluenceLine:
 
         Parameters
         ----------
-        IL_type : Literal["discrete","built-in"]\n
+        IL_type : Literal["discrete","built-in"] \n
             Influence line type.
         """
 
@@ -55,21 +55,22 @@ class InfluenceLine:
 
         Keyword Arguments
         -----------------
-        For discrete:\n
-            - position : Union[list,np.ndarray]\n
+        For discrete: \n
+            - position : Union[list,np.ndarray] \n
                 Discrete influence line position (X).
 
-            - ordinate : Union[list,np.ndarray]\n
+            - ordinate : Union[list,np.ndarray] \n
                 Discrete influence line ordinate (Y).
 
-            - compress_tolerance : float, optional\n
+            - compress_tolerance : float, optional \n
                 The maximum relative error (0.001~0.1) allowed for a discrete influence line to be simplified (to boost simulation). \n
                 The default is None.
 
-        For built-in:\n
-            - type : Literal[1,2,3,4,5,6,7,8,9]\n
+        For built-in: \n
+            - type : Literal[1,2,3,4,5,6,7,8,9] \n
                 Built-in influence line type. \n
                 What the number represents: \n
+                (The support numbering starts from the left side.) \n
                 1: The mid-span sagging BM of a simply supported beam. \n
                 2: The 2nd support hogging BM of a two-span continuous beam. \n
                 3: The 1st support SF of a simply supported beam. \n
@@ -79,10 +80,9 @@ class InfluenceLine:
                 7: The total weights of vehicle being on the beam. \n
                 8: The 2nd support hogging BM of a three-span continuous beam. \n
                 9: The 3rd support hogging BM of a three-span continuous beam. \n
-                (The support numbering starts from the left side.) \n
                 (Beams' first and last supports are pin.)
 
-            - length : float\n
+            - length : float \n
                 Built-in influence line length.
 
         Returns
@@ -217,18 +217,18 @@ class InfluenceSurface:
         ----------
         IS_matrix : Union[list,np.ndarray]\n
             Influence surface matrix, where the data points are meshed in grid (refer to the BTLS Manual for an example).\n
-            First row: The transverse position of the IS data points.\n
-            First column: The longitudinal position of the IS data points.\n
-            Rest of data: The corresponding values of the IS data points at the positions.\n
+                First row: The transverse position of the IS data points.\n
+                First column: The longitudinal position of the IS data points.\n
+                Rest of data: The corresponding values of the IS data points at the positions.\n
             Here's a simple illustration about the bridge coordinate:\n
-            Observe the bridge from its plan view\n
-            and regard its longitudinal direction as the horizontal.\n
-            Now the origin point is at the left down corner.\n
+                Observe the bridge from its plan view\n
+                and regard its longitudinal direction as the horizontal.\n
+                Now the origin point is at the left down corner.\n
 
         lane_position : Union[list,np.ndarray]\n
             Lanes' transverse positions.\n
             [(lane 1 left, lane 1 right), ..., (lane n left, lane n right)]\n
-            Lane 1 is the furthest lane to the origin point.
+            Lane 1 is the nearest lane to the origin point.
 
         Returns
         -------

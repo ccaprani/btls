@@ -1,4 +1,4 @@
-﻿pybtls.output.Read
+pybtls.output.Read
 ==================
 
 .. automodule:: pybtls.output.Read

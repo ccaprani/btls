@@ -73,12 +73,12 @@ class Bridge:
             An InfluenceLine list (one IL per lane); \n
             An InfluenceSurface (for all lanes).
 
-        inf_weight : list[float], optional\n
-            Influence weight (0.0 to 1.0).
+        inf_weight : list[float], optional \n
+            Influence weight (0.0 to 1.0). \n
             The default is 1.0 for all lanes.
 
-        threshold : float, optional\n
-            Threshold for POT analysis.
+        threshold : float, optional \n
+            Threshold for POT analysis. \n
             The default is 0.0.
 
         Returns

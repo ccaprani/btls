@@ -27,7 +27,10 @@ class LaneFlowComposition:
             The index of the lane. 1-based global index.
 
         lane_dir : Literal[1,2]\n
-            The direction of the lane.
+            The direction of the lane.\n
+            1 - vehicles drive from left to right.\n
+            2 - vehicles drive from right to left.\n
+            Must be in the same coordinate system used when defining the bridge.
 
         no_block : int, optional\n
             The number of blocks in a day. The default is 24.
