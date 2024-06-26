@@ -13,29 +13,14 @@
 import os
 import sys
 
-
-def get_version():
-    version = None
-    pyproject_path = os.path.join(os.path.dirname(__file__), "../../", "pyproject.toml")
-    with open(pyproject_path, "r") as f:
-        for line in f:
-            if line.startswith("version ="):
-                # Extract the version string
-                version = line.split('"')[1]
-                break
-    if version is None:
-        raise RuntimeError("Version not found in pyproject.toml")
-    return version
-
-
-ver = get_version()
-
+sys.path.insert(0, os.path.abspath("../../py/"))
+from pybtls import __version__ as ver
 
 # -- Project information -----------------------------------------------------
 
 project = "PyBTLS"
 copyright = "2024, The PyBTLS Developers"
-author = "Ziyi Zhou, Colin Caprani, Akbar Rizqiansyah"
+author = "Colin Caprani, Ziyi Zhou, Akbar Rizqiansyah"
 
 # The full version, including alpha/beta/rc tags
 # The short Major.Minor.Build version
@@ -102,7 +87,7 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "GitHub",
-            "url": "https://github.com/pybtls/pybtls",
+            "url": "https://github.com/ccaprani/btls",
             "icon": "fab fa-github-square",
         },
         {

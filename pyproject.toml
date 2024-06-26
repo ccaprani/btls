@@ -13,8 +13,8 @@ description = "A package for short-to-mid span bridge traffic loading simulation
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [
-    { name="Ziyi Zhou", email="ziyi.zhou@monash.edu" },
     { name="Colin Caprani", email="colin.caprani@monash.edu" }, 
+    { name="Ziyi Zhou", email="ziyi.zhou@monash.edu" },
     { name="Akbar Rizqiansyah", email="akbar.rizqiansyah@monash.edu" }
 ]
 license = { text = "GNU GPL v3" }
