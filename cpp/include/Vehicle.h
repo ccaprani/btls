@@ -15,6 +15,7 @@
 #include <memory>
 #include <math.h>
 #include "VehicleClassification.h"
+#include "BTLS_Config.h"
 
 #ifdef PyBTLS
 #include "pybind11/pybind11.h"

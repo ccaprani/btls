@@ -6,11 +6,18 @@
 #include "pybind11/stl.h"
 #include "pybind11/stl/filesystem.h"
 
+#define STRINGIFY(x) #x
+#define MACRO_STRINGIFY(x) STRINGIFY(x)
 
 namespace py = pybind11;
 
 
 PYBIND11_MODULE(libbtls, m) {
+	#ifdef VERSION_INFO
+		m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
+	#else
+		m.attr("__version__") = "dev";
+	#endif
 	m.def("get_info", &preamble, "Print the information of the BTLS library.");
 	m.def("run", &run, 
 		R"(

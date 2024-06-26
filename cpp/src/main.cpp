@@ -2,15 +2,12 @@
 // the main file for the BridgeTrafficLoadSim Build
 
 #include "PrepareSim.h"
-#include "BTLS_Config.h"
 
-#ifdef Win
+#ifdef WIN_DEBUG
 // for tracking memory leaks
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
-#endif
 
-#ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
 #endif
@@ -18,7 +15,7 @@
 
 int main()
 {
-	#ifdef Win
+	#ifdef WIN_DEBUG
 	// For debugging memory leaks to the std::cout, but only after
 	// all other execution has finished, otherwise false reports of
 	// leaks occur (e.g. std::string)

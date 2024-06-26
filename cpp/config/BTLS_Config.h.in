@@ -1,1 +1,4 @@
-#cmakedefine Win
+#cmakedefine BTLS
+#cmakedefine PyBTLS
+#cmakedefine WIN_DEBUG
+#cmakedefine DEBUG_BUILD
