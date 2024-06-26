@@ -27,6 +27,14 @@ jobs:
         ls -la py/pybtls
         ls -la py/pybtls/lib
 
+    - name: Print Python site-packages directory
+      run: |
+        python -c "import site; print(site.getsitepackages())"
+
+    - name: Locate installed .so file
+      run: |
+        find $(python -c "import site; print(site.getsitepackages()[0])") -name "libbtls*.so"
+
     - uses: ammaraskar/sphinx-action@master
       with:
         docs-folder: "docs/"
