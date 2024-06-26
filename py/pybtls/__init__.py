@@ -1,6 +1,8 @@
 """
 Bridge Traffic Load Simulation with Python. 
 """
+import os
+import sys
 
 __version__ = "0.3.7"  # Should also manually update in pyproject.toml
 
