@@ -26,7 +26,7 @@
 class CCSVParse {	// read and parse comma-separated values
 	// sample input: "LU",86.25,"11/4/1998","2:19PM",+4.0625
 
-  public:
+public:
 	void CloseFile();
 	// Is overloaded by a filesystem::path
 	bool OpenFile(std::string inFile, std::string sep);
@@ -43,7 +43,7 @@ class CCSVParse {	// read and parse comma-separated values
 	int stringToInt(std::string line);
 	bool stringToBool(std::string line);
 
-  private:
+private:
 	std::ifstream fin;			// input file pointer
 	std::string line;			// input line
 	std::vector<std::string> field;	// field strings

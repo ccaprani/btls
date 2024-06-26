@@ -7,7 +7,7 @@ CVehicleTrafficFile::CVehicleTrafficFile(CVehicleClassification_sp pVC,
 	m_NoVehs = 0;
 	m_NoDays = 0;
 	m_NoLanes = 0;
-	m_NoDirn = 1;
+	m_NoDirn = 0;
 	m_NoLanesDir1 = 0;
 	m_NoLanesDir2 = 0;
 	
@@ -24,31 +24,43 @@ CVehicleTrafficFile::~CVehicleTrafficFile(void)
 {
 }
 
-void CVehicleTrafficFile::Read(std::string file, int filetype)
+void CVehicleTrafficFile::Read(std::filesystem::path file, int filetype)
 {
-	std::ifstream inFile( file.c_str(), std::ios::in );
-	// check to see if file was created
-	if( !inFile )
+	std::ifstream inFile(file, std::ios::in); // Since C++17, can directly use std::filesystem::path
+	if (!inFile)	// check to see if file was created
 	{
 		std::cout << "Input traffic file: " << file << " could not be opened" << std::endl;
 		system("PAUSE");
-		exit( 1 );
+		exit(1);
 	}
 
 	std::string str;
-	while(!inFile.eof())
+	while(std::getline(inFile, str))	// Improved reading loop
 	{
-		std::getline(inFile, str, '\n');
-		if(str != "")
+		if(!str.empty())
 		{
-			CVehicle_sp pVeh = std::make_shared<CVehicle>(); //new CVehicle;
+			CVehicle_sp pVeh = std::make_shared<CVehicle>();	//new CVehicle;
 			pVeh->create(str, filetype);
 			m_pVehClassification->setClassification(pVeh);
 			m_vVehicles.push_back(pVeh);
 		}
 	}
-	inFile.close();
 
+	AnalyseTraffic();
+}
+
+void CVehicleTrafficFile::AssignTraffic(std::vector<CVehicle_sp> vVehicles)
+{
+	m_vVehicles = vVehicles;
+	for (CVehicle_sp pVeh : m_vVehicles)
+	{
+		m_pVehClassification->setClassification(pVeh);
+	}
+	AnalyseTraffic();
+}
+
+void CVehicleTrafficFile::AnalyseTraffic()
+{
 	UpdateProperties();
 	if(m_UseConstSpeed)
 		SetSpeed();
@@ -86,7 +98,6 @@ void CVehicleTrafficFile::UpdateProperties()
 		size_t dirn = pVeh->getDirection();
 		size_t lane = pVeh->getLocalLane();
 		
-		if(dirn > m_NoDirn) m_NoDirn = 2;
 		if(dirn == 1 && lane > maxLaneNoDir1) maxLaneNoDir1 = lane;
 		if(dirn == 2 && lane > maxLaneNoDir2) maxLaneNoDir2 = lane;
 	}
@@ -100,6 +111,7 @@ void CVehicleTrafficFile::UpdateProperties()
 		// Lnes are no longer cumulative
 		m_NoLanesDir2 = maxLaneNoDir2;
 		m_NoLanes = m_NoLanesDir1 + m_NoLanesDir2;
+		m_NoDirn = 2;
 	}
 	else	// only one direction has lanes
 	{
@@ -113,6 +125,7 @@ void CVehicleTrafficFile::UpdateProperties()
 			m_NoLanesDir2 = maxLaneNoDir2;
 			m_NoLanes = m_NoLanesDir2;
 		}
+		m_NoDirn = 1;
 	}
 
 	if(m_NoVehs > 0)
@@ -130,7 +143,8 @@ CVehicle_sp CVehicleTrafficFile::getNextVehicle()
 	if(m_iCurVehicle > m_NoVehs-1) // m_iCurVehicle is zero-based
 		return nullptr;
 
-	CVehicle_sp pVeh = m_vVehicles.at(m_iCurVehicle);
+	CVehicle_sp pVeh = std::make_shared<CVehicle>(); //new CVehicle;
+	*pVeh = *m_vVehicles.at(m_iCurVehicle);
 	m_iCurVehicle++;
 	return pVeh;
 }

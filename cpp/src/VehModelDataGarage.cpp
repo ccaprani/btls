@@ -13,6 +13,18 @@ CVehModelDataGarage::CVehModelDataGarage(CConfigDataCore& config, CVehicleClassi
 	ReadDataIn();
 }
 
+CVehModelDataGarage::CVehModelDataGarage(CConfigDataCore& config, CVehicleClassification_sp pVC, CLaneFlowComposition lfc, std::vector<CVehicle_sp> vVehicles, std::vector<std::vector<double>> vKernelParams)
+	: CVehicleModelData(config, eVM_Garage, pVC, lfc, 1) // MAGIC NUMBER - truck class count
+	, m_NoVehicles(0)
+{
+	// MAGIC NUMBER for now
+	m_KernelGVW = KernelParams(1.0,0.08); // Mean and COV
+	m_KernelAW 	= KernelParams(1.0,0.05);
+	m_KernelAS 	= KernelParams(1.0,0.02);
+
+	assignGarage(vVehicles);
+	assignKernels(vKernelParams);
+}
 
 CVehModelDataGarage::~CVehModelDataGarage()
 {
@@ -29,7 +41,7 @@ void CVehModelDataGarage::readGarage()
 	CVehicleTrafficFile TrafficFile(m_pVehClassification, false, false, 0.0);
 	std::cout << "Reading traffic garage file..." << std::endl;
 	std::filesystem::path file = m_Config.Read.GARAGE_FILE;
-	TrafficFile.Read(file.string(), m_Config.Read.FILE_FORMAT);
+	TrafficFile.Read(file, m_Config.Read.FILE_FORMAT);
 
 	assignGarage(TrafficFile.getVehicles());
 }
@@ -67,6 +79,18 @@ void CVehModelDataGarage::readKernels()
 		m_KernelAS.Location = m_CSV.stringToDouble(m_CSV.getfield(0));
 		m_KernelAS.Scale = m_CSV.stringToDouble(m_CSV.getfield(1));
 	}
+}
+
+void CVehModelDataGarage::assignKernels(std::vector<std::vector<double>> vKernelParams)
+{
+	m_KernelGVW.Location = vKernelParams.at(0).at(0);
+	m_KernelGVW.Scale = vKernelParams.at(0).at(1);
+	
+	m_KernelAW.Location = vKernelParams.at(1).at(0);
+	m_KernelAW.Scale = vKernelParams.at(1).at(1);
+	
+	m_KernelAS.Location = vKernelParams.at(2).at(0);
+	m_KernelAS.Scale = vKernelParams.at(2).at(1);
 }
 
 CVehicle_sp CVehModelDataGarage::getVehicle(size_t i)

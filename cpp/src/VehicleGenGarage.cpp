@@ -35,6 +35,7 @@ void CVehicleGenGarage::GenerateVehicle(CVehicle_sp pVeh)
 		// Now randomize the vehicle
 		randomize(pVeh);
 	}
+	m_pVehClassification->setClassification(pVeh);	// It has been done when load garage, but the class info losses when pickle and unpickle in Python. 
 }
 
 void CVehicleGenGarage::randomize(CVehicle_sp pVeh)

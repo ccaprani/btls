@@ -1,0 +1,21 @@
+name: pybtls-dev
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - setuptools
+  - wheel
+  - pybind11
+  - pytest
+  - numpy
+  - pandas
+  - matplotlib
+  - scipy
+  - seaborn
+  - pyarrow
+  - nbsphinx
+  - pip
+  - pip:
+    - pydata_sphinx_theme
+    - sphinx_autodoc_typehints

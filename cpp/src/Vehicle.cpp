@@ -13,6 +13,16 @@
 
 CVehicle::CVehicle() : m_Class(Classification(0, "default"))
 {
+	setConstants();
+}
+
+CVehicle::~CVehicle()
+{
+
+}
+
+void CVehicle::setConstants()
+{
 	// We're not wrapping the time constants, so just use the internal values
 	DAYS_PER_MT		= CConfigData::get().Time.DAYS_PER_MT;
 	MTS_PER_YR		= CConfigData::get().Time.MTS_PER_YR;
@@ -39,10 +49,71 @@ CVehicle::CVehicle() : m_Class(Classification(0, "default"))
 //	m_FileFormat = eCASTOR;
 }
 
-CVehicle::~CVehicle()
+#ifdef PyBTLS
+// Used in Python for creating a template vehicle. 
+CVehicle::CVehicle(size_t noAxles) : CVehicle() 
 {
-
+	setNoAxles(noAxles);
+	setHead(0);
+	setTime(0.0);
+	setVelocity(0.0);
+	setLocalLane(1);
+	setDirection(1);
+	setTrans(1.8);
 }
+
+py::tuple CVehicle::getPropInTuple() 
+{
+	py::list axleWeights;
+	py::list axleSpacings;
+	py::list axleWidths;
+	for (size_t i = 0; i < m_NoAxles; i++) 
+	{
+		axleWeights.append(this->getAW(i));  // in kN
+
+		axleSpacings.append(this->getAS(i));  // in meters
+
+		axleWidths.append(this->getAT(i));  // in meters
+	}
+
+	py::tuple propTuple = py::make_tuple(m_Head, m_Day, m_Month, m_Year, m_Hour, m_Min, m_Sec, m_NoAxles, m_NoAxleGroups, m_GVW, m_Velocity, m_Length, m_Lane, m_Dir, m_Trns, axleWeights, axleSpacings, axleWidths);
+
+	return propTuple;
+}
+
+void CVehicle::setPropByTuple(py::tuple propTuple) 
+{
+	setConstants();
+
+	m_Head = propTuple[0].cast<size_t>();
+	m_Day = propTuple[1].cast<size_t>();
+	m_Month = propTuple[2].cast<size_t>();
+	m_Year = propTuple[3].cast<size_t>();
+	m_Hour = propTuple[4].cast<size_t>();
+	m_Min = propTuple[5].cast<size_t>();
+	m_Sec = propTuple[6].cast<double>();
+	m_NoAxles = propTuple[7].cast<size_t>();
+	m_NoAxleGroups = propTuple[8].cast<size_t>();
+	m_GVW = propTuple[9].cast<double>();
+	m_Velocity = propTuple[10].cast<double>();
+	m_Length = propTuple[11].cast<double>();
+	m_Lane = propTuple[12].cast<size_t>();
+	m_Dir = propTuple[13].cast<size_t>();
+	m_Trns = propTuple[14].cast<double>();
+
+	std::vector<double> axleWeights = propTuple[15].cast<std::vector<double>>();
+	std::vector<double> axleSpacings = propTuple[16].cast<std::vector<double>>();
+	std::vector<double> axleWidths = propTuple[17].cast<std::vector<double>>();
+
+	setNoAxles(m_NoAxles);
+	for (size_t i = 0; i < m_NoAxles; i++) 
+	{
+		this->setAW(i, axleWeights[i]);
+		this->setAS(i, axleSpacings[i]);
+		this->setAT(i, axleWidths[i]);
+	}
+}
+#endif
 
 //////// CREATE IT ////////////////
 
@@ -230,7 +301,7 @@ void CVehicle::createMONVehicle(const std::string data)
 	m_Trns		= atoi(data.substr(46, 4).c_str());
 
 	m_Year -= MON_BASE_YEAR;	// Reduce time of first vehicle
-	m_Dir += 1;					// Dir in BeDIT file is zero-based
+	m_Dir += 1;					// Dir in MON file is zero-based
 	m_Length /= 1000;			// Length = length/1000 for mm to meters 
 	m_Velocity /= 3.6;			// Vel = vel / 3.6 for km/h to meters/second
 	m_GVW *= KG_TO_KN;			// kg to kN
@@ -566,7 +637,7 @@ std::string CVehicle::writeMONData()
 	oFile.width(3);	oFile << velocity;
 	oFile.width(5);	oFile << length;
 	oFile.width(1);	oFile << m_Lane;	// local lane no in direction
-	oFile.width(1);	oFile << m_Dir - 1;	// dir is zero-based in BeDIT files
+	oFile.width(1);	oFile << m_Dir - 1;	// dir is zero-based in MON file
 	oFile.width(4);	oFile << transPos;
 
 	// Notice ncludes last axle spacing to allow for calculation of overhangs
@@ -602,17 +673,17 @@ void CVehicle::setLength(double length)
 }
 
 // Set local lane number within its direction, 1-based
-void CVehicle::setLocalLane(size_t lane)
+void CVehicle::setLocalLane(size_t localLaneIndex)
 {
-	m_Lane = lane;
+	m_Lane = localLaneIndex;
 }
 
 // Set local lane number within its direction, 1-based, from global lane number
-void CVehicle::setGlobalLane(size_t l, size_t nRoadLanes)
+void CVehicle::setLocalFromGlobalLane(size_t globalLaneIndex, size_t nRoadLanes)
 {
 	// The passed in lane index is in 1-based cumulative lane numbering
 	// so convert to local direction lane numbering
-	m_Lane = m_Dir == 1 ? l : nRoadLanes - l + 1;
+	m_Lane = m_Dir == 1 ? globalLaneIndex : nRoadLanes - globalLaneIndex + 1;
 }
 
 void CVehicle::setDirection(size_t dir)
@@ -665,11 +736,11 @@ void CVehicle::setAT(size_t i, double tw)
 	m_vAxles[i].TrackWidth = tw;
 }
 
-void CVehicle::setNoAxles(size_t axNo)
+void CVehicle::setNoAxles(size_t noAxle)
 {
 	m_vAxles.clear();
-	m_NoAxles = axNo;
-	for (size_t i = 0; i < m_NoAxles + 1; i++)
+	m_NoAxles = noAxle;
+	for (size_t i = 0; i < m_NoAxles + 1; i++)  // Not sure why +1 is needed
 	{
 		Axle temp;
 		temp.Spacing = 0.0;
@@ -679,7 +750,7 @@ void CVehicle::setNoAxles(size_t axNo)
 	}
 }
 
-void CVehicle::setTrns(double trans)
+void CVehicle::setTrans(double trans)
 {
 	m_Trns = trans;
 }
@@ -765,7 +836,7 @@ size_t CVehicle::getGlobalLane(size_t nRoadLanes)
 {
 	if (m_Dir == 1)
 		return m_Lane;
-	else if (m_Dir == 2 && m_Lane < nRoadLanes)
+	else if (m_Dir == 2 && m_Lane <= nRoadLanes)
 		return nRoadLanes - m_Lane + 1;
 	else
 	{
@@ -870,15 +941,15 @@ template <typename T>
 std::string CVehicle::to_string(T const& value)
 {
 	std::stringstream sstr;
-    sstr << value;
-    return sstr.str();
+	sstr << value;
+	return sstr.str();
 }
 
 template <typename T>
 std::string CVehicle::truncate(T const& value, unsigned int digits)
 {
 	std::stringstream sstr;
-    sstr << value;
+	sstr << value;
 	std::string str = sstr.str();
 	size_t length = str.length();
 	if(length <= digits)

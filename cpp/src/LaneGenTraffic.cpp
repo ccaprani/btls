@@ -25,16 +25,9 @@ CLaneGenTraffic::~CLaneGenTraffic(void)
 }
 
 void CLaneGenTraffic::setLaneData(CVehicleClassification_sp pVC, 
-									CLaneFlowComposition lfc, const double starttime)
+									CLaneFlowComposition lfc, const double startTime)
 {
-	m_NextArrivalTime = starttime;
-
-	m_Direction = lfc.getDirn();
-	// Map vehicles to local lane using zero based cumulative lane no.
-	if (m_Direction == 2)
-		m_LaneIndex = NO_LANES - lfc.getGlobalLaneNo();
-	else
-		m_LaneIndex = lfc.getGlobalLaneNo();
+	setLaneAttributes(lfc, startTime);
 
 	// Vehicle model must come first for NHM temporary
 	switch (VEHICLE_MODEL)
@@ -59,11 +52,11 @@ void CLaneGenTraffic::setLaneData(CVehicleClassification_sp pVC,
 		m_pFlowModelData = std::make_shared<CFlowModelDataNHM>(m_Config, lfc);
 		m_pFlowGen = std::make_shared<CFlowGenNHM>(std::dynamic_pointer_cast<CFlowModelDataNHM>(m_pFlowModelData));
 		break;
-	case 1:		// Constant test
+	case 1:		// Constant
 		m_pFlowModelData = std::make_shared<CFlowModelDataConstant>(m_Config, lfc);
 		m_pFlowGen = std::make_shared<CFlowGenConstant>(std::dynamic_pointer_cast<CFlowModelDataConstant>(m_pFlowModelData));
 		break;
-	case 5:		// Congestion
+	case 5:		// Congested
 		m_pFlowModelData = std::make_shared<CFlowModelDataCongested>(m_Config, lfc);
 		m_pFlowGen = std::make_shared<CFlowGenCongested>(std::dynamic_pointer_cast<CFlowModelDataCongested>(m_pFlowModelData));
 		break;
@@ -73,8 +66,23 @@ void CLaneGenTraffic::setLaneData(CVehicleClassification_sp pVC,
 		break;
 	}
 
+	initLane(m_pFlowModelData);
+}
+
+
+void CLaneGenTraffic::setLaneData(CLaneFlowComposition lfc, CVehicleGenerator_sp pVehicleGen, CFlowGenerator_sp pFlowGen, const double startTime)
+{
+	setLaneAttributes(lfc, startTime);
+
+	m_pVehicleGen = pVehicleGen;
+	m_pFlowGen = pFlowGen;
+}
+
+
+void CLaneGenTraffic::initLane(CFlowModelData_sp pFlowModelData)
+{
 	// Now update the vehicle generator about the flow model
-	m_pVehicleGen->update(m_pFlowModelData);
+	m_pVehicleGen->update(pFlowModelData);
 
 	GenNextArrival();	// the first arrival generation
 }
@@ -101,7 +109,7 @@ void CLaneGenTraffic::GenNextVehicle()
 	m_pPrevVeh = m_pNextVeh;	// assign as previous vehicle
 	m_pNextVeh = m_pVehicleGen->Generate(m_pFlowGen->getCurBlock());
 	m_pNextVeh->setDirection(m_Direction);
-	m_pNextVeh->setGlobalLane(m_LaneIndex + 1, NO_LANES);
+	m_pNextVeh->setLocalFromGlobalLane(m_LaneIndex + 1, NO_LANES);
 }
 
 

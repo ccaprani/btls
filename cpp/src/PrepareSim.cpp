@@ -1,6 +1,15 @@
 #include "PrepareSim.h"
 
 
+void preamble() 
+{
+	std::cout << "---------------------------------------------" << std::endl;
+	std::cout << "This is based on the work from:			   " << std::endl;
+	std::cout << "Bridge Traffic Load Simulation - C.C. Caprani" << std::endl;
+	std::cout << "                Version 1.3.7			       " << std::endl;
+	std::cout << "---------------------------------------------" << std::endl << std::endl;
+};
+
 std::vector<CBridge_sp> PrepareBridges()
 {
 	CReadILFile readIL;
@@ -44,7 +53,7 @@ void GetTrafficFileLanes(CVehicleClassification_sp pVC, std::vector<CLane_sp>& v
 		CConfigData::get().Read.USE_AVE_SPEED, CConfigData::get().Read.CONST_SPEED);
 	std::cout << "Reading traffic file..." << std::endl;
 	std::filesystem::path file = CConfigData::get().Read.TRAFFIC_FILE;
-	TrafficFile.Read(file.string(),CConfigData::get().Read.FILE_FORMAT);
+	TrafficFile.Read(file,CConfigData::get().Read.FILE_FORMAT);
 	
 	CConfigData::get().Gen.NO_DAYS		= TrafficFile.getNoDays();
 	CConfigData::get().Road.NO_LANES		= TrafficFile.getNoLanes();
@@ -69,7 +78,7 @@ void GetTrafficFileLanes(CVehicleClassification_sp pVC, std::vector<CLane_sp>& v
 	{
 		CVehicle_sp pVeh = TrafficFile.getNextVehicle();
 
-		// Map vehicle to lane using zero based cumulative lane no
+		// Map vehicle to lane using zero based cumulative global lane no
 		size_t iLane = pVeh->getGlobalLane(CConfigData::get().Road.NO_LANES) - 1;
 		CLaneFileTraffic_sp pLane = std::static_pointer_cast<CLaneFileTraffic>(vpLanes.at(iLane));
 		pLane->addVehicle(pVeh);
@@ -147,4 +156,58 @@ void doSimulation(CVehicleClassification_sp pVC, std::vector<CBridge_sp> vBridge
 	}
 
 	VehBuff.FlushBuffer();
+}
+
+void run(std::string inFile) 
+{
+	preamble();
+
+	std::cout << "CWD: " << std::filesystem::current_path() << std::endl << std::endl;
+
+	if (!CConfigData::get().ReadData(inFile) )
+	{
+		std::cout << "BTLSin file could not be opened" << std::endl;
+		std::cout << "Using default values" << std::endl;
+	}
+
+	std::cout << "Program Mode: " << CConfigData::get().Mode.PROGRAM_MODE << std::endl;
+	std::cout << std::endl;
+	
+	CVehicleClassification_sp pVC;
+	switch (CConfigData::get().Traffic.CLASSIFICATION)
+	{
+	case 1: // Pattern
+		pVC = std::make_shared<CVehClassPattern>(); break;
+	default: // Axle count
+		pVC = std::make_shared<CVehClassAxle>(); break;
+	}
+
+	double StartTime = 0.0;
+	double EndTime = 0.0;
+
+	// Bridges are read in first, to set max bridge length, needed for flow generators
+	// But its config.Road.NO_LANES etc. are incorrect...
+	std::vector<CBridge_sp> vBridges;
+	if(CConfigData::get().Sim.CALC_LOAD_EFFECTS)
+		vBridges = PrepareBridges();
+
+	// Now read generator info for lanes
+	std::vector<CLane_sp> vLanes;
+	if (CConfigData::get().Gen.GEN_TRAFFIC)	GetGeneratorLanes(pVC, vLanes, StartTime, EndTime); 
+	if (CConfigData::get().Read.READ_FILE)	GetTrafficFileLanes(pVC, vLanes, StartTime, EndTime);
+
+	// Now we know the time, we can tell bridge data managers when to start
+	for (auto& it : vBridges)
+		it->InitializeDataMgr(StartTime);
+	
+	clock_t start = clock();
+	doSimulation(pVC, vBridges, vLanes, StartTime, EndTime);
+
+	std::cout << std::endl << "Simulation complete" << std::endl;
+
+	clock_t end = clock();
+	std::cout << std::endl << "Duration of analysis: " << std::fixed << std::setprecision(3) 
+		<< ((double)(end) - (double)(start))/((double)CLOCKS_PER_SEC) << " s" << std::endl;
+
+	system("PAUSE");
 }

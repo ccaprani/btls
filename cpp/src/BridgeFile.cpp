@@ -110,7 +110,10 @@ double CBridgeFile::ReadLoadEffect(CBridge_sp pBridge, std::vector<CInfluenceLin
 				std::cout << "**ERROR: Influence Surface does not exist. Bridge " << pBridge->getIndex() << " : Load effect " << index << std::endl;
 					
 			for (size_t i = 0; i < NoLanes; i++)
-				pBridge->getBridgeLane(i).addLoadEffect(vInfSurf.at(ISno-1),1.0);
+			{
+				CBridgeLane& lane = pBridge->getBridgeLane(i);
+				lane.addLoadEffect(vInfSurf.at(ISno-1),1.0);
+			}
 
 		} break;
 

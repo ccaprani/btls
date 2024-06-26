@@ -13,21 +13,6 @@ double CRainflow::getRoundFunction (double x, int ndigits) {
 };
 
 std::vector< std::pair<size_t, double> > CRainflow::reversals (std::vector<double>& series) {
-    /*Iterate reversal points in the series.
-
-    A reversal point is a point in the series at which the first derivative
-    changes sign. Reversal is undefined at the first (last) point because the
-    derivative before (after) this point is undefined. The first and the last
-    points are treated as reversals.
-
-    Parameters
-    ----------
-    series : iterable sequence of numbers
-
-    Yields
-    ------
-    Reversal points as tuples (index, value).
-    */
     std::vector< std::pair<size_t, double> > reversals_out;
     // cout << series.size() << endl;
     double x_last = series[0];
@@ -69,18 +54,6 @@ CRainflow::ExtractCycleOut CRainflow::formatOutput (std::pair<size_t, double> po
 };
 
 std::vector<CRainflow::ExtractCycleOut> CRainflow::extractCycles (std::vector<double>& series) {
-    /*Iterate cycles in the series.
-
-    Parameters
-    ----------
-    series : iterable sequence of numbers
-
-    Yields
-    ------
-    cycle : tuple
-        Each tuple contains (range, mean, count, start index, end index).
-        Count equals to 1.0 for full cycles and 0.5 for half cycles.
-    */
     std::vector< std::pair<size_t, double> > reversals_out = reversals(series);
     std::deque< std::pair<size_t, double> > points;
     std::vector<ExtractCycleOut> format_output_out;

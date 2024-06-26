@@ -38,14 +38,25 @@ double CFlowGenerator::Generate()
 	setMinGap();
 
 	double gap = 0.0;
+	size_t gen_count = 0;
 	while (gap < m_MinGap)
 	{
-		gap = GenerateGap(); // instanced in derived classes
-//		if(gap < minGap)
-//			std::cout << "Overlap prevented: " << gap << " s < " << minGap << " s" << endl;
+		gap = GenerateGap(); // instanced in derived classes. Notice! This could be infinate loop for constant headway gen if vehicle length is too long
+		gen_count++;
+		if (gen_count > 10000)
+		{
+			std::cout << "***Warning: overlap may not be prevented due to long vehicle, use MinGap (s) " << m_MinGap << std::endl;
+			gap = m_MinGap;
+			break;
+		}
 	}
 
 	return gap;
+}
+
+void CFlowGenerator::setMaxBridgeLength(double length) 
+{
+	m_MaxBridgeLength = length;
 }
 
 void CFlowGenerator::updateBlock(double time)

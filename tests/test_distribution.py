@@ -1,8 +1,9 @@
-import PyBTLS
+import pybtls
 import matplotlib.pyplot as plt  # should remove for CI/CD pytest
 import numpy as np
 
-dist = PyBTLS.Distribution()
+
+dist = pybtls.Distribution()
 n = 5000
 x = np.array([None] * n)
 bins = int(n / 50)
@@ -25,7 +26,7 @@ def test_triangle():
 
 
 def test_MultiModalNormal():
-    mmn = PyBTLS.MultiModalNormal()
+    mmn = pybtls.MultiModalNormal()
     mmn.add_mode(0.4, 20, 4)
     mmn.add_mode(0.1, 30, 8)
     mmn.add_mode(0.5, 45, 3)

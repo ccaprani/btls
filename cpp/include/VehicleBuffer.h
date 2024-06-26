@@ -53,7 +53,8 @@ private:
 	void updateFlowData(const CVehicle_sp& pVeh);
 	void flushFlowData();
 
-	std::ofstream m_OutFile;
+	std::ofstream m_OutFileVeh;
+	std::ofstream m_OutFileFlow;
 	std::vector<CVehicle_up> m_vVehicles;
 	size_t m_NoVehicles;
 	//int m_BufferSize;
