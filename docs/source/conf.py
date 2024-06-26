@@ -35,7 +35,7 @@ ver = get_version()
 
 project = "PyBTLS"
 copyright = "2024, The PyBTLS Developers"
-author = "Ziyi Zhou, Colin Caprani, Akbar Rizqiansyah"
+author = "Colin Caprani, Ziyi Zhou, Akbar Rizqiansyah"
 
 # The full version, including alpha/beta/rc tags
 # The short Major.Minor.Build version
@@ -102,7 +102,7 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "GitHub",
-            "url": "https://github.com/pybtls/pybtls",
+            "url": "https://github.com/ccaprani/btls",
             "icon": "fab fa-github-square",
         },
         {
