@@ -1,0 +1,1320 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Something else that pybtls can do. &#8212; PyBTLS 0.3.7 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=29d04658"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'notebooks/what_else';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Reference" href="../api.html" />
+    <link rel="prev" title="Simulation with traffic reading." href="read_traffic.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/PyBTLS_logo_small.png" class="logo__image only-light" alt="PyBTLS 0.3.7 documentation - Home"/>
+    <script>document.write(`<img src="../_static/PyBTLS_logo_small.png" class="logo__image only-dark" alt="PyBTLS 0.3.7 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../tutorial.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API Reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../theory.html">
+    Theoretical Background
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../references.html">
+    References
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../developer.html">
+    Instructions for Developers
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ccaprani/btls" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/ccaprani" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-twitter-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../tutorial.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API Reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../theory.html">
+    Theoretical Background
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../references.html">
+    References
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../developer.html">
+    Instructions for Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ccaprani/btls" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/ccaprani" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-twitter-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="single_vehicle.html">Simulation with single vehicle.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gen_traffic.html">Simulation with traffic generation.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="read_traffic.html">Simulation with traffic reading.</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Something else that pybtls can do.</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../tutorial.html" class="nav-link">Tutorials</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Something...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="Something-else-that-pybtls-can-do.">
+<h1>Something else that pybtls can do.<a class="headerlink" href="#Something-else-that-pybtls-can-do." title="Link to this heading">#</a></h1>
+<p>In pybtls, different lanes can use different vehicle generation models.</p>
+<p>There are four lanes of traffic:</p>
+<ul class="simple">
+<li><p>Lane 1: Vehicles are generated from Grave model, and headways are in NHM condition.</p></li>
+<li><p>Lane 2: Vehicles are generated from Nominal model, and headways are in Congested condition.</p></li>
+<li><p>Lane 3: Vehicles are generated from Garage model, and headways are in Constant condition.</p></li>
+<li><p>Lane 4: Vehicles are generated from Garage model, and headways are in Freeflow condition (Poisson arrival model).</p></li>
+</ul>
+<p>This time we only generate the traffic without effect calculation.</p>
+<hr class="docutils" />
+<p>Import the packages and initialize the traffic generator.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pybtls</span> <span class="k">as</span> <span class="nn">pb</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+
+<span class="n">traffic_gen</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">TrafficGenerator</span><span class="p">(</span><span class="n">no_lane</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p>Set lane 1.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define the flow composition</span>
+<span class="n">lfc_lane1</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">LaneFlowComposition</span><span class="p">(</span><span class="n">lane_index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">lane_dir</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">lfc_lane1</span><span class="o">.</span><span class="n">assign_lane_data</span><span class="p">(</span>
+    <span class="n">hourly_truck_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_car_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_speed_mean</span><span class="o">=</span><span class="p">[</span><span class="mi">80</span> <span class="o">/</span> <span class="mf">3.6</span> <span class="o">*</span> <span class="mi">10</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_speed_std</span><span class="o">=</span><span class="p">[</span><span class="mf">10.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_truck_composition</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">[</span><span class="mf">25.0</span><span class="p">,</span> <span class="mf">25.0</span><span class="p">,</span> <span class="mf">25.0</span><span class="p">,</span> <span class="mf">25.0</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)</span>
+    <span class="p">],</span>  <span class="c1"># only the Grave vehicle generator (gen by distribution) requires this info.</span>
+<span class="p">)</span>
+
+<span class="c1"># Set the Grave vehicle generator and use the Auxerre truck features</span>
+<span class="n">vehicle_gen_Grave</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">VehicleGenGrave</span><span class="p">(</span><span class="n">traffic_site</span><span class="o">=</span><span class="s2">&quot;Auxerre&quot;</span><span class="p">)</span>
+
+<span class="c1"># Set the headway generator</span>
+<span class="n">headway_gen_NHM</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">HeadwayGenNHM</span><span class="p">()</span>
+
+<span class="c1"># Config the first lane</span>
+<span class="n">traffic_gen</span><span class="o">.</span><span class="n">add_lane</span><span class="p">(</span>
+    <span class="n">vehicle_gen</span><span class="o">=</span><span class="n">vehicle_gen_Grave</span><span class="p">,</span> <span class="n">headway_gen</span><span class="o">=</span><span class="n">headway_gen_NHM</span><span class="p">,</span> <span class="n">lfc</span><span class="o">=</span><span class="n">lfc_lane1</span>
+<span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p>Set lane 2.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define the flow composition</span>
+<span class="n">lfc_lane2</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">LaneFlowComposition</span><span class="p">(</span><span class="n">lane_index</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">lane_dir</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">lfc_lane2</span><span class="o">.</span><span class="n">assign_lane_data</span><span class="p">(</span><span class="n">hourly_truck_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span> <span class="n">hourly_car_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">)</span>
+
+<span class="c1"># Set the Nominal vehicle generator with a custom vehicle</span>
+<span class="n">vehicle</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">Vehicle</span><span class="p">(</span><span class="n">no_axles</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">vehicle</span><span class="o">.</span><span class="n">set_axle_weights</span><span class="p">([</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">])</span>  <span class="c1"># in kN</span>
+<span class="n">vehicle</span><span class="o">.</span><span class="n">set_axle_spacings</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>  <span class="c1"># in m</span>
+<span class="n">vehicle</span><span class="o">.</span><span class="n">set_axle_widths</span><span class="p">([</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">])</span>  <span class="c1"># in m</span>
+
+<span class="n">vehicle_gen_Nominal</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">VehicleGenNominal</span><span class="p">(</span>
+    <span class="n">nominal_vehicle</span><span class="o">=</span><span class="n">vehicle</span><span class="p">,</span> <span class="n">COV_list</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Set the headway generator</span>
+<span class="n">headway_gen_Congested</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">HeadwayGenCongested</span><span class="p">(</span>
+    <span class="n">congested_spacing</span><span class="o">=</span><span class="mf">26.1</span><span class="p">,</span> <span class="n">congested_speed</span><span class="o">=</span><span class="mf">36.0</span><span class="p">,</span> <span class="n">congested_gap_coef_var</span><span class="o">=</span><span class="mf">0.05</span>
+<span class="p">)</span>
+
+<span class="c1"># Config the second lane</span>
+<span class="n">traffic_gen</span><span class="o">.</span><span class="n">add_lane</span><span class="p">(</span>
+    <span class="n">vehicle_gen</span><span class="o">=</span><span class="n">vehicle_gen_Nominal</span><span class="p">,</span> <span class="n">headway_gen</span><span class="o">=</span><span class="n">headway_gen_Congested</span><span class="p">,</span> <span class="n">lfc</span><span class="o">=</span><span class="n">lfc_lane2</span>
+<span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p>Set lane 3 and lane 4.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set the flow composition</span>
+<span class="n">lfc_lane3</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">LaneFlowComposition</span><span class="p">(</span><span class="n">lane_index</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">lane_dir</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">lfc_lane3</span><span class="o">.</span><span class="n">assign_lane_data</span><span class="p">(</span><span class="n">hourly_truck_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span> <span class="n">hourly_car_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">)</span>
+
+<span class="c1"># Set the Garage vehicle generator</span>
+<span class="n">kernel</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">]]</span>
+<span class="n">vehicle_gen_Garage</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">VehicleGenGarage</span><span class="p">(</span>
+    <span class="n">garage</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;garage.txt&quot;</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">garage_format</span><span class="o">=</span><span class="mi">4</span>
+<span class="p">)</span>
+
+<span class="c1"># Set the headway generator</span>
+<span class="n">headway_gen_Constant</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">HeadwayGenConstant</span><span class="p">(</span><span class="n">constant_speed</span><span class="o">=</span><span class="mf">36.0</span><span class="p">,</span> <span class="n">constant_gap</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
+
+<span class="c1"># Config the third lane</span>
+<span class="n">traffic_gen</span><span class="o">.</span><span class="n">add_lane</span><span class="p">(</span>
+    <span class="n">vehicle_gen</span><span class="o">=</span><span class="n">vehicle_gen_Garage</span><span class="p">,</span> <span class="n">headway_gen</span><span class="o">=</span><span class="n">headway_gen_Constant</span><span class="p">,</span> <span class="n">lfc</span><span class="o">=</span><span class="n">lfc_lane3</span>
+<span class="p">)</span>
+
+<span class="c1"># Set the flow composition</span>
+<span class="n">lfc_lane4</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">LaneFlowComposition</span><span class="p">(</span><span class="n">lane_index</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">lane_dir</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">lfc_lane4</span><span class="o">.</span><span class="n">assign_lane_data</span><span class="p">(</span>
+    <span class="n">hourly_truck_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_car_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_speed_mean</span><span class="o">=</span><span class="p">[</span><span class="mi">80</span> <span class="o">/</span> <span class="mf">3.6</span> <span class="o">*</span> <span class="mi">10</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_speed_std</span><span class="o">=</span><span class="p">[</span><span class="mf">10.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Use the same vehicle generator as the third lane.</span>
+
+<span class="c1"># Set the headway generator</span>
+<span class="n">headway_gen_Freeflow</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">HeadwayGenFreeflow</span><span class="p">()</span>
+
+<span class="c1"># Config the fourth lane</span>
+<span class="n">traffic_gen</span><span class="o">.</span><span class="n">add_lane</span><span class="p">(</span>
+    <span class="n">vehicle_gen</span><span class="o">=</span><span class="n">vehicle_gen_Garage</span><span class="p">,</span> <span class="n">headway_gen</span><span class="o">=</span><span class="n">headway_gen_Freeflow</span><span class="p">,</span> <span class="n">lfc</span><span class="o">=</span><span class="n">lfc_lane4</span>
+<span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p>Set the output to export the generated traffic.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_config</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">OutputConfig</span><span class="p">()</span>
+<span class="n">output_config</span><span class="o">.</span><span class="n">set_vehicle_file_output</span><span class="p">(</span>
+    <span class="n">write_vehicle_file</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">vehicle_file_format</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">vehicle_file_name</span><span class="o">=</span><span class="s2">&quot;generated_traffic_file.txt&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p>Do the simulation and read the output.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim_task</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;temp&quot;</span><span class="p">)</span>
+<span class="n">sim_task</span><span class="o">.</span><span class="n">add_sim</span><span class="p">(</span>
+    <span class="n">traffic</span><span class="o">=</span><span class="n">traffic_gen</span><span class="p">,</span>
+    <span class="n">no_day</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>  <span class="c1"># 30 days traffic</span>
+    <span class="n">output_config</span><span class="o">=</span><span class="n">output_config</span><span class="p">,</span>
+    <span class="n">track_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># optional, print the simulation days.</span>
+    <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;Case4&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Run simulation</span>
+<span class="n">sim_task</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">no_core</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Get the output</span>
+<span class="n">case4_output</span> <span class="o">=</span> <span class="n">sim_task</span><span class="o">.</span><span class="n">get_output</span><span class="p">()[</span><span class="s2">&quot;Case4&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">case4_output</span><span class="o">.</span><span class="n">get_summary</span><span class="p">())</span>
+
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">display</span>
+<span class="n">display</span><span class="p">(</span><span class="n">case4_output</span><span class="o">.</span><span class="n">read_data</span><span class="p">(</span><span class="s2">&quot;traffic&quot;</span><span class="p">)[</span><span class="s2">&quot;generated_traffic_file&quot;</span><span class="p">])</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Starting simulation...
+Day complete...
+
+Flushing buffer of 10000 vehicles at 1/1/0 5:13:46.5162
+
+Flushing buffer of 10000 vehicles at 1/1/0 10:26:25.8773
+
+Flushing buffer of 10000 vehicles at 1/1/0 15:39:30
+
+Flushing buffer of 10000 vehicles at 1/1/0 20:51:52.9777
+
+Flushing buffer of 10000 vehicles at 2/1/0 2:3:25
+
+Flushing buffer of 10000 vehicles at 2/1/0 7:16:6.92188
+
+Flushing buffer of 10000 vehicles at 2/1/0 12:30:14.9937
+
+Flushing buffer of 10000 vehicles at 2/1/0 17:43:19.2472
+
+Flushing buffer of 10000 vehicles at 2/1/0 22:54:45
+
+Flushing buffer of 10000 vehicles at 3/1/0 4:6:24.3359
+
+Flushing buffer of 10000 vehicles at 3/1/0 9:18:17.0485
+
+Flushing buffer of 10000 vehicles at 3/1/0 14:28:27.5164
+
+Flushing buffer of 10000 vehicles at 3/1/0 19:41:25
+
+Flushing buffer of 10000 vehicles at 4/1/0 0:55:25
+
+Flushing buffer of 10000 vehicles at 4/1/0 6:9:12.8006
+
+Flushing buffer of 10000 vehicles at 4/1/0 11:21:45.6165
+
+Flushing buffer of 10000 vehicles at 4/1/0 16:34:43.5363
+
+Flushing buffer of 10000 vehicles at 4/1/0 21:46:43.7012
+
+Flushing buffer of 10000 vehicles at 5/1/0 3:0:5
+
+Flushing buffer of 10000 vehicles at 5/1/0 8:13:45
+
+Flushing buffer of 10000 vehicles at 5/1/0 13:25:0
+
+Flushing buffer of 10000 vehicles at 5/1/0 18:37:35.733
+
+Flushing buffer of 10000 vehicles at 5/1/0 23:50:50
+
+Flushing buffer of 10000 vehicles at 6/1/0 5:3:31.7269
+
+Flushing buffer of 10000 vehicles at 6/1/0 10:17:39.8773
+
+Flushing buffer of 10000 vehicles at 6/1/0 15:30:39.9467
+
+Flushing buffer of 10000 vehicles at 6/1/0 20:43:14.4277
+
+Flushing buffer of 10000 vehicles at 7/1/0 1:57:1.67666
+
+Flushing buffer of 10000 vehicles at 7/1/0 7:8:53.9963
+
+Flushing buffer of 10000 vehicles at 7/1/0 12:21:59.3933
+
+Flushing buffer of 10000 vehicles at 7/1/0 17:36:8.40203
+
+Flushing buffer of 10000 vehicles at 7/1/0 22:50:34.0523
+
+Flushing buffer of 10000 vehicles at 8/1/0 4:1:38.9174
+
+Flushing buffer of 10000 vehicles at 8/1/0 9:14:11.5955
+
+Flushing buffer of 10000 vehicles at 8/1/0 14:28:14.7104
+
+Flushing buffer of 10000 vehicles at 8/1/0 19:42:16.3824
+
+Flushing buffer of 10000 vehicles at 9/1/0 0:54:24.4012
+
+Flushing buffer of 10000 vehicles at 9/1/0 6:7:45
+
+Flushing buffer of 10000 vehicles at 9/1/0 11:18:11.721
+
+Flushing buffer of 10000 vehicles at 9/1/0 16:30:18.8936
+
+Flushing buffer of 10000 vehicles at 9/1/0 21:41:52.5814
+
+Flushing buffer of 10000 vehicles at 10/1/0 2:52:55
+
+Flushing buffer of 10000 vehicles at 10/1/0 8:4:19.162
+
+Flushing buffer of 10000 vehicles at 10/1/0 13:16:15
+
+Flushing buffer of 10000 vehicles at 10/1/0 18:28:40
+
+Flushing buffer of 10000 vehicles at 10/1/0 23:41:18.5865
+        1       2       3       4       5       6       7       8       9       10
+
+Flushing buffer of 10000 vehicles at 11/1/0 4:54:50.5777
+
+Flushing buffer of 10000 vehicles at 11/1/0 10:7:45
+
+Flushing buffer of 10000 vehicles at 11/1/0 15:21:1.78421
+
+Flushing buffer of 10000 vehicles at 11/1/0 20:34:33.974
+
+Flushing buffer of 10000 vehicles at 12/1/0 1:46:45
+
+Flushing buffer of 10000 vehicles at 12/1/0 7:1:1.04452
+
+Flushing buffer of 10000 vehicles at 12/1/0 12:12:31.5879
+
+Flushing buffer of 10000 vehicles at 12/1/0 17:25:56.4856
+
+Flushing buffer of 10000 vehicles at 12/1/0 22:37:40
+
+Flushing buffer of 10000 vehicles at 13/1/0 3:50:51.903
+
+Flushing buffer of 10000 vehicles at 13/1/0 9:3:20
+
+Flushing buffer of 10000 vehicles at 13/1/0 14:13:55
+
+Flushing buffer of 10000 vehicles at 13/1/0 19:25:51.6264
+
+Flushing buffer of 10000 vehicles at 14/1/0 0:37:55
+
+Flushing buffer of 10000 vehicles at 14/1/0 5:51:19.9311
+
+Flushing buffer of 10000 vehicles at 14/1/0 11:2:22.8353
+
+Flushing buffer of 10000 vehicles at 14/1/0 16:13:35
+
+Flushing buffer of 10000 vehicles at 14/1/0 21:27:50
+
+Flushing buffer of 10000 vehicles at 15/1/0 2:41:0
+
+Flushing buffer of 10000 vehicles at 15/1/0 7:53:55
+
+Flushing buffer of 10000 vehicles at 15/1/0 13:6:16.0051
+
+Flushing buffer of 10000 vehicles at 15/1/0 18:18:15
+
+Flushing buffer of 10000 vehicles at 15/1/0 23:29:1.94771
+
+Flushing buffer of 10000 vehicles at 16/1/0 4:42:38.2128
+
+Flushing buffer of 10000 vehicles at 16/1/0 9:56:38.8348
+
+Flushing buffer of 10000 vehicles at 16/1/0 15:8:19.443
+
+Flushing buffer of 10000 vehicles at 16/1/0 20:21:30
+
+Flushing buffer of 10000 vehicles at 17/1/0 1:33:49.4805
+
+Flushing buffer of 10000 vehicles at 17/1/0 6:47:35
+
+Flushing buffer of 10000 vehicles at 17/1/0 12:1:10
+
+Flushing buffer of 10000 vehicles at 17/1/0 17:13:14.8282
+
+Flushing buffer of 10000 vehicles at 17/1/0 22:25:50
+
+Flushing buffer of 10000 vehicles at 18/1/0 3:38:55
+
+Flushing buffer of 10000 vehicles at 18/1/0 8:51:9.81434
+
+Flushing buffer of 10000 vehicles at 18/1/0 14:3:20
+
+Flushing buffer of 10000 vehicles at 18/1/0 19:15:40
+
+Flushing buffer of 10000 vehicles at 19/1/0 0:29:30
+
+Flushing buffer of 10000 vehicles at 19/1/0 5:44:0
+
+Flushing buffer of 10000 vehicles at 19/1/0 10:56:20.6654
+
+Flushing buffer of 10000 vehicles at 19/1/0 16:8:10.8742
+
+Flushing buffer of 10000 vehicles at 19/1/0 21:21:15
+
+Flushing buffer of 10000 vehicles at 20/1/0 2:34:5
+
+Flushing buffer of 10000 vehicles at 20/1/0 7:46:44.1838
+
+Flushing buffer of 10000 vehicles at 20/1/0 12:59:24.1479
+
+Flushing buffer of 10000 vehicles at 20/1/0 18:12:35
+
+Flushing buffer of 10000 vehicles at 20/1/0 23:25:15
+        11      12      13      14      15      16      17      18      19      20
+
+Flushing buffer of 10000 vehicles at 21/1/0 4:37:25
+
+Flushing buffer of 10000 vehicles at 21/1/0 9:50:41.0028
+
+Flushing buffer of 10000 vehicles at 21/1/0 15:3:27.5088
+
+Flushing buffer of 10000 vehicles at 21/1/0 20:15:54.3635
+
+Flushing buffer of 10000 vehicles at 22/1/0 1:27:45
+
+Flushing buffer of 10000 vehicles at 22/1/0 6:41:8.67708
+
+Flushing buffer of 10000 vehicles at 22/1/0 11:53:30.945
+
+Flushing buffer of 10000 vehicles at 22/1/0 17:7:40
+
+Flushing buffer of 10000 vehicles at 22/1/0 22:20:24.6738
+
+Flushing buffer of 10000 vehicles at 23/1/0 3:33:7.95659
+
+Flushing buffer of 10000 vehicles at 23/1/0 8:47:38.0502
+
+Flushing buffer of 10000 vehicles at 23/1/0 13:58:15
+
+Flushing buffer of 10000 vehicles at 23/1/0 19:9:48.6066
+
+Flushing buffer of 10000 vehicles at 24/1/0 0:21:36.2047
+
+Flushing buffer of 10000 vehicles at 24/1/0 5:32:45
+
+Flushing buffer of 10000 vehicles at 24/1/0 10:46:40
+
+Flushing buffer of 10000 vehicles at 24/1/0 15:58:35
+
+Flushing buffer of 10000 vehicles at 24/1/0 21:10:26.0284
+
+Flushing buffer of 10000 vehicles at 25/1/0 2:22:5.18284
+
+Flushing buffer of 10000 vehicles at 25/1/0 7:35:12.2919
+
+Flushing buffer of 10000 vehicles at 25/1/0 12:46:46.8678
+
+Flushing buffer of 10000 vehicles at 25/1/0 17:57:45
+
+Flushing buffer of 10000 vehicles at 25/1/0 23:11:53.0591
+
+Flushing buffer of 10000 vehicles at 1/2/0 4:23:42.6171
+
+Flushing buffer of 10000 vehicles at 1/2/0 9:33:26.5909
+
+Flushing buffer of 10000 vehicles at 1/2/0 14:47:32.559
+
+Flushing buffer of 10000 vehicles at 1/2/0 20:0:21.1986
+
+Flushing buffer of 10000 vehicles at 2/2/0 1:13:23.4269
+
+Flushing buffer of 10000 vehicles at 2/2/0 6:26:48.9601
+
+Flushing buffer of 10000 vehicles at 2/2/0 11:40:31.1604
+
+Flushing buffer of 10000 vehicles at 2/2/0 16:52:55
+
+Flushing buffer of 10000 vehicles at 2/2/0 22:6:25
+
+Flushing buffer of 10000 vehicles at 3/2/0 3:18:50.4962
+
+Flushing buffer of 10000 vehicles at 3/2/0 8:32:10
+
+Flushing buffer of 10000 vehicles at 3/2/0 13:44:21.3665
+
+Flushing buffer of 10000 vehicles at 3/2/0 18:58:50.9719
+
+Flushing buffer of 10000 vehicles at 4/2/0 0:12:53.8052
+
+Flushing buffer of 10000 vehicles at 4/2/0 5:25:33.4362
+
+Flushing buffer of 10000 vehicles at 4/2/0 10:37:17.9982
+
+Flushing buffer of 10000 vehicles at 4/2/0 15:51:9.87466
+
+Flushing buffer of 10000 vehicles at 4/2/0 21:4:45
+
+Flushing buffer of 10000 vehicles at 5/2/0 2:16:25
+
+Flushing buffer of 10000 vehicles at 5/2/0 7:28:56.5618
+
+Flushing buffer of 10000 vehicles at 5/2/0 12:40:55
+
+Flushing buffer of 10000 vehicles at 5/2/0 17:54:38.4569
+
+Flushing buffer of 10000 vehicles at 5/2/0 23:7:28.5305
+        21      22      23      24      25      26      27      28      29      30
+
+Flushing buffer of 1676 vehicles at 6/2/0 0:0:3.36281
+[&#39;traffic&#39;]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Head</th>
+      <th>Year</th>
+      <th>Month</th>
+      <th>Day</th>
+      <th>Hour</th>
+      <th>Min</th>
+      <th>Sec</th>
+      <th>NoAxles</th>
+      <th>NoAxleGroups</th>
+      <th>GVW</th>
+      <th>Velocity</th>
+      <th>Length</th>
+      <th>Lane</th>
+      <th>Dir</th>
+      <th>Trns</th>
+      <th>AxleWeights</th>
+      <th>AxleSpacings</th>
+      <th>AxleWidths</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1001</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>3.689</td>
+      <td>3</td>
+      <td>0</td>
+      <td>371.25945</td>
+      <td>10.0</td>
+      <td>10.902</td>
+      <td>2</td>
+      <td>1</td>
+      <td>1.8</td>
+      <td>[110.61756000000001, 185.69349000000003, 74.93...</td>
+      <td>[3.994, 6.908, 0.0]</td>
+      <td>[1.98, 1.98, 1.98]</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>47799</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>5.000</td>
+      <td>2</td>
+      <td>2</td>
+      <td>15.48018</td>
+      <td>10.0</td>
+      <td>2.875</td>
+      <td>2</td>
+      <td>2</td>
+      <td>1.8</td>
+      <td>[7.9461, 7.534080000000001]</td>
+      <td>[2.875, 0.0]</td>
+      <td>[1.98, 1.98]</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>1001</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>7.367</td>
+      <td>3</td>
+      <td>0</td>
+      <td>330.67548</td>
+      <td>10.0</td>
+      <td>10.228</td>
+      <td>2</td>
+      <td>1</td>
+      <td>1.8</td>
+      <td>[76.47876000000001, 135.17199000000002, 119.02...</td>
+      <td>[2.715, 7.513, 0.0]</td>
+      <td>[1.98, 1.98, 1.98]</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>42741</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>10.000</td>
+      <td>2</td>
+      <td>2</td>
+      <td>15.06816</td>
+      <td>10.0</td>
+      <td>2.897</td>
+      <td>2</td>
+      <td>2</td>
+      <td>1.8</td>
+      <td>[8.328690000000002, 6.739470000000001]</td>
+      <td>[2.897, 0.0]</td>
+      <td>[1.98, 1.98]</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>1001</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>11.100</td>
+      <td>3</td>
+      <td>0</td>
+      <td>338.75892</td>
+      <td>10.0</td>
+      <td>12.807</td>
+      <td>2</td>
+      <td>1</td>
+      <td>1.8</td>
+      <td>[51.01200000000001, 110.97072000000001, 176.77...</td>
+      <td>[2.71, 10.097, 0.0]</td>
+      <td>[1.98, 1.98, 1.98]</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>1381671</th>
+      <td>42332</td>
+      <td>5</td>
+      <td>2</td>
+      <td>0</td>
+      <td>23</td>
+      <td>59</td>
+      <td>55.000</td>
+      <td>2</td>
+      <td>2</td>
+      <td>12.67452</td>
+      <td>10.0</td>
+      <td>2.744</td>
+      <td>2</td>
+      <td>2</td>
+      <td>1.8</td>
+      <td>[6.729660000000001, 5.93505]</td>
+      <td>[2.744, 0.0]</td>
+      <td>[1.98, 1.98]</td>
+    </tr>
+    <tr>
+      <th>1381672</th>
+      <td>1001</td>
+      <td>5</td>
+      <td>2</td>
+      <td>0</td>
+      <td>23</td>
+      <td>59</td>
+      <td>55.680</td>
+      <td>3</td>
+      <td>0</td>
+      <td>221.61771</td>
+      <td>10.0</td>
+      <td>11.796</td>
+      <td>2</td>
+      <td>1</td>
+      <td>1.8</td>
+      <td>[55.142010000000006, 64.25550000000001, 102.2202]</td>
+      <td>[3.887, 7.91, 0.0]</td>
+      <td>[1.98, 1.98, 1.98]</td>
+    </tr>
+    <tr>
+      <th>1381673</th>
+      <td>1001</td>
+      <td>5</td>
+      <td>2</td>
+      <td>0</td>
+      <td>23</td>
+      <td>59</td>
+      <td>59.413</td>
+      <td>3</td>
+      <td>0</td>
+      <td>333.21627</td>
+      <td>10.0</td>
+      <td>13.354</td>
+      <td>2</td>
+      <td>1</td>
+      <td>1.8</td>
+      <td>[175.33413000000002, 122.13450000000002, 35.74...</td>
+      <td>[5.304, 8.05, 0.0]</td>
+      <td>[1.98, 1.98, 1.98]</td>
+    </tr>
+    <tr>
+      <th>1381674</th>
+      <td>47792</td>
+      <td>6</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0.000</td>
+      <td>3</td>
+      <td>2</td>
+      <td>122.55633</td>
+      <td>10.0</td>
+      <td>5.241</td>
+      <td>2</td>
+      <td>2</td>
+      <td>1.8</td>
+      <td>[56.407500000000006, 36.31662, 29.84202]</td>
+      <td>[3.924, 1.317, 0.0]</td>
+      <td>[1.98, 1.98, 1.98]</td>
+    </tr>
+    <tr>
+      <th>1381675</th>
+      <td>1001</td>
+      <td>6</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>3.363</td>
+      <td>3</td>
+      <td>0</td>
+      <td>400.07142</td>
+      <td>10.0</td>
+      <td>11.735</td>
+      <td>2</td>
+      <td>1</td>
+      <td>1.8</td>
+      <td>[158.70618000000002, 111.60837000000001, 129.7...</td>
+      <td>[3.967, 7.768, 0.0]</td>
+      <td>[1.98, 1.98, 1.98]</td>
+    </tr>
+  </tbody>
+</table>
+<p>1381676 rows × 18 columns</p>
+</div></div>
+</div>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="read_traffic.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Simulation with traffic reading.</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../api.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">API Reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/pybtls/pybtls/edit/main/docs/source/notebooks/what_else.ipynb">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024, The PyBTLS Developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

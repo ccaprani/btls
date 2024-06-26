@@ -1,0 +1,802 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pybtls.bridge.influence_line &#8212; PyBTLS 0.3.7 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=29d04658"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pybtls/bridge/influence_line';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/PyBTLS_logo_small.png" class="logo__image only-light" alt="PyBTLS 0.3.7 documentation - Home"/>
+    <script>document.write(`<img src="../../../_static/PyBTLS_logo_small.png" class="logo__image only-dark" alt="PyBTLS 0.3.7 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../tutorial.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API Reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../theory.html">
+    Theoretical Background
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../references.html">
+    References
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../developer.html">
+    Instructions for Developers
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ccaprani/btls" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/ccaprani" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-twitter-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../tutorial.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API Reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../theory.html">
+    Theoretical Background
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../references.html">
+    References
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../developer.html">
+    Instructions for Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ccaprani/btls" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/ccaprani" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-twitter-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">pybtls.bridg...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pybtls.bridge.influence_line</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The methods and classes that are not defined in Python are defined in C++ py_main.cpp. </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">..lib.BTLS</span> <span class="kn">import</span> <span class="n">_InfluenceLine</span><span class="p">,</span> <span class="n">_InfluenceSurface</span>
+<span class="kn">from</span> <span class="nn">..utils.IL_compress</span> <span class="kn">import</span> <span class="n">compress_discrete_IL</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Literal</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;InfluenceLine&quot;</span><span class="p">,</span> <span class="s2">&quot;InfluenceSurface&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="InfluenceLine">
+<a class="viewcode-back" href="../../../gen/pybtls.bridge.influence_line.InfluenceLine.html#pybtls.bridge.influence_line.InfluenceLine">[docs]</a>
+<span class="k">class</span> <span class="nc">InfluenceLine</span><span class="p">:</span>
+    <span class="n">_IL_Index</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IL_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;discrete&quot;</span><span class="p">,</span> <span class="s2">&quot;built-in&quot;</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        An InfluenceLine instance in Python stores the data for creating a CInfluenceLine instance in C++. \n</span>
+<span class="sd">        All length units are in m.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        IL_type : Literal[&quot;discrete&quot;,&quot;built-in&quot;] \n</span>
+<span class="sd">            Influence line type.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_IL_type</span> <span class="o">=</span> <span class="n">IL_type</span>
+
+        <span class="n">InfluenceLine</span><span class="o">.</span><span class="n">_IL_Index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_IL_index</span> <span class="o">=</span> <span class="n">InfluenceLine</span><span class="o">.</span><span class="n">_IL_Index</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;position&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;ordinate&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;length&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;inf_surf&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">attribute_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;IL_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IL_type</span>
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;IL_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IL_index</span>
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;data_dict&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span>
+        <span class="k">return</span> <span class="n">attribute_dict</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_IL_type</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;IL_type&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_IL_index</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;IL_index&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;data_dict&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="InfluenceLine.set_IL">
+<a class="viewcode-back" href="../../../gen/pybtls.bridge.influence_line.InfluenceLine.html#pybtls.bridge.influence_line.InfluenceLine.set_IL">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_IL</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set influence line data.</span>
+
+<span class="sd">        Keyword Arguments</span>
+<span class="sd">        -----------------</span>
+<span class="sd">        For discrete: \n</span>
+<span class="sd">            - position : Union[list,np.ndarray] \n</span>
+<span class="sd">                Discrete influence line position (X).</span>
+
+<span class="sd">            - ordinate : Union[list,np.ndarray] \n</span>
+<span class="sd">                Discrete influence line ordinate (Y).</span>
+
+<span class="sd">            - compress_tolerance : float, optional \n</span>
+<span class="sd">                The maximum relative error (0.001~0.1) allowed for a discrete influence line to be simplified (to boost simulation). \n</span>
+<span class="sd">                The default is None.</span>
+
+<span class="sd">        For built-in: \n</span>
+<span class="sd">            - type : Literal[1,2,3,4,5,6,7,8,9] \n</span>
+<span class="sd">                Built-in influence line type. \n</span>
+<span class="sd">                What the number represents: \n</span>
+<span class="sd">                (The support numbering starts from the left side.) \n</span>
+<span class="sd">                1: The mid-span sagging BM of a simply supported beam. \n</span>
+<span class="sd">                2: The 2nd support hogging BM of a two-span continuous beam. \n</span>
+<span class="sd">                3: The 1st support SF of a simply supported beam. \n</span>
+<span class="sd">                4: The 2nd support SF of a simply supported beam. \n</span>
+<span class="sd">                5: The 3rd support SF of a two-span continuous beam. \n</span>
+<span class="sd">                6: The 1st support SF of a two-span continuous beam. \n</span>
+<span class="sd">                7: The total weights of vehicle being on the beam. \n</span>
+<span class="sd">                8: The 2nd support hogging BM of a three-span continuous beam. \n</span>
+<span class="sd">                9: The 3rd support hogging BM of a three-span continuous beam. \n</span>
+<span class="sd">                (Beams&#39; first and last supports are pin.)</span>
+
+<span class="sd">            - length : float \n</span>
+<span class="sd">                Built-in influence line length.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IL_type</span> <span class="o">==</span> <span class="s2">&quot;discrete&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_IL_discrete</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IL_type</span> <span class="o">==</span> <span class="s2">&quot;built-in&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_IL_built_in</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_IL_type</span> <span class="o">==</span> <span class="s2">&quot;surface&quot;</span>
+        <span class="p">):</span>  <span class="c1"># This is hidden in the doc to avoid user confusion, not an error.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_IL_surface</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid influence line type.&quot;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_set_IL_discrete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;position&quot;</span><span class="p">)</span>
+        <span class="n">ordinate</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ordinate&quot;</span><span class="p">)</span>
+        <span class="n">compress_tolerance</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;compress_tolerance&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">compress_tolerance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">compress_tolerance</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Warning</span><span class="p">(</span>
+                    <span class="s2">&quot;The compress_tolerance is too large, which may cause the corresponding load effect significantly inaccurate.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">position</span><span class="p">,</span> <span class="n">ordinate</span> <span class="o">=</span> <span class="n">compress_discrete_IL</span><span class="p">(</span>
+                <span class="n">position</span><span class="p">,</span> <span class="n">ordinate</span><span class="p">,</span> <span class="n">compress_tolerance</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">position</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">ordinate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Uncompleted input for discrete influence line.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">ordinate</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The position and ordinate should be list or np.ndarray.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">position</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ordinate</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The position and ordinate must be equal length.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;position&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">position</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;ordinate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ordinate</span>
+
+    <span class="k">def</span> <span class="nf">_set_IL_built_in</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;length&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">type</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Uncompleted input for built-in influence line.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The type should be int and length should be float.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Please refer to the doc for the built-in IL type.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;length&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">length</span>
+
+    <span class="k">def</span> <span class="nf">_set_IL_surface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">inf_surf</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;inf_surf&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">inf_surf</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Uncompleted input for surface influence line.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inf_surf</span><span class="p">,</span> <span class="n">InfluenceSurface</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The IS should be an InfluenceSurface instance.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;inf_surf&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">inf_surf</span>
+
+    <span class="k">def</span> <span class="nf">_get_IL</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_InfluenceLine</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the created C++ CInfluenceLine instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">inf_line</span> <span class="o">=</span> <span class="n">_InfluenceLine</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IL_type</span> <span class="o">==</span> <span class="s2">&quot;discrete&quot;</span><span class="p">:</span>
+            <span class="n">inf_line</span><span class="o">.</span><span class="n">setIL</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;position&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;ordinate&quot;</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IL_type</span> <span class="o">==</span> <span class="s2">&quot;built-in&quot;</span><span class="p">:</span>
+            <span class="n">inf_line</span><span class="o">.</span><span class="n">setIL</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;length&quot;</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IL_type</span> <span class="o">==</span> <span class="s2">&quot;surface&quot;</span><span class="p">:</span>
+            <span class="n">inf_line</span><span class="o">.</span><span class="n">setIL</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;inf_surf&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">_get_IS</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="n">inf_line</span></div>
+
+
+    <span class="c1"># def show(self) -&gt; None:</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     Plot the influence line.</span>
+
+    <span class="c1">#     Returns</span>
+    <span class="c1">#     -------</span>
+    <span class="c1">#     None.</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+
+    <span class="c1">#     raise NotImplementedError()</span>
+
+
+<div class="viewcode-block" id="InfluenceSurface">
+<a class="viewcode-back" href="../../../gen/pybtls.bridge.influence_line.InfluenceSurface.html#pybtls.bridge.influence_line.InfluenceSurface">[docs]</a>
+<span class="k">class</span> <span class="nc">InfluenceSurface</span><span class="p">:</span>
+    <span class="n">_IS_Index</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The InfluenceSurface instance in Python stores the data for creating a CInfluenceSurface instance in C++.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">InfluenceSurface</span><span class="o">.</span><span class="n">_IS_Index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_IS_index</span> <span class="o">=</span> <span class="n">InfluenceSurface</span><span class="o">.</span><span class="n">_IS_Index</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;lane_position&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;IS_matrix&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">attribute_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;IS_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IS_index</span>
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;data_dict&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span>
+        <span class="k">return</span> <span class="n">attribute_dict</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_IS_index</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;IS_index&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;data_dict&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="InfluenceSurface.set_IS">
+<a class="viewcode-back" href="../../../gen/pybtls.bridge.influence_line.InfluenceSurface.html#pybtls.bridge.influence_line.InfluenceSurface.set_IS">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_IS</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">IS_matrix</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">lane_position</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set influence surface data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        IS_matrix : Union[list,np.ndarray]\n</span>
+<span class="sd">            Influence surface matrix, where the data points are meshed in grid (refer to the BTLS Manual for an example).\n</span>
+<span class="sd">                First row: The transverse position of the IS data points.\n</span>
+<span class="sd">                First column: The longitudinal position of the IS data points.\n</span>
+<span class="sd">                Rest of data: The corresponding values of the IS data points at the positions.\n</span>
+<span class="sd">            Here&#39;s a simple illustration about the bridge coordinate:\n</span>
+<span class="sd">                Observe the bridge from its plan view\n</span>
+<span class="sd">                and regard its longitudinal direction as the horizontal.\n</span>
+<span class="sd">                Now the origin point is at the left down corner.\n</span>
+
+<span class="sd">        lane_position : Union[list,np.ndarray]\n</span>
+<span class="sd">            Lanes&#39; transverse positions.\n</span>
+<span class="sd">            [(lane 1 left, lane 1 right), ..., (lane n left, lane n right)]\n</span>
+<span class="sd">            Lane 1 is the nearest lane to the origin point.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lane_position</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">IS_matrix</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">&quot;The lane_position and IS_matrix should be list or np.ndarray.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">IS_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The IS_matrix should be 2D.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;lane_position&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lane_position</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;IS_matrix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">IS_matrix</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_IS</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_InfluenceSurface</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the created C++ CInfluenceSurface instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">inf_surf</span> <span class="o">=</span> <span class="n">_InfluenceSurface</span><span class="p">()</span>
+
+        <span class="n">inf_surf</span><span class="o">.</span><span class="n">setLanes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;lane_position&quot;</span><span class="p">])</span>
+        <span class="n">inf_surf</span><span class="o">.</span><span class="n">setIS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;IS_matrix&quot;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">inf_surf</span></div>
+
+
+    <span class="c1"># def show(self) -&gt; None:</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     Plot the influence surface.</span>
+
+    <span class="c1">#     Returns</span>
+    <span class="c1">#     -------</span>
+    <span class="c1">#     None.</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+
+    <span class="c1">#     raise NotImplementedError()</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024, The PyBTLS Developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

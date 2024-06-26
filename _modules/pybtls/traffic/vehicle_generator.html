@@ -1,0 +1,921 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pybtls.traffic.vehicle_generator &#8212; PyBTLS 0.3.7 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=29d04658"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/pybtls/traffic/vehicle_generator';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/PyBTLS_logo_small.png" class="logo__image only-light" alt="PyBTLS 0.3.7 documentation - Home"/>
+    <script>document.write(`<img src="../../../_static/PyBTLS_logo_small.png" class="logo__image only-dark" alt="PyBTLS 0.3.7 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../tutorial.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API Reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../theory.html">
+    Theoretical Background
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../references.html">
+    References
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../developer.html">
+    Instructions for Developers
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ccaprani/btls" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/ccaprani" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-twitter-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../tutorial.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API Reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../theory.html">
+    Theoretical Background
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../references.html">
+    References
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../developer.html">
+    Instructions for Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ccaprani/btls" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/ccaprani" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-twitter-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">pybtls.traff...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for pybtls.traffic.vehicle_generator</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The methods and classes that are not defined in Python are defined in C++ py_main.cpp. </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">..lib.BTLS</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_ConfigData</span><span class="p">,</span>
+    <span class="n">_LaneFlowComposition</span><span class="p">,</span>
+    <span class="n">_VehicleGenNominal</span><span class="p">,</span>
+    <span class="n">_VehModelDataNominal</span><span class="p">,</span>
+    <span class="n">_VehicleGenGrave</span><span class="p">,</span>
+    <span class="n">_VehModelDataGrave</span><span class="p">,</span>
+    <span class="n">_VehicleGenGarage</span><span class="p">,</span>
+    <span class="n">_VehModelDataGarage</span><span class="p">,</span>
+    <span class="n">_VehClassPattern</span><span class="p">,</span>
+    <span class="n">_VehClassAxle</span><span class="p">,</span>
+    <span class="n">Vehicle</span><span class="p">,</span>
+    <span class="n">_Vehicle</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.lfc</span> <span class="kn">import</span> <span class="n">LaneFlowComposition</span>
+<span class="kn">from</span> <span class="nn">..garage.read</span> <span class="kn">import</span> <span class="n">read_garage_file</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">importlib.resources</span> <span class="k">as</span> <span class="nn">pkg_resources</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;VehicleGenNominal&quot;</span><span class="p">,</span> <span class="s2">&quot;VehicleGenGrave&quot;</span><span class="p">,</span> <span class="s2">&quot;VehicleGenGarage&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="VehicleGenNominal">
+<a class="viewcode-back" href="../../../gen/pybtls.traffic.vehicle_generator.VehicleGenNominal.html#pybtls.traffic.vehicle_generator.VehicleGenNominal">[docs]</a>
+<span class="k">class</span> <span class="nc">VehicleGenNominal</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nominal_vehicle</span><span class="p">:</span> <span class="n">Vehicle</span><span class="p">,</span> <span class="n">COV_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The VehicleGenNominal instance in Python stores the data for creating a CVehicleGenNominal instance in C++.\n</span>
+<span class="sd">        All heavy vehicles will be generated based on the intput nominal vehicle.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nominal_vehicle : Vehicle\n</span>
+<span class="sd">            Nominal vehicle.</span>
+
+<span class="sd">        COV_list : list[float]\n</span>
+<span class="sd">            List of COV for axle spacing and axle weight. \n</span>
+<span class="sd">            COV_list = [COV_AS, COV_AW].</span>
+
+<span class="sd">        Keyword Arguments</span>
+<span class="sd">        -----------------</span>
+<span class="sd">        classifier_type : str\n</span>
+<span class="sd">            Vehicle classifier type. &quot;axle&quot; or &quot;pattern&quot;. Default is &quot;pattern&quot;.</span>
+
+<span class="sd">        lane_eccentricity_std : float\n</span>
+<span class="sd">            Standard deviation of lane eccentricity. Default is 0.0.</span>
+
+<span class="sd">        kernel_type : int\n</span>
+<span class="sd">            Kernel type. 0 (Normal) or 1 (Triangle). Default is 1 (Triangle).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span> <span class="o">=</span> <span class="s2">&quot;Nominal&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">_ConfigData</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">COV_list</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid COV list for nominal vehicle generator.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nominal_vehicle</span> <span class="o">=</span> <span class="n">nominal_vehicle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_COV_list</span> <span class="o">=</span> <span class="n">COV_list</span>  <span class="c1"># COV_list = [COV_AS, COV_AW]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_config</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">attribute_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span>
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;config&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span>
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;nominal_vehicle&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nominal_vehicle</span>
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;COV_list&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_COV_list</span>
+
+        <span class="k">return</span> <span class="n">attribute_dict</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;config&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nominal_vehicle</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;nominal_vehicle&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_COV_list</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;COV_list&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tag</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span>
+
+    <span class="k">def</span> <span class="nf">_get_VC</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">_Traffic</span><span class="o">.</span><span class="n">CLASSIFICATION</span>
+
+    <span class="k">def</span> <span class="nf">_set_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">classifier_type</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;classifier_type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;axle&quot;</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="n">lane_eccentricity_std</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lane_eccentricity_std&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">kernel_type</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;kernel_type&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">set_veh_gen_nominal</span><span class="p">(</span>
+            <span class="n">vehicle_classifier</span><span class="o">=</span><span class="n">classifier_type</span><span class="p">,</span>
+            <span class="n">lane_eccentricity_std</span><span class="o">=</span><span class="n">lane_eccentricity_std</span><span class="p">,</span>  <span class="c1"># in cm</span>
+            <span class="n">kernel_type</span><span class="o">=</span><span class="n">kernel_type</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_check_lfc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lfc</span><span class="p">:</span> <span class="n">LaneFlowComposition</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lfc</span><span class="o">.</span><span class="n">flow_assigned</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Flow data is not included in the LaneFlowComposition instance.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_generator</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">lfc</span><span class="p">:</span> <span class="n">_LaneFlowComposition</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">_VehicleGenNominal</span><span class="p">,</span> <span class="n">_VehModelDataNominal</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a CVehicleGenNominal instance and a CVehModelDataNominal instance (generator and its model data).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">_Traffic</span><span class="o">.</span><span class="n">CLASSIFICATION</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">vehicle_classifier</span> <span class="o">=</span> <span class="n">_VehClassPattern</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vehicle_classifier</span> <span class="o">=</span> <span class="n">_VehClassAxle</span><span class="p">()</span>
+
+        <span class="n">model_data</span> <span class="o">=</span> <span class="n">_VehModelDataNominal</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span> <span class="n">vehicle_classifier</span><span class="p">,</span> <span class="n">lfc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nominal_vehicle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_COV_list</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">_VehicleGenNominal</span><span class="p">(</span><span class="n">model_data</span><span class="p">),</span> <span class="n">model_data</span></div>
+
+
+
+<div class="viewcode-block" id="VehicleGenGrave">
+<a class="viewcode-back" href="../../../gen/pybtls.traffic.vehicle_generator.VehicleGenGrave.html#pybtls.traffic.vehicle_generator.VehicleGenGrave">[docs]</a>
+<span class="k">class</span> <span class="nc">VehicleGenGrave</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">traffic_site</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span>
+            <span class="s2">&quot;A196&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;A296&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Angers&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Auxerre&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;B224&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-D&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-D1&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-D2&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-D3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-S&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-S1&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-S2&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-S3&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
+        <span class="n">truck_track_width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">190.0</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The VehicleGenGrave instance in Python stores the data for creating a CVehicleGenGrave instance in C++.\n</span>
+<span class="sd">        All heavy vehicles will be generated by sampling from the pre-studied distributions of vehicle properties.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        traffic_site : Literal[&#39;A196&#39;,&#39;A296&#39;,&#39;Angers&#39;,&#39;Auxerre&#39;,&#39;B224&#39;,&#39;Samaris-D&#39;,&#39;Samaris-D1&#39;,&#39;Samaris-D2&#39;,&#39;Samaris-D3&#39;,&#39;Samaris-S&#39;,&#39;Samaris-S1&#39;,&#39;Samaris-S2&#39;,&#39;Samaris-S3&#39;]\n</span>
+<span class="sd">            Traffic site. These sites are all in Europe.</span>
+
+<span class="sd">        truck_track_width : float optional\n</span>
+<span class="sd">            Truck track width. Default is 190.0.</span>
+
+<span class="sd">        Keyword Arguments</span>
+<span class="sd">        -----------------</span>
+<span class="sd">        classifier_type : str\n</span>
+<span class="sd">            Vehicle classifier type. &quot;axle&quot; or &quot;pattern&quot;. Default is &quot;pattern&quot;.</span>
+
+<span class="sd">        lane_eccentricity_std : float\n</span>
+<span class="sd">            Standard deviation of lane eccentricity. Default is 0.0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span> <span class="o">=</span> <span class="s2">&quot;Grave&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">_ConfigData</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">traffic_site</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;A196&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;A296&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Angers&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Auxerre&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;B224&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-D&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-D1&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-D2&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-D3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-S&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-S1&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-S2&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Samaris-S3&quot;</span><span class="p">,</span>
+        <span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unrecorded traffic site for Grave model.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_traffic_site</span> <span class="o">=</span> <span class="n">traffic_site</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_truck_track_width</span> <span class="o">=</span> <span class="n">truck_track_width</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_config</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">attribute_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span>
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;config&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span>
+
+        <span class="k">return</span> <span class="n">attribute_dict</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;config&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tag</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span>
+
+    <span class="k">def</span> <span class="nf">_get_VC</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">_Traffic</span><span class="o">.</span><span class="n">CLASSIFICATION</span>
+
+    <span class="k">def</span> <span class="nf">_set_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">classifier_type</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;classifier_type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;axle&quot;</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="n">lane_eccentricity_std</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lane_eccentricity_std&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="n">traffic_folder</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span>
+            <span class="n">pkg_resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">&quot;pybtls&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span>
+                <span class="s2">&quot;data/GraveParameters/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_traffic_site</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">set_veh_gen_grave</span><span class="p">(</span>
+            <span class="n">vehicle_classifier</span><span class="o">=</span><span class="n">classifier_type</span><span class="p">,</span>
+            <span class="n">traffic_folder</span><span class="o">=</span><span class="n">traffic_folder</span><span class="p">,</span>
+            <span class="n">truck_track_width</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_truck_track_width</span><span class="p">,</span>
+            <span class="n">lane_eccentricity_std</span><span class="o">=</span><span class="n">lane_eccentricity_std</span><span class="p">,</span>  <span class="c1"># in cm</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_check_lfc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lfc</span><span class="p">:</span> <span class="n">LaneFlowComposition</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lfc</span><span class="o">.</span><span class="n">flow_assigned</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Flow data is not included in the LaneFlowComposition instance.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lfc</span><span class="o">.</span><span class="n">truck_composition_assigned</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Truck composition data is not included in the LaneFlowComposition instance.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_generator</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">lfc</span><span class="p">:</span> <span class="n">_LaneFlowComposition</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">_VehicleGenGrave</span><span class="p">,</span> <span class="n">_VehModelDataGrave</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a CVehicleGenGrave instance and a CVehModelDataGrave instance (generator and its model data).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">_Traffic</span><span class="o">.</span><span class="n">CLASSIFICATION</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">vehicle_classifier</span> <span class="o">=</span> <span class="n">_VehClassPattern</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vehicle_classifier</span> <span class="o">=</span> <span class="n">_VehClassAxle</span><span class="p">()</span>
+
+        <span class="n">model_data</span> <span class="o">=</span> <span class="n">_VehModelDataGrave</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span> <span class="n">vehicle_classifier</span><span class="p">,</span> <span class="n">lfc</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">_VehicleGenGrave</span><span class="p">(</span><span class="n">model_data</span><span class="p">),</span> <span class="n">model_data</span></div>
+
+
+
+<div class="viewcode-block" id="VehicleGenGarage">
+<a class="viewcode-back" href="../../../gen/pybtls.traffic.vehicle_generator.VehicleGenGarage.html#pybtls.traffic.vehicle_generator.VehicleGenGarage">[docs]</a>
+<span class="k">class</span> <span class="nc">VehicleGenGarage</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">garage</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">_Vehicle</span><span class="p">]],</span>
+        <span class="n">kernel</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+        <span class="n">garage_format</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The VehicleGenGarage instance in Python stores the data for creating a CVehicleGenGarage instance in C++.\n</span>
+<span class="sd">        This generation is a bootstrapping process.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        garage : Union[Path, list[_Vehicle]]\n</span>
+<span class="sd">            The path to the garage file,</span>
+<span class="sd">            or a list of Vehicle objects.</span>
+
+<span class="sd">        kernel : list[list[float]]\n</span>
+<span class="sd">            The kernel is to ensure variation between the generated vehicles and garages. \n</span>
+<span class="sd">            kernel = [\n</span>
+<span class="sd">                [MEAN_GVW, COV_GVW],\n</span>
+<span class="sd">                [MEAN_AxleWeight, COV_AxleWeight],\n</span>
+<span class="sd">                [MEAN_AxleSpacing, COV_AxleSpacing]\n</span>
+<span class="sd">                ].</span>
+
+<span class="sd">        garage_format : Literal[1,2,3,4], optional\n</span>
+<span class="sd">            The format of the .txt garage file.\n</span>
+<span class="sd">            1: CASTOR format.\n</span>
+<span class="sd">            2: BEDIT format.\n</span>
+<span class="sd">            3: DITIS format.\n</span>
+<span class="sd">            4: MON format.</span>
+
+<span class="sd">        Keyword Arguments</span>
+<span class="sd">        -----------------</span>
+<span class="sd">        classifier_type : str\n</span>
+<span class="sd">            Vehicle classifier type. &quot;axle&quot; or &quot;pattern&quot;. Default is &quot;pattern&quot;.</span>
+
+<span class="sd">        lane_eccentricity_std : float\n</span>
+<span class="sd">            Standard deviation of lane eccentricity. Default is 0.0.</span>
+
+<span class="sd">        kernel_type : int\n</span>
+<span class="sd">            Kernel type. 0 (Normal) or 1 (Triangle). Default is 1 (Triangle).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span> <span class="o">=</span> <span class="s2">&quot;Garage&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">_ConfigData</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kernel</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sublist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">kernel</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid kernel data for garage vehicle generator.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">garage</span><span class="p">,</span> <span class="p">(</span><span class="n">Path</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">garage_format</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Garage format is not specified.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_garage</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">Path</span><span class="p">(</span><span class="n">garage</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">garage</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span>
+                <span class="k">else</span> <span class="n">garage</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_garage_format</span> <span class="o">=</span> <span class="n">garage_format</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">garage</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">vehicle</span><span class="p">,</span> <span class="p">(</span><span class="n">Vehicle</span><span class="p">,</span> <span class="n">_Vehicle</span><span class="p">))</span> <span class="k">for</span> <span class="n">vehicle</span> <span class="ow">in</span> <span class="n">garage</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_garage</span> <span class="o">=</span> <span class="n">garage</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Existing non-Vehicle object in the garage.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid garage data for garage vehicle generator.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">kernel</span>  <span class="c1"># kernel = [[MEAN_GVW, COV_GVW],[MEAN_AW, COV_AW],[MEAN_AS, COV_AS]]</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_config</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">attribute_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span>
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;config&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span>
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;garage&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_garage</span>
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;garage_format&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_garage_format</span>
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;kernel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span>
+
+        <span class="k">return</span> <span class="n">attribute_dict</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;config&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_garage</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;garage&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_garage_format</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;garage_format&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;kernel&quot;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tag</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tag</span>
+
+    <span class="k">def</span> <span class="nf">_get_VC</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">_Traffic</span><span class="o">.</span><span class="n">CLASSIFICATION</span>
+
+    <span class="k">def</span> <span class="nf">_set_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">classifier_type</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;classifier_type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;axle&quot;</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="n">lane_eccentricity_std</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lane_eccentricity_std&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">kernel_type</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;kernel_type&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">set_veh_gen_garage</span><span class="p">(</span>
+            <span class="n">vehicle_classifier</span><span class="o">=</span><span class="n">classifier_type</span><span class="p">,</span>
+            <span class="n">lane_eccentricity_std</span><span class="o">=</span><span class="n">lane_eccentricity_std</span><span class="p">,</span>  <span class="c1"># in cm</span>
+            <span class="n">kernel_type</span><span class="o">=</span><span class="n">kernel_type</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_check_lfc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lfc</span><span class="p">:</span> <span class="n">LaneFlowComposition</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lfc</span><span class="o">.</span><span class="n">flow_assigned</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Flow data is not included in the LaneFlowComposition instance.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_generator</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">lfc</span><span class="p">:</span> <span class="n">_LaneFlowComposition</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">_VehicleGenGarage</span><span class="p">,</span> <span class="n">_VehModelDataGarage</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a CVehicleGenGarage instance and a CVehModelDataGarage instance (generator and its model data).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">_Traffic</span><span class="o">.</span><span class="n">CLASSIFICATION</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">vehicle_classifier</span> <span class="o">=</span> <span class="n">_VehClassPattern</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vehicle_classifier</span> <span class="o">=</span> <span class="n">_VehClassAxle</span><span class="p">()</span>
+
+        <span class="n">vehicle_list</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">read_garage_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_garage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_garage_format</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_garage</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_garage</span>
+        <span class="p">)</span>
+
+        <span class="n">model_data</span> <span class="o">=</span> <span class="n">_VehModelDataGarage</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">,</span> <span class="n">vehicle_classifier</span><span class="p">,</span> <span class="n">lfc</span><span class="p">,</span> <span class="n">vehicle_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">_VehicleGenGarage</span><span class="p">(</span><span class="n">model_data</span><span class="p">),</span> <span class="n">model_data</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024, The PyBTLS Developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

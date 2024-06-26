@@ -1,0 +1,2316 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Simulation with traffic generation. &#8212; PyBTLS 0.3.7 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=29d04658"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'notebooks/gen_traffic';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Simulation with traffic reading." href="read_traffic.html" />
+    <link rel="prev" title="Simulation with single vehicle." href="single_vehicle.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/PyBTLS_logo_small.png" class="logo__image only-light" alt="PyBTLS 0.3.7 documentation - Home"/>
+    <script>document.write(`<img src="../_static/PyBTLS_logo_small.png" class="logo__image only-dark" alt="PyBTLS 0.3.7 documentation - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../tutorial.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API Reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../theory.html">
+    Theoretical Background
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../references.html">
+    References
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../developer.html">
+    Instructions for Developers
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ccaprani/btls" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/ccaprani" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-twitter-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../tutorial.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API Reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../theory.html">
+    Theoretical Background
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../references.html">
+    References
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../developer.html">
+    Instructions for Developers
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ccaprani/btls" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/ccaprani" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-twitter-square fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="single_vehicle.html">Simulation with single vehicle.</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Simulation with traffic generation.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="read_traffic.html">Simulation with traffic reading.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="what_else.html">Something else that pybtls can do.</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../tutorial.html" class="nav-link">Tutorials</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Simulation...</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="Simulation-with-traffic-generation.">
+<h1>Simulation with traffic generation.<a class="headerlink" href="#Simulation-with-traffic-generation." title="Link to this heading">#</a></h1>
+<p>This demo is for the case of extrapolating the maximum effect caused by a regional traffic flow.</p>
+<p>The bridge:</p>
+<ul class="simple">
+<li><p>Has four 3.5m-width lanes.</p></li>
+<li><p>Has a length of 20m.</p></li>
+<li><p>Has a width of 16m.</p></li>
+<li><p>Has one load effect being considered.</p></li>
+</ul>
+<p>The traffic flow:</p>
+<ul class="simple">
+<li><p>Vehicles are generated from Garage model.</p></li>
+<li><p>Headways are in freeflow condition (Poisson arrival model).</p></li>
+</ul>
+<hr class="docutils" />
+<p>The part that has already been introduced in the single_vehicle demo.</p>
+<p>But this time we change to define a 4-lane bridge.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pybtls</span> <span class="k">as</span> <span class="nn">pb</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+
+<span class="c1"># set the load effect by using a 2D influence surface</span>
+<span class="n">lanes_position</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">),</span> <span class="p">(</span><span class="mf">8.5</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">12.0</span><span class="p">,</span> <span class="mf">15.5</span><span class="p">)]</span>
+<span class="n">IS_matrix</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">,</span> <span class="mf">16.0</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">20.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+<span class="p">]</span>
+<span class="n">load_effect</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">InfluenceSurface</span><span class="p">()</span>
+<span class="n">load_effect</span><span class="o">.</span><span class="n">set_IS</span><span class="p">(</span><span class="n">IS_matrix</span><span class="p">,</span> <span class="n">lanes_position</span><span class="p">)</span>
+
+<span class="c1"># set the bridge</span>
+<span class="n">bridge</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">Bridge</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">no_lane</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">bridge</span><span class="o">.</span><span class="n">add_load_effect</span><span class="p">(</span><span class="n">inf_line_surf</span><span class="o">=</span><span class="n">load_effect</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">bridge</span><span class="o">.</span><span class="n">add_load_effect</span><span class="p">(</span><span class="n">inf_line_surf</span><span class="o">=</span><span class="n">load_effect</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">)</span>  <span class="c1"># We add the same load effect again, but this time with a threshold of 1000.0 for the later POT analysis</span>
+</pre></div>
+</div>
+</div>
+<p>Set lane flow compositions (here we just use the same flow for all lanes).</p>
+<p>For the lane_dir, 1 means from left to right and 2 means from right to left, based on the same coordinate system as the influence surface.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lfc_lane1</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">LaneFlowComposition</span><span class="p">(</span><span class="n">lane_index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">lane_dir</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">lfc_lane1</span><span class="o">.</span><span class="n">assign_lane_data</span><span class="p">(</span>
+    <span class="n">hourly_truck_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_car_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_speed_mean</span><span class="o">=</span><span class="p">[</span><span class="mi">80</span> <span class="o">/</span> <span class="mf">3.6</span> <span class="o">*</span> <span class="mi">10</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_speed_std</span><span class="o">=</span><span class="p">[</span><span class="mf">10.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">lfc_lane2</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">LaneFlowComposition</span><span class="p">(</span><span class="n">lane_index</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">lane_dir</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">lfc_lane2</span><span class="o">.</span><span class="n">assign_lane_data</span><span class="p">(</span>
+    <span class="n">hourly_truck_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_car_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_speed_mean</span><span class="o">=</span><span class="p">[</span><span class="mi">80</span> <span class="o">/</span> <span class="mf">3.6</span> <span class="o">*</span> <span class="mi">10</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_speed_std</span><span class="o">=</span><span class="p">[</span><span class="mf">10.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">lfc_lane3</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">LaneFlowComposition</span><span class="p">(</span><span class="n">lane_index</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">lane_dir</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">lfc_lane3</span><span class="o">.</span><span class="n">assign_lane_data</span><span class="p">(</span>
+    <span class="n">hourly_truck_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_car_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_speed_mean</span><span class="o">=</span><span class="p">[</span><span class="mi">80</span> <span class="o">/</span> <span class="mf">3.6</span> <span class="o">*</span> <span class="mi">10</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_speed_std</span><span class="o">=</span><span class="p">[</span><span class="mf">10.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">lfc_lane4</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">LaneFlowComposition</span><span class="p">(</span><span class="n">lane_index</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">lane_dir</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">lfc_lane4</span><span class="o">.</span><span class="n">assign_lane_data</span><span class="p">(</span>
+    <span class="n">hourly_truck_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_car_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_speed_mean</span><span class="o">=</span><span class="p">[</span><span class="mi">80</span> <span class="o">/</span> <span class="mf">3.6</span> <span class="o">*</span> <span class="mi">10</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+    <span class="n">hourly_speed_std</span><span class="o">=</span><span class="p">[</span><span class="mf">10.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Set vehicle generator. Here we use the garage one.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The kernel is to ensure variation between the generated vehicles and garages.</span>
+<span class="n">kernel</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">]]</span>
+
+<span class="n">vehicle_gen</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">VehicleGenGarage</span><span class="p">(</span>
+    <span class="n">garage</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;garage.txt&quot;</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">garage_format</span><span class="o">=</span><span class="mi">4</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Choose headway generator with the freeflow one.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># set headway generator</span>
+<span class="n">headway_gen</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">HeadwayGenFreeflow</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>Assemble the vehicle generator and the headway generator with the lfc information to get a traffic generator.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">traffic_gen</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">TrafficGenerator</span><span class="p">(</span><span class="n">no_lane</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">traffic_gen</span><span class="o">.</span><span class="n">add_lane</span><span class="p">(</span><span class="n">vehicle_gen</span><span class="o">=</span><span class="n">vehicle_gen</span><span class="p">,</span> <span class="n">headway_gen</span><span class="o">=</span><span class="n">headway_gen</span><span class="p">,</span> <span class="n">lfc</span><span class="o">=</span><span class="n">lfc_lane1</span><span class="p">)</span>
+<span class="n">traffic_gen</span><span class="o">.</span><span class="n">add_lane</span><span class="p">(</span><span class="n">vehicle_gen</span><span class="o">=</span><span class="n">vehicle_gen</span><span class="p">,</span> <span class="n">headway_gen</span><span class="o">=</span><span class="n">headway_gen</span><span class="p">,</span> <span class="n">lfc</span><span class="o">=</span><span class="n">lfc_lane2</span><span class="p">)</span>
+<span class="n">traffic_gen</span><span class="o">.</span><span class="n">add_lane</span><span class="p">(</span><span class="n">vehicle_gen</span><span class="o">=</span><span class="n">vehicle_gen</span><span class="p">,</span> <span class="n">headway_gen</span><span class="o">=</span><span class="n">headway_gen</span><span class="p">,</span> <span class="n">lfc</span><span class="o">=</span><span class="n">lfc_lane3</span><span class="p">)</span>
+<span class="n">traffic_gen</span><span class="o">.</span><span class="n">add_lane</span><span class="p">(</span><span class="n">vehicle_gen</span><span class="o">=</span><span class="n">vehicle_gen</span><span class="p">,</span> <span class="n">headway_gen</span><span class="o">=</span><span class="n">headway_gen</span><span class="p">,</span> <span class="n">lfc</span><span class="o">=</span><span class="n">lfc_lane4</span><span class="p">)</span>
+<span class="c1"># traffic_gen.set_start_time(0.0)  # optional, the default start_time is 0.0 unless you want to change it.</span>
+</pre></div>
+</div>
+</div>
+<p>Set output, which will be written to HDD.</p>
+<p>To do the extrapolation, we need the block-max and peak-over-threshold output.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_config</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">OutputConfig</span><span class="p">()</span>
+<span class="n">output_config</span><span class="o">.</span><span class="n">set_BM_output</span><span class="p">(</span>
+    <span class="n">write_vehicle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write_summary</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write_mixed</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="n">output_config</span><span class="o">.</span><span class="n">set_POT_output</span><span class="p">(</span>
+    <span class="n">write_vehicle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write_summary</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write_counter</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p>Set the simulation and run.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim_task</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;temp&quot;</span><span class="p">)</span>
+<span class="n">sim_task</span><span class="o">.</span><span class="n">add_sim</span><span class="p">(</span>
+    <span class="n">bridge</span><span class="o">=</span><span class="n">bridge</span><span class="p">,</span>
+    <span class="n">traffic</span><span class="o">=</span><span class="n">traffic_gen</span><span class="p">,</span>
+    <span class="n">no_day</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>  <span class="c1"># 1-year working days</span>
+    <span class="n">output_config</span><span class="o">=</span><span class="n">output_config</span><span class="p">,</span>
+    <span class="n">time_step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">min_gvw</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span>  <span class="c1"># Ignore vehicles with GVW less than 35 kN.</span>
+    <span class="c1"># active_lane=[1,2,3,4],  # optional, if not set, all lanes will be active.</span>
+    <span class="c1"># track_progress=False,  # optional, if True, the progress print will show up.</span>
+    <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;Case2&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># run simulation</span>
+<span class="n">sim_task</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">no_core</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p>Check what are the outputs.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim_output</span> <span class="o">=</span> <span class="n">sim_task</span><span class="o">.</span><span class="n">get_output</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sim_output</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+dict_keys([&#39;Case2&#39;])
+</pre></div></div>
+</div>
+<p>Use two simple loops to display all the read-in outputs.</p>
+<p>The data are stored as pandas.DataFrame.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">display</span>
+
+<span class="n">case2_output</span> <span class="o">=</span> <span class="n">sim_output</span><span class="p">[</span><span class="s2">&quot;Case2&quot;</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">case2_output</span><span class="o">.</span><span class="n">get_summary</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">case2_output</span><span class="o">.</span><span class="n">read_data</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">case2_output</span><span class="o">.</span><span class="n">read_data</span><span class="p">(</span><span class="n">i</span><span class="p">)[</span><span class="n">j</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+BM_by_no_trucks
+BM_V_20_2
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Index</th>
+      <th>Effect</th>
+      <th>Value</th>
+      <th>Time</th>
+      <th>Position on Bridge</th>
+      <th>No. Trucks</th>
+      <th>Trucks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>1</td>
+      <td>851.5</td>
+      <td>86009.7</td>
+      <td>28.40</td>
+      <td>2</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x127ed317...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>2</td>
+      <td>851.5</td>
+      <td>86009.7</td>
+      <td>28.40</td>
+      <td>2</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x127ed323...</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2</td>
+      <td>1</td>
+      <td>912.2</td>
+      <td>141409.0</td>
+      <td>26.90</td>
+      <td>2</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x127ed3cb...</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2</td>
+      <td>2</td>
+      <td>912.2</td>
+      <td>141409.0</td>
+      <td>26.90</td>
+      <td>2</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x127ed347...</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>3</td>
+      <td>1</td>
+      <td>728.1</td>
+      <td>210254.1</td>
+      <td>-2.57</td>
+      <td>2</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x127ed3dd...</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>495</th>
+      <td>248</td>
+      <td>2</td>
+      <td>848.5</td>
+      <td>21373964.1</td>
+      <td>21.78</td>
+      <td>2</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x14010f1d...</td>
+    </tr>
+    <tr>
+      <th>496</th>
+      <td>249</td>
+      <td>1</td>
+      <td>509.6</td>
+      <td>21489013.1</td>
+      <td>14.24</td>
+      <td>2</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x14010f29...</td>
+    </tr>
+    <tr>
+      <th>497</th>
+      <td>249</td>
+      <td>2</td>
+      <td>509.6</td>
+      <td>21489013.1</td>
+      <td>14.24</td>
+      <td>2</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x14010f35...</td>
+    </tr>
+    <tr>
+      <th>498</th>
+      <td>250</td>
+      <td>1</td>
+      <td>716.2</td>
+      <td>21575517.0</td>
+      <td>15.06</td>
+      <td>2</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x14010f41...</td>
+    </tr>
+    <tr>
+      <th>499</th>
+      <td>250</td>
+      <td>2</td>
+      <td>716.2</td>
+      <td>21575517.0</td>
+      <td>15.06</td>
+      <td>2</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x14010f4d...</td>
+    </tr>
+  </tbody>
+</table>
+<p>500 rows × 7 columns</p>
+</div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+BM_V_20_1
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Index</th>
+      <th>Effect</th>
+      <th>Value</th>
+      <th>Time</th>
+      <th>Position on Bridge</th>
+      <th>No. Trucks</th>
+      <th>Trucks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>1</td>
+      <td>1152.8</td>
+      <td>72178.8</td>
+      <td>22.32</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x127edb8f0&gt;]</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>2</td>
+      <td>1152.8</td>
+      <td>72178.8</td>
+      <td>22.32</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x127edb950&gt;]</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2</td>
+      <td>1</td>
+      <td>1152.6</td>
+      <td>89180.0</td>
+      <td>21.65</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x127edb830&gt;]</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2</td>
+      <td>2</td>
+      <td>1152.6</td>
+      <td>89180.0</td>
+      <td>21.65</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x127edaf90&gt;]</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>3</td>
+      <td>1</td>
+      <td>1142.6</td>
+      <td>175921.2</td>
+      <td>22.02</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x127edae10&gt;]</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>495</th>
+      <td>248</td>
+      <td>2</td>
+      <td>1122.3</td>
+      <td>21400190.1</td>
+      <td>-1.61</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x140164d70&gt;]</td>
+    </tr>
+    <tr>
+      <th>496</th>
+      <td>249</td>
+      <td>1</td>
+      <td>1116.6</td>
+      <td>21508482.4</td>
+      <td>22.69</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x140164dd0&gt;]</td>
+    </tr>
+    <tr>
+      <th>497</th>
+      <td>249</td>
+      <td>2</td>
+      <td>1116.6</td>
+      <td>21508482.4</td>
+      <td>22.69</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x140164e30&gt;]</td>
+    </tr>
+    <tr>
+      <th>498</th>
+      <td>250</td>
+      <td>1</td>
+      <td>1148.9</td>
+      <td>21522860.1</td>
+      <td>22.02</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x140164e90&gt;]</td>
+    </tr>
+    <tr>
+      <th>499</th>
+      <td>250</td>
+      <td>2</td>
+      <td>1148.9</td>
+      <td>21522860.1</td>
+      <td>22.02</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x140164ef0&gt;]</td>
+    </tr>
+  </tbody>
+</table>
+<p>500 rows × 7 columns</p>
+</div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+BM_V_20_3
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Index</th>
+      <th>Effect</th>
+      <th>Value</th>
+      <th>Time</th>
+      <th>Position on Bridge</th>
+      <th>No. Trucks</th>
+      <th>Trucks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2</td>
+      <td>1</td>
+      <td>577.1</td>
+      <td>119150.6</td>
+      <td>21.56</td>
+      <td>3</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x14012d13...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2</td>
+      <td>2</td>
+      <td>577.1</td>
+      <td>119150.6</td>
+      <td>21.56</td>
+      <td>3</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x14012dbb...</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>3</td>
+      <td>1</td>
+      <td>34.5</td>
+      <td>176750.8</td>
+      <td>-2.60</td>
+      <td>3</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x14012dd3...</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>3</td>
+      <td>2</td>
+      <td>34.5</td>
+      <td>176750.8</td>
+      <td>-2.60</td>
+      <td>3</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x14012dfd...</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>4</td>
+      <td>1</td>
+      <td>433.8</td>
+      <td>277810.9</td>
+      <td>33.93</td>
+      <td>3</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x14012e0f...</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>71</th>
+      <td>208</td>
+      <td>2</td>
+      <td>243.7</td>
+      <td>17908150.0</td>
+      <td>-16.38</td>
+      <td>3</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x14011f17...</td>
+    </tr>
+    <tr>
+      <th>72</th>
+      <td>239</td>
+      <td>1</td>
+      <td>385.2</td>
+      <td>20602573.4</td>
+      <td>6.38</td>
+      <td>3</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x14011f29...</td>
+    </tr>
+    <tr>
+      <th>73</th>
+      <td>239</td>
+      <td>2</td>
+      <td>385.2</td>
+      <td>20602573.4</td>
+      <td>6.38</td>
+      <td>3</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x14011f3b...</td>
+    </tr>
+    <tr>
+      <th>74</th>
+      <td>241</td>
+      <td>1</td>
+      <td>755.5</td>
+      <td>20769591.6</td>
+      <td>-13.34</td>
+      <td>3</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x14011f4d...</td>
+    </tr>
+    <tr>
+      <th>75</th>
+      <td>241</td>
+      <td>2</td>
+      <td>755.5</td>
+      <td>20769591.6</td>
+      <td>-13.34</td>
+      <td>3</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x14011f5f...</td>
+    </tr>
+  </tbody>
+</table>
+<p>76 rows × 7 columns</p>
+</div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+BM_by_mixed
+BM_V_20_All
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Index</th>
+      <th>Effect</th>
+      <th>Value</th>
+      <th>Time</th>
+      <th>Position on Bridge</th>
+      <th>No. Trucks</th>
+      <th>Trucks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>1</td>
+      <td>1152.8</td>
+      <td>72178.8</td>
+      <td>22.32</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x127ed9fd0&gt;]</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>2</td>
+      <td>1152.8</td>
+      <td>72178.8</td>
+      <td>22.32</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x127ed9df0&gt;]</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2</td>
+      <td>1</td>
+      <td>1152.6</td>
+      <td>89180.0</td>
+      <td>21.65</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x127ed9f10&gt;]</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2</td>
+      <td>2</td>
+      <td>1152.6</td>
+      <td>89180.0</td>
+      <td>21.65</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x127ed94f0&gt;]</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>3</td>
+      <td>1</td>
+      <td>1142.6</td>
+      <td>175921.2</td>
+      <td>22.02</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x127ed9370&gt;]</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>495</th>
+      <td>248</td>
+      <td>2</td>
+      <td>1122.3</td>
+      <td>21400190.1</td>
+      <td>-1.61</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x140155790&gt;]</td>
+    </tr>
+    <tr>
+      <th>496</th>
+      <td>249</td>
+      <td>1</td>
+      <td>1116.6</td>
+      <td>21508482.4</td>
+      <td>22.69</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x1401558b0&gt;]</td>
+    </tr>
+    <tr>
+      <th>497</th>
+      <td>249</td>
+      <td>2</td>
+      <td>1116.6</td>
+      <td>21508482.4</td>
+      <td>22.69</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x140155730&gt;]</td>
+    </tr>
+    <tr>
+      <th>498</th>
+      <td>250</td>
+      <td>1</td>
+      <td>1148.9</td>
+      <td>21522860.1</td>
+      <td>22.02</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x140155850&gt;]</td>
+    </tr>
+    <tr>
+      <th>499</th>
+      <td>250</td>
+      <td>2</td>
+      <td>1148.9</td>
+      <td>21522860.1</td>
+      <td>22.02</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x1401556d0&gt;]</td>
+    </tr>
+  </tbody>
+</table>
+<p>500 rows × 7 columns</p>
+</div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+BM_summary
+BM_S_20_Eff_2
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Block Index</th>
+      <th>1-Truck Event</th>
+      <th>2-Truck Event</th>
+      <th>3-Truck Event</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>1152.8</td>
+      <td>851.5</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2</td>
+      <td>1152.6</td>
+      <td>912.2</td>
+      <td>577.1</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>3</td>
+      <td>1142.6</td>
+      <td>728.1</td>
+      <td>34.5</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>4</td>
+      <td>1114.8</td>
+      <td>1108.0</td>
+      <td>433.8</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>5</td>
+      <td>1131.7</td>
+      <td>1162.3</td>
+      <td>278.3</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>245</th>
+      <td>246</td>
+      <td>1144.9</td>
+      <td>659.9</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>246</th>
+      <td>247</td>
+      <td>1083.9</td>
+      <td>511.5</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>247</th>
+      <td>248</td>
+      <td>1122.3</td>
+      <td>848.5</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>248</th>
+      <td>249</td>
+      <td>1116.6</td>
+      <td>509.6</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>249</th>
+      <td>250</td>
+      <td>1148.9</td>
+      <td>716.2</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+<p>250 rows × 4 columns</p>
+</div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+BM_S_20_Eff_1
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Block Index</th>
+      <th>1-Truck Event</th>
+      <th>2-Truck Event</th>
+      <th>3-Truck Event</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>1152.8</td>
+      <td>851.5</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2</td>
+      <td>1152.6</td>
+      <td>912.2</td>
+      <td>577.1</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>3</td>
+      <td>1142.6</td>
+      <td>728.1</td>
+      <td>34.5</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>4</td>
+      <td>1114.8</td>
+      <td>1108.0</td>
+      <td>433.8</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>5</td>
+      <td>1131.7</td>
+      <td>1162.3</td>
+      <td>278.3</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>245</th>
+      <td>246</td>
+      <td>1144.9</td>
+      <td>659.9</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>246</th>
+      <td>247</td>
+      <td>1083.9</td>
+      <td>511.5</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>247</th>
+      <td>248</td>
+      <td>1122.3</td>
+      <td>848.5</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>248</th>
+      <td>249</td>
+      <td>1116.6</td>
+      <td>509.6</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>249</th>
+      <td>250</td>
+      <td>1148.9</td>
+      <td>716.2</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+<p>250 rows × 4 columns</p>
+</div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+POT_vehicle
+PT_V_20_1
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Index</th>
+      <th>Effect</th>
+      <th>Value</th>
+      <th>Time</th>
+      <th>Position on Bridge</th>
+      <th>No. Trucks</th>
+      <th>Trucks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>1</td>
+      <td>174.2</td>
+      <td>77.8</td>
+      <td>13.98</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x29942ebd0&gt;]</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>2</td>
+      <td>174.2</td>
+      <td>77.8</td>
+      <td>13.98</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x29942ec30&gt;]</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2</td>
+      <td>1</td>
+      <td>151.2</td>
+      <td>122.2</td>
+      <td>4.75</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x29942ec90&gt;]</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2</td>
+      <td>2</td>
+      <td>151.2</td>
+      <td>122.2</td>
+      <td>4.75</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x29942f590&gt;]</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>3</td>
+      <td>1</td>
+      <td>277.0</td>
+      <td>160.6</td>
+      <td>13.93</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x29942f710&gt;]</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>745315</th>
+      <td>2658</td>
+      <td>2</td>
+      <td>557.9</td>
+      <td>21599860.3</td>
+      <td>22.89</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x2c1c50710&gt;]</td>
+    </tr>
+    <tr>
+      <th>745316</th>
+      <td>2659</td>
+      <td>1</td>
+      <td>204.4</td>
+      <td>21599867.3</td>
+      <td>10.65</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x2c1c50770&gt;]</td>
+    </tr>
+    <tr>
+      <th>745317</th>
+      <td>2659</td>
+      <td>2</td>
+      <td>204.4</td>
+      <td>21599867.3</td>
+      <td>10.65</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x2c1c507d0&gt;]</td>
+    </tr>
+    <tr>
+      <th>745318</th>
+      <td>2660</td>
+      <td>1</td>
+      <td>529.2</td>
+      <td>21599874.5</td>
+      <td>5.46</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x2c1c50830&gt;]</td>
+    </tr>
+    <tr>
+      <th>745319</th>
+      <td>2660</td>
+      <td>2</td>
+      <td>529.2</td>
+      <td>21599874.5</td>
+      <td>5.46</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x2c1c50890&gt;]</td>
+    </tr>
+  </tbody>
+</table>
+<p>745320 rows × 7 columns</p>
+</div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+PT_V_20_2
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Index</th>
+      <th>Effect</th>
+      <th>Value</th>
+      <th>Time</th>
+      <th>Position on Bridge</th>
+      <th>No. Trucks</th>
+      <th>Trucks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>1</td>
+      <td>1076.6</td>
+      <td>15308.3</td>
+      <td>-1.15</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x2c1650950&gt;]</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>2</td>
+      <td>1076.6</td>
+      <td>15308.3</td>
+      <td>-1.15</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x2c16509b0&gt;]</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2</td>
+      <td>1</td>
+      <td>1044.7</td>
+      <td>19863.9</td>
+      <td>18.67</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x2c1650a10&gt;]</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2</td>
+      <td>2</td>
+      <td>1044.7</td>
+      <td>19863.9</td>
+      <td>18.67</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x2c1651430&gt;]</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>3</td>
+      <td>1</td>
+      <td>1149.6</td>
+      <td>31969.8</td>
+      <td>-2.09</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x2c16515b0&gt;]</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>4369</th>
+      <td>12</td>
+      <td>2</td>
+      <td>1073.3</td>
+      <td>21587461.9</td>
+      <td>23.08</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x2c16e42f0&gt;]</td>
+    </tr>
+    <tr>
+      <th>4370</th>
+      <td>13</td>
+      <td>1</td>
+      <td>1006.2</td>
+      <td>21593103.8</td>
+      <td>18.33</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x2c16e4350&gt;]</td>
+    </tr>
+    <tr>
+      <th>4371</th>
+      <td>13</td>
+      <td>2</td>
+      <td>1006.2</td>
+      <td>21593103.8</td>
+      <td>18.33</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x2c16e43b0&gt;]</td>
+    </tr>
+    <tr>
+      <th>4372</th>
+      <td>14</td>
+      <td>1</td>
+      <td>1056.7</td>
+      <td>21599507.2</td>
+      <td>0.25</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x2c16e4410&gt;]</td>
+    </tr>
+    <tr>
+      <th>4373</th>
+      <td>14</td>
+      <td>2</td>
+      <td>1056.7</td>
+      <td>21599507.2</td>
+      <td>0.25</td>
+      <td>1</td>
+      <td>[&lt;pybtls.lib.BTLS.Vehicle object at 0x2c16e4470&gt;]</td>
+    </tr>
+  </tbody>
+</table>
+<p>4374 rows × 7 columns</p>
+</div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+POT_summary
+PT_S_20_Eff_2
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Peak Index</th>
+      <th>Time</th>
+      <th>No. Trucks</th>
+      <th>Peak Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>15308.3</td>
+      <td>1</td>
+      <td>1076.6</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2</td>
+      <td>19863.9</td>
+      <td>1</td>
+      <td>1044.7</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>3</td>
+      <td>31969.8</td>
+      <td>1</td>
+      <td>1149.6</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>4</td>
+      <td>33774.4</td>
+      <td>1</td>
+      <td>1109.9</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>5</td>
+      <td>65469.4</td>
+      <td>1</td>
+      <td>1062.8</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>2182</th>
+      <td>10</td>
+      <td>21575323.8</td>
+      <td>1</td>
+      <td>1078.3</td>
+    </tr>
+    <tr>
+      <th>2183</th>
+      <td>11</td>
+      <td>21576665.2</td>
+      <td>1</td>
+      <td>1102.4</td>
+    </tr>
+    <tr>
+      <th>2184</th>
+      <td>12</td>
+      <td>21587461.9</td>
+      <td>1</td>
+      <td>1073.3</td>
+    </tr>
+    <tr>
+      <th>2185</th>
+      <td>13</td>
+      <td>21593103.8</td>
+      <td>1</td>
+      <td>1006.2</td>
+    </tr>
+    <tr>
+      <th>2186</th>
+      <td>14</td>
+      <td>21599507.2</td>
+      <td>1</td>
+      <td>1056.7</td>
+    </tr>
+  </tbody>
+</table>
+<p>2187 rows × 4 columns</p>
+</div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+PT_S_20_Eff_1
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Peak Index</th>
+      <th>Time</th>
+      <th>No. Trucks</th>
+      <th>Peak Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>77.8</td>
+      <td>1</td>
+      <td>174.2</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2</td>
+      <td>122.2</td>
+      <td>1</td>
+      <td>151.2</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>3</td>
+      <td>160.6</td>
+      <td>1</td>
+      <td>277.0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>4</td>
+      <td>166.3</td>
+      <td>1</td>
+      <td>698.5</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>5</td>
+      <td>214.7</td>
+      <td>1</td>
+      <td>207.2</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>372655</th>
+      <td>2656</td>
+      <td>21599843.5</td>
+      <td>1</td>
+      <td>51.5</td>
+    </tr>
+    <tr>
+      <th>372656</th>
+      <td>2657</td>
+      <td>21599859.9</td>
+      <td>1</td>
+      <td>603.5</td>
+    </tr>
+    <tr>
+      <th>372657</th>
+      <td>2658</td>
+      <td>21599860.3</td>
+      <td>1</td>
+      <td>557.9</td>
+    </tr>
+    <tr>
+      <th>372658</th>
+      <td>2659</td>
+      <td>21599867.3</td>
+      <td>1</td>
+      <td>204.4</td>
+    </tr>
+    <tr>
+      <th>372659</th>
+      <td>2660</td>
+      <td>21599874.5</td>
+      <td>1</td>
+      <td>529.2</td>
+    </tr>
+  </tbody>
+</table>
+<p>372660 rows × 4 columns</p>
+</div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+POT_counter
+PT_C_20
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Block</th>
+      <th>Effect 1</th>
+      <th>Effect 2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>1624</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2</td>
+      <td>1435</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>3</td>
+      <td>1560</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>4</td>
+      <td>1546</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>5</td>
+      <td>1602</td>
+      <td>10</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>282</th>
+      <td>247</td>
+      <td>1392</td>
+      <td>10</td>
+    </tr>
+    <tr>
+      <th>283</th>
+      <td>248</td>
+      <td>1519</td>
+      <td>11</td>
+    </tr>
+    <tr>
+      <th>284</th>
+      <td>249</td>
+      <td>322</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>285</th>
+      <td>249</td>
+      <td>1195</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>286</th>
+      <td>250</td>
+      <td>1465</td>
+      <td>12</td>
+    </tr>
+  </tbody>
+</table>
+<p>287 rows × 3 columns</p>
+</div></div>
+</div>
+<p>The simulation output can be saved and loaded for further analysis.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pb</span><span class="o">.</span><span class="n">save_output</span><span class="p">(</span><span class="n">sim_output</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./temp&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;output.pkl&quot;</span><span class="p">)</span>
+<span class="n">sim_output</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">load_output</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./temp&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;output.pkl&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Outputs have been successfully saved to temp/output.pkl!
+Outputs have been successfully loaded from temp/output.pkl!
+</pre></div></div>
+</div>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="single_vehicle.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Simulation with single vehicle.</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="read_traffic.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Simulation with traffic reading.</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/pybtls/pybtls/edit/main/docs/source/notebooks/gen_traffic.ipynb">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2024, The PyBTLS Developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.15.4.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
