@@ -13,23 +13,8 @@
 import os
 import sys
 
-
-def get_version():
-    version = None
-    pyproject_path = os.path.join(os.path.dirname(__file__), "../../", "pyproject.toml")
-    with open(pyproject_path, "r") as f:
-        for line in f:
-            if line.startswith("version ="):
-                # Extract the version string
-                version = line.split('"')[1]
-                break
-    if version is None:
-        raise RuntimeError("Version not found in pyproject.toml")
-    return version
-
-
-ver = get_version()
-
+sys.path.insert(0, os.path.abspath("../../py/"))
+from pybtls import __version__ as ver
 
 # -- Project information -----------------------------------------------------
 

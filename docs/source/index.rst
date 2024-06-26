@@ -55,7 +55,7 @@ Welcome to PyBTLS's documentation!
 ==================================
 
 :Date: June 2024
-:Authors: The PyBTLS Developers (Ziyi Zhou, Colin Caprani, Akbar Rizqiansyah)
+:Authors: The PyBTLS Developers (Colin Caprani, Ziyi Zhou, Akbar Rizqiansyah)
 :Web site: http://github.com/pybtls/pybtls
 :Copyright: This document has been placed in the public domain.
 :License: PyBTLS is released under the GNU General Public Licence v3.0.
