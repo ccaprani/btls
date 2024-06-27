@@ -33,7 +33,7 @@ Source = "https://github.com/ccaprani/btls"
 Tracker = "https://github.com/ccaprani/btls/issues"
 
 [project.optional-dependencies]
-test = ["pytest>=6.0"]
+test = ["pytest>=6.0", "pycba>=0.5"]
 
 [tool.scikit-build]
 wheel.packages = ["py/pybtls"]

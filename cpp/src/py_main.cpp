@@ -526,6 +526,9 @@ PYBIND11_MODULE(libbtls, m) {
 				"Set all the vehicle properties from a tuple.", 
 				py::arg("prop_tuple"))
 			.def("_create", &CVehicle::create, py::arg("str"), py::arg("format"))
+			.def("__eq__", 
+				[](CVehicle_sp self, CVehicle_sp other) { return self->Write(4) == other->Write(4); }, 
+				py::is_operator())
 			.def(py::pickle(
 				[](CVehicle_sp self) {  // __getstate__
 
@@ -635,7 +638,7 @@ PYBIND11_MODULE(libbtls, m) {
 			.def("get_no_modes", &CMultiModalNormal::getNoModes);
 	py::class_<CDistribution> cdistribution(m, "_Distribution");
 		cdistribution.def(py::init<>())
-			.def(py::init<double, double, double>(), py::arg("w"), py::arg("m"), py::arg("s"))
+			.def(py::init<double, double, double>(), py::arg("loc"), py::arg("scale"), py::arg("shape"))
 			.def("set_shape", &CDistribution::setShape, py::arg("shape"))
 			.def("set_scale", &CDistribution::setScale, py::arg("scale"))
 			.def("set_location", &CDistribution::setLocation, py::arg("loc"))
@@ -653,6 +656,6 @@ PYBIND11_MODULE(libbtls, m) {
 			.def("gen_poisson", &CDistribution::GeneratePoisson)
 			.def("gen_gev", &CDistribution::GenerateGEV)
 			.def("gen_triangular", py::overload_cast<>(&CDistribution::GenerateTriangular))
-			.def("gen_triangular", py::overload_cast<double,double>(&CDistribution::GenerateTriangular), py::arg("mean"), py::arg("stdev"));
+			.def("gen_triangular", py::overload_cast<double,double>(&CDistribution::GenerateTriangular), py::arg("loc"), py::arg("w"));
 };
 

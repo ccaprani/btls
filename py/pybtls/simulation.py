@@ -9,8 +9,8 @@ from .traffic import TrafficGenerator, TrafficLoader
 from .output import OutputConfig, _OutputManager
 from typing import Union
 from pathlib import Path
+import importlib.metadata as package_metadata
 import multiprocessing
-import pkg_resources
 import os
 import sys
 
@@ -415,7 +415,7 @@ class Simulation:
         version_file_path = self._output_root / "sim_version_info.txt"
 
         python_version = sys.version
-        pybtls_version = pkg_resources.get_distribution("pybtls").version
+        pybtls_version = package_metadata.version("pybtls")
 
         with open(version_file_path, "w") as version_file:
             version_file.write(f"Python Version: {python_version}\n")
