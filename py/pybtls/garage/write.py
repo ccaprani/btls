@@ -53,6 +53,7 @@ def write_garage_file(
         else out_path.resolve().parent
     )
 
+    os.makedirs(absolute_out_dir, exist_ok=True)
     os.chdir(absolute_out_dir)
 
     config = OutputConfig()

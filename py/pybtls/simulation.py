@@ -408,10 +408,7 @@ class Simulation:
         This method writes the Python and pybtls version information to the output directory.
         """
 
-        try:
-            os.makedirs(self._output_root, exist_ok=False)
-        except FileExistsError:
-            pass
+        os.makedirs(self._output_root, exist_ok=True)
         version_file_path = self._output_root / "sim_version_info.txt"
 
         python_version = sys.version
