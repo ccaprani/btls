@@ -13,7 +13,7 @@
 
 #include <vector>
 
-#ifdef _DEBUG
+#ifdef WIN_DEBUG
 #define allocator A
 #endif
 

@@ -22,13 +22,11 @@
 #include "LaneFlowData.h"
 
 
-#ifdef Win
+#ifdef WIN_DEBUG
 // for tracking memory leaks
 #define _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
-#endif
 
-#ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
 #endif
