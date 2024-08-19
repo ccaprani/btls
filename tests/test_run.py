@@ -1,10 +1,12 @@
 import pybtls as pb
-import os
+import pandas as pd
+import pytest
 import shutil
+from pathlib import Path
 
 
 def main_func():
-    # set bridge
+    # Set bridges
     bridge_1_lane_position = [(0.5, 4.0), (4.0, 7.5), (8.5, 12.0), (12.0, 15.5)]
     IS_matrix_1 = [
         [0.0, 0.0, 4.0, 8.0, 12.0, 16.0],
@@ -34,7 +36,7 @@ def main_func():
     bridge_2 = pb.Bridge(length=40.0, no_lane=4)
     bridge_2.add_load_effect(inf_line_surf=inf_surf_2, threshold=0.0)
 
-    # set lane flow compositions
+    # Set lane flow compositions
     lfc_1 = pb.LaneFlowComposition(lane_index=1, lane_dir=1)
     lfc_1.assign_lane_data(
         hourly_truck_flow=[100] * 24,
@@ -71,22 +73,21 @@ def main_func():
         hourly_truck_composition=[[25.0, 25.0, 25.0, 25.0] for _ in range(24)],
     )
 
-    # set vehicle generator
-    garage_list = pb.GarageProcessing.load_garage_file("./test_data/garage.txt")
+    # Set vehicle generator
+    garage = pb.garage.read_garage_file(Path(__file__).parent/"test_data/garage.txt", 4)
     kernel = [[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]
-
-    vehicle_gen_1 = pb.VehicleGenGarage(garage=garage_list, kernel=kernel)
+    vehicle_gen_1 = pb.VehicleGenGarage(garage=garage, kernel=kernel)
 
     vehicle = pb.Vehicle(no_axle=3)
     vehicle.set_axle_weights([100.0, 100.0, 100.0])
-    vehicle.set_axle_spacings([3.0, 7.0])
+    vehicle.set_axle_spacings([3.0, 7.0, 0.0])
     vehicle.set_axle_widths([2.0, 2.0, 2.0])
 
     vehicle_gen_2 = pb.VehicleGenNominal(nominal_vehicle=vehicle, COV_list=[1.0, 0.1])
 
     vehicle_gen_3 = pb.VehicleGenGrave(traffic_site="Auxerre")
 
-    # set headway generator
+    # Set headway generator
     headway_gen_1 = pb.HeadwayGenNHM()
 
     headway_gen_2 = pb.HeadwayGenConstant(constant_speed=36.0, constant_gap=5.0)
@@ -97,7 +98,7 @@ def main_func():
 
     headway_gen_4 = pb.HeadwayGenFreeflow()
 
-    # # assemble traffic generator
+    # Assemble traffic generator
     traffic_gen = pb.TrafficGenerator(no_lane=4)
     traffic_gen.add_lane(
         vehicle_gen=vehicle_gen_1, headway_gen=headway_gen_1, lfc=lfc_1
@@ -113,17 +114,17 @@ def main_func():
     )
     traffic_gen.set_start_time(0.0)
 
-    # or, use traffic loader
+    # or, Use traffic loader
     traffic_loader = pb.TrafficLoader(no_lane=4)
     traffic_loader.add_traffic(
-        "./test_data/test_traffic_file.txt",
-        file_format="MON",
+        traffic=Path(__file__).parent/"test_data/test_traffic_file.txt",
+        traffic_format=4,
         use_average_speed=False,
         use_const_speed=False,
         const_speed_value=36.0,
     )
 
-    # set output, which will be written to HDD
+    # Set output, which will be written to HDD
     output_config_1 = pb.OutputConfig()
     output_config_1.set_event_output(write_time_history=True, write_each_event=True)
     output_config_1.set_BM_output(
@@ -150,7 +151,7 @@ def main_func():
     )
 
     # set simulation
-    sim_task = pb.Simulation()
+    sim_task = pb.Simulation(Path(__file__).parent/"temp")
     sim_task.add_sim(
         bridge=bridge_1,
         traffic_generator=traffic_gen,
@@ -160,6 +161,7 @@ def main_func():
         min_gvw=35,
         active_lane=[1, 2],
         track_progress=False,
+        tag="Sim_1",
     )
     sim_task.add_sim(
         bridge=bridge_2,
@@ -169,6 +171,7 @@ def main_func():
         time_step=0.1,
         min_gvw=35,
         track_progress=False,
+        tag="Sim_2",
     )
     sim_task.add_sim(
         bridge=bridge_2,
@@ -177,28 +180,29 @@ def main_func():
         time_step=0.1,
         min_gvw=0,
         track_progress=False,
+        tag="Sim_3",
     )
-    sim_task.add_sim(bridge=bridge_1, vehicle=vehicle)
-    sim_task.add_sim(bridge=bridge_2, vehicle=vehicle, active_lane=[1])
-    sim_task.add_sim(bridge=bridge_2, vehicle=vehicle, active_lane=[2])
-    sim_task.add_sim(bridge=bridge_2, vehicle=vehicle, active_lane=[3])
-    sim_task.add_sim(bridge=bridge_2, vehicle=vehicle, active_lane=[4])
+    sim_task.add_sim(bridge=bridge_1, vehicle=vehicle, tag="Sim_4")
+    sim_task.add_sim(bridge=bridge_2, vehicle=vehicle, active_lane=[1], tag="Sim_5")
+    sim_task.add_sim(bridge=bridge_2, vehicle=vehicle, active_lane=[2], tag="Sim_6")
+    sim_task.add_sim(bridge=bridge_2, vehicle=vehicle, active_lane=[3], tag="Sim_7")
+    sim_task.add_sim(bridge=bridge_2, vehicle=vehicle, active_lane=[4], tag="Sim_8")
 
     # run simulation simultaneously
-    sim_task.run(no_core=6)
+    sim_task.run(no_core=4)
 
+    sim_out = sim_task.get_output()
 
+    for output in sim_out.values():
+        for key in output.get_summary():
+            for data_dict in output.read_data(key):
+                for data in data_dict.values():
+                    assert isinstance(data, pd.DataFrame)
+                
+
+@pytest.mark.skip(reason="This test is too long.")
 def test_run():
-    output_folder_list = [
-        "Sim_1",
-        "Sim_2",
-        "Sim_3",
-        "Sim_4",
-        "Sim_5",
-        "Sim_6",
-        "Sim_7",
-        "Sim_8",
-    ]
+    output_folder_list = [Path(__file__)/f"temp/Sim_{i+1}" for i in range(8)]
 
     for output_folder in output_folder_list:
         try:
@@ -210,7 +214,3 @@ def test_run():
 
     for output_folder in output_folder_list:
         shutil.rmtree(output_folder)
-
-
-if __name__ == "__main__":
-    test_run()

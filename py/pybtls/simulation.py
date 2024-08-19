@@ -9,10 +9,11 @@ from .traffic import TrafficGenerator, TrafficLoader
 from .output import OutputConfig, _OutputManager
 from typing import Union
 from pathlib import Path
+import importlib.metadata as package_metadata
 import multiprocessing
-import pkg_resources
 import os
 import sys
+import platform
 
 __all__ = ["Simulation"]
 
@@ -375,7 +376,7 @@ class Simulation:
             vehicle = lane_for_calc[0].getNextVehicle()
 
             if (
-                vehicle == None
+                vehicle is None
             ):  # This is to skip the empty (NoneType) vehicle at the end of Read&Sim
                 break
 
@@ -408,15 +409,14 @@ class Simulation:
         This method writes the Python and pybtls version information to the output directory.
         """
 
-        try:
-            os.makedirs(self._output_root, exist_ok=False)
-        except FileExistsError:
-            pass
+        os.makedirs(self._output_root, exist_ok=True)
         version_file_path = self._output_root / "sim_version_info.txt"
 
+        pybtls_version = package_metadata.version("pybtls")
         python_version = sys.version
-        pybtls_version = pkg_resources.get_distribution("pybtls").version
+        cpu_architecture = platform.machine()
 
         with open(version_file_path, "w") as version_file:
-            version_file.write(f"Python Version: {python_version}\n")
             version_file.write(f"PyBTLS Version: {pybtls_version}\n")
+            version_file.write(f"Python Version: {python_version}\n")
+            version_file.write(f"CPU Architecture: {cpu_architecture}\n")

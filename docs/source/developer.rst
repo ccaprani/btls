@@ -14,7 +14,6 @@ Create working repository with developer install
 
 	git clone <forked-repo>
 
-
 3. Create new `PyBTLS` developer environment ::
 	
 	conda env create -f environment.yaml

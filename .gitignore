@@ -11,10 +11,10 @@ __pycache__
 CMakeFiles/*
 CMakeCache.txt
 cmake_install.cmake
-Makefile
 
 # pytest
 .pytest_cache
+temp
 
 # BTLS output files
 BM_*.txt
@@ -101,6 +101,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/gen/
 
 # PyBuilder
 target/

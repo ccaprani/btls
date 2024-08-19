@@ -1,40 +1,34 @@
-import pybtls
+from pybtls import Vehicle
+from pathlib import Path
+import pickle
 
 
-def print_vehicle(veh):
-    axs = []
-    axw = []
-    for i in range(veh.get_no_axles()):
-        axs.append(veh.get_axle_spacing(i))
-        axw.append(veh.get_axle_weight(i))
+def check_vehicle(veh_str, veh_str_format):
+    veh = Vehicle(0)
+    veh._create(veh_str, veh_str_format)
 
-    print(f"No. axles = {veh.get_no_axles()}")
-    print(f"Axle spacing = {axs}")
-    print(f"Axle weight = {axw}")
-    print(f"GVW = {veh.get_gvw()}")
-    print(f"Speed = {veh.get_velocity()}")
-    print(f"Length = {veh.get_length()}")
+    try:
+        for i in range(veh.get_no_axles()):
+            veh.get_axle_spacing(i)
+            veh.get_axle_weight(i)
+            veh.get_axle_width(i)
+        veh.get_gvw()
+        veh.get_length()
+        veh.get_velocity()
+        veh.get_time()
+        veh.get_local_lane()
+        veh.get_trans()
+        veh.get_direction()
+    except Exception as e:
+        assert False, f"Error: {e}"
 
-    print(f"Head = {veh.get_head()}")
-    print(f"Time = {veh.get_time()}")
-    print(f"Time string = {veh.get_time_str()}")
-    print(f"Trans = {veh.get_trans()}")
-    print(f"Dir = {veh.get_direction()}")
+    with open(Path(__file__).parent / "temp/vehicle.pkl", "wb") as f:
+        pickle.dump(veh, f)
 
+    with open(Path(__file__).parent / "temp/vehicle.pkl", "rb") as f:
+        veh_restored = pickle.load(f)
 
-def print_test(veh_list, veh_format):
-    for veh_str in veh_list:
-        veh = pybtls.Vehicle()
-        veh.create(veh_str, veh_format)  # we dont need to expose this. change later!
-
-        # output = pb.Output()
-        # vehicle_classifier = pb.Library.BTLS_collections._VehClassPattern()
-        # vehicle_buffer = pb.Library.BTLS_collections._VehicleBuffer(output, vehicle_classifier, 0.0)
-
-        print(80 * "*")
-        print(veh_str)
-        print(80 * "*")
-        print_vehicle(veh)
+    assert veh == veh_restored
 
 
 def test_MON():
@@ -46,8 +40,8 @@ def test_MON():
         "     1001 1 12010 0 013771 5 0 43619 8210926101800 7134 286813860 5663 7541 1008 7541 1387 7541    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0",
         "     1001 1 12010 0 016681 5 0 33078 9210943201800 6265 298310492 5658 5440 1250 5440 1052 5440    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0",
     ]
-
-    print_test(veh_str_list, veh_str_format)
+    for veh_str in veh_str_list:
+        check_vehicle(veh_str, veh_str_format)
 
 
 def test_CASTOR():
@@ -59,4 +53,5 @@ def test_CASTOR():
         "1001 1 1 0 0 02134249 389109511 18 603310756 7412 74 8 74 0  0 0  0 0  0 0  0",
         "1001 1 1 0 0 02464217 346114422 18 603310466 9115 91 0  0 0  0 0  0 0  0 0  0",
     ]
-    print_test(veh_str_list, veh_str_format)
+    for veh_str in veh_str_list:
+        check_vehicle(veh_str, veh_str_format)

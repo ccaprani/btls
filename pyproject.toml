@@ -1,20 +1,20 @@
 [build-system]
 requires = [
-    "setuptools>=42",
+    "scikit_build_core>=0.8",
     "pybind11>=2.10.0",
     "wheel",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "scikit_build_core.build"
 
 [project]
 name = "pybtls"
-version = "0.3.7"  # Should also manually update in __init__.py
+version = "0.3.7"
 description = "A package for short-to-mid span bridge traffic loading simulation"
-readme = "README.md"
+readme = "README.rst"
 requires-python = ">=3.9"
 authors = [
-    { name="Ziyi Zhou", email="ziyi.zhou@monash.edu" },
     { name="Colin Caprani", email="colin.caprani@monash.edu" }, 
+    { name="Ziyi Zhou", email="ziyi.zhou@monash.edu" },
     { name="Akbar Rizqiansyah", email="akbar.rizqiansyah@monash.edu" }
 ]
 license = { text = "GNU GPL v3" }
@@ -26,18 +26,23 @@ dependencies = [
     "scipy",
     "seaborn"
 ]
-optional-dependencies = { test = ["pytest"] }
 
 [project.urls]
 Documentation = "https://github.com/ccaprani/btls"
 Source = "https://github.com/ccaprani/btls"
 Tracker = "https://github.com/ccaprani/btls/issues"
 
-[tool.setuptools.packages.find]
-where = ["py"]
+[project.optional-dependencies]
+test = ["pytest>=6.0", "pycba>=0.5"]
 
-[tool.setuptools.package-data]  # https://stackoverflow.com/questions/69647590/specifying-package-data-in-pyproject-toml
-pybtls = ["data/*/*/*.csv"]
+[tool.scikit-build]
+wheel.packages = ["py/pybtls"]
+sdist.include = ["py/pybtls/data/*/*/*.csv"]
+sdist.exclude = []
+
+[tool.scikit-build.cmake.define]
+Binary = "OFF"
+PythonLib = "ON"
 
 [tool.cibuildwheel]
 test-command = "pytest {project}/tests/"

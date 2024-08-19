@@ -2,8 +2,6 @@
 Bridge Traffic Load Simulation with Python. 
 """
 
-__version__ = "0.3.7"  # Should also manually update in pyproject.toml
-
 import pybtls.lib as lib
 import pybtls.bridge as bridge
 import pybtls.traffic as traffic
@@ -11,6 +9,7 @@ import pybtls.output as output
 import pybtls.simulation as simulation
 import pybtls.garage as garage
 import pybtls.utils as utils
+
 # import pybtls.post_processing as post_processing
 
 from .lib import (
@@ -19,6 +18,7 @@ from .lib import (
     Distribution,
     run,
     get_info,
+    __version__,  # synchronized with pyproject.toml
 )
 from .bridge import InfluenceLine, InfluenceSurface, Bridge
 from .traffic import (

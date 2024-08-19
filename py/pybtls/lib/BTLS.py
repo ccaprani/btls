@@ -4,6 +4,7 @@ The classes that are not defined in Python are defined in C++ py_main.cpp.
 """
 
 from .libbtls import (
+    __version__,
     get_info,
     run,
     _ConfigDataCore,
@@ -37,6 +38,7 @@ from .libbtls import (
 )
 
 __all__ = [
+    "__version__",
     "get_info",
     "run",
     "_ConfigData",

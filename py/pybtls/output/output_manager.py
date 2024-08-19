@@ -121,7 +121,7 @@ class _OutputManager:
             "fatigue_events",
             "fatigue_rainflow",
         ],
-    ) -> list[pd.DataFrame]:
+    ) -> dict[str, pd.DataFrame]:
         """
         Read the data from the recorded output file paths.
 
