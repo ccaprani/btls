@@ -41,13 +41,15 @@ More detailed information about the input and output data can be found in the `M
 .. _`Documentation`: http://pybtls.github.io/pybtls/
 .. _`Manual`: https://github.com/pybtls/pybtls/tree/main/Manual
 
-Credits
-=======
+Credits & Copyright
+===================
 PyBTLS is based on BTLS by Colin Caprani; 
 Modified by Ziyi Zhou; 
 Also contributed by Akbar Rizqiansyah. 
 
-Copyright 2024 The PyBTLS Developers.
+* Copyright (c) 2001-2022 Colin Caprani;
+* Copyright (c) 2022-2023 Colin Caprani, Ziyi Zhou, Akbar Rizqiansyah;
+* Copyright (c) 2024 The PyBTLS developers (see contributors on GitHub). 
 
 Main Reference
 ==============
