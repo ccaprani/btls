@@ -274,9 +274,9 @@ class VehicleGenGarage:
         kernel : list[list[float]]\n
             The kernel is to ensure variation between the generated vehicles and garages. \n
             kernel = [\n
-                [MEAN_GVW, COV_GVW],\n
-                [MEAN_AxleWeight, COV_AxleWeight],\n
-                [MEAN_AxleSpacing, COV_AxleSpacing]\n
+                [Mean_GVW, Std_GVW],\n
+                [Mean_AxleWeight, Std_AxleWeight],\n
+                [Mean_AxleSpacing, Std_AxleSpacing]\n
                 ].
 
         garage_format : Literal[1,2,3,4], optional\n
@@ -321,9 +321,7 @@ class VehicleGenGarage:
         else:
             raise ValueError("Invalid garage data for garage vehicle generator.")
 
-        self._kernel = (
-            kernel  # kernel = [[MEAN_GVW, COV_GVW],[MEAN_AW, COV_AW],[MEAN_AS, COV_AS]]
-        )
+        self._kernel = kernel  # kernel = [[Mean_GVW, Std_GVW], [Mean_AW, Std_AW], [Mean_AS, Std_AS]]
 
         self._set_config(**kwargs)
 
