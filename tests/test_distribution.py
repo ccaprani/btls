@@ -1,6 +1,6 @@
 import pybtls
-import matplotlib.pyplot as plt  # should remove for CI/CD pytest
 import numpy as np
+import pytest
 
 
 dist = pybtls.Distribution()
@@ -9,30 +9,27 @@ x = np.array([None] * n)
 bins = int(n / 50)
 
 
-def test_normal():
+@pytest.mark.parametrize("mean, std", [(0.0, 1.0), (1.0, 0.5), (5.0, 2.0)])
+def test_normal(mean: float, std: float):
     for i in range(n):
-        x[i] = dist.gen_normal(0.0, 1.0)
+        x[i] = dist.gen_normal(mean, std)
+    assert np.allclose(np.mean(x), mean, atol=0.1)
+    assert np.allclose(np.std(x), std, atol=0.1)
 
-    plt.hist(x, bins=bins)
-    plt.show()
 
-
-def test_triangle():
+@pytest.mark.parametrize("mean, std", [(0.0, 1.0), (0.5, 2.0), (4.0, 3.0)])
+def test_triangle(mean: float, std: float):
     for i in range(n):
-        x[i] = dist.gen_triangular(0.0, 1.0)
+        x[i] = dist.gen_triangular(mean, std)
+    assert np.allclose(np.mean(x), mean, atol=0.1)
+    assert np.allclose(np.std(x), 0.4 * std, atol=0.1)
 
-    plt.hist(x, bins=bins)
-    plt.show()
 
-
-def test_MultiModalNormal():
+@pytest.mark.parametrize("mean, std", [(0.0, 1.0), (20.0, 2.0), (30.0, 1.5)])
+def test_MultiModalNormal(mean: float, std: float):
     mmn = pybtls.MultiModalNormal()
-    mmn.add_mode(0.4, 20, 4)
-    mmn.add_mode(0.1, 30, 8)
-    mmn.add_mode(0.5, 45, 3)
-
+    mmn.add_mode(0.5, mean, std)
+    mmn.add_mode(0.5, 10.0, std)
     for i in range(n):
         x[i] = dist.gen_multimodalnormal(mmn)
-
-    plt.hist(x, bins=bins)
-    plt.show()
+    assert np.allclose(np.mean(x), (mean + 10.0) / 2, atol=0.1)
