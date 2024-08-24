@@ -484,17 +484,21 @@ document.write(`
             <span class="s2">&quot;inf_surf&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
         <span class="p">}</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_assigned</span> <span class="o">=</span> <span class="kc">False</span>
+
     <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">attribute_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;IL_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IL_type</span>
         <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;IL_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IL_index</span>
         <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;data_dict&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span>
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;data_assigned&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_assigned</span>
         <span class="k">return</span> <span class="n">attribute_dict</span>
 
     <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_dict</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_IL_type</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;IL_type&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_IL_index</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;IL_index&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;data_dict&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_assigned</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;data_assigned&quot;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="InfluenceLine.set_IL">
 <a class="viewcode-back" href="../../../gen/pybtls.bridge.influence_line.InfluenceLine.html#pybtls.bridge.influence_line.InfluenceLine.set_IL">[docs]</a>
@@ -548,7 +552,9 @@ document.write(`
         <span class="p">):</span>  <span class="c1"># This is hidden in the doc to avoid user confusion, not an error.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_IL_surface</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid influence line type.&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid influence line type.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_assigned</span> <span class="o">=</span> <span class="kc">True</span></div>
 
 
     <span class="k">def</span> <span class="nf">_set_IL_discrete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -650,15 +656,19 @@ document.write(`
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;lane_position&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;IS_matrix&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_assigned</span> <span class="o">=</span> <span class="kc">False</span>
+
     <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">attribute_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;IS_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IS_index</span>
         <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;data_dict&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span>
+        <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;data_assigned&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_assigned</span>
         <span class="k">return</span> <span class="n">attribute_dict</span>
 
     <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute_dict</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_IS_index</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;IS_index&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;data_dict&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_assigned</span> <span class="o">=</span> <span class="n">attribute_dict</span><span class="p">[</span><span class="s2">&quot;data_assigned&quot;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="InfluenceSurface.set_IS">
 <a class="viewcode-back" href="../../../gen/pybtls.bridge.influence_line.InfluenceSurface.html#pybtls.bridge.influence_line.InfluenceSurface.set_IS">[docs]</a>
@@ -701,7 +711,9 @@ document.write(`
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The IS_matrix should be 2D.&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;lane_position&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lane_position</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;IS_matrix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">IS_matrix</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_dict</span><span class="p">[</span><span class="s2">&quot;IS_matrix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">IS_matrix</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_assigned</span> <span class="o">=</span> <span class="kc">True</span></div>
 
 
     <span class="k">def</span> <span class="nf">_get_IS</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_InfluenceSurface</span><span class="p">:</span>
@@ -777,7 +789,7 @@ document.write(`
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
     <br/>
   </p>
 </div>

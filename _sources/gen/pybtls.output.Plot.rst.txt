@@ -26,7 +26,7 @@ pybtls.output.Plot
    :template: custom-module-template.rst
    :recursive:
 
-   pybtls.output.Plot.BM_summary
-   pybtls.output.Plot.all_events
-   pybtls.output.Plot.time_history
+   BM_summary
+   all_events
+   time_history
 

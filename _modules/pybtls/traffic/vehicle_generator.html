@@ -727,9 +727,9 @@ document.write(`
 <span class="sd">        kernel : list[list[float]]\n</span>
 <span class="sd">            The kernel is to ensure variation between the generated vehicles and garages. \n</span>
 <span class="sd">            kernel = [\n</span>
-<span class="sd">                [MEAN_GVW, COV_GVW],\n</span>
-<span class="sd">                [MEAN_AxleWeight, COV_AxleWeight],\n</span>
-<span class="sd">                [MEAN_AxleSpacing, COV_AxleSpacing]\n</span>
+<span class="sd">                [Mean_GVW, Std_GVW],\n</span>
+<span class="sd">                [Mean_AxleWeight, Std_AxleWeight],\n</span>
+<span class="sd">                [Mean_AxleSpacing, Std_AxleSpacing]\n</span>
 <span class="sd">                ].</span>
 
 <span class="sd">        garage_format : Literal[1,2,3,4], optional\n</span>
@@ -774,9 +774,7 @@ document.write(`
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid garage data for garage vehicle generator.&quot;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">kernel</span>  <span class="c1"># kernel = [[MEAN_GVW, COV_GVW],[MEAN_AW, COV_AW],[MEAN_AS, COV_AS]]</span>
-        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="n">kernel</span>  <span class="c1"># kernel = [[Mean_GVW, Std_GVW], [Mean_AW, Std_AW], [Mean_AS, Std_AS]]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_config</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -896,7 +894,7 @@ document.write(`
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
     <br/>
   </p>
 </div>

@@ -29,7 +29,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -485,24 +485,24 @@ document.write(`
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pybtls</span> <span class="k">as</span> <span class="nn">pb</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import pybtls as pb
+from pathlib import Path
 
 
-<span class="c1"># set the load effect by using a 2D influence surface</span>
-<span class="n">lanes_position</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">),</span> <span class="p">(</span><span class="mf">8.5</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">12.0</span><span class="p">,</span> <span class="mf">15.5</span><span class="p">)]</span>
-<span class="n">IS_matrix</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">,</span> <span class="mf">16.0</span><span class="p">],</span>
-    <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
-    <span class="p">[</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
-    <span class="p">[</span><span class="mf">20.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
-<span class="p">]</span>
-<span class="n">load_effect</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">InfluenceSurface</span><span class="p">()</span>
-<span class="n">load_effect</span><span class="o">.</span><span class="n">set_IS</span><span class="p">(</span><span class="n">IS_matrix</span><span class="p">,</span> <span class="n">lanes_position</span><span class="p">)</span>
+# set the load effect by using a 2D influence surface
+lanes_position = [(0.5, 4.0), (4.0, 7.5), (8.5, 12.0), (12.0, 15.5)]
+IS_matrix = [
+    [0.0, 0.0, 4.0, 8.0, 12.0, 16.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [10.0, 0.0, 2.5, 5.0, 2.5, 0.0],
+    [20.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+]
+load_effect = pb.InfluenceSurface()
+load_effect.set_IS(IS_matrix, lanes_position)
 
-<span class="c1"># set the bridge</span>
-<span class="n">bridge</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">Bridge</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">no_lane</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">bridge</span><span class="o">.</span><span class="n">add_load_effect</span><span class="p">(</span><span class="n">inf_line_surf</span><span class="o">=</span><span class="n">load_effect</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+# set the bridge
+bridge = pb.Bridge(length=20.0, no_lane=4)
+bridge.add_load_effect(inf_line_surf=load_effect, threshold=0.0)
 <br/></pre></div>
 </div>
 </div>
@@ -511,14 +511,14 @@ document.write(`
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">traffic_loader</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">TrafficLoader</span><span class="p">(</span><span class="n">no_lane</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">traffic_loader</span><span class="o">.</span><span class="n">add_traffic</span><span class="p">(</span>
-    <span class="n">traffic</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;test_traffic_file.txt&quot;</span><span class="p">,</span>
-    <span class="n">traffic_format</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-    <span class="c1"># use_average_speed=False,  # optional</span>
-    <span class="c1"># use_const_speed=False,  # optional</span>
-    <span class="c1"># const_speed_value=36.0,  # optional, valid if use_const_speed=True</span>
-<span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>traffic_loader = pb.TrafficLoader(no_lane=4)
+traffic_loader.add_traffic(
+    traffic=Path(&quot;.&quot;) / &quot;test_traffic_file.txt&quot;,
+    traffic_format=4,
+    # use_average_speed=False,  # optional
+    # use_const_speed=False,  # optional
+    # const_speed_value=36.0,  # optional, valid if use_const_speed=True
+)
 <br/></pre></div>
 </div>
 </div>
@@ -527,25 +527,25 @@ document.write(`
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_config</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">OutputConfig</span><span class="p">()</span>
-<span class="n">output_config</span><span class="o">.</span><span class="n">set_event_output</span><span class="p">(</span><span class="n">write_time_history</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write_each_event</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">output_config</span><span class="o">.</span><span class="n">set_vehicle_file_output</span><span class="p">(</span>
-    <span class="n">write_vehicle_file</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">vehicle_file_format</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-    <span class="n">vehicle_file_name</span><span class="o">=</span><span class="s2">&quot;proof_traffic_file.txt&quot;</span><span class="p">,</span>
-<span class="p">)</span>  <span class="c1"># you will see the proof_traffic_file.txt is the same as the test_traffic_file.txt</span>
-<span class="n">output_config</span><span class="o">.</span><span class="n">set_BM_output</span><span class="p">(</span>
-    <span class="n">write_vehicle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write_summary</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write_mixed</span><span class="o">=</span><span class="kc">True</span>
-<span class="p">)</span>
-<span class="n">output_config</span><span class="o">.</span><span class="n">set_POT_output</span><span class="p">(</span>
-    <span class="n">write_vehicle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write_summary</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write_counter</span><span class="o">=</span><span class="kc">True</span>
-<span class="p">)</span>
-<span class="n">output_config</span><span class="o">.</span><span class="n">set_stats_output</span><span class="p">(</span>
-    <span class="n">write_flow_stats</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write_overall</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write_intervals</span><span class="o">=</span><span class="kc">True</span>
-<span class="p">)</span>
-<span class="n">output_config</span><span class="o">.</span><span class="n">set_fatigue_output</span><span class="p">(</span>
-    <span class="n">write_fatigue_event</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">write_rainflow_output</span><span class="o">=</span><span class="kc">True</span>
-<span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>output_config = pb.OutputConfig()
+output_config.set_event_output(write_time_history=True, write_each_event=True)
+output_config.set_vehicle_file_output(
+    write_vehicle_file=True,
+    vehicle_file_format=4,
+    vehicle_file_name=&quot;proof_traffic_file.txt&quot;,
+)  # you will see the proof_traffic_file.txt is the same as the test_traffic_file.txt
+output_config.set_BM_output(
+    write_vehicle=True, write_summary=True, write_mixed=True
+)
+output_config.set_POT_output(
+    write_vehicle=True, write_summary=True, write_counter=True
+)
+output_config.set_stats_output(
+    write_flow_stats=True, write_overall=True, write_intervals=True
+)
+output_config.set_fatigue_output(
+    write_fatigue_event=True, write_rainflow_output=True
+)
 <br/></pre></div>
 </div>
 </div>
@@ -554,26 +554,26 @@ document.write(`
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim_task</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;temp&quot;</span><span class="p">)</span>
-<span class="n">sim_task</span><span class="o">.</span><span class="n">add_sim</span><span class="p">(</span>
-    <span class="n">bridge</span><span class="o">=</span><span class="n">bridge</span><span class="p">,</span>
-    <span class="n">traffic</span><span class="o">=</span><span class="n">traffic_loader</span><span class="p">,</span>
-    <span class="n">output_config</span><span class="o">=</span><span class="n">output_config</span><span class="p">,</span>
-    <span class="n">time_step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-    <span class="n">min_gvw</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span>
-    <span class="c1"># active_lane=[1,2,3,4],  # optional, if not set, all lanes will be active.</span>
-    <span class="c1"># track_progress=False,  # optional, if True, the progress print will show up.</span>
-    <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;Case3&quot;</span><span class="p">,</span>
-<span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>sim_task = pb.Simulation(Path(&quot;.&quot;) / &quot;temp&quot;)
+sim_task.add_sim(
+    bridge=bridge,
+    traffic=traffic_loader,
+    output_config=output_config,
+    time_step=0.1,
+    min_gvw=35,
+    # active_lane=[1,2,3,4],  # optional, if not set, all lanes will be active.
+    # track_progress=False,  # optional, if True, the progress print will show up.
+    tag=&quot;Case3&quot;,
+)
 
-<span class="c1"># run simulation</span>
-<span class="n">sim_task</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">no_core</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+# run simulation
+sim_task.run(no_core=1)
 
-<span class="c1"># get the result</span>
-<span class="n">sim_output</span> <span class="o">=</span> <span class="n">sim_task</span><span class="o">.</span><span class="n">get_output</span><span class="p">()</span>
+# get the result
+sim_output = sim_task.get_output()
 
-<span class="c1"># See what is included</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">sim_output</span><span class="p">[</span><span class="s2">&quot;Case3&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get_summary</span><span class="p">())</span>
+# See what is included
+print(sim_output[&quot;Case3&quot;].get_summary())
 <br/></pre></div>
 </div>
 </div>
@@ -679,7 +679,7 @@ Flushing buffer of 9427 vehicles at 2/1/0 0:0:17.395
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
     <br/>
   </p>
 </div>

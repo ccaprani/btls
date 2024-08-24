@@ -29,7 +29,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -482,11 +482,11 @@ document.write(`
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pybtls</span> <span class="k">as</span> <span class="nn">pb</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import pybtls as pb
+from pathlib import Path
 
 
-<span class="n">traffic_gen</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">TrafficGenerator</span><span class="p">(</span><span class="n">no_lane</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+traffic_gen = pb.TrafficGenerator(no_lane=4)
 <br/></pre></div>
 </div>
 </div>
@@ -495,28 +495,28 @@ document.write(`
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define the flow composition</span>
-<span class="n">lfc_lane1</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">LaneFlowComposition</span><span class="p">(</span><span class="n">lane_index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">lane_dir</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">lfc_lane1</span><span class="o">.</span><span class="n">assign_lane_data</span><span class="p">(</span>
-    <span class="n">hourly_truck_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
-    <span class="n">hourly_car_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
-    <span class="n">hourly_speed_mean</span><span class="o">=</span><span class="p">[</span><span class="mi">80</span> <span class="o">/</span> <span class="mf">3.6</span> <span class="o">*</span> <span class="mi">10</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
-    <span class="n">hourly_speed_std</span><span class="o">=</span><span class="p">[</span><span class="mf">10.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
-    <span class="n">hourly_truck_composition</span><span class="o">=</span><span class="p">[</span>
-        <span class="p">[</span><span class="mf">25.0</span><span class="p">,</span> <span class="mf">25.0</span><span class="p">,</span> <span class="mf">25.0</span><span class="p">,</span> <span class="mf">25.0</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)</span>
-    <span class="p">],</span>  <span class="c1"># only the Grave vehicle generator (gen by distribution) requires this info.</span>
-<span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Define the flow composition
+lfc_lane1 = pb.LaneFlowComposition(lane_index=1, lane_dir=1)
+lfc_lane1.assign_lane_data(
+    hourly_truck_flow=[100] * 24,
+    hourly_car_flow=[0] * 24,
+    hourly_speed_mean=[80 / 3.6 * 10] * 24,
+    hourly_speed_std=[10.0] * 24,
+    hourly_truck_composition=[
+        [25.0, 25.0, 25.0, 25.0] for _ in range(24)
+    ],  # only the Grave vehicle generator (gen by distribution) requires this info.
+)
 
-<span class="c1"># Set the Grave vehicle generator and use the Auxerre truck features</span>
-<span class="n">vehicle_gen_Grave</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">VehicleGenGrave</span><span class="p">(</span><span class="n">traffic_site</span><span class="o">=</span><span class="s2">&quot;Auxerre&quot;</span><span class="p">)</span>
+# Set the Grave vehicle generator and use the Auxerre truck features
+vehicle_gen_Grave = pb.VehicleGenGrave(traffic_site=&quot;Auxerre&quot;)
 
-<span class="c1"># Set the headway generator</span>
-<span class="n">headway_gen_NHM</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">HeadwayGenNHM</span><span class="p">()</span>
+# Set the headway generator
+headway_gen_NHM = pb.HeadwayGenNHM()
 
-<span class="c1"># Config the first lane</span>
-<span class="n">traffic_gen</span><span class="o">.</span><span class="n">add_lane</span><span class="p">(</span>
-    <span class="n">vehicle_gen</span><span class="o">=</span><span class="n">vehicle_gen_Grave</span><span class="p">,</span> <span class="n">headway_gen</span><span class="o">=</span><span class="n">headway_gen_NHM</span><span class="p">,</span> <span class="n">lfc</span><span class="o">=</span><span class="n">lfc_lane1</span>
-<span class="p">)</span>
+# Config the first lane
+traffic_gen.add_lane(
+    vehicle_gen=vehicle_gen_Grave, headway_gen=headway_gen_NHM, lfc=lfc_lane1
+)
 <br/></pre></div>
 </div>
 </div>
@@ -525,29 +525,29 @@ document.write(`
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define the flow composition</span>
-<span class="n">lfc_lane2</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">LaneFlowComposition</span><span class="p">(</span><span class="n">lane_index</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">lane_dir</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">lfc_lane2</span><span class="o">.</span><span class="n">assign_lane_data</span><span class="p">(</span><span class="n">hourly_truck_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span> <span class="n">hourly_car_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Define the flow composition
+lfc_lane2 = pb.LaneFlowComposition(lane_index=2, lane_dir=1)
+lfc_lane2.assign_lane_data(hourly_truck_flow=[100] * 24, hourly_car_flow=[0] * 24)
 
-<span class="c1"># Set the Nominal vehicle generator with a custom vehicle</span>
-<span class="n">vehicle</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">Vehicle</span><span class="p">(</span><span class="n">no_axles</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-<span class="n">vehicle</span><span class="o">.</span><span class="n">set_axle_weights</span><span class="p">([</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">])</span>  <span class="c1"># in kN</span>
-<span class="n">vehicle</span><span class="o">.</span><span class="n">set_axle_spacings</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>  <span class="c1"># in m</span>
-<span class="n">vehicle</span><span class="o">.</span><span class="n">set_axle_widths</span><span class="p">([</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">])</span>  <span class="c1"># in m</span>
+# Set the Nominal vehicle generator with a custom vehicle
+vehicle = pb.Vehicle(no_axles=3)
+vehicle.set_axle_weights([100.0, 100.0, 100.0])  # in kN
+vehicle.set_axle_spacings([3.0, 7.0, 0.0])  # in m
+vehicle.set_axle_widths([2.0, 2.0, 2.0])  # in m
 
-<span class="n">vehicle_gen_Nominal</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">VehicleGenNominal</span><span class="p">(</span>
-    <span class="n">nominal_vehicle</span><span class="o">=</span><span class="n">vehicle</span><span class="p">,</span> <span class="n">COV_list</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
-<span class="p">)</span>
+vehicle_gen_Nominal = pb.VehicleGenNominal(
+    nominal_vehicle=vehicle, COV_list=[1.0, 1.0]
+)
 
-<span class="c1"># Set the headway generator</span>
-<span class="n">headway_gen_Congested</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">HeadwayGenCongested</span><span class="p">(</span>
-    <span class="n">congested_spacing</span><span class="o">=</span><span class="mf">26.1</span><span class="p">,</span> <span class="n">congested_speed</span><span class="o">=</span><span class="mf">36.0</span><span class="p">,</span> <span class="n">congested_gap_coef_var</span><span class="o">=</span><span class="mf">0.05</span>
-<span class="p">)</span>
+# Set the headway generator
+headway_gen_Congested = pb.HeadwayGenCongested(
+    congested_spacing=26.1, congested_speed=36.0, congested_gap_coef_var=0.05
+)
 
-<span class="c1"># Config the second lane</span>
-<span class="n">traffic_gen</span><span class="o">.</span><span class="n">add_lane</span><span class="p">(</span>
-    <span class="n">vehicle_gen</span><span class="o">=</span><span class="n">vehicle_gen_Nominal</span><span class="p">,</span> <span class="n">headway_gen</span><span class="o">=</span><span class="n">headway_gen_Congested</span><span class="p">,</span> <span class="n">lfc</span><span class="o">=</span><span class="n">lfc_lane2</span>
-<span class="p">)</span>
+# Config the second lane
+traffic_gen.add_lane(
+    vehicle_gen=vehicle_gen_Nominal, headway_gen=headway_gen_Congested, lfc=lfc_lane2
+)
 <br/></pre></div>
 </div>
 </div>
@@ -556,42 +556,42 @@ document.write(`
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set the flow composition</span>
-<span class="n">lfc_lane3</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">LaneFlowComposition</span><span class="p">(</span><span class="n">lane_index</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">lane_dir</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">lfc_lane3</span><span class="o">.</span><span class="n">assign_lane_data</span><span class="p">(</span><span class="n">hourly_truck_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span> <span class="n">hourly_car_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Set the flow composition
+lfc_lane3 = pb.LaneFlowComposition(lane_index=3, lane_dir=2)
+lfc_lane3.assign_lane_data(hourly_truck_flow=[100] * 24, hourly_car_flow=[0] * 24)
 
-<span class="c1"># Set the Garage vehicle generator</span>
-<span class="n">kernel</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">]]</span>
-<span class="n">vehicle_gen_Garage</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">VehicleGenGarage</span><span class="p">(</span>
-    <span class="n">garage</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;garage.txt&quot;</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">garage_format</span><span class="o">=</span><span class="mi">4</span>
-<span class="p">)</span>
+# Set the Garage vehicle generator
+kernel = [[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]
+vehicle_gen_Garage = pb.VehicleGenGarage(
+    garage=Path(&quot;.&quot;) / &quot;garage.txt&quot;, kernel=kernel, garage_format=4
+)
 
-<span class="c1"># Set the headway generator</span>
-<span class="n">headway_gen_Constant</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">HeadwayGenConstant</span><span class="p">(</span><span class="n">constant_speed</span><span class="o">=</span><span class="mf">36.0</span><span class="p">,</span> <span class="n">constant_gap</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
+# Set the headway generator
+headway_gen_Constant = pb.HeadwayGenConstant(constant_speed=36.0, constant_gap=5.0)
 
-<span class="c1"># Config the third lane</span>
-<span class="n">traffic_gen</span><span class="o">.</span><span class="n">add_lane</span><span class="p">(</span>
-    <span class="n">vehicle_gen</span><span class="o">=</span><span class="n">vehicle_gen_Garage</span><span class="p">,</span> <span class="n">headway_gen</span><span class="o">=</span><span class="n">headway_gen_Constant</span><span class="p">,</span> <span class="n">lfc</span><span class="o">=</span><span class="n">lfc_lane3</span>
-<span class="p">)</span>
+# Config the third lane
+traffic_gen.add_lane(
+    vehicle_gen=vehicle_gen_Garage, headway_gen=headway_gen_Constant, lfc=lfc_lane3
+)
 
-<span class="c1"># Set the flow composition</span>
-<span class="n">lfc_lane4</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">LaneFlowComposition</span><span class="p">(</span><span class="n">lane_index</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">lane_dir</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">lfc_lane4</span><span class="o">.</span><span class="n">assign_lane_data</span><span class="p">(</span>
-    <span class="n">hourly_truck_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
-    <span class="n">hourly_car_flow</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
-    <span class="n">hourly_speed_mean</span><span class="o">=</span><span class="p">[</span><span class="mi">80</span> <span class="o">/</span> <span class="mf">3.6</span> <span class="o">*</span> <span class="mi">10</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
-    <span class="n">hourly_speed_std</span><span class="o">=</span><span class="p">[</span><span class="mf">10.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">24</span><span class="p">,</span>
-<span class="p">)</span>
+# Set the flow composition
+lfc_lane4 = pb.LaneFlowComposition(lane_index=4, lane_dir=2)
+lfc_lane4.assign_lane_data(
+    hourly_truck_flow=[100] * 24,
+    hourly_car_flow=[0] * 24,
+    hourly_speed_mean=[80 / 3.6 * 10] * 24,
+    hourly_speed_std=[10.0] * 24,
+)
 
-<span class="c1"># Use the same vehicle generator as the third lane.</span>
+# Use the same vehicle generator as the third lane.
 
-<span class="c1"># Set the headway generator</span>
-<span class="n">headway_gen_Freeflow</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">HeadwayGenFreeflow</span><span class="p">()</span>
+# Set the headway generator
+headway_gen_Freeflow = pb.HeadwayGenFreeflow()
 
-<span class="c1"># Config the fourth lane</span>
-<span class="n">traffic_gen</span><span class="o">.</span><span class="n">add_lane</span><span class="p">(</span>
-    <span class="n">vehicle_gen</span><span class="o">=</span><span class="n">vehicle_gen_Garage</span><span class="p">,</span> <span class="n">headway_gen</span><span class="o">=</span><span class="n">headway_gen_Freeflow</span><span class="p">,</span> <span class="n">lfc</span><span class="o">=</span><span class="n">lfc_lane4</span>
-<span class="p">)</span>
+# Config the fourth lane
+traffic_gen.add_lane(
+    vehicle_gen=vehicle_gen_Garage, headway_gen=headway_gen_Freeflow, lfc=lfc_lane4
+)
 <br/></pre></div>
 </div>
 </div>
@@ -600,12 +600,12 @@ document.write(`
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">output_config</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">OutputConfig</span><span class="p">()</span>
-<span class="n">output_config</span><span class="o">.</span><span class="n">set_vehicle_file_output</span><span class="p">(</span>
-    <span class="n">write_vehicle_file</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">vehicle_file_format</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-    <span class="n">vehicle_file_name</span><span class="o">=</span><span class="s2">&quot;generated_traffic_file.txt&quot;</span><span class="p">,</span>
-<span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>output_config = pb.OutputConfig()
+output_config.set_vehicle_file_output(
+    write_vehicle_file=True,
+    vehicle_file_format=4,
+    vehicle_file_name=&quot;generated_traffic_file.txt&quot;,
+)
 <br/></pre></div>
 </div>
 </div>
@@ -614,24 +614,24 @@ document.write(`
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sim_task</span> <span class="o">=</span> <span class="n">pb</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;temp&quot;</span><span class="p">)</span>
-<span class="n">sim_task</span><span class="o">.</span><span class="n">add_sim</span><span class="p">(</span>
-    <span class="n">traffic</span><span class="o">=</span><span class="n">traffic_gen</span><span class="p">,</span>
-    <span class="n">no_day</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>  <span class="c1"># 30 days traffic</span>
-    <span class="n">output_config</span><span class="o">=</span><span class="n">output_config</span><span class="p">,</span>
-    <span class="n">track_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># optional, print the simulation days.</span>
-    <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;Case4&quot;</span><span class="p">,</span>
-<span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>sim_task = pb.Simulation(Path(&quot;.&quot;) / &quot;temp&quot;)
+sim_task.add_sim(
+    traffic=traffic_gen,
+    no_day=30,  # 30 days traffic
+    output_config=output_config,
+    track_progress=True,  # optional, print the simulation days.
+    tag=&quot;Case4&quot;,
+)
 
-<span class="c1"># Run simulation</span>
-<span class="n">sim_task</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">no_core</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+# Run simulation
+sim_task.run(no_core=1)
 
-<span class="c1"># Get the output</span>
-<span class="n">case4_output</span> <span class="o">=</span> <span class="n">sim_task</span><span class="o">.</span><span class="n">get_output</span><span class="p">()[</span><span class="s2">&quot;Case4&quot;</span><span class="p">]</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">case4_output</span><span class="o">.</span><span class="n">get_summary</span><span class="p">())</span>
+# Get the output
+case4_output = sim_task.get_output()[&quot;Case4&quot;]
+print(case4_output.get_summary())
 
-<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">display</span>
-<span class="n">display</span><span class="p">(</span><span class="n">case4_output</span><span class="o">.</span><span class="n">read_data</span><span class="p">(</span><span class="s2">&quot;traffic&quot;</span><span class="p">)[</span><span class="s2">&quot;generated_traffic_file&quot;</span><span class="p">])</span>
+from IPython.display import display
+display(case4_output.read_data(&quot;traffic&quot;)[&quot;generated_traffic_file&quot;])
 <br/></pre></div>
 </div>
 </div>
@@ -1295,7 +1295,7 @@ Flushing buffer of 1676 vehicles at 6/2/0 0:0:3.36281
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
     <br/>
   </p>
 </div>

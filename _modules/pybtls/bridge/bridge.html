@@ -546,10 +546,17 @@ document.write(`
                     <span class="s2">&quot;The number of influence lines should be equal to the number of lanes.&quot;</span>
                 <span class="p">)</span>
 
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">inf_line</span><span class="o">.</span><span class="n">_data_assigned</span> <span class="k">for</span> <span class="n">inf_line</span> <span class="ow">in</span> <span class="n">inf_line_surf</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All influence lines should have their data assigned.&quot;</span><span class="p">)</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">_no_load_effect</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_inf_file_dict</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_no_load_effect</span><span class="p">)][</span><span class="s2">&quot;inf_line&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">inf_line_surf</span>
 
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inf_line_surf</span><span class="p">,</span> <span class="p">(</span><span class="n">InfluenceLine</span><span class="p">,</span> <span class="n">InfluenceSurface</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">inf_line_surf</span><span class="o">.</span><span class="n">_data_assigned</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;The influence line or surface should have its data assigned.&quot;</span>
+                <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_no_load_effect</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_inf_file_dict</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_no_load_effect</span><span class="p">)][</span><span class="s2">&quot;inf_line&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="n">inf_line_surf</span>
@@ -673,7 +680,7 @@ document.write(`
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
     <br/>
   </p>
 </div>

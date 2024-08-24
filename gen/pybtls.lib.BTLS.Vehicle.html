@@ -645,11 +645,11 @@ document.write(`
 <dt class="sig sig-object py" id="pybtls.lib.BTLS.Vehicle">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Vehicle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pybtls.lib.libbtls._Vehicle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_axles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pybtls/lib/BTLS.html#Vehicle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pybtls.lib.BTLS.Vehicle" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_Vehicle</span></code></p>
-<p>The Vehicle class is inherited from the CVehicle class in the C++ BTLS library. n
+<p>The Vehicle class is inherited from the CVehicle class in the C++ BTLS library.
 It is used to create a customized vehicle object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>no_axles</strong> (<em>intn</em>) – Number of axles.</p>
+<dd class="field-odd"><p><strong>no_axles</strong> (<em>int</em>) – Number of axles.</p>
 </dd>
 </dl>
 <p class="rubric">Methods</p>
@@ -704,16 +704,16 @@ It is used to create a customized vehicle object.</p>
 <td><p>Set all the vehicle properties from a tuple.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pybtls.lib.BTLS.Vehicle.set_axle_spacing" title="pybtls.lib.BTLS.Vehicle.set_axle_spacing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_axle_spacing</span></code></a></p></td>
-<td><p>Set the specified axle spacing.n The vehicle length is updated automatically.</p></td>
+<td><p>Set the specified axle spacing.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#pybtls.lib.BTLS.Vehicle.set_axle_spacings" title="pybtls.lib.BTLS.Vehicle.set_axle_spacings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_axle_spacings</span></code></a></p></td>
-<td><p>Set the vehicle axle spacings.n The vehicle length is calculated as the sum of the axle spacings automatically.</p></td>
+<td><p>Set the vehicle axle spacings.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pybtls.lib.BTLS.Vehicle.set_axle_weight" title="pybtls.lib.BTLS.Vehicle.set_axle_weight"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_axle_weight</span></code></a></p></td>
-<td><p>Set the specified axle weight.n The gross vehicle weight is updated automatically.</p></td>
+<td><p>Set the specified axle weight.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#pybtls.lib.BTLS.Vehicle.set_axle_weights" title="pybtls.lib.BTLS.Vehicle.set_axle_weights"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_axle_weights</span></code></a></p></td>
-<td><p>Set the vehicle axle weights.n The gross vehicle weight is calculated as the sum of the axle weights automatically.</p></td>
+<td><p>Set the vehicle axle weights.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pybtls.lib.BTLS.Vehicle.set_axle_width" title="pybtls.lib.BTLS.Vehicle.set_axle_width"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_axle_width</span></code></a></p></td>
 <td><p>Set the specified axle width.</p></td>
@@ -725,7 +725,7 @@ It is used to create a customized vehicle object.</p>
 <td><p>Set the direction of the vehicle.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#pybtls.lib.BTLS.Vehicle.set_local_from_global_lane" title="pybtls.lib.BTLS.Vehicle.set_local_from_global_lane"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_local_from_global_lane</span></code></a></p></td>
-<td><p>Set the local lane index of the vehicle from its 1-based global index.n This method needs to be called after the vehicle direction is set.</p></td>
+<td><p>Set the local lane index of the vehicle from its 1-based global index.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pybtls.lib.BTLS.Vehicle.set_local_lane" title="pybtls.lib.BTLS.Vehicle.set_local_lane"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_local_lane</span></code></a></p></td>
 <td><p>Set the local lane index of the vehicle.</p></td>
@@ -754,7 +754,7 @@ It is used to create a customized vehicle object.</p>
 <dd><p>Get the value of the specified axle spacing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>index</strong> (<em>intn</em>) – The 0-based index of the axle.</p>
+<dd class="field-odd"><p><strong>index</strong> (<em>int</em>) – The 0-based index of the axle.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -771,7 +771,7 @@ It is used to create a customized vehicle object.</p>
 <dd><p>Get the specified axle weight.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>index</strong> (<em>intn</em>) – The 0-based index of the axle.</p>
+<dd class="field-odd"><p><strong>index</strong> (<em>int</em>) – The 0-based index of the axle.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -788,7 +788,7 @@ It is used to create a customized vehicle object.</p>
 <dd><p>Get the value of the specified axle width.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>index</strong> (<em>intn</em>) – The 0-based index of the axle.</p>
+<dd class="field-odd"><p><strong>index</strong> (<em>int</em>) – The 0-based index of the axle.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -856,13 +856,13 @@ It is used to create a customized vehicle object.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pybtls.lib.BTLS.Vehicle.set_axle_spacing">
 <span class="sig-name descname"><span class="pre">set_axle_spacing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pybtls.lib.libbtls._Vehicle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pybtls.lib.BTLS.Vehicle.set_axle_spacing" title="Link to this definition">#</a></dt>
-<dd><p>Set the specified axle spacing.n
+<dd><p>Set the specified axle spacing.
 The vehicle length is updated automatically.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>index</strong> (<em>intn</em>) – The 0-based index of the axle.n</p></li>
-<li><p><strong>spacing</strong> (<em>floatn</em>) – The axle spacing.</p></li>
+<li><p><strong>index</strong> (<em>int</em>) – The 0-based index of the axle.</p></li>
+<li><p><strong>spacing</strong> (<em>float</em>) – The axle spacing.</p></li>
 </ul>
 </dd>
 </dl>
@@ -871,11 +871,11 @@ The vehicle length is updated automatically.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pybtls.lib.BTLS.Vehicle.set_axle_spacings">
 <span class="sig-name descname"><span class="pre">set_axle_spacings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pybtls.lib.libbtls._Vehicle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pybtls.lib.BTLS.Vehicle.set_axle_spacings" title="Link to this definition">#</a></dt>
-<dd><p>Set the vehicle axle spacings.n
+<dd><p>Set the vehicle axle spacings.
 The vehicle length is calculated as the sum of the axle spacings automatically.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>spacings</strong> (<em>list</em><em>[</em><em>float</em><em>]</em><em>n</em>) – The vehicle axle spacings.n
+<dd class="field-odd"><p><strong>spacings</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – The vehicle axle spacings.
 The last spacing should always be zero.</p>
 </dd>
 </dl>
@@ -884,13 +884,13 @@ The last spacing should always be zero.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pybtls.lib.BTLS.Vehicle.set_axle_weight">
 <span class="sig-name descname"><span class="pre">set_axle_weight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pybtls.lib.libbtls._Vehicle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pybtls.lib.BTLS.Vehicle.set_axle_weight" title="Link to this definition">#</a></dt>
-<dd><p>Set the specified axle weight.n
+<dd><p>Set the specified axle weight.
 The gross vehicle weight is updated automatically.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>index</strong> (<em>intn</em>) – The 0-based index of the axle.n</p></li>
-<li><p><strong>weight</strong> (<em>floatn</em>) – The axle weight.</p></li>
+<li><p><strong>index</strong> (<em>int</em>) – The 0-based index of the axle.</p></li>
+<li><p><strong>weight</strong> (<em>float</em>) – The axle weight.</p></li>
 </ul>
 </dd>
 </dl>
@@ -899,11 +899,11 @@ The gross vehicle weight is updated automatically.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pybtls.lib.BTLS.Vehicle.set_axle_weights">
 <span class="sig-name descname"><span class="pre">set_axle_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pybtls.lib.libbtls._Vehicle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axle_weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pybtls.lib.BTLS.Vehicle.set_axle_weights" title="Link to this definition">#</a></dt>
-<dd><p>Set the vehicle axle weights.n
+<dd><p>Set the vehicle axle weights.
 The gross vehicle weight is calculated as the sum of the axle weights automatically.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>weights</strong> (<em>list</em><em>[</em><em>float</em><em>]</em><em>n</em>) – The vehicle axle weights.</p>
+<dd class="field-odd"><p><strong>weights</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – The vehicle axle weights.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -915,8 +915,8 @@ The gross vehicle weight is calculated as the sum of the axle weights automatica
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>index</strong> (<em>intn</em>) – The 0-based index of the axle.n</p></li>
-<li><p><strong>width</strong> (<em>floatn</em>) – The axle width.</p></li>
+<li><p><strong>index</strong> (<em>int</em>) – The 0-based index of the axle.</p></li>
+<li><p><strong>width</strong> (<em>float</em>) – The axle width.</p></li>
 </ul>
 </dd>
 </dl>
@@ -928,7 +928,7 @@ The gross vehicle weight is calculated as the sum of the axle weights automatica
 <dd><p>Set the vehicle axle widths.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>widths</strong> (<em>list</em><em>[</em><em>float</em><em>]</em><em>n</em>) – The vehicle axle widths.</p>
+<dd class="field-odd"><p><strong>widths</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – The vehicle axle widths.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -939,7 +939,7 @@ The gross vehicle weight is calculated as the sum of the axle weights automatica
 <dd><p>Set the direction of the vehicle.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>direction</strong> (<em>Literal</em><em>[</em><em>1</em><em>,</em><em>2</em><em>]</em><em>n</em>) – The direction of the vehicle.</p>
+<dd class="field-odd"><p><strong>direction</strong> (<em>Literal</em><em>[</em><em>1</em><em>,</em><em>2</em><em>]</em>) – The direction of the vehicle.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -947,13 +947,13 @@ The gross vehicle weight is calculated as the sum of the axle weights automatica
 <dl class="py method">
 <dt class="sig sig-object py" id="pybtls.lib.BTLS.Vehicle.set_local_from_global_lane">
 <span class="sig-name descname"><span class="pre">set_local_from_global_lane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pybtls.lib.libbtls._Vehicle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_lane_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_lanes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pybtls.lib.BTLS.Vehicle.set_local_from_global_lane" title="Link to this definition">#</a></dt>
-<dd><p>Set the local lane index of the vehicle from its 1-based global index.n
+<dd><p>Set the local lane index of the vehicle from its 1-based global index.
 This method needs to be called after the vehicle direction is set.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>global_lane_index</strong> (<em>intn</em>) – The 1-based global lane index of the vehicle.n</p></li>
-<li><p><strong>no_lanes</strong> (<em>intn</em>) – The number of lanes in the direction of the vehicle.</p></li>
+<li><p><strong>global_lane_index</strong> (<em>int</em>) – The 1-based global lane index of the vehicle.</p></li>
+<li><p><strong>no_lanes</strong> (<em>int</em>) – The number of lanes in the direction of the vehicle.</p></li>
 </ul>
 </dd>
 </dl>
@@ -965,7 +965,7 @@ This method needs to be called after the vehicle direction is set.</p>
 <dd><p>Set the local lane index of the vehicle.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>local_lane_index</strong> (<em>intn</em>) – The 1-based local lane index of the vehicle.</p>
+<dd class="field-odd"><p><strong>local_lane_index</strong> (<em>int</em>) – The 1-based local lane index of the vehicle.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -976,7 +976,7 @@ This method needs to be called after the vehicle direction is set.</p>
 <dd><p>Set the show-up time of the vehicle.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>time</strong> (<em>floatn</em>) – The showing time of the vehicle, in seconds.</p>
+<dd class="field-odd"><p><strong>time</strong> (<em>float</em>) – The showing time of the vehicle, in seconds.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -987,7 +987,7 @@ This method needs to be called after the vehicle direction is set.</p>
 <dd><p>Set the vehicle transverse position.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>trans</strong> (<em>floatn</em>) – The transverse position of the vehicle on its lane, in metres.</p>
+<dd class="field-odd"><p><strong>trans</strong> (<em>float</em>) – The transverse position of the vehicle on its lane, in metres.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -998,7 +998,7 @@ This method needs to be called after the vehicle direction is set.</p>
 <dd><p>Set vehicle velocity.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>velocity</strong> (<em>floatn</em>) – The velocity of the vehicle, in m/s.</p>
+<dd class="field-odd"><p><strong>velocity</strong> (<em>float</em>) – The velocity of the vehicle, in m/s.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1137,7 +1137,7 @@ This method needs to be called after the vehicle direction is set.</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
     <br/>
   </p>
 </div>
