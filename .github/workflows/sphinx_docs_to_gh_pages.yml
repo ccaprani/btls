@@ -1,7 +1,7 @@
 name: Deploy to GitHub Pages
 on:
-  push:
-    branches:
+  push:	
+    branches:	
       - main
   pull_request:
     branches: [ gh-pages ]
@@ -19,43 +19,18 @@ jobs:
       run: |
         python -m pip install .
 
-    - name: Print current directory and list contents
+    - name: Install the docs-build dependencies
       run: |
-        pwd
-        ls -la
-        ls -la py
-        ls -la py/pybtls
-        ls -la py/pybtls/lib
+        sudo apt-get install -y pandoc
+        python -m pip install sphinx
+        python -m pip install sphinx-autodoc-typehints 
+        python -m pip install nbsphinx
+        python -m pip install pydata-sphinx-theme
 
-    - name: Print Python site-packages directory
+    - name: Build the docs
       run: |
-        python -c "import site; print(site.getsitepackages())"
-        python -c "import site, sys; print(site.USER_BASE + '/lib/python' + sys.version[:3] + '/site-packages')"
-
-    - name: Locate installed .so file in all site-packages directories
-      run: |
-        find $(python -c "import site; print(site.getsitepackages()[0])") -name "libbtls*.so" || true
-        find $(python -c "import site; print(site.getsitepackages()[1])") -name "libbtls*.so" || true
-        find $(python -c "import site; print(site.getsitepackages()[2])") -name "libbtls*.so" || true
-        find $(python -c "import site, sys; print(site.USER_BASE + '/lib/python' + sys.version[:3] + '/site-packages')") -name "libbtls*.so" || true
-
-    - name: Print installed package location
-      run: |
-        python -c "import pybtls; print(pybtls.__file__)"
-
-    - name: Set PYTHONPATH and print it
-      run: |
-        export USER_SITE_PACKAGES=$(python -c "import site, sys; print(site.USER_BASE + '/lib/python' + sys.version[:3] + '/site-packages')")
-        export PYTHONPATH=${{ github.workspace }}/py:$USER_SITE_PACKAGES:$PYTHONPATH
-        echo $PYTHONPATH
-        python -c "import sys; print(sys.path)"
-
-    - uses: ammaraskar/sphinx-action@master
-      with:
-        docs-folder: "docs/"
-        pre-build-command: "apt-get install -y pandoc && python -m pip install sphinx-autodoc-typehints && python -m pip install nbsphinx"
-      env:
-        PYTHONPATH: ${{ github.workspace }}/py:$(python -c "import site, sys; print(site.USER_BASE + '/lib/python' + sys.version[:3] + '/site-packages')"):$PYTHONPATH
+        cd docs
+        make html
 
     # Publish built docs to gh-pages branch.
     # ===============================
