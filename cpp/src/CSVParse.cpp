@@ -4,7 +4,7 @@
 
 #include "CSVParse.h"
 
-#ifdef _DEBUG
+#ifdef WIN_DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW

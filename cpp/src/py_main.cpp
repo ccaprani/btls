@@ -6,11 +6,18 @@
 #include "pybind11/stl.h"
 #include "pybind11/stl/filesystem.h"
 
+#define STRINGIFY(x) #x
+#define MACRO_STRINGIFY(x) STRINGIFY(x)
 
 namespace py = pybind11;
 
 
 PYBIND11_MODULE(libbtls, m) {
+	#ifdef VERSION_INFO
+		m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
+	#else
+		m.attr("__version__") = "dev";
+	#endif
 	m.def("get_info", &preamble, "Print the information of the BTLS library.");
 	m.def("run", &run, 
 		R"(
@@ -18,8 +25,8 @@ PYBIND11_MODULE(libbtls, m) {
 
 		Parameters
 		----------
-		BTLSin_file : str \n
-			The path to the BTLS input file. \n
+		BTLSin_file : str
+			The path to the BTLS input file.
 			Refer to the BTLS manual for what it means.
 		)", 
 		py::arg("BTLSin_file"));
@@ -274,12 +281,12 @@ PYBIND11_MODULE(libbtls, m) {
 	py::class_<CVehicle, CVehicle_sp> cvehicle(m, "_Vehicle");
 		cvehicle.def(py::init<size_t>(), 
 				R"(
-				The Vehicle class is inherited from the CVehicle class in the C++ BTLS library. \n
+				The Vehicle class is inherited from the CVehicle class in the C++ BTLS library. 
 				It is used to create a customized vehicle object. 
 
 				Parameters
 				----------
-				no_axles : int\n
+				no_axles : int
 					Number of axles.
 				)", 
 				py::arg("no_axles"))
@@ -289,20 +296,20 @@ PYBIND11_MODULE(libbtls, m) {
 
 				Parameters
 				----------
-				velocity : float\n
+				velocity : float
 					The velocity of the vehicle, in m/s.
 				)", 
 				py::arg("velocity"))
 			.def("set_local_from_global_lane", &CVehicle::setLocalFromGlobalLane, 
 				R"(
-				Set the local lane index of the vehicle from its 1-based global index.\n
+				Set the local lane index of the vehicle from its 1-based global index.
 				This method needs to be called after the vehicle direction is set. 
 
 				Parameters
 				----------
-				global_lane_index : int\n
-					The 1-based global lane index of the vehicle.\n
-				no_lanes : int\n
+				global_lane_index : int
+					The 1-based global lane index of the vehicle.
+				no_lanes : int
 					The number of lanes in the direction of the vehicle.
 				)", 
 				py::arg("global_lane_index"), py::arg("no_lanes"))
@@ -312,7 +319,7 @@ PYBIND11_MODULE(libbtls, m) {
 
 				Parameters
 				----------
-				direction : Literal[1,2]\n
+				direction : Literal[1,2]
 					The direction of the vehicle. 
 				)", 
 				py::arg("direction"))
@@ -322,7 +329,7 @@ PYBIND11_MODULE(libbtls, m) {
 
 				Parameters
 				----------
-				time : float\n
+				time : float
 					The showing time of the vehicle, in seconds.
 				)", 
 				py::arg("time"))
@@ -332,7 +339,7 @@ PYBIND11_MODULE(libbtls, m) {
 
 				Parameters
 				----------
-				trans : float\n
+				trans : float
 					The transverse position of the vehicle on its lane, in metres.
 				)", 
 				py::arg("trans"))
@@ -345,7 +352,7 @@ PYBIND11_MODULE(libbtls, m) {
 
 				Parameters
 				----------
-				local_lane_index : int\n
+				local_lane_index : int
 					The 1-based local lane index of the vehicle.
 				)", 
 				py::arg("local_lane_index"))
@@ -357,12 +364,12 @@ PYBIND11_MODULE(libbtls, m) {
 					self->setGVW(std::accumulate(weights.begin(), weights.end(), 0.0));
 				},
 				R"(
-				Set the vehicle axle weights.\n
+				Set the vehicle axle weights.
 				The gross vehicle weight is calculated as the sum of the axle weights automatically.
 
 				Parameters
 				----------
-				weights : list[float]\n
+				weights : list[float]
 					The vehicle axle weights.
 				)", 
 				py::arg("axle_weights"))
@@ -372,14 +379,14 @@ PYBIND11_MODULE(libbtls, m) {
 					self->setAW(index, weight);
 				},
 				R"(
-				Set the specified axle weight.\n
+				Set the specified axle weight.
 				The gross vehicle weight is updated automatically.
 
 				Parameters
 				----------
-				index : int\n
-					The 0-based index of the axle.\n
-				weight : float\n
+				index : int
+					The 0-based index of the axle.
+				weight : float
 					The axle weight.
 				)", 
 				py::arg("index"), py::arg("weight"))
@@ -391,13 +398,13 @@ PYBIND11_MODULE(libbtls, m) {
 					self->setLength(std::accumulate(spacings.begin(), spacings.end(), 0.0));
 				},
 				R"(
-				Set the vehicle axle spacings.\n
+				Set the vehicle axle spacings.
 				The vehicle length is calculated as the sum of the axle spacings automatically.
 
 				Parameters
 				----------
-				spacings : list[float]\n
-					The vehicle axle spacings.\n
+				spacings : list[float]
+					The vehicle axle spacings.
 					The last spacing should always be zero. 
 				)", 
 				py::arg("spacings"))
@@ -407,14 +414,14 @@ PYBIND11_MODULE(libbtls, m) {
 					self->setAS(index, spacing);
 				},
 				R"(
-				Set the specified axle spacing.\n
+				Set the specified axle spacing.
 				The vehicle length is updated automatically.
 
 				Parameters
 				----------
-				index : int\n
-					The 0-based index of the axle.\n
-				spacing : float\n
+				index : int
+					The 0-based index of the axle.
+				spacing : float
 					The axle spacing.
 				)",
 				py::arg("index"), py::arg("spacing"))
@@ -429,7 +436,7 @@ PYBIND11_MODULE(libbtls, m) {
 
 				Parameters
 				----------
-				widths : list[float]\n
+				widths : list[float]
 					The vehicle axle widths.
 				)",
 				py::arg("widths"))
@@ -442,9 +449,9 @@ PYBIND11_MODULE(libbtls, m) {
 
 				Parameters
 				----------
-				index : int\n
-					The 0-based index of the axle.\n
-				width : float\n
+				index : int
+					The 0-based index of the axle.
+				width : float
 					The axle width.
 				)",
 				py::arg("index"), py::arg("width"))
@@ -467,7 +474,7 @@ PYBIND11_MODULE(libbtls, m) {
 
 				Parameters
 				----------
-				index : int\n
+				index : int
 					The 0-based index of the axle.
 				)", 
 				py::arg("index"))
@@ -486,7 +493,7 @@ PYBIND11_MODULE(libbtls, m) {
 
 				Parameters
 				----------
-				index : int\n
+				index : int
 					The 0-based index of the axle.
 				)", 
 				py::arg("index"))
@@ -505,7 +512,7 @@ PYBIND11_MODULE(libbtls, m) {
 
 				Parameters
 				----------
-				index : int\n
+				index : int
 					The 0-based index of the axle.
 				)", 
 				py::arg("index"))
@@ -519,6 +526,9 @@ PYBIND11_MODULE(libbtls, m) {
 				"Set all the vehicle properties from a tuple.", 
 				py::arg("prop_tuple"))
 			.def("_create", &CVehicle::create, py::arg("str"), py::arg("format"))
+			.def("__eq__", 
+				[](CVehicle_sp self, CVehicle_sp other) { return self->Write(4) == other->Write(4); }, 
+				py::is_operator())
 			.def(py::pickle(
 				[](CVehicle_sp self) {  // __getstate__
 
@@ -628,7 +638,7 @@ PYBIND11_MODULE(libbtls, m) {
 			.def("get_no_modes", &CMultiModalNormal::getNoModes);
 	py::class_<CDistribution> cdistribution(m, "_Distribution");
 		cdistribution.def(py::init<>())
-			.def(py::init<double, double, double>(), py::arg("w"), py::arg("m"), py::arg("s"))
+			.def(py::init<double, double, double>(), py::arg("loc"), py::arg("scale"), py::arg("shape"))
 			.def("set_shape", &CDistribution::setShape, py::arg("shape"))
 			.def("set_scale", &CDistribution::setScale, py::arg("scale"))
 			.def("set_location", &CDistribution::setLocation, py::arg("loc"))
@@ -646,6 +656,6 @@ PYBIND11_MODULE(libbtls, m) {
 			.def("gen_poisson", &CDistribution::GeneratePoisson)
 			.def("gen_gev", &CDistribution::GenerateGEV)
 			.def("gen_triangular", py::overload_cast<>(&CDistribution::GenerateTriangular))
-			.def("gen_triangular", py::overload_cast<double,double>(&CDistribution::GenerateTriangular), py::arg("mean"), py::arg("stdev"));
+			.def("gen_triangular", py::overload_cast<double,double>(&CDistribution::GenerateTriangular), py::arg("loc"), py::arg("w"));
 };
 
