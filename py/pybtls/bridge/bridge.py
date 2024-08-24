@@ -97,10 +97,17 @@ class Bridge:
                     "The number of influence lines should be equal to the number of lanes."
                 )
 
+            if not all([inf_line._data_assigned for inf_line in inf_line_surf]):
+                raise ValueError("All influence lines should have their data assigned.")
+
             self._no_load_effect += 1
             self._inf_file_dict[str(self._no_load_effect)]["inf_line"] = inf_line_surf
 
         elif isinstance(inf_line_surf, (InfluenceLine, InfluenceSurface)):
+            if not inf_line_surf._data_assigned:
+                raise ValueError(
+                    "The influence line or surface should have its data assigned."
+                )
             self._no_load_effect += 1
             self._inf_file_dict[str(self._no_load_effect)]["inf_line"] = [
                 inf_line_surf
