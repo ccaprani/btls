@@ -29,7 +29,7 @@ void CLaneGenTraffic::setLaneData(CVehicleClassification_sp pVC,
 {
 	setLaneAttributes(lfc, startTime);
 
-	// Vehicle model must come first for NHM temporary
+	// Vehicle model must come first for HeDS temporary
 	switch (VEHICLE_MODEL)
 	{
 	case 1:		// Constant
@@ -48,9 +48,9 @@ void CLaneGenTraffic::setLaneData(CVehicleClassification_sp pVC,
 
 	switch (HEADWAY_MODEL)
 	{
-	case 0:		// NHM
-		m_pFlowModelData = std::make_shared<CFlowModelDataNHM>(m_Config, lfc);
-		m_pFlowGen = std::make_shared<CFlowGenNHM>(std::dynamic_pointer_cast<CFlowModelDataNHM>(m_pFlowModelData));
+	case 0:		// HeDS
+		m_pFlowModelData = std::make_shared<CFlowModelDataHeDS>(m_Config, lfc);
+		m_pFlowGen = std::make_shared<CFlowGenHeDS>(std::dynamic_pointer_cast<CFlowModelDataHeDS>(m_pFlowModelData));
 		break;
 	case 1:		// Constant
 		m_pFlowModelData = std::make_shared<CFlowModelDataConstant>(m_Config, lfc);

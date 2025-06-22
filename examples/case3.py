@@ -1,16 +1,16 @@
 """
-This demo is for the case reading a traffic flow and passing them over a bridge. 
+This demo is for the case reading a traffic flow and passing them over a bridge.
 
-The bridge: 
-    - Has four 3.5m-width lanes. 
+The bridge:
+    - Has four 3.5m-width lanes.
     - Has a length of 20m.
     - Has a width of 16m.
-    - Has one load effect being considered. 
+    - Has one load effect being considered.
 
 The traffic flow:
-    - It is from a recorded traffic file. 
+    - It is from a recorded traffic file.
 
-**Notice**: Due to Python multiprocessing, it is essential to define the simulation in a function. 
+**Notice**: Due to Python multiprocessing, it is essential to define the simulation in a function.
 """
 
 import pybtls as pb

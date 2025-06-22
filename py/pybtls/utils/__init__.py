@@ -1,5 +1,5 @@
 """
-The module that contains some useful functions. 
+The module that contains some useful functions.
 """
 
 from .IL_compress import *

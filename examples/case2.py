@@ -1,17 +1,17 @@
 """
-This demo is for the case generating a traffic flow and passing them over a bridge. 
+This demo is for the case generating a traffic flow and passing them over a bridge.
 
-The bridge: 
-    - Has four 3.5m-width lanes. 
+The bridge:
+    - Has four 3.5m-width lanes.
     - Has a length of 20m.
     - Has a width of 16m.
-    - Has one load effect being considered. 
+    - Has one load effect being considered.
 
 The traffic flow:
-    - Vehicles are generated from Garage model. 
-    - Headways are in freeflow condition (Poisson arrival model). 
+    - Vehicles are generated from Garage model.
+    - Headways are in freeflow condition (Poisson arrival model).
 
-**Notice**: Due to Python multiprocessing, it is essential to define the simulation in a function. 
+**Notice**: Due to Python multiprocessing, it is essential to define the simulation in a function.
 """
 
 import pybtls as pb

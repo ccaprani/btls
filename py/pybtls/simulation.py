@@ -1,6 +1,6 @@
 """
 The module that assembles everything together for the simulation. \n
-The methods and classes that are not defined in Python are defined in C++ py_main.cpp. 
+The methods and classes that are not defined in Python are defined in C++ py_main.cpp.
 """
 
 from .lib.BTLS import Vehicle, _Vehicle, _VehClassPattern, _VehClassAxle, _VehicleBuffer

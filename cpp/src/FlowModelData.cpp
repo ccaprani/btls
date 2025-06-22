@@ -43,32 +43,32 @@ void CFlowModelData::getBlockInfo(size_t& sz, size_t& n) const
 	n = m_BlockCount;
 }
 
-//////////// CFlowModelDataNHM //////////////
+//////////// CFlowModelDataHeDS //////////////
 
-CFlowModelDataNHM::CFlowModelDataNHM(CConfigDataCore& config, CLaneFlowComposition lfc)
-	: CFlowModelData(config, eFM_NHM, lfc, false) // Model does not have cars
+CFlowModelDataHeDS::CFlowModelDataHeDS(CConfigDataCore& config, CLaneFlowComposition lfc)
+	: CFlowModelData(config, eFM_HeDS, lfc, false) // Model does not have cars
 {
 	ReadDataIn();
 }
 
-CFlowModelDataNHM::~CFlowModelDataNHM()
+CFlowModelDataHeDS::~CFlowModelDataHeDS()
 {
 
 }
 
-matrix CFlowModelDataNHM::GetNHM()
+matrix CFlowModelDataHeDS::GetHeDS()
 {
-	return m_vNHM;
+	return m_vHeDS;
 }
 
-void CFlowModelDataNHM::ReadDataIn()
+void CFlowModelDataHeDS::ReadDataIn()
 {
-	ReadFile_NHM();
+	ReadFile_HeDS();
 }
 
-void CFlowModelDataNHM::ReadFile_NHM()
+void CFlowModelDataHeDS::ReadFile_HeDS()
 {
-	std::filesystem::path file = m_Path / "NHM.csv";
+	std::filesystem::path file = m_Path / "HeDS.csv";
 	if (!m_CSV.OpenFile(file.string(), ","))
 	{
 		std::cout << "**** ERROR: Cannot read " << std::filesystem::weakly_canonical(file) << std::endl;
@@ -82,14 +82,14 @@ void CFlowModelDataNHM::ReadFile_NHM()
 	noRows = m_CSV.stringToInt(m_CSV.getfield(0)) + 3;
 
 	std::vector<double> temp2(noRows, 0.0);
-	m_vNHM.assign(noRows, temp2);
+	m_vHeDS.assign(noRows, temp2);
 
-	m_vNHM[0][0] = noRows - 3; // ie the no of flow intervals
+	m_vHeDS[0][0] = noRows - 3; // ie the no of flow intervals
 
 	for (int i = 1; i < noRows; i++) // first row already done
 	{
 		m_CSV.getline(line);
-		m_vNHM[i] = m_CSV.GetVectorFromCurrentLine();
+		m_vHeDS[i] = m_CSV.GetVectorFromCurrentLine();
 	};
 	m_CSV.CloseFile();
 }

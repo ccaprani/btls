@@ -221,8 +221,8 @@ Q[direction, hour]
 
 // New Headway Model parameters
 // file no. 7
-vNHM[]	-> NHM.csv
-vNHM[see paper/manual]
+vHeDS[]	-> HeDS.csv
+vHeDS[see paper/manual]
 
 */
 

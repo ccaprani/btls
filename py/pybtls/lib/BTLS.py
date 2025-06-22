@@ -1,6 +1,6 @@
 """
 A collection of classes and functions wrapped from BTLS (cpp).\n
-The classes that are not defined in Python are defined in C++ py_main.cpp. 
+The classes that are not defined in Python are defined in C++ py_main.cpp.
 """
 
 from .libbtls import (
@@ -20,11 +20,11 @@ from .libbtls import (
     _LaneFlowComposition,
     _MultiModalNormal,
     _Distribution,
-    _FlowGenNHM,
+    _FlowGenHeDS,
     _FlowGenCongested,
     _FlowGenPoisson,
     _FlowGenConstant,
-    _FlowModelDataNHM,
+    _FlowModelDataHeDS,
     _FlowModelDataCongested,
     _FlowModelDataPoisson,
     _FlowModelDataConstant,
@@ -53,11 +53,11 @@ __all__ = [
     "_TrafficGenerator",
     "_VehicleBuffer",
     "_LaneFlowComposition",
-    "_FlowGenNHM",
+    "_FlowGenHeDS",
     "_FlowGenCongested",
     "_FlowGenPoisson",
     "_FlowGenConstant",
-    "_FlowModelDataNHM",
+    "_FlowModelDataHeDS",
     "_FlowModelDataCongested",
     "_FlowModelDataPoisson",
     "_FlowModelDataConstant",
@@ -139,9 +139,9 @@ class _ConfigData(_ConfigDataCore):
             vehicle_classifier  # 0 number of axle, 1 axle pattern
         )
 
-    def set_headway_gen_NHM(self, traffic_folder: str) -> None:
+    def set_headway_gen_HeDS(self, traffic_folder: str) -> None:
         """
-        Config for NHM headway generation method.
+        Config for HeDS headway generation method.
         """
 
         self._Gen.TRAFFIC_FOLDER = traffic_folder

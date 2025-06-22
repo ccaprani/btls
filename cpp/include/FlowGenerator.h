@@ -49,11 +49,11 @@ private:
 };
 typedef std::shared_ptr<CFlowGenerator> CFlowGenerator_sp;
 
-class CFlowGenNHM : public CFlowGenerator
+class CFlowGenHeDS : public CFlowGenerator
 {
 public:
-	CFlowGenNHM(CFlowModelDataNHM_sp pFDM);
-	virtual ~CFlowGenNHM();
+	CFlowGenHeDS(CFlowModelDataHeDS_sp pFDM);
+	virtual ~CFlowGenHeDS();
 
 protected:
 	double GenerateGap();
@@ -61,11 +61,11 @@ protected:
 	void updateProperties();
 
 private:
-	CFlowModelDataNHM_sp m_pFMD;
-	matrix m_vNHM;
+	CFlowModelDataHeDS_sp m_pFMD;
+	matrix m_vHeDS;
 	Normal m_Speed;
 };
-typedef std::shared_ptr<CFlowGenNHM> CFlowGenNHM_sp;
+typedef std::shared_ptr<CFlowGenHeDS> CFlowGenHeDS_sp;
 
 class CFlowGenCongested : public CFlowGenerator
 {

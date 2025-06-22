@@ -1,13 +1,13 @@
 """
-This demo is for the case generating a traffic flow by multiple gen models, which is an add-on to the case2. 
+This demo is for the case generating a traffic flow by multiple gen models, which is an add-on to the case2.
 
-There are four lanes of traffic: 
-    - Lane 1: Vehicles are generated from Grave model, and headways are in NHM condition.
-    - Lane 2: Vehicles are generated from Nominal model, and headways are in Congested condition. 
-    - Lane 3: Vehicles are generated from Garage model, and headways are in Constant condition. 
-    - Lane 4: Vehicles are generated from Garage model, and headways are in Freeflow condition (Poisson arrival model). 
+There are four lanes of traffic:
+    - Lane 1: Vehicles are generated from Grave model, and headways are in HeDS condition.
+    - Lane 2: Vehicles are generated from Nominal model, and headways are in Congested condition.
+    - Lane 3: Vehicles are generated from Garage model, and headways are in Constant condition.
+    - Lane 4: Vehicles are generated from Garage model, and headways are in Freeflow condition (Poisson arrival model).
 
-**Notice**: Due to Python multiprocessing, it is essential to define the simulation in a function. 
+**Notice**: Due to Python multiprocessing, it is essential to define the simulation in a function.
 """
 
 import pybtls as pb
@@ -61,7 +61,7 @@ def main():
     vehicle_gen_Grave = pb.VehicleGenGrave(traffic_site="Auxerre")
 
     # set the headway generators
-    headway_gen_NHM = pb.HeadwayGenNHM()
+    headway_gen_HeDS = pb.HeadwayGenHeDS()
 
     headway_gen_Congested = pb.HeadwayGenCongested(
         congested_spacing=26.1, congested_speed=36.0, congested_gap_coef_var=0.05
@@ -74,7 +74,7 @@ def main():
     # # assemble traffic generator
     traffic_gen = pb.TrafficGenerator(no_lane=4)
     traffic_gen.add_lane(
-        vehicle_gen=vehicle_gen_Grave, headway_gen=headway_gen_NHM, lfc=lfc_1
+        vehicle_gen=vehicle_gen_Grave, headway_gen=headway_gen_HeDS, lfc=lfc_1
     )
     traffic_gen.add_lane(
         vehicle_gen=vehicle_gen_Nominal, headway_gen=headway_gen_Congested, lfc=lfc_2

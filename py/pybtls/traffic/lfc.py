@@ -1,5 +1,5 @@
 """
-The methods and classes that are not defined in Python are defined in C++ py_main.cpp. 
+The methods and classes that are not defined in Python are defined in C++ py_main.cpp.
 """
 
 from ..lib.BTLS import _LaneFlowComposition
@@ -58,7 +58,7 @@ class LaneFlowComposition:
         ]  # in percent
 
         self._flow_assigned = False  # garage, grave, nominal need hourly flow
-        self._speed_assigned = False  # NHM, freeflow need hourly speed
+        self._speed_assigned = False  # HeDS, freeflow need hourly speed
         self._truck_composition_assigned = False  # grave need hourly truck percentage
 
     def __getstate__(self):

@@ -592,9 +592,9 @@ PYBIND11_MODULE(libbtls, m) {
 		cvehmodeldatagrave.def(py::init<CConfigDataCore&, CVehicleClassification_sp, CLaneFlowComposition>(), py::arg("config"), py::arg("vehicle_classifier"), py::arg("lane_flow_composition"));
 
 	py::class_<CFlowGenerator, CGenerator, CFlowGenerator_sp> cflowgenerator(m, "_FlowGenerator");
-		cflowgenerator.def("_setMaxBridgeLength", &CFlowGenNHM::setMaxBridgeLength, py::arg("max_bridge_length"));
-	py::class_<CFlowGenNHM, CFlowGenerator, CFlowGenNHM_sp> cflowgennhm(m, "_FlowGenNHM");
-		cflowgennhm.def(py::init<CFlowModelDataNHM_sp>(), py::arg("model_data"));
+		cflowgenerator.def("_setMaxBridgeLength", &CFlowGenHeDS::setMaxBridgeLength, py::arg("max_bridge_length"));
+	py::class_<CFlowGenHeDS, CFlowGenerator, CFlowGenHeDS_sp> cflowgenheds(m, "_FlowGenHeDS");
+		cflowgenheds.def(py::init<CFlowModelDataHeDS_sp>(), py::arg("model_data"));
 	py::class_<CFlowGenCongested, CFlowGenerator, CFlowGenCongested_sp> cflowgencongested(m, "_FlowGenCongested");
 		cflowgencongested.def(py::init<CFlowModelDataCongested_sp>(), py::arg("model_data"));
 	py::class_<CFlowGenPoisson, CFlowGenerator, CFlowGenPoisson_sp> cflowgenpoisson(m, "_FlowGenPoisson");
@@ -603,8 +603,8 @@ PYBIND11_MODULE(libbtls, m) {
 		cflowgenconstant.def(py::init<CFlowModelDataConstant_sp>(), py::arg("model_data"));
 
 	py::class_<CFlowModelData, CModelData, CFlowModelData_sp> cflowmodeldata(m, "_FlowModelData");
-	py::class_<CFlowModelDataNHM, CFlowModelData, CFlowModelDataNHM_sp> cflowmodeldatanhm(m, "_FlowModelDataNHM");
-		cflowmodeldatanhm.def(py::init<CConfigDataCore&, CLaneFlowComposition>(), py::arg("config"), py::arg("lane_flow_composition"));
+	py::class_<CFlowModelDataHeDS, CFlowModelData, CFlowModelDataHeDS_sp> cflowmodeldataheds(m, "_FlowModelDataHeDS");
+		cflowmodeldataheds.def(py::init<CConfigDataCore&, CLaneFlowComposition>(), py::arg("config"), py::arg("lane_flow_composition"));
 	py::class_<CFlowModelDataCongested, CFlowModelData, CFlowModelDataCongested_sp> cflowmodeldatacongested(m, "_FlowModelDataCongested");
 		cflowmodeldatacongested.def(py::init<CConfigDataCore&, CLaneFlowComposition>(), py::arg("config"), py::arg("lane_flow_composition"));
 	py::class_<CFlowModelDataPoisson, CFlowModelData, CFlowModelDataPoisson_sp> cflowmodeldatapoisson(m, "_FlowModelDataPoisson");

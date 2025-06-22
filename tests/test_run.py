@@ -87,7 +87,7 @@ def main_func():
     vehicle_gen_3 = pb.VehicleGenGrave(traffic_site="Auxerre")
 
     # set headway generator
-    headway_gen_1 = pb.HeadwayGenNHM()
+    headway_gen_1 = pb.HeadwayGenHeDS()
 
     headway_gen_2 = pb.HeadwayGenConstant(constant_speed=36.0, constant_gap=5.0)
 

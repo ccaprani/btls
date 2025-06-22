@@ -1,5 +1,5 @@
 """
-The methods and classes that are not defined in Python are defined in C++ py_main.cpp. 
+The methods and classes that are not defined in Python are defined in C++ py_main.cpp.
 """
 
 from ..lib.BTLS import _InfluenceLine, _InfluenceSurface
@@ -32,7 +32,7 @@ class InfluenceLine:
         self._data_dict = {
             "position": None,
             "ordinate": None,
-            "type": None,
+            "id": None,
             "length": None,
             "inf_surf": None,
         }
@@ -71,9 +71,9 @@ class InfluenceLine:
                 The default is None.
 
         For built-in: \n
-            - type : Literal[1,2,3,4,5,6,7,8,9] \n
-                Built-in influence line type. \n
-                What the number represents: \n
+            - id : Literal[1,2,3,4,5,6,7,8,9] \n
+                Built-in influence line id. \n
+                What the id number represents: \n
                 (The support numbering starts from the left side.) \n
                 1: The mid-span sagging BM of a simply supported beam. \n
                 2: The 2nd support hogging BM of a two-span continuous beam. \n
@@ -136,19 +136,19 @@ class InfluenceLine:
         self._data_dict["ordinate"] = ordinate
 
     def _set_IL_built_in(self, **kwargs) -> None:
-        type = kwargs.get("type")
+        id = kwargs.get("id")
         length = kwargs.get("length")
 
-        if type is None or length is None:
+        if id is None or length is None:
             raise ValueError("Uncompleted input for built-in influence line.")
 
-        if not isinstance(type, int) or not isinstance(length, float):
-            raise TypeError("The type should be int and length should be float.")
+        if not isinstance(id, int) or not isinstance(length, float):
+            raise TypeError("The id should be int and length should be float.")
 
-        if type not in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
-            raise ValueError("Please refer to the doc for the built-in IL type.")
+        if id not in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
+            raise ValueError("Please refer to the doc for the built-in IL id.")
 
-        self._data_dict["type"] = type
+        self._data_dict["id"] = id
         self._data_dict["length"] = length
 
     def _set_IL_surface(self, **kwargs) -> None:
@@ -172,7 +172,7 @@ class InfluenceLine:
         if self._IL_type == "discrete":
             inf_line.setIL(self._data_dict["position"], self._data_dict["ordinate"])
         elif self._IL_type == "built-in":
-            inf_line.setIL(self._data_dict["type"], self._data_dict["length"])
+            inf_line.setIL(self._data_dict["id"], self._data_dict["length"])
         elif self._IL_type == "surface":
             inf_line.setIL(self._data_dict["inf_surf"]._get_IS())
 

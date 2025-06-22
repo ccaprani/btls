@@ -43,23 +43,23 @@ private:
 };
 typedef std::shared_ptr<CFlowModelData> CFlowModelData_sp;
 
-class CFlowModelDataNHM : public CFlowModelData
+class CFlowModelDataHeDS : public CFlowModelData
 {
 public:
-	CFlowModelDataNHM(CConfigDataCore& config, CLaneFlowComposition lfc);
-	virtual ~CFlowModelDataNHM();
+	CFlowModelDataHeDS(CConfigDataCore& config, CLaneFlowComposition lfc);
+	virtual ~CFlowModelDataHeDS();
 
 	virtual void ReadDataIn();
 
-	matrix GetNHM();
+	matrix GetHeDS();
 
 private:
-	void ReadFile_NHM();
+	void ReadFile_HeDS();
 	//vec ReadLaneFlow(std::string file);
-	matrix m_vNHM;
+	matrix m_vHeDS;
 
 };
-typedef std::shared_ptr<CFlowModelDataNHM> CFlowModelDataNHM_sp;
+typedef std::shared_ptr<CFlowModelDataHeDS> CFlowModelDataHeDS_sp;
 
 class CFlowModelDataCongested : public CFlowModelData
 {
