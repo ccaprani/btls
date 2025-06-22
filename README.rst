@@ -39,7 +39,7 @@ This `Documentation`_ provides all the information needed to install *PyBTLS* an
 More detailed information about the input and output data can be found in the `Manual`_.
 
 .. _`Documentation`: http://pybtls.github.io/pybtls/
-.. _`Manual`: https://github.com/pybtls/pybtls/tree/main/Manual
+.. _`Manual`: https://github.com/ccaprani/btls/tree/main/Manual
 
 Credits & Copyright
 ===================

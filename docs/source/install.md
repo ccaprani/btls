@@ -22,14 +22,14 @@ The easiest way to install `PyBTLS` is to use the python package index: ::
 
 For users wishing to develop: ::
 
-    git clone https://github.com/pybtls/pybtls.git
+    git clone https://github.com/ccaprani/btls.git
     cd pybtls
     pip install -e .
 
 For users wishing to install it as BTLS (a C++ terminal program), the first is to ensure CMake and GCC are installed. 
 Then: ::
 
-    git clone https://github.com/pybtls/pybtls.git
+    git clone https://github.com/ccaprani/btls.git
     cd pybtls
     mkdir ./build
     cd ./build
@@ -52,5 +52,5 @@ from the root directory of the package.
 
 Bugs and feature requests
 -------------------------
-Report problems with the installation, bugs in the code or feature request at the `issue tracker <http://github.com/pybtls/pybtls/issues>_`
+Report problems with the installation, bugs in the code or feature request at the `issue tracker <http://github.com/ccaprani/btls/issues>_`
 

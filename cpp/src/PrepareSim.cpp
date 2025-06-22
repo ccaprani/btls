@@ -6,7 +6,7 @@ void preamble()
 	std::cout << "---------------------------------------------" << std::endl;
 	std::cout << "This is based on the work from:			   " << std::endl;
 	std::cout << "Bridge Traffic Load Simulation - C.C. Caprani" << std::endl;
-	std::cout << "                Version 1.3.7			       " << std::endl;
+	std::cout << "                Version 1.3.6			       " << std::endl;
 	std::cout << "---------------------------------------------" << std::endl << std::endl;
 };
 

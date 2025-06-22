@@ -1,9 +1,9 @@
-pybtls.traffic.headway\_generator.HeadwayGenNHM
-===============================================
+pybtls.traffic.headway\_generator.HeadwayGenHeDS
+================================================
 
 .. currentmodule:: pybtls.traffic.headway_generator
 
-.. autoclass:: HeadwayGenNHM
+.. autoclass:: HeadwayGenHeDS
    :members:
    :show-inheritance:
    :inherited-members:
@@ -25,6 +25,6 @@ pybtls.traffic.headway\_generator.HeadwayGenNHM
 
    .. autosummary::
    
-      ~HeadwayGenNHM.tag
+      ~HeadwayGenHeDS.tag
    
    

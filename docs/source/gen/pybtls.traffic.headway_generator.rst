@@ -23,7 +23,7 @@ pybtls.traffic.headway\_generator
       HeadwayGenCongested
       HeadwayGenConstant
       HeadwayGenFreeflow
-      HeadwayGenNHM
+      HeadwayGenHeDS
    
    
 

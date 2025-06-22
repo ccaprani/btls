@@ -23,9 +23,9 @@
 1
 // Vehicle Generation Model to be used
 // (0 - Grave, 1 - Nominal, 2 - Garage)
-0
+2
 // Headway model to be used:
-// (0 - Auxerre HeDS (without car), 1 - Constant (with car), 5 - Congested (with car), 6 - free-flow (with car))
+// (0 - Auxerre HeDS (truck only), 1 - Constant, 5 - Congested, 6 - free-flow)
 6
 // Traffic Classification System to be used:
 // (0 - No. of Axles, 1 - Axle Pattern)
@@ -101,9 +101,9 @@ IS.txt
 // Conduct Rainflow algorithm for fatigue (1 or 0)
 1
 // Number of decimals left for Rainflow algorithm
-5
+1
 // Cutoff value for Fatigue
-2.0
+1.0
 // Rainflow-out file buffer size
 100000
 //
