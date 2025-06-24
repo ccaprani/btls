@@ -26,6 +26,6 @@
    :template: custom-module-template.rst
    :recursive:
 
-   pybtls.lib.BTLS
-   pybtls.lib.libbtls
+   BTLS
+   libbtls
 

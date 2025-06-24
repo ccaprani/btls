@@ -8,7 +8,7 @@ This file presents instructions for ``PyBTLS`` developers.
 Create working repository with developer install
 ------------------------------------------------
 
-1. Fork ``PyBTLS`` `GitHub repository <https://github.com/pybtls/pybtls/>`_
+1. Fork ``PyBTLS`` `GitHub repository <https://github.com/ccaprani/btls/>`_
 
 2. Clone repo ::
 
@@ -41,7 +41,7 @@ Create working repository with developer install
 
 8. Add ``PyBTLS`` as upstream ::
 
-	git remote add upstream https://github.com/pybtls/pybtls.git
+	git remote add upstream https://github.com/ccaprani/btls.git
 
 .. _pr:
 
