@@ -1,5 +1,5 @@
 """
-Bridge Traffic Load Simulation with Python. 
+Bridge Traffic Load Simulation with Python.
 """
 
 import pybtls.lib as lib
@@ -26,7 +26,7 @@ from .traffic import (
     VehicleGenGarage,
     VehicleGenGrave,
     VehicleGenNominal,
-    HeadwayGenNHM,
+    HeadwayGenHeDS,
     HeadwayGenConstant,
     HeadwayGenCongested,
     HeadwayGenFreeflow,

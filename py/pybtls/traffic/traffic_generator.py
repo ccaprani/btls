@@ -1,10 +1,10 @@
 """
-The methods and classes that are not defined in Python are defined in C++ py_main.cpp. 
+The methods and classes that are not defined in Python are defined in C++ py_main.cpp.
 """
 
 from .vehicle_generator import VehicleGenNominal, VehicleGenGrave, VehicleGenGarage
 from .headway_generator import (
-    HeadwayGenNHM,
+    HeadwayGenHeDS,
     HeadwayGenConstant,
     HeadwayGenCongested,
     HeadwayGenFreeflow,
@@ -21,7 +21,7 @@ class Lane:
         self,
         vehicle_gen: Union[VehicleGenNominal, VehicleGenGrave, VehicleGenGarage],
         headway_gen: Union[
-            HeadwayGenNHM, HeadwayGenConstant, HeadwayGenCongested, HeadwayGenFreeflow
+            HeadwayGenHeDS, HeadwayGenConstant, HeadwayGenCongested, HeadwayGenFreeflow
         ],
         lfc: LaneFlowComposition,
     ):
@@ -88,7 +88,7 @@ class Lane:
     def headway_gen(
         self,
     ) -> Union[
-        HeadwayGenNHM, HeadwayGenConstant, HeadwayGenCongested, HeadwayGenFreeflow
+        HeadwayGenHeDS, HeadwayGenConstant, HeadwayGenCongested, HeadwayGenFreeflow
     ]:
         return self._headway_gen
 
@@ -154,7 +154,7 @@ class TrafficGenerator:
         self,
         vehicle_gen: Union[VehicleGenNominal, VehicleGenGrave, VehicleGenGarage],
         headway_gen: Union[
-            HeadwayGenNHM, HeadwayGenConstant, HeadwayGenCongested, HeadwayGenFreeflow
+            HeadwayGenHeDS, HeadwayGenConstant, HeadwayGenCongested, HeadwayGenFreeflow
         ],
         lfc: LaneFlowComposition,
     ) -> None:
@@ -166,7 +166,7 @@ class TrafficGenerator:
         vehicle_gen : Union[VehicleGenNominal, VehicleGenGrave, VehicleGenGarage]\n
             The vehicle generator for the lane.
 
-        headway_gen : Union[HeadwayGenNHM, HeadwayGenConstant, HeadwayGenCongested, HeadwayGenFreeflow]\n
+        headway_gen : Union[HeadwayGenHeDS, HeadwayGenConstant, HeadwayGenCongested, HeadwayGenFreeflow]\n
             The headway generator for the lane.
 
         lfc : LaneFlowComposition\n

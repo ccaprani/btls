@@ -26,9 +26,9 @@
    :template: custom-module-template.rst
    :recursive:
 
-   pybtls.traffic.headway_generator
-   pybtls.traffic.lfc
-   pybtls.traffic.traffic_generator
-   pybtls.traffic.traffic_loader
-   pybtls.traffic.vehicle_generator
+   headway_generator
+   lfc
+   traffic_generator
+   traffic_loader
+   vehicle_generator
 

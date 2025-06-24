@@ -10,7 +10,7 @@ endif()
 # Set project name and version
 if(Binary)
   set(PROJECT_NAME "BTLS")
-  set(PROJECT_VERSION "1.3.7")
+  set(PROJECT_VERSION "1.3.6")
 elseif(PythonLib)
   set(PROJECT_NAME "libbtls")
   set(PROJECT_VERSION "${SKBUILD_PROJECT_VERSION}")

@@ -1,12 +1,12 @@
 """
-The methods and classes that are not defined in Python are defined in C++ py_main.cpp. 
+The methods and classes that are not defined in Python are defined in C++ py_main.cpp.
 """
 
 from ..lib.BTLS import (
     _ConfigData,
     _LaneFlowComposition,
-    _FlowModelDataNHM,
-    _FlowGenNHM,
+    _FlowModelDataHeDS,
+    _FlowGenHeDS,
     _FlowModelDataConstant,
     _FlowGenConstant,
     _FlowModelDataCongested,
@@ -18,22 +18,22 @@ from .lfc import LaneFlowComposition
 import importlib.resources as pkg_resources
 
 __all__ = [
-    "HeadwayGenNHM",
+    "HeadwayGenHeDS",
     "HeadwayGenConstant",
     "HeadwayGenCongested",
     "HeadwayGenFreeflow",
 ]
 
 
-class HeadwayGenNHM:
+class HeadwayGenHeDS:
     def __init__(self, **kwargs):
         """
-        The HeadwayGenNHM instance in Python stores the data for creating a CFlowGenNHM instance in C++. \n
+        The HeadwayGenHeDS instance in Python stores the data for creating a CFlowGenHeDS instance in C++. \n
         This is for a heavy-vehicle-only traffic. \n
         All heavy vehicles' headways will be generated based on the pre-studied distribution of Auxerre heavy vehicles' headways.
         """
 
-        self._tag = "NHM"
+        self._tag = "HeDS"
         self._config = _ConfigData()
 
         self._set_config(**kwargs)
@@ -59,7 +59,7 @@ class HeadwayGenNHM:
             pkg_resources.files("pybtls").joinpath("data/GraveParameters/Auxerre")
         )
 
-        self._config.set_headway_gen_NHM(traffic_folder=traffic_folder)
+        self._config.set_headway_gen_HeDS(traffic_folder=traffic_folder)
 
     def _check_lfc(self, lfc: LaneFlowComposition):
         if not lfc.speed_assigned:
@@ -69,14 +69,14 @@ class HeadwayGenNHM:
 
     def _get_generator(
         self, lfc: _LaneFlowComposition
-    ) -> tuple[_FlowGenNHM, _FlowModelDataNHM]:
+    ) -> tuple[_FlowGenHeDS, _FlowModelDataHeDS]:
         """
-        Get a CFlowGenNHM instance and a CFlowModelDataNHM instance (generator and its model data).
+        Get a CFlowGenHeDS instance and a CFlowModelDataHeDS instance (generator and its model data).
         """
 
-        model_data = _FlowModelDataNHM(self._config, lfc)
+        model_data = _FlowModelDataHeDS(self._config, lfc)
 
-        return _FlowGenNHM(model_data), model_data
+        return _FlowGenHeDS(model_data), model_data
 
 
 class HeadwayGenConstant:

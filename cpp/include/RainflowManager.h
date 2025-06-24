@@ -4,11 +4,11 @@
 #include "Rainflow.h"
 
 
-class CFatigueManager : public COutputManagerBase
+class CRainflowManager : public COutputManagerBase
 {
 public:
-	CFatigueManager(CConfigDataCore& config);
-	virtual ~CFatigueManager(void);
+	CRainflowManager(CConfigDataCore& config);
+	virtual ~CRainflowManager(void);
 
 	void Initialize(double bridgeLength, size_t noLoadEffects);
 	void Update(CEvent Ev) {};

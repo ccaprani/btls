@@ -15,7 +15,7 @@ typedef std::vector< std::vector<double> > matrix;
 
 enum EFlowModel
 {
-	eFM_NHM = 0,
+	eFM_HeDS = 0,
 	eFM_Poisson,
 	eFM_Congested,
 	eFM_Constant

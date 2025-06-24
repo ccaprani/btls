@@ -1,5 +1,5 @@
 """
-The methods and classes that are not defined in Python are defined in C++ py_main.cpp. 
+The methods and classes that are not defined in Python are defined in C++ py_main.cpp.
 """
 
 from ..output.output_manager import _OutputManager

@@ -138,43 +138,43 @@ void CFlowGenerator::setMinGap()
 	//}
 }
 
-//////////// CFlowGenNHM ///////////////
+//////////// CFlowGenHeDS ///////////////
 
-CFlowGenNHM::CFlowGenNHM(CFlowModelDataNHM_sp pFMD) : CFlowGenerator(pFMD, eFM_NHM)
+CFlowGenHeDS::CFlowGenHeDS(CFlowModelDataHeDS_sp pFMD) : CFlowGenerator(pFMD, eFM_HeDS)
 {
-	m_pFMD = std::dynamic_pointer_cast<CFlowModelDataNHM>(m_pFlowModelData);
+	m_pFMD = std::dynamic_pointer_cast<CFlowModelDataHeDS>(m_pFlowModelData);
 
-	m_vNHM = m_pFMD->GetNHM();
+	m_vHeDS = m_pFMD->GetHeDS();
 	m_pFMD->getSpeedParams(m_CurBlock, m_Speed);
 }
 
 
-CFlowGenNHM::~CFlowGenNHM()
+CFlowGenHeDS::~CFlowGenHeDS()
 {
 }
 
-double CFlowGenNHM::GenerateGap()
+double CFlowGenHeDS::GenerateGap()
 {
 	double headwayType = m_RNG.GenerateUniform();
 	double Q = m_TruckFlow;
 	double gap = 0.0;
 
-	// vector - vNHM: ie New Headway Model - as per IStructE paper
+	// vector - vHeDS: ie New Headway Model - as per IStructE paper
 	// first line gives no of intervals
 	// second line gives the u1s params of the quadratic curve
 	// third gives the u1.5s params
 	// the rest give the flowrate interval and the flowrate and it's params
 
-	int curInterval = 0;	int noIntervals = (int)m_vNHM[0][0];
+	int curInterval = 0;	int noIntervals = (int)m_vHeDS[0][0];
 
 	int i = 3;
-	while (i < 3 + noIntervals && Q > m_vNHM[i][0])
+	while (i < 3 + noIntervals && Q > m_vHeDS[i][0])
 		i++;
 	curInterval = i; // not i+1 because it's a zero-based array
 
-	double u1s = quad(m_vNHM[1][1], m_vNHM[1][2], m_vNHM[1][3], 1.0);
-	double u1pt5s = quad(m_vNHM[2][1], m_vNHM[2][2], m_vNHM[2][3], 1.5);
-	double u4s = quad(m_vNHM[curInterval][1], m_vNHM[curInterval][2], m_vNHM[curInterval][3], 4.0);
+	double u1s = quad(m_vHeDS[1][1], m_vHeDS[1][2], m_vHeDS[1][3], 1.0);
+	double u1pt5s = quad(m_vHeDS[2][1], m_vHeDS[2][2], m_vHeDS[2][3], 1.5);
+	double u4s = quad(m_vHeDS[curInterval][1], m_vHeDS[curInterval][2], m_vHeDS[curInterval][3], 4.0);
 
 	if (headwayType > u4s)
 	{
@@ -184,25 +184,25 @@ double CFlowGenNHM::GenerateGap()
 	}
 	else if (headwayType <= u1s)
 	{
-		gap = inv_quad(m_vNHM[1][1], m_vNHM[1][2], m_vNHM[1][3], headwayType);
+		gap = inv_quad(m_vHeDS[1][1], m_vHeDS[1][2], m_vHeDS[1][3], headwayType);
 	}
 	else if (headwayType > u1s && headwayType <= u1pt5s)
 	{
-		gap = inv_quad(m_vNHM[2][1], m_vNHM[2][2], m_vNHM[2][3], headwayType);
+		gap = inv_quad(m_vHeDS[2][1], m_vHeDS[2][2], m_vHeDS[2][3], headwayType);
 	}
 	else if (headwayType > u1pt5s && headwayType <= u4s)
 	{
-		gap = inv_quad(m_vNHM[curInterval][1], m_vNHM[curInterval][2], m_vNHM[curInterval][3], headwayType);
+		gap = inv_quad(m_vHeDS[curInterval][1], m_vHeDS[curInterval][2], m_vHeDS[curInterval][3], headwayType);
 	}
 	return gap;
 }
 
-double CFlowGenNHM::GenerateSpeed()
+double CFlowGenHeDS::GenerateSpeed()
 {
 	return m_RNG.GenerateNormal(m_Speed.Mean, m_Speed.StdDev);
 }
 
-void CFlowGenNHM::updateProperties()
+void CFlowGenHeDS::updateProperties()
 {
 	// update anything relevant to gap generation as hours changes
 	CFlowGenerator::updateProperties();

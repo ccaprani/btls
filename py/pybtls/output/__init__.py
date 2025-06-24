@@ -1,5 +1,5 @@
 """
-The module for the output processor. 
+The module for the output processor.
 """
 
 import pybtls.output.Read as Read

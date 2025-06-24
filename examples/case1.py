@@ -1,18 +1,18 @@
 """
-This demo is for the case passing a single heavy vehicle over a bridge, to check the corresponding maximum load effect. 
+This demo is for the case passing a single heavy vehicle over a bridge, to check the corresponding maximum load effect.
 
-The bridge: 
-    - Has two 3.5m-width lanes. 
+The bridge:
+    - Has two 3.5m-width lanes.
     - Has a length of 20m.
     - Has a width of 9m.
-    - Has two load effects being considered (they are the same for simplification, mid-span BM). 
+    - Has two load effects being considered (they are the same for simplification, mid-span BM).
 
 The vehicle:
     - Has 3 axles, with axle weights of 100kN, 100kN, and 100kN.
     - Has axle spacings of 3m and 7m.
     - Has axle widths of 2m, 2m, and 2m.
 
-**Notice**: Due to Python multiprocessing, it is essential to define the simulation in a function. 
+**Notice**: Due to Python multiprocessing, it is essential to define the simulation in a function.
 """
 
 import pybtls as pb
@@ -35,7 +35,7 @@ def main():
     load_effect_2_lane_1 = pb.InfluenceLine("discrete")
     load_effect_2_lane_1.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 5.0, 0.0])
     load_effect_2_lane_2 = pb.InfluenceLine("built-in")
-    load_effect_2_lane_2.set_IL(type=1, length=20.0)
+    load_effect_2_lane_2.set_IL(id=1, length=20.0)
 
     # set the bridge
     bridge = pb.Bridge(length=20.0, no_lane=2)
