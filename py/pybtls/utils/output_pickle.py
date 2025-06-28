@@ -11,16 +11,16 @@ __all__ = ["save_output", "load_output"]
 
 def save_output(output: dict[str, _OutputManager], file_path: Path) -> None:
     """
-    Save the output data to a file.
+    Save the output dir data to a binary pkl file.
 
     Parameters
     ----------
     output : dict[str, _OutputManager]\n
-        The output data to save.\n
+        The output dir data to save.\n
         The keys are the sim_tags.\n
         The values are the _OutputManager objects.\n
     file_path : Path\n
-        The path to the file where the output data will be saved.
+        The path to the file where the output dir data will be saved (end by .pkl).
     """
 
     if not all(isinstance(obj, _OutputManager) for obj in output.values()):
@@ -36,17 +36,17 @@ def save_output(output: dict[str, _OutputManager], file_path: Path) -> None:
 
 def load_output(file_path: Path) -> dict[str, _OutputManager]:
     """
-    Load the output data from a file.
+    Load the output dir data from a binary pkl file.
 
     Parameters
     ----------
     file_path : Path\n
-        The path to the file where the output data is saved.
+        The path to the file where the output dir data is saved (end by .pkl).
 
     Returns
     -------
     dict[str, _OutputManager]\n
-        The output data.
+        The output dir data.
     """
 
     file_path = Path(file_path) if not isinstance(file_path, Path) else file_path

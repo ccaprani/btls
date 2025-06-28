@@ -79,8 +79,8 @@ class InfluenceLine:
                 2: The 2nd support hogging BM of a two-span continuous beam. \n
                 3: The 1st support SF of a simply supported beam. \n
                 4: The 2nd support SF of a simply supported beam. \n
-                5: The 3rd support SF of a two-span continuous beam. \n
-                6: The 1st support SF of a two-span continuous beam. \n
+                5: The 1st support SF of a two-span continuous beam. \n
+                6: The 3rd support SF of a two-span continuous beam. \n
                 7: The total weights of vehicle being on the beam. \n
                 8: The 2nd support hogging BM of a three-span continuous beam. \n
                 9: The 3rd support hogging BM of a three-span continuous beam. \n
