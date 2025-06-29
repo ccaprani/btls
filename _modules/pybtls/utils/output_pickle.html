@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pybtls.utils.output_pickle &#8212; PyBTLS 0.3.7 documentation</title>
+    <title>pybtls.utils.output_pickle &#8212; PyBTLS 0.3.8 documentation</title>
   
   
   
@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../_static/documentation_options.js?v=29d04658"></script>
+    <script src="../../../_static/documentation_options.js?v=c1cae59a"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -46,7 +46,7 @@
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.3.7" />
+  <meta name="docsearch:version" content="0.3.8" />
   </head>
   
   
@@ -112,8 +112,8 @@
       
     
     
-    <img src="../../../_static/PyBTLS_logo_small.png" class="logo__image only-light" alt="PyBTLS 0.3.7 documentation - Home"/>
-    <img src="../../../_static/PyBTLS_logo_small.png" class="logo__image only-dark pst-js-only" alt="PyBTLS 0.3.7 documentation - Home"/>
+    <img src="../../../_static/PyBTLS_logo_small.png" class="logo__image only-light" alt="PyBTLS 0.3.8 documentation - Home"/>
+    <img src="../../../_static/PyBTLS_logo_small.png" class="logo__image only-dark pst-js-only" alt="PyBTLS 0.3.8 documentation - Home"/>
   
   
 </a></div>
@@ -440,16 +440,16 @@
 <a class="viewcode-back" href="../../../gen/pybtls.utils.output_pickle.save_output.html#pybtls.utils.output_pickle.save_output">[docs]</a>
 <span class="k">def</span> <span class="nf">save_output</span><span class="p">(</span><span class="n">output</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">_OutputManager</span><span class="p">],</span> <span class="n">file_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Save the output data to a file.</span>
+<span class="sd">    Save the output dir data to a binary pkl file.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    output : dict[str, _OutputManager]\n</span>
-<span class="sd">        The output data to save.\n</span>
+<span class="sd">        The output dir data to save.\n</span>
 <span class="sd">        The keys are the sim_tags.\n</span>
 <span class="sd">        The values are the _OutputManager objects.\n</span>
 <span class="sd">    file_path : Path\n</span>
-<span class="sd">        The path to the file where the output data will be saved.</span>
+<span class="sd">        The path to the file where the output dir data will be saved (end by .pkl).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">_OutputManager</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
@@ -468,17 +468,17 @@
 <a class="viewcode-back" href="../../../gen/pybtls.utils.output_pickle.load_output.html#pybtls.utils.output_pickle.load_output">[docs]</a>
 <span class="k">def</span> <span class="nf">load_output</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">_OutputManager</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Load the output data from a file.</span>
+<span class="sd">    Load the output dir data from a binary pkl file.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    file_path : Path\n</span>
-<span class="sd">        The path to the file where the output data is saved.</span>
+<span class="sd">        The path to the file where the output dir data is saved (end by .pkl).</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dict[str, _OutputManager]\n</span>
-<span class="sd">        The output data.</span>
+<span class="sd">        The output dir data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">file_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> <span class="k">else</span> <span class="n">file_path</span>

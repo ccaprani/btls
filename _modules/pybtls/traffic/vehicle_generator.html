@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pybtls.traffic.vehicle_generator &#8212; PyBTLS 0.3.7 documentation</title>
+    <title>pybtls.traffic.vehicle_generator &#8212; PyBTLS 0.3.8 documentation</title>
   
   
   
@@ -37,7 +37,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../../../_static/documentation_options.js?v=29d04658"></script>
+    <script src="../../../_static/documentation_options.js?v=c1cae59a"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -46,7 +46,7 @@
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.3.7" />
+  <meta name="docsearch:version" content="0.3.8" />
   </head>
   
   
@@ -112,8 +112,8 @@
       
     
     
-    <img src="../../../_static/PyBTLS_logo_small.png" class="logo__image only-light" alt="PyBTLS 0.3.7 documentation - Home"/>
-    <img src="../../../_static/PyBTLS_logo_small.png" class="logo__image only-dark pst-js-only" alt="PyBTLS 0.3.7 documentation - Home"/>
+    <img src="../../../_static/PyBTLS_logo_small.png" class="logo__image only-light" alt="PyBTLS 0.3.8 documentation - Home"/>
+    <img src="../../../_static/PyBTLS_logo_small.png" class="logo__image only-dark pst-js-only" alt="PyBTLS 0.3.8 documentation - Home"/>
   
   
 </a></div>
@@ -585,7 +585,7 @@
 <span class="sd">            Traffic site. These sites are all in Europe.</span>
 
 <span class="sd">        truck_track_width : float optional\n</span>
-<span class="sd">            Truck track width. Default is 190.0.</span>
+<span class="sd">            Truck track width. Default is 190.0 (in cm).</span>
 
 <span class="sd">        Keyword Arguments</span>
 <span class="sd">        -----------------</span>
@@ -747,7 +747,6 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">garage</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span>
                 <span class="k">else</span> <span class="n">garage</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
             <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_garage_format</span> <span class="o">=</span> <span class="n">garage_format</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">garage</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">vehicle</span><span class="p">,</span> <span class="p">(</span><span class="n">Vehicle</span><span class="p">,</span> <span class="n">_Vehicle</span><span class="p">))</span> <span class="k">for</span> <span class="n">vehicle</span> <span class="ow">in</span> <span class="n">garage</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_garage</span> <span class="o">=</span> <span class="n">garage</span>
@@ -757,6 +756,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid garage data for garage vehicle generator.&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="n">kernel</span>  <span class="c1"># kernel = [[Mean_GVW, Std_GVW], [Mean_AW, Std_AW], [Mean_AS, Std_AS]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_garage_format</span> <span class="o">=</span> <span class="n">garage_format</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_config</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
