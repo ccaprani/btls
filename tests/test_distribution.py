@@ -27,7 +27,7 @@ def test_triangle_stats():
     mean = np.mean(samples)
     var = np.var(samples)
     expected_mean = (a + b + c) / 3
-    expected_var = (a**2 + b**2 + c**2 - a*b - a*c - b*c) / 18
+    expected_var = (a**2 + b**2 + c**2 - a * b - a * c - b * c) / 18
     assert abs(mean - expected_mean) < 0.1, f"Triangular distribution mean: {mean}"
     assert abs(var - expected_var) < 0.1, f"Triangular distribution variance: {var}"
 
