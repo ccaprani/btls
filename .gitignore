@@ -158,11 +158,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-#Other
-.btls_working_dir/
-Footer
-back_up
-dev_functions
-Sample_data
-# Roadmap

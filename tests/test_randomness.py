@@ -2,20 +2,17 @@ from pybtls import Distribution
 import multiprocessing
 
 
-def gen_randomness(id: int):
-    dist = Distribution()
-    normal_values = []
-
-    for _ in range(100):
-        normal_values.append(dist.gen_normal(0.0, 1.0))
-
-    print(str(id) + ": ", normal_values)
-
-
 def test_randomness():
-    with multiprocessing.Pool(processes=5) as pool:
-        pool.map(gen_randomness, range(4))
+    values1, values2 = [gen_random_values(i) for i in range(2)]
+    assert values1 != values2
 
 
-if __name__ == "__main__":
-    test_randomness()
+def test_randomness_when_multiprocessing():
+    with multiprocessing.Pool(processes=2) as pool:
+        values1, values2 = pool.map(gen_random_values, range(2))
+    assert values1 != values2
+
+
+def gen_random_values(process_id):
+    dist = Distribution()
+    return [dist.gen_normal(0.0, 1.0) for _ in range(100)]
