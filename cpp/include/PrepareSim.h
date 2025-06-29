@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <time.h>
 #include <stdlib.h>
+#include <numeric>
 #include <filesystem>
 #include "ConfigData.h"
 #include "Lane.h"

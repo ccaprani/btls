@@ -45,6 +45,8 @@ class LaneFlowComposition:
         self._tag = tag
 
         self._lane_index = lane_index  # at here it is still 1-based
+        if lane_dir not in [1, 2]:
+            raise ValueError("lane_dir must be 1 or 2.")
         self._lane_dir = lane_dir
         self._no_block = no_block
         self._block_size = block_size

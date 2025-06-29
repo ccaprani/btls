@@ -217,7 +217,7 @@ double CInfluenceLine::LoadEffect4(double x)
 	return ordinate;
 }
 
-// right hand shear for two-span beam
+// left hand shear for two-span beam
 double CInfluenceLine::LoadEffect5(double x)
 {
 	double L = m_Length;
@@ -239,7 +239,7 @@ double CInfluenceLine::LoadEffect5(double x)
 	return ordinate;
 }
 
-// left hand shear for two-span beam
+// right hand shear for two-span beam
 double CInfluenceLine::LoadEffect6(double x)
 {
 	double L = m_Length;

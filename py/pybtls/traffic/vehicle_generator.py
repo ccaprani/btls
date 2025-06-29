@@ -153,7 +153,7 @@ class VehicleGenGrave:
             Traffic site. These sites are all in Europe.
 
         truck_track_width : float optional\n
-            Truck track width. Default is 190.0.
+            Truck track width. Default is 190.0 (in cm).
 
         Keyword Arguments
         -----------------
@@ -312,7 +312,6 @@ class VehicleGenGarage:
                 if not isinstance(garage, Path)
                 else garage.resolve()
             )
-            self._garage_format = garage_format
         elif isinstance(garage, list):
             if all(isinstance(vehicle, (Vehicle, _Vehicle)) for vehicle in garage):
                 self._garage = garage
@@ -322,6 +321,7 @@ class VehicleGenGarage:
             raise ValueError("Invalid garage data for garage vehicle generator.")
 
         self._kernel = kernel  # kernel = [[Mean_GVW, Std_GVW], [Mean_AW, Std_AW], [Mean_AS, Std_AS]]
+        self._garage_format = garage_format
 
         self._set_config(**kwargs)
 

@@ -93,7 +93,10 @@
     "cinttypes": "cpp",
     "__memory": "cpp",
     "filesystem": "cpp",
-    "source_location": "cpp"
+    "source_location": "cpp",
+    "__verbose_abort": "cpp",
+    "execution": "cpp",
+    "print": "cpp"
   },
   "commands": {
     "pythonPid": {

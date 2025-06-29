@@ -1,7 +1,7 @@
 numpy
 matplotlib
 pytest>=6.1.1
-setuptools
+scikit-build-core
 scipy
 pydata-sphinx-theme
 Sphinx>=4.0

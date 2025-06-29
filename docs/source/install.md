@@ -12,7 +12,6 @@ Required Dependencies
 - numpy
 - pandas
 - scipy
-- seaborn
 
 Installation
 ------------
