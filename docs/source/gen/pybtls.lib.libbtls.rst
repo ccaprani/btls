@@ -22,6 +22,15 @@ pybtls.lib.libbtls
 
    
    
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      Vehicle
+   
    
 
    

@@ -4,10 +4,10 @@ The methods and classes that are not defined in Python are defined in C++ py_mai
 
 from ..output.output_config import OutputConfig
 from ..lib.BTLS import (
+    Vehicle,
     _VehClassAxle,
     _VehClassPattern,
     _VehicleBuffer,
-    _Vehicle,
 )
 from typing import Literal
 from pathlib import Path
@@ -17,7 +17,7 @@ __all__ = ["write_garage_file"]
 
 
 def write_garage_file(
-    vehicle_list: list[_Vehicle],
+    vehicle_list: list[Vehicle],
     out_path: Path,
     out_garage_format: Literal[1, 2, 3, 4],
     **kwargs,
@@ -27,7 +27,7 @@ def write_garage_file(
 
     Parameters
     ----------
-    vehicle_list : list[_Vehicle] \n
+    vehicle_list : list[Vehicle] \n
         A list of Vehicle objects. \n
     out_path : Path \n
         The path of the output garage file. \n

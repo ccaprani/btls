@@ -2,21 +2,20 @@
 The methods and classes that are not defined in Python are defined in C++ py_main.cpp.
 """
 
-from ..lib.BTLS import Vehicle, _Vehicle
 import pandas as pd
+from ..lib.BTLS import Vehicle
 
 __all__ = ["vehicle_list_to_df", "df_to_vehicle_list"]
 
 
-def vehicle_list_to_df(vehicle_list: list[_Vehicle]) -> pd.DataFrame:
+def vehicle_list_to_df(vehicle_list: list[Vehicle]) -> pd.DataFrame:
     """
     Convert a list of Vehicle objects to a pandas DataFrame.
 
     Parameters
     ----------
-    vehicle_list : list[_Vehicle]\n
-        List of Vehicle objects. \n
-        _Vehicle and Vehicle are the same.
+    vehicle_list : list[Vehicle]\n
+        List of Vehicle objects.
 
     Returns
     -------
@@ -24,10 +23,10 @@ def vehicle_list_to_df(vehicle_list: list[_Vehicle]) -> pd.DataFrame:
         A DataFrame containing all the vehicle properties.
     """
 
-    if not all(isinstance(vehicle, (Vehicle, _Vehicle)) for vehicle in vehicle_list):
+    if not all(isinstance(vehicle, Vehicle) for vehicle in vehicle_list):
         raise ValueError("All vehicles in the list must be of type Vehicle.")
 
-    data_list = [vehicle.get_all_properties() for vehicle in vehicle_list]
+    data_list = [vehicle._get_all_properties() for vehicle in vehicle_list]
     column_names = [
         "Head",  # vehicle id
         "Year",
@@ -99,7 +98,7 @@ def df_to_vehicle_list(df: pd.DataFrame) -> list[Vehicle]:
     vehicle_list = []
     for row in df.itertuples(index=False):
         vehicle = Vehicle(0)  # 0 does not matter
-        vehicle.set_all_properties(tuple(row))
+        vehicle._set_all_properties(tuple(row))
         vehicle_list.append(vehicle)
 
     return vehicle_list

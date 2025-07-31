@@ -8,7 +8,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "pybtls"
-version = "0.3.8"
+version = "0.4.0"
 description = "A package for short-to-mid span bridge traffic loading simulation"
 readme = "README.rst"
 requires-python = ">=3.9"

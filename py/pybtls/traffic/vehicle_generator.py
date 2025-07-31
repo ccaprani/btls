@@ -4,6 +4,7 @@ The methods and classes that are not defined in Python are defined in C++ py_mai
 
 from ..lib.BTLS import (
     _ConfigData,
+    Vehicle,
     _LaneFlowComposition,
     _VehicleGenNominal,
     _VehModelDataNominal,
@@ -13,8 +14,6 @@ from ..lib.BTLS import (
     _VehModelDataGarage,
     _VehClassPattern,
     _VehClassAxle,
-    Vehicle,
-    _Vehicle,
 )
 from .lfc import LaneFlowComposition
 from ..garage.read import read_garage_file
@@ -256,7 +255,7 @@ class VehicleGenGrave:
 class VehicleGenGarage:
     def __init__(
         self,
-        garage: Union[Path, list[_Vehicle]],
+        garage: Union[Path, list[Vehicle]],
         kernel: list[list[float]],
         garage_format: Literal[1, 2, 3, 4] = None,
         **kwargs,
@@ -267,7 +266,7 @@ class VehicleGenGarage:
 
         Parameters
         ----------
-        garage : Union[Path, list[_Vehicle]]\n
+        garage : Union[Path, list[Vehicle]]\n
             The path to the garage file,
             or a list of Vehicle objects.
 
@@ -313,7 +312,7 @@ class VehicleGenGarage:
                 else garage.resolve()
             )
         elif isinstance(garage, list):
-            if all(isinstance(vehicle, (Vehicle, _Vehicle)) for vehicle in garage):
+            if all(isinstance(vehicle, Vehicle) for vehicle in garage):
                 self._garage = garage
             else:
                 raise ValueError("Existing non-Vehicle object in the garage.")

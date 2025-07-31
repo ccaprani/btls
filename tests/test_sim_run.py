@@ -91,7 +91,7 @@ def test_sim_run():
     # Vehicle generator garage
     try:
         garage = pb.garage.read_garage_file(
-            garage_path=Path("./test_data/garage.txt"), garage_format=4
+            garage_path=Path(__file__).parent / "test_data/garage.txt", garage_format=4
         )
         kernel = [[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]
         vehicle_gen_garage = pb.VehicleGenGarage(garage=garage, kernel=kernel)
@@ -165,7 +165,7 @@ def test_sim_run():
     try:
         traffic_loader = pb.TrafficLoader(no_lane=4)
         traffic_loader.add_traffic(
-            traffic="./test_data/test_traffic_file.txt",
+            traffic=Path(__file__).parent / "test_data/test_traffic_file.txt",
             traffic_format=4,
             use_average_speed=False,
             use_const_speed=True,
@@ -210,9 +210,9 @@ def test_sim_run():
         pytest.fail(f"Output configuration for traffic loader setup failed: {e}")
 
     # Create simulation
-    remove_folder("./temp_data")
+    remove_folder(Path(__file__).parent / "temp_data")
     try:
-        sim_task = pb.Simulation(output_dir=Path("./temp_data"))
+        sim_task = pb.Simulation(output_dir=Path(__file__).parent / "temp_data")
         sim_task.add_sim(
             bridge=bridge,
             traffic=traffic_gen,
@@ -255,7 +255,8 @@ def test_sim_run():
     # Save the simulation output
     try:
         pb.save_output(
-            sim_output_all, file_path=Path("./temp_data/simulation_output.pkl")
+            sim_output_all,
+            file_path=Path(__file__).parent / "temp_data/simulation_output.pkl",
         )
     except Exception as e:
         pytest.fail(f"Saving simulation output failed: {e}")
@@ -263,7 +264,7 @@ def test_sim_run():
     # Load the simulation output
     try:
         sim_output_loaded = pb.load_output(
-            file_path=Path("./temp_data/simulation_output.pkl")
+            file_path=Path(__file__).parent / "temp_data/simulation_output.pkl"
         )
     except Exception as e:
         pytest.fail(f"Loading simulation output failed: {e}")
@@ -275,4 +276,4 @@ def test_sim_run():
     ).all()
 
     # Clean up the temporary folder
-    remove_folder("./temp_data")
+    remove_folder(Path(__file__).parent / "temp_data")

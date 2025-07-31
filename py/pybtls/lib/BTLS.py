@@ -7,8 +7,10 @@ from .libbtls import (
     __version__,
     get_info,
     run,
+    Vehicle,
+    _MultiModalNormal,
+    _Distribution,
     _ConfigDataCore,
-    _Vehicle,
     _VehClassAxle,
     _VehClassPattern,
     _Bridge,
@@ -18,8 +20,6 @@ from .libbtls import (
     _TrafficGenerator,
     _VehicleBuffer,
     _LaneFlowComposition,
-    _MultiModalNormal,
-    _Distribution,
     _FlowGenHeDS,
     _FlowGenCongested,
     _FlowGenPoisson,
@@ -41,9 +41,11 @@ __all__ = [
     "__version__",
     "get_info",
     "run",
+    "Vehicle",
+    "MultiModalNormal",
+    "Distribution",
     "_ConfigData",
     "_ConfigDataCore",
-    "_Vehicle",
     "_VehClassAxle",
     "_VehClassPattern",
     "_Bridge",
@@ -69,21 +71,16 @@ __all__ = [
     "_VehModelDataNominal",
     "_VehModelDataGarage",
     "_VehModelDataGrave",
-    "Vehicle",
-    "MultiModalNormal",
-    "Distribution",
 ]
 
 
-class Vehicle(_Vehicle):
-    pass
-
-
 class MultiModalNormal(_MultiModalNormal):
+
     pass
 
 
 class Distribution(_Distribution):
+
     pass
 
 

@@ -1,7 +1,7 @@
-pybtls.lib.BTLS.Vehicle
-=======================
+pybtls.lib.libbtls.Vehicle
+==========================
 
-.. currentmodule:: pybtls.lib.BTLS
+.. currentmodule:: pybtls.lib.libbtls
 
 .. autoclass:: Vehicle
    :members:
@@ -16,7 +16,6 @@ pybtls.lib.BTLS.Vehicle
    .. autosummary::
       :nosignatures:
    
-      ~Vehicle.get_all_properties
       ~Vehicle.get_axle_spacing
       ~Vehicle.get_axle_spacings
       ~Vehicle.get_axle_weight
@@ -31,7 +30,6 @@ pybtls.lib.BTLS.Vehicle
       ~Vehicle.get_time
       ~Vehicle.get_trans
       ~Vehicle.get_velocity
-      ~Vehicle.set_all_properties
       ~Vehicle.set_axle_spacing
       ~Vehicle.set_axle_spacings
       ~Vehicle.set_axle_weight

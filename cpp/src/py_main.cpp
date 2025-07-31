@@ -278,7 +278,7 @@ PYBIND11_MODULE(libbtls, m) {
 		cbridgelane.def("addLoadEffect", &CBridgeLane::addLoadEffect, py::arg("IL"), py::arg("weight"));
 
 
-	py::class_<CVehicle, CVehicle_sp> cvehicle(m, "_Vehicle");
+	py::class_<CVehicle, CVehicle_sp> cvehicle(m, "Vehicle");
 		cvehicle.def(py::init<size_t>(), 
 				R"(
 				The Vehicle class is inherited from the CVehicle class in the C++ BTLS library. 
@@ -521,8 +521,8 @@ PYBIND11_MODULE(libbtls, m) {
 			.def("get_direction", &CVehicle::getDirection, "Get the vehicle direction (1 or 2).")
 			.def("_getGlobalLane", &CVehicle::getGlobalLane, "Get the 1-based global lane index of the vehicle.", py::arg("no_lanes"))
 			.def("get_local_lane", &CVehicle::getLocalLane, "Get the 1-based local lane index of the vehicle.")
-			.def("get_all_properties", &CVehicle::getPropInTuple, "Get all the vehicle properties in a tuple.")
-			.def("set_all_properties", &CVehicle::setPropByTuple, 
+			.def("_get_all_properties", &CVehicle::getPropInTuple, "Get all the vehicle properties in a tuple.")
+			.def("_set_all_properties", &CVehicle::setPropByTuple, 
 				"Set all the vehicle properties from a tuple.", 
 				py::arg("prop_tuple"))
 			.def("_create", &CVehicle::create, py::arg("str"), py::arg("format"))
