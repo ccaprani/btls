@@ -1,5 +1,5 @@
 from .output_config import OutputConfig
-from .Read import (
+from .read import (
     read_TH,
     read_AE,
     read_traffic,

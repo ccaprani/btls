@@ -28,6 +28,7 @@ def save_output(output: dict[str, _OutputManager], file_path: Path) -> None:
             "All values in the output dictionary must be of type _OutputManager."
         )
     file_path = Path(file_path) if not isinstance(file_path, Path) else file_path
+    file_path.parent.mkdir(parents=True, exist_ok=True)
     with open(file_path, "wb") as file:
         pickle.dump(output, file)
 
