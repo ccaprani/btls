@@ -5,7 +5,7 @@ from pathlib import Path
 __all__ = ["plot_POT_S"]
 
 
-def plot_POT_S(data: pd.DataFrame, save_to: Path = None) -> None:
+def plot_POT_S(data: pd.DataFrame, threshold: float, save_to: Path = None) -> None:
     """
     Plot the POT summary data from pybtls results.
 
@@ -13,6 +13,9 @@ def plot_POT_S(data: pd.DataFrame, save_to: Path = None) -> None:
     ----------
     data : pd.DataFrame\n
         The loaded POT summary from read_POT_S.
+
+    threshold : float\n
+        The POT threshold value.
 
     save_to : Path, optional\n
         The path to save the plot to. \n
@@ -30,11 +33,11 @@ def plot_POT_S(data: pd.DataFrame, save_to: Path = None) -> None:
     fig, ax = plt.subplots(figsize=(8, 5))
 
     # Pick the data
-    the_index = data["Peak Index"]
-    the_data = data["Peak Value"]
+    the_index = data["Peak Index"][data["Peak Value"] >= threshold]
+    the_data = data["Peak Value"][data["Peak Value"] >= threshold]
 
     # Plotting
-    ax.vlines(the_index, 0, the_data, color="gray")
+    ax.vlines(the_index, threshold, the_data, color="gray")
     ax.set_xlabel("Peak index")
     ax.set_ylabel("Effect amplitude")
 
