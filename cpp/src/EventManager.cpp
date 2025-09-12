@@ -127,7 +127,7 @@ void CEventManager::UpdateEffects(std::vector<double> vEffs, double position, do
 	if (WRITE_TIME_HISTORY)
 		DoTimeHistory(2, vEffs);
 
-	// record the events of load effects for rainflow counting of fatigue
+	// record the load effects during an event for rainflow counting of fatigue
 	if (DO_FATIGUE_RAINFLOW) {
 		m_RainflowManager.addLoadEffectValues(vEffs);
 	}

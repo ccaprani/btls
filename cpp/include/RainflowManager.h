@@ -22,15 +22,19 @@ private:
 
 	void cleanLoadEffectValues();
 	void cleanRainflowOutCountValues();
-	void doRainflow(std::vector< std::vector<double> >& signalData);
+	void extractReversals();
+	void doRainflow(bool bIsFinal);
 	void countRainflow(std::vector< std::pair<double, double> >& rainflowOut, size_t i);
 
 	CRainflow m_RainflowAlg;
 	std::ofstream m_RainflowOutFile;
-	std::vector< std::vector<double> >  m_LoadEffectValues;
-	std::vector< std::map<double, double> > m_RainflowOutCount;
+	std::vector< std::vector<double> > m_vLoadEffectValues;
+	std::vector< std::vector<double> > m_vReversals;
+	std::vector< std::map<double, double> > m_vRainflowOutCounts;
 	bool m_WriteHeadLine;
 	size_t m_EventCount;
+
+	bool m_bFirstEvent;
 	
 	int RAINFLOW_DECIMAL;
 	double RAINFLOW_CUTOFF;

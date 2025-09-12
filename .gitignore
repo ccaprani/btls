@@ -18,7 +18,7 @@ cmake_install.cmake
 # BTLS output files
 BM_*.txt
 SS_*.txt
-RC_*.txt
+FR_*.txt
 TH_*.txt
 FlowData_*.txt
 

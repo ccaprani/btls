@@ -47,7 +47,7 @@ private:
 	CBlockMaxManager	m_BlockMaxManager;
 	CPOTManager			m_POTManager;
 	CStatsManager		m_StatsManager;
-	CRainflowManager		m_RainflowManager;
+	CRainflowManager	m_RainflowManager;
 	
 	std::vector<CVehicle> m_vVehicles;
 	

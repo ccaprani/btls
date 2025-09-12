@@ -313,7 +313,7 @@ class _OutputManager:
             )
 
             self._summary["fatigue_rainflow"] = (
-                self._search_file(self._output_root / self._this_output_dir, "RC_")
+                self._search_file(self._output_root / self._this_output_dir, "FR_")
                 if self._output_config._Output.Fatigue.DO_FATIGUE_RAINFLOW
                 else None
             )
