@@ -30,11 +30,12 @@ def plot_BM_S(data: pd.DataFrame, save_to: Path = None) -> None:
     fig, ax = plt.subplots(figsize=(8, 5))
 
     # Pick the maximum value among different no_truck events
+    the_index = data["Block Index"]
     the_data = data.iloc[:, 1:]
     max_data = the_data.max(axis=1)
 
     # Plotting
-    ax.vlines(range(len(max_data)), 0, max_data, color="gray")
+    ax.vlines(the_index, 0, max_data, color="gray")
     ax.set_xlabel("Block index")
     ax.set_ylabel("Effect amplitude")
 

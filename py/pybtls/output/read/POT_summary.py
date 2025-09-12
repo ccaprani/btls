@@ -37,4 +37,7 @@ def read_POT_S(
         nrows=no_lines,
     )
 
+    # Override Peak Index to match the number of rows (1..N)
+    return_data["Peak Index"] = range(1, len(return_data) + 1)
+
     return return_data
