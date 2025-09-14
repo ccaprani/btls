@@ -58,7 +58,7 @@ def read_TH(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     #     for name in column_names:
     #         data_val[name].append(return_data[name].iloc[i])
     #     time_diff = return_data["Time (s)"].iloc[i + 1] - return_data["Time (s)"].iloc[i]
-    #     if abs(time_diff - time_step) > 1e-9:
+    #     if (time_diff - time_step) > 1e-6:
     #         data_time.append(return_data["Time (s)"].iloc[i] + time_step)
     #         data_no_trucks.append(0)
     #         for name in column_names:

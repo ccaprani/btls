@@ -11,21 +11,23 @@ according to section 5.4.4 in ASTM E1049-85 (2011).
 #include <utility>
 #include <vector>
 
-
-class CRainflow {
-public: 
-    CRainflow ();
-    struct ExtractCycleOut {
-        double rng;
-        double mean;
-        double count;
-    };
-    std::vector<double> extractReversals (std::vector<double>& series);
-    std::vector<CRainflow::ExtractCycleOut> extractCycles (std::vector<double>& reversals);
-    std::vector< std::pair<double, double> > countCycles (std::vector<CRainflow::ExtractCycleOut>& cycles, int ndigits);
+class CRainflow
+{
+public:
+	CRainflow();
+	struct ExtractCycleOut
+	{
+		double range;
+		double mean;
+		double count;
+	};
+	std::vector<double> extractReversals(std::vector<double> &series);
+	std::vector<CRainflow::ExtractCycleOut> extractCycles(std::vector<double> &reversals);
+	std::vector<std::pair<double, double>> countCycles(std::vector<CRainflow::ExtractCycleOut> &cycles, int nDigits);
 
 private:
-    double getRoundFunction (double x, int ndigits = -1);
-    ExtractCycleOut formatOutput (double point1, double point2, double count);
-    template <typename T> std::vector< std::pair<T, T> > mapToVector (const std::map<T, T> &map);
+	double getRoundFunction(double x, int nDigits = -1);
+	ExtractCycleOut formatOutput(double point1, double point2, double count);
+	template <typename T>
+	std::vector<std::pair<T, T>> mapToVector(const std::map<T, T> &inputMap);
 };

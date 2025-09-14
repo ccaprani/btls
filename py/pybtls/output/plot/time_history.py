@@ -46,7 +46,7 @@ def plot_TH(data: pd.DataFrame, save_to: Path = None) -> None:
         for name in column_names:
             data_val[name].append(data[name].iloc[i])
         time_diff = data["Time (s)"].iloc[i + 1] - data["Time (s)"].iloc[i]
-        if abs(time_diff - time_step) > 1e-9:
+        if (time_diff - time_step) > 1e-6:
             data_time.append(data["Time (s)"].iloc[i] + time_step)
             for name in column_names:
                 data_val[name].append(0.0)
