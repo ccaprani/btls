@@ -46,17 +46,17 @@ def read_BM_S(
 
     # Convert to DataFrame
     return_data = pd.DataFrame(data_rows)
-    no_effect_types = len(return_data.columns) - 1
+    no_event_types = len(return_data.columns) - 1
 
     # Set column ids
     column_ids = ["Block Index"] + [
-        f"{i + 1}-Truck Event" for i in range(no_effect_types)
+        f"{i + 1}-Truck Event" for i in range(no_event_types)
     ]
     return_data.columns = column_ids
 
     # Convert data types
     return_data["Block Index"] = return_data["Block Index"].astype(int)
-    for i in range(no_effect_types):
+    for i in range(no_event_types):
         return_data[f"{i + 1}-Truck Event"] = pd.to_numeric(
             return_data[f"{i + 1}-Truck Event"], errors="coerce"
         )

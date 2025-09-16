@@ -27,18 +27,23 @@ def plot_BM_S(data: pd.DataFrame, save_to: Path = None) -> None:
     plt.rcParams["font.size"] = 16
     plt.rcParams["mathtext.fontset"] = "stix"
 
-    fig, ax = plt.subplots(figsize=(8, 5))
+    data = data.fillna(0.0)
+    no_event_types = len(data.columns) - 1
+
+    fig, axes = plt.subplots(no_event_types, 1, sharex=True, figsize=(8, 5 * no_event_types))
+    if no_event_types == 1:
+        axes = [axes]
 
     # Pick the maximum value among different no_truck events
     the_index = data["Block Index"]
-    the_data = data.iloc[:, 1:]
-    max_data = the_data.max(axis=1)
 
     # Plotting
-    ax.vlines(the_index, 0, max_data, color="gray")
-    ax.set_xlabel("Block index")
-    ax.set_ylabel("Effect amplitude")
-
+    for ax, i in zip(axes, range(1, no_event_types + 1)):
+        ax.vlines(the_index, 0, data[f"{i}-Truck Event"], color="gray")
+        ax.set_ylabel(f"{i}-Truck Event")
+    fig.supxlabel("Block Index")
+    fig.supylabel("Effect Amplitude")
+    
     fig.tight_layout()
 
     if save_to is not None:

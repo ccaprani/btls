@@ -41,7 +41,15 @@ std::vector<double> CRainflow::extractReversals(std::vector<double> &series)
 		x = xNext;
 		dLast = dNext;
 	}
-	reversalsOut.push_back(xNext);
+
+	if (series.size() > 2)
+	{
+		reversalsOut.push_back(xNext);
+	}
+	else
+	{
+		reversalsOut.push_back(x);
+	}
 
 	return reversalsOut;
 };

@@ -38,8 +38,8 @@ def plot_POT_S(data: pd.DataFrame, threshold: float, save_to: Path = None) -> No
 
     # Plotting
     ax.vlines(the_index, threshold, the_data, color="gray")
-    ax.set_xlabel("Peak index")
-    ax.set_ylabel("Effect amplitude")
+    ax.set_xlabel("Peak Index")
+    ax.set_ylabel("Effect Amplitude")
 
     fig.tight_layout()
 

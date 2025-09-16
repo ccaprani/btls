@@ -38,9 +38,9 @@ def plot_AE(data: pd.DataFrame, save_to: Path = None) -> None:
 
     # Plotting
     for ax, name in zip(axes, column_names):
-        ax.vlines(data["Time (s)"], 0, data[name], color="gray")
-        ax.set_ylabel(name)
-    fig.supxlabel("Time (s)")
+        ax.vlines(data["Start Time"], 0, data[name], color="gray")
+        ax.set_ylabel(name)  # The amplitude is the maximum during the event
+    fig.supxlabel("Start Time (s)")  # Use the event start time to align each load effect maximum (but it is not the maximum occurring moment)
 
     fig.tight_layout()
 

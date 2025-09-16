@@ -57,12 +57,12 @@ def read_FE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     return_data = pd.DataFrame(data_rows)
 
     # Set column ids
-    column_ids = ["Event Time", "No. Trucks"]
+    column_ids = ["Start Time", "No. Trucks"]
     for i in range(no_effects):
-        time_max_id = f"Effect {i + 1} Time Max"
-        max_id = f"Effect {i + 1} Max"
-        time_min_id = f"Effect {i + 1} Time Min"
-        min_id = f"Effect {i + 1} Min"
+        time_max_id = f"Effect {i + 1} Max Time"
+        max_id = f"Effect {i + 1} Max Amplitude"
+        time_min_id = f"Effect {i + 1} Min Time"
+        min_id = f"Effect {i + 1} Min Amplitude"
         column_ids.extend([time_max_id, max_id, time_min_id, min_id])
     return_data.columns = column_ids
 
