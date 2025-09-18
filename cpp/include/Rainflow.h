@@ -1,5 +1,5 @@
 /*
-Implements rainflow cycle counting algorythm for fatigue analysis
+Implements rainflow cycle counting algorythm for CFatigueManager
 according to section 5.4.4 in ASTM E1049-85 (2011).
 */
 #pragma once
@@ -14,20 +14,38 @@ according to section 5.4.4 in ASTM E1049-85 (2011).
 class CRainflow
 {
 public:
-	CRainflow();
 	struct ExtractCycleOut
 	{
 		double range;
 		double mean;
 		double count;
 	};
-	std::vector<double> extractReversals(std::vector<double> &series);
-	std::vector<CRainflow::ExtractCycleOut> extractCycles(std::vector<double> &reversals);
-	std::vector<std::pair<double, double>> countCycles(std::vector<CRainflow::ExtractCycleOut> &cycles, int nDigits);
+
+public:
+	CRainflow() {};
+	CRainflow(int decimal, double cutoff) : m_Decimal(decimal), m_Cutoff(cutoff) {};
+	~CRainflow() {};
+
+	void clearRainflowOutput();
+
+	void processData(const std::vector<double> &series);
+	void calcCycles(bool bIsFinal);
+
+	const std::map<double, double>& getRainflowOutput() const { return m_RainflowOutput; }
 
 private:
-	double getRoundFunction(double x, int nDigits = -1);
-	ExtractCycleOut formatOutput(double point1, double point2, double count);
+	double doRoundUp(double x) const;
+	ExtractCycleOut formatOutput(double point1, double point2, double count) const;
 	template <typename T>
-	std::vector<std::pair<T, T>> mapToVector(const std::map<T, T> &inputMap);
+	std::vector<std::pair<T, T>> mapToVector(const std::map<T, T> &inputMap) const;
+
+	std::vector<double> extractReversals(const std::vector<double> &series) const;
+	std::vector<CRainflow::ExtractCycleOut> extractCycles() const;
+	std::vector<std::pair<double, double>> countCycles(const std::vector<CRainflow::ExtractCycleOut> &cycles) const;
+
+	std::vector<double> m_vReversals;
+	std::map<double, double> m_RainflowOutput;
+
+	int m_Decimal;
+	double m_Cutoff;
 };

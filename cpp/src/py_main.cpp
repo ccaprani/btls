@@ -108,7 +108,7 @@ PYBIND11_MODULE(libbtls, m) {
 					fatigue_dict["DO_FATIGUE_RAINFLOW"] = self.Output.Fatigue.DO_FATIGUE_RAINFLOW;
 					fatigue_dict["RAINFLOW_DECIMAL"] = self.Output.Fatigue.RAINFLOW_DECIMAL;
 					fatigue_dict["RAINFLOW_CUTOFF"] = self.Output.Fatigue.RAINFLOW_CUTOFF;
-					fatigue_dict["WRITE_RAINFLOW_BUFFER_SIZE"] = self.Output.Fatigue.WRITE_RAINFLOW_BUFFER_SIZE;
+					fatigue_dict["WRITE_FATIGUE_BUFFER_SIZE"] = self.Output.Fatigue.WRITE_FATIGUE_BUFFER_SIZE;
 					output_dict["Fatigue"] = fatigue_dict;
 
 					attribute_dict["Road"] = road_dict;
@@ -175,7 +175,7 @@ PYBIND11_MODULE(libbtls, m) {
 					config.Output.Fatigue.DO_FATIGUE_RAINFLOW = attribute_dict["Output"]["Fatigue"]["DO_FATIGUE_RAINFLOW"].cast<bool>();
 					config.Output.Fatigue.RAINFLOW_DECIMAL = attribute_dict["Output"]["Fatigue"]["RAINFLOW_DECIMAL"].cast<int>();
 					config.Output.Fatigue.RAINFLOW_CUTOFF = attribute_dict["Output"]["Fatigue"]["RAINFLOW_CUTOFF"].cast<double>();
-					config.Output.Fatigue.WRITE_RAINFLOW_BUFFER_SIZE = attribute_dict["Output"]["Fatigue"]["WRITE_RAINFLOW_BUFFER_SIZE"].cast<size_t>();
+					config.Output.Fatigue.WRITE_FATIGUE_BUFFER_SIZE = attribute_dict["Output"]["Fatigue"]["WRITE_FATIGUE_BUFFER_SIZE"].cast<size_t>();
 
 					return config;
 				}
@@ -246,7 +246,7 @@ PYBIND11_MODULE(libbtls, m) {
 					fatigue_config.def_readwrite("DO_FATIGUE_RAINFLOW", &CConfigDataCore::Output_Config::Fatigue_Config::DO_FATIGUE_RAINFLOW)
 						.def_readwrite("RAINFLOW_DECIMAL", &CConfigDataCore::Output_Config::Fatigue_Config::RAINFLOW_DECIMAL)
 						.def_readwrite("RAINFLOW_CUTOFF", &CConfigDataCore::Output_Config::Fatigue_Config::RAINFLOW_CUTOFF)
-						.def_readwrite("WRITE_RAINFLOW_BUFFER_SIZE", &CConfigDataCore::Output_Config::Fatigue_Config::WRITE_RAINFLOW_BUFFER_SIZE);
+						.def_readwrite("WRITE_FATIGUE_BUFFER_SIZE", &CConfigDataCore::Output_Config::Fatigue_Config::WRITE_FATIGUE_BUFFER_SIZE);
 
 
 	py::class_<CInfluenceLine> cinfluenceline(m, "_InfluenceLine");

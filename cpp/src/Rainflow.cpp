@@ -1,23 +1,32 @@
 #include "Rainflow.h"
 
-CRainflow::CRainflow() {};
-
-double CRainflow::getRoundFunction(double x, int nDigits)
+void CRainflow::clearRainflowOutput()
 {
-	if (nDigits < 0)
+	m_RainflowOutput.clear();
+};
+
+double CRainflow::doRoundUp(double x) const
+{
+	if (m_Decimal < 0)
 	{
 		return x;
 	}
 	else
 	{
-		return round(x * pow(10, nDigits)) / pow(10, nDigits);
+		return round(x * pow(10, m_Decimal)) / pow(10, m_Decimal);
 	}
 };
 
-std::vector<double> CRainflow::extractReversals(std::vector<double> &series)
+void CRainflow::processData(const std::vector<double> &series)
+{
+	std::vector<double> tempVec;
+	tempVec = extractReversals(series);
+	m_vReversals.insert(m_vReversals.end(), tempVec.begin(), tempVec.end());
+}
+
+std::vector<double> CRainflow::extractReversals(const std::vector<double> &series) const
 {
 	std::vector<double> reversalsOut;
-	// std::cout << series.size() << std::endl;
 
 	double xLast = series[0];
 	double x = series[1];
@@ -54,7 +63,7 @@ std::vector<double> CRainflow::extractReversals(std::vector<double> &series)
 	return reversalsOut;
 };
 
-CRainflow::ExtractCycleOut CRainflow::formatOutput(double point1, double point2, double count)
+CRainflow::ExtractCycleOut CRainflow::formatOutput(double point1, double point2, double count) const
 {
 	ExtractCycleOut formatOutputReturn;
 	formatOutputReturn.range = abs(point1 - point2);
@@ -63,7 +72,45 @@ CRainflow::ExtractCycleOut CRainflow::formatOutput(double point1, double point2,
 	return formatOutputReturn;
 };
 
-std::vector<CRainflow::ExtractCycleOut> CRainflow::extractCycles(std::vector<double> &reversals)
+// The start and the end of each event are always extracted as reversals, so they can be fake reversals. 
+void CRainflow::calcCycles(bool bIsFinal)
+{
+	std::vector<CRainflow::ExtractCycleOut> cycles;
+
+	if (bIsFinal)  // Sim end case
+	{
+		m_vReversals.push_back(0.0);  // Sim should be end at 0.0
+		m_vReversals = extractReversals(m_vReversals);  // To eliminate the fake reversals between events. 
+
+		cycles = extractCycles();
+	}
+	else  // No. event buffer reached case
+	{
+		m_vReversals = extractReversals(m_vReversals);  // To eliminate the fake reversals between events.
+
+		double lastReversal = m_vReversals.back();
+		m_vReversals.pop_back();
+		double secondLastReversal = m_vReversals.back();
+
+		cycles = extractCycles();
+
+		m_vReversals.clear();
+		m_vReversals.push_back(secondLastReversal);
+		m_vReversals.push_back(lastReversal);
+	}
+
+	std::vector<std::pair<double, double>> rainflowOut = countCycles(cycles);
+	for (size_t i = 0; i < rainflowOut.size(); i++)
+	{
+		if (rainflowOut[i].first >= m_Cutoff)
+		{
+			m_RainflowOutput[rainflowOut[i].first] += rainflowOut[i].second;
+		}
+	}
+}
+
+// Have not added the check for 1-reversal case, but that case is impossible considering the buffer_size.
+std::vector<CRainflow::ExtractCycleOut> CRainflow::extractCycles() const
 {
 	std::deque<double> points;
 	std::vector<ExtractCycleOut> cycles;
@@ -72,10 +119,10 @@ std::vector<CRainflow::ExtractCycleOut> CRainflow::extractCycles(std::vector<dou
 	double x3;
 	double X;
 	double Y;
-	// cout << reversals.size() << endl;
-	for (size_t i = 0; i < reversals.size(); i++)
+	
+	for (size_t i = 0; i < m_vReversals.size(); i++)
 	{
-		points.push_back(reversals[i]);
+		points.push_back(m_vReversals[i]);
 		while (points.size() >= 3)
 		{
 			// Form ranges X and Y from the three most recent points
@@ -117,18 +164,18 @@ std::vector<CRainflow::ExtractCycleOut> CRainflow::extractCycles(std::vector<dou
 	return cycles;
 };
 
-std::vector<std::pair<double, double>> CRainflow::countCycles(std::vector<CRainflow::ExtractCycleOut> &cycles, int nDigits)
+std::vector<std::pair<double, double>> CRainflow::countCycles(const std::vector<CRainflow::ExtractCycleOut> &cycles) const
 {
 	std::map<double, double> counts;
 	for (size_t i = 0; i < cycles.size(); i++)
 	{
-		counts[getRoundFunction(cycles[i].range, nDigits)] += cycles[i].count;
+		counts[doRoundUp(cycles[i].range)] += cycles[i].count;
 	}
 	return mapToVector(counts);
 };
 
 template <typename T>
-std::vector<std::pair<T, T>> CRainflow::mapToVector(const std::map<T, T> &inputMap)
+std::vector<std::pair<T, T>> CRainflow::mapToVector(const std::map<T, T> &inputMap) const
 {
 	return std::vector<std::pair<T, T>>(inputMap.begin(), inputMap.end());
 }

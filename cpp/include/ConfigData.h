@@ -132,7 +132,7 @@ public:
 			bool DO_FATIGUE_RAINFLOW;
 			int RAINFLOW_DECIMAL;
 			double RAINFLOW_CUTOFF;
-			size_t WRITE_RAINFLOW_BUFFER_SIZE;
+			size_t WRITE_FATIGUE_BUFFER_SIZE;
 		} Fatigue;
 
 	} Output = {false, false, 10000, false, 
