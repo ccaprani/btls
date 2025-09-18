@@ -1,7 +1,7 @@
-﻿pybtls.utils
-============
+﻿pybtls.lib
+==========
 
-.. automodule:: pybtls.utils
+.. automodule:: pybtls.lib
 
    
    
@@ -26,7 +26,6 @@
    :template: custom-module-template.rst
    :recursive:
 
-   pybtls.utils.IL_compress
-   pybtls.utils.output_pickle
-   pybtls.utils.vehicle_DF
+   pybtls.lib.BTLS
+   pybtls.lib.libbtls
 

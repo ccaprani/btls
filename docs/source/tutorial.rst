@@ -16,5 +16,7 @@ can also be found on the `Python documentation`_ page.
     notebooks/gen_traffic
     notebooks/read_traffic
     notebooks/what_else
+    notebooks/BM
+    notebooks/POT
 
 .. _`Python documentation`: http://www.python.org/doc/

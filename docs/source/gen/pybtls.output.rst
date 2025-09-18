@@ -26,8 +26,8 @@
    :template: custom-module-template.rst
    :recursive:
 
-   Plot
-   Read
-   output_config
-   output_manager
+   pybtls.output.output_config
+   pybtls.output.output_manager
+   pybtls.output.plot
+   pybtls.output.read
 
