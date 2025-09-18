@@ -4,6 +4,7 @@ sphinx-autodoc-typehints
 nbsphinx
 pydata-sphinx-theme
 
+ipython
 markupsafe==2.0.1
 pygments >= 2.7
 
