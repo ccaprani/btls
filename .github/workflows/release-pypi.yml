@@ -1,16 +1,17 @@
-name: Wheels
+name: Publish to PyPI
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
-  # You can enable these when ready
-  # pull_request:
-  # push:
-  #   branches:
-  #     - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write  # For PyPI trusted publishing
 
 jobs:
   build-ubuntu:
@@ -56,3 +57,25 @@ jobs:
       test_command: "pytest -q {project}/tests"
       build_verbosity: "1"
       build_sdist: false
+
+  publish:
+    name: Publish to PyPI
+    needs: [build-ubuntu, build-windows, build-macos-intel, build-macos-arm]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download wheels
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          path: dist
+          merge-multiple: true
+      - name: Download sdist
+        uses: actions/download-artifact@v4
+        with:
+          name: sdist
+          path: dist
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.12.5
+        with:
+          skip-existing: true
+          print-hash: true
