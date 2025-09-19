@@ -26,6 +26,6 @@
    :template: custom-module-template.rst
    :recursive:
 
-   bridge
-   influence_line
+   pybtls.bridge.bridge
+   pybtls.bridge.influence_line
 

@@ -26,7 +26,7 @@
    :template: custom-module-template.rst
    :recursive:
 
-   IL_compress
-   output_pickle
-   vehicle_DF
+   pybtls.utils.IL_compress
+   pybtls.utils.output_pickle
+   pybtls.utils.vehicle_DF
 

@@ -1,0 +1,43 @@
+{% set name = "pybtls" %}
+{% set version = environ.get('VERSION', None) or GIT_DESCRIBE_TAG or GIT_DESCRIBE_NUMBER or load_file_regex(load_file='pyproject.toml', regex_pattern='^version\s*=\s*"([^"]+)"', from_recipe_dir=True) %}
+
+package:
+  name: {{ name | lower }}
+  version: {{ version }}
+
+source:
+  path: ../..
+
+build:
+  number: 0
+  script: {{ PYTHON }} -m pip install . -vv
+
+requirements:
+  build:
+    - {{ compiler('cxx') }}
+    - cmake
+    - make  # [unix]
+    - ninja  # [win]
+  host:
+    - python >=3.9
+    - pip
+    - scikit-build-core >=0.8
+    - pybind11 >=2.10.0
+    - wheel
+  run:
+    - python >=3.9
+    - numpy
+    - pandas
+    - scipy
+    - matplotlib
+
+about:
+  home: https://github.com/ccaprani/btls
+  license: GPL-3.0-only
+  license_family: GPL
+  license_file: LICENSE
+  summary: A package for short-to-mid span bridge traffic loading simulation
+
+extra:
+  recipe-maintainers:
+    - ccaprani

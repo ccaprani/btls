@@ -26,6 +26,6 @@
    :template: custom-module-template.rst
    :recursive:
 
-   read
-   write
+   pybtls.garage.read
+   pybtls.garage.write
 

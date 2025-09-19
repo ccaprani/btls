@@ -2,8 +2,8 @@
 The module for the output processor.
 """
 
-import pybtls.output.Read as Read
-import pybtls.output.Plot as Plot
+import pybtls.output.read as read
+import pybtls.output.plot as plot
 
 from .output_config import *
 from .output_manager import *

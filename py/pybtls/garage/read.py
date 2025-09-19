@@ -3,10 +3,10 @@ The methods and classes that are not defined in Python are defined in C++ py_mai
 """
 
 from ..lib.BTLS import (
+    Vehicle,
     _VehClassAxle,
     _VehClassPattern,
     _VehicleTrafficFile,
-    _Vehicle,
 )
 from pathlib import Path
 from typing import Literal
@@ -16,7 +16,7 @@ __all__ = ["read_garage_file"]
 
 def read_garage_file(
     garage_path: Path, garage_format: Literal[1, 2, 3, 4], **kwargs
-) -> list[_Vehicle]:
+) -> list[Vehicle]:
     """
     Read a .txt garage file.
 
@@ -40,7 +40,7 @@ def read_garage_file(
 
     Returns
     -------
-    vehicle_list : list[_Vehicle] \n
+    vehicle_list : list[Vehicle] \n
         A list of Vehicle objects.
     """
 
@@ -55,5 +55,6 @@ def read_garage_file(
 
     garage_txt = _VehicleTrafficFile(vehicle_classification, False, False, 80.0)
     garage_txt.read(garage_path, garage_format)
+    vehicle_list = garage_txt.getVehicles()
 
-    return garage_txt.getVehicles()
+    return vehicle_list

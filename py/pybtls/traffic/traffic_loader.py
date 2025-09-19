@@ -3,10 +3,9 @@ The methods and classes that are not defined in Python are defined in C++ py_mai
 """
 
 from ..lib.BTLS import (
+    Vehicle,
     _TrafficLoader,
     _VehicleTrafficFile,
-    Vehicle,
-    _Vehicle,
     _VehClassPattern,
     _VehClassAxle,
 )
@@ -64,7 +63,7 @@ class TrafficLoader:
 
     def add_traffic(
         self,
-        traffic: Union[Path, list[_Vehicle]],
+        traffic: Union[Path, list[Vehicle]],
         traffic_format: Literal[1, 2, 3, 4] = None,
         use_average_speed: bool = False,
         use_const_speed: bool = False,
@@ -76,7 +75,7 @@ class TrafficLoader:
 
         Parameters
         ----------
-        traffic: Union[Path,list[_Vehicle]]\n
+        traffic: Union[Path,list[Vehicle]]\n
             The path to the traffic file,
             or a list of vehicles.
 
@@ -138,7 +137,7 @@ class TrafficLoader:
                 traffic, traffic_format
             )  # The simulation requires traffic information before _get_traffic_loader is called.
         elif isinstance(traffic, list):
-            if all(isinstance(vehicle, (Vehicle, _Vehicle)) for vehicle in traffic):
+            if all(isinstance(vehicle, Vehicle) for vehicle in traffic):
                 traffic_data.assignTraffic(traffic)
             else:
                 raise ValueError("Existing non-Vehicle object in the traffic.")

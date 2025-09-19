@@ -33,6 +33,6 @@ from .traffic import (
     TrafficGenerator,
     TrafficLoader,
 )
-from .output import OutputConfig, Read, Plot
+from .output import OutputConfig, read, plot
 from .simulation import Simulation
 from .utils import save_output, load_output

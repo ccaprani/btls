@@ -21,7 +21,7 @@
 #include "BlockMaxManager.h"
 #include "POTManager.h"
 #include "StatsManager.h"
-#include "RainflowManager.h"
+#include "FatigueManager.h"
 
 class CEventManager  
 {
@@ -47,7 +47,7 @@ private:
 	CBlockMaxManager	m_BlockMaxManager;
 	CPOTManager			m_POTManager;
 	CStatsManager		m_StatsManager;
-	CRainflowManager		m_RainflowManager;
+	CFatigueManager	m_FatigueManager;
 	
 	std::vector<CVehicle> m_vVehicles;
 	

@@ -218,4 +218,4 @@ class OutputConfig(_ConfigDataCore):
         self._Output.Fatigue.RAINFLOW_DECIMAL = rainflow_decimal
         self._Output.Fatigue.RAINFLOW_CUTOFF = rainflow_cut_off
         self._Output.WRITE_EVENT_BUFFER_SIZE = buffer_size
-        self._Output.Fatigue.WRITE_RAINFLOW_BUFFER_SIZE = buffer_size
+        self._Output.Fatigue.WRITE_FATIGUE_BUFFER_SIZE = buffer_size

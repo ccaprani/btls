@@ -3,7 +3,7 @@ The module that assembles everything together for the simulation. \n
 The methods and classes that are not defined in Python are defined in C++ py_main.cpp.
 """
 
-from .lib.BTLS import Vehicle, _Vehicle, _VehClassPattern, _VehClassAxle, _VehicleBuffer
+from .lib.BTLS import Vehicle, _VehClassPattern, _VehClassAxle, _VehicleBuffer
 from .bridge import Bridge
 from .traffic import TrafficGenerator, TrafficLoader
 from .output import OutputConfig, _OutputManager
@@ -52,7 +52,7 @@ class Simulation:
         output_config: OutputConfig = None,
         time_step: float = 0.1,
         min_gvw: int = 0,
-        vehicle: Union[Vehicle, _Vehicle] = None,
+        vehicle: Vehicle = None,
         active_lane: list[int] = None,
         tag: str = None,
         **kwargs,
@@ -80,7 +80,7 @@ class Simulation:
         min_gvw : int, optional\n
             The minimum gross vehicle weight (in kN) to be considered in the load effect calculation for traffic simulation. A single-vehicle simulation will ignore this argument.
 
-        vehicle : Union[Vehicle, _Vehicle], optional\n
+        vehicle : Vehicle, optional\n
             The vehicle for a single-vehicle simulation.
 
         active_lane : list[int], optional\n
@@ -225,7 +225,7 @@ class Simulation:
         if not isinstance(bridge, Bridge):
             raise TypeError("Argument bridge needs to be Bridge type.")
 
-        if not isinstance(vehicle, (Vehicle, _Vehicle)):
+        if not isinstance(vehicle, Vehicle):
             raise TypeError("Argument vehicle needs to be Vehicle type.")
 
         if active_lane is None:

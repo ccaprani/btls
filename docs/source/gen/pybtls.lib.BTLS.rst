@@ -22,7 +22,6 @@ pybtls.lib.BTLS
    
       Distribution
       MultiModalNormal
-      Vehicle
    
    
 

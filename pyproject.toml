@@ -8,7 +8,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "pybtls"
-version = "0.3.8"
+version = "0.4.0"
 description = "A package for short-to-mid span bridge traffic loading simulation"
 readme = "README.rst"
 requires-python = ">=3.9"
@@ -43,7 +43,5 @@ sdist.exclude = []
 Binary = "OFF"
 PythonLib = "ON"
 
-[tool.cibuildwheel]
-test-command = "pytest {project}/tests/"
-# test-skip = "*universal2:arm64"
+
 

@@ -1,34 +1,51 @@
 /*
-Implements rainflow cycle counting algorythm for fatigue analysis
+Implements rainflow cycle counting algorythm for CFatigueManager
 according to section 5.4.4 in ASTM E1049-85 (2011).
 */
 #pragma once
 
 #include <algorithm>
 #include <deque>
-#include <iostream>
 #include <map>
 #include <math.h>
 #include <utility>
 #include <vector>
 
+class CRainflow
+{
+public:
+	struct ExtractCycleOut
+	{
+		double range;
+		double mean;
+		double count;
+	};
 
-class CRainflow {
-public: 
-    CRainflow ();
-    struct ExtractCycleOut {
-        double rng;
-        double mean;
-        double count;
-        size_t i1;
-        size_t i2;
-    };
-    std::vector<CRainflow::ExtractCycleOut> extractCycles (std::vector<double>& series);
-    std::vector< std::pair<double, double> > countCycles (std::vector<double>& series, int ndigits = -1, int nbins = -1, double binsize = -1.0);
+public:
+	CRainflow() {};
+	CRainflow(int decimal, double cutoff) : m_Decimal(decimal), m_Cutoff(cutoff) {};
+	~CRainflow() {};
+
+	void clearRainflowOutput();
+
+	void processData(const std::vector<double> &series);
+	void calcCycles(bool bIsFinal);
+
+	const std::map<double, double>& getRainflowOutput() const { return m_RainflowOutput; }
 
 private:
-    double getRoundFunction (double x, int ndigits = -1);
-    std::vector< std::pair<size_t, double> > reversals (std::vector<double>& series);
-    ExtractCycleOut formatOutput (std::pair<size_t, double> point1, std::pair<size_t, double> point2, double count);
-    template <typename T> std::vector< std::pair<T, T> > mapToVector (const std::map<T, T> &map);
+	double doRoundUp(double x) const;
+	ExtractCycleOut formatOutput(double point1, double point2, double count) const;
+	template <typename T>
+	std::vector<std::pair<T, T>> mapToVector(const std::map<T, T> &inputMap) const;
+
+	std::vector<double> extractReversals(const std::vector<double> &series) const;
+	std::vector<CRainflow::ExtractCycleOut> extractCycles() const;
+	std::vector<std::pair<double, double>> countCycles(const std::vector<CRainflow::ExtractCycleOut> &cycles) const;
+
+	std::vector<double> m_vReversals;
+	std::map<double, double> m_RainflowOutput;
+
+	int m_Decimal;
+	double m_Cutoff;
 };

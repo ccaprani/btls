@@ -2,78 +2,56 @@ name: Wheels
 
 on:
   workflow_dispatch:
-  # pull_request:
   # push:
-  #   branches:
-  #    - PyBTLS
-  release:
-    types:
-      - published
+  #   branches: [ main ]
+  # pull_request:
+  #   branches: [ main ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build_sdist:
-    name: Build SDist
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
+  build-ubuntu:
+    uses: ./.github/workflows/_build_wheels_sdist.yml
+    with:
+      os: ubuntu-latest
+      build: "cp39-* cp310-* cp311-* cp312-*"
+      skip: "*-manylinux_i686 *-win32 pp*"
+      test_extras: "test"
+      test_command: "pytest -q {project}/tests"
+      build_verbosity: "1"
+      build_sdist: true
 
-    - name: Build SDist
-      run: pipx run build --sdist
+  build-windows:
+    uses: ./.github/workflows/_build_wheels_sdist.yml
+    with:
+      os: windows-latest
+      build: "cp39-* cp310-* cp311-* cp312-*"
+      skip: "*-win32 pp*"
+      test_extras: "test"
+      test_command: "pytest -q {project}/tests"
+      build_verbosity: "1"
+      build_sdist: false
 
-    - name: Check metadata
-      run: pipx run twine check dist/*
+  build-macos-intel:
+    uses: ./.github/workflows/_build_wheels_sdist.yml
+    with:
+      os: macos-13
+      build: "cp39-* cp310-* cp311-* cp312-*"
+      skip: "pp*"
+      test_extras: "test"
+      test_command: "pytest -q {project}/tests"
+      build_verbosity: "1"
+      build_sdist: false
 
-    - uses: actions/upload-artifact@v4
-      with:
-        path: dist/*.tar.gz
-
-
-  build_wheels:
-    name: Wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - uses: pypa/cibuildwheel@v2.19.1
-      env:
-        CIBW_ARCHS_MACOS: auto universal2
-
-    - name: Verify clean directory
-      run: git diff --exit-code
-      shell: bash
-
-    - name: Upload wheels
-      uses: actions/upload-artifact@v4
-      with:
-        path: wheelhouse/*.whl
-
-
-  upload_all:
-    name: Upload if release
-    needs: [build_wheels, build_sdist]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published'
-
-    steps:
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.x"
-
-    - uses: actions/download-artifact@v4
-      with:
-        name: artifact
-        path: dist
-
-    - uses: pypa/gh-action-pypi-publish@v1.9.0
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_password }}
+  build-macos-arm:
+    uses: ./.github/workflows/_build_wheels_sdist.yml
+    with:
+      os: macos-14
+      build: "cp39-* cp310-* cp311-* cp312-*"
+      skip: "pp*"
+      test_extras: "test"
+      test_command: "pytest -q {project}/tests"
+      build_verbosity: "1"
+      build_sdist: false

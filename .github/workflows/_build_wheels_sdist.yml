@@ -1,0 +1,86 @@
+name: _build_wheels_sdist
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: "Runner OS"
+        required: false
+        type: string
+        default: ubuntu-latest
+      build:
+        description: "CIBW_BUILD selector"
+        required: false
+        type: string
+        default: "cp39-* cp310-* cp311-* cp312-*"
+      skip:
+        description: "CIBW_SKIP selector"
+        required: false
+        type: string
+        default: "*-manylinux_i686 *-win32 pp*"
+      test_extras:
+        description: "CIBW_TEST_EXTRAS"
+        required: false
+        type: string
+        default: "test"
+      test_command:
+        description: "CIBW_TEST_COMMAND"
+        required: false
+        type: string
+        default: "pytest -q {project}/tests"
+      build_verbosity:
+        description: "CIBW_BUILD_VERBOSITY"
+        required: false
+        type: string
+        default: "1"
+      build_sdist:
+        description: "Whether to build sdist in this invocation"
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  wheels:
+    name: Build wheels (${{ inputs.os }})
+    runs-on: ${{ inputs.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build wheels with cibuildwheel
+        uses: pypa/cibuildwheel@v2.21.3
+        env:
+          CIBW_BUILD: ${{ inputs.build }}
+          CIBW_SKIP: ${{ inputs.skip }}
+          CIBW_TEST_EXTRAS: ${{ inputs.test_extras }}
+          CIBW_TEST_COMMAND: ${{ inputs.test_command }}
+          CIBW_BUILD_VERBOSITY: ${{ inputs.build_verbosity }}
+          # Ensure build tools are available inside build environments
+          CIBW_BEFORE_ALL: python -m pip install -U pip cmake ninja
+      - name: Upload wheel artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ inputs.os }}
+          path: wheelhouse/*.whl
+
+  sdist:
+    if: ${{ inputs.build_sdist }}
+    name: Build sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build sdist
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --sdist
+      - name: Upload sdist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz

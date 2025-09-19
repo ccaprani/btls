@@ -1,14 +1,15 @@
-numpy
-matplotlib
-pytest>=6.1.1
-scikit-build-core
-scipy
-pydata-sphinx-theme
-Sphinx>=4.0
-nbsphinx
-sphinx-autodoc-typehints
 pandoc
+sphinx
+sphinx-autodoc-typehints
+nbsphinx
+pydata-sphinx-theme
+
+ipython
 markupsafe==2.0.1
 pygments >= 2.7
-pandas
-ipython
+
+# # Additional dependencies
+# sphinx-rtd-theme  # Optional: ReadTheDocs theme
+# sphinxcontrib-napoleon  # For Google and NumPy style docstrings
+# sphinx-copybutton  # For adding copy buttons to code blocks
+# sphinxcontrib-mermaid  # For Mermaid diagrams
