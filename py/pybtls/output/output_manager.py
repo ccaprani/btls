@@ -139,14 +139,12 @@ class _OutputManager:
         if self._summary[key] is None:
             raise ValueError(f"Output {key} is invalid.")
 
-        def create_file_key(file_path: Path) -> str:
-            file_path_split = str(file_path).split("/")
+        def create_file_key(file_path: str) -> str:
+            p = Path(file_path)
             if self._output_config is None:
-                return file_path_split[
-                    -2
-                ]  # dir1 or dir2, enough for single-vehicle sim
+                return p.parent.name  # dir1 or dir2, enough for single-vehicle sim
             else:
-                return file_path_split[-1].rstrip(".txt")
+                return p.stem  # full file name without .txt
 
         return_dict: dict[str, pd.DataFrame] = {}
 
