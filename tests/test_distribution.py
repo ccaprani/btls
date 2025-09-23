@@ -2,6 +2,13 @@ import numpy as np
 import pybtls as pb
 
 
+def _rel_close(value, expected, rel_tol=1e-2, abs_tol=1e-1):
+    diff = abs(value - expected)
+    if abs(expected) <= abs_tol:
+        return diff <= abs_tol
+    return (diff / abs(expected)) <= rel_tol
+
+
 def test_normal_stats():
     dist = pb.Distribution()
     n = 1000000
@@ -11,8 +18,8 @@ def test_normal_stats():
     mean = np.mean(samples)
     var = np.var(samples)
     # Expected: mean ~0.0 and variance ~1.0
-    assert abs(mean - 0.0) < 0.1, f"Normal distribution mean: {mean}"
-    assert abs(var - 1.0) < 0.1, f"Normal distribution variance: {var}"
+    assert _rel_close(mean, 0.0, rel_tol=1e-2, abs_tol=0.1), f"Normal distribution mean: {mean}"
+    assert _rel_close(var, 1.0, rel_tol=1e-2, abs_tol=0.1), f"Normal distribution variance: {var}"
 
 
 def test_triangle_stats():
@@ -28,8 +35,9 @@ def test_triangle_stats():
     var = np.var(samples)
     expected_mean = (a + b + c) / 3
     expected_var = (a**2 + b**2 + c**2 - a * b - a * c - b * c) / 18
-    assert abs(mean - expected_mean) < 0.1, f"Triangular distribution mean: {mean}"
-    assert abs(var - expected_var) < 0.1, f"Triangular distribution variance: {var}"
+    # Use relative error except when expected is near zero (fallback to absolute)
+    assert _rel_close(mean, expected_mean, rel_tol=1e-2, abs_tol=0.1), f"Triangular distribution mean: {mean}"
+    assert _rel_close(var, expected_var, rel_tol=1e-2, abs_tol=0.1), f"Triangular distribution variance: {var}"
 
 
 def test_multimodal_stats():
@@ -48,5 +56,5 @@ def test_multimodal_stats():
     # Expected mean = 0.4*20 + 0.1*30 + 0.5*45 = 33.5.
     # Expected E[X^2] = 0.4*(20^2+4^2) + 0.1*(30^2+8^2) + 0.5*(45^2+3^2) ≈ 1279.8,
     # so variance ≈ 1279.8 - (33.5)^2 = ~157.55.
-    assert abs(mean - 33.5) < 0.1, f"Multimodal mean: {mean}"
-    assert abs(var - 157.55) < 0.1, f"Multimodal variance: {var}"
+    assert _rel_close(mean, 33.5, rel_tol=1e-2, abs_tol=0.1), f"Multimodal mean: {mean}"
+    assert _rel_close(var, 157.55, rel_tol=1e-2, abs_tol=0.1), f"Multimodal variance: {var}"

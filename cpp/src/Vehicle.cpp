@@ -37,7 +37,8 @@ void CVehicle::setConstants()
 
 	CASTOR_MAX_AXLES	= 9;
 	BEDIT_MAX_AXLES		= 20;
-	MON_MAX_AXLES		= 15;
+	DITIS_MAX_AXLES		= 20;
+	MON_MAX_AXLES		= 99;
 	
 	MON_BASE_YEAR = 2010; // to help avoid overflows
 
@@ -108,9 +109,9 @@ void CVehicle::setPropByTuple(py::tuple propTuple)
 	setNoAxles(m_NoAxles);
 	for (size_t i = 0; i < m_NoAxles; i++) 
 	{
-		this->setAW(i, axleWeights[i]);
-		this->setAS(i, axleSpacings[i]);
-		this->setAT(i, axleWidths[i]);
+		this->setAW(i, axleWeights.at(i));
+		this->setAS(i, axleSpacings.at(i));
+		this->setAT(i, axleWidths.at(i));
 	}
 }
 #endif
@@ -441,6 +442,12 @@ std::string CVehicle::writeCASTORData()
 	// GVW / 0.981 for KN to KG/100 
 	// Trns = trns/10 for metres to decimetres
 
+	if (m_NoAxles > CASTOR_MAX_AXLES)
+	{
+		std::cout << "*** WARNING: Vehicle " << m_Head << " has more than " << CASTOR_MAX_AXLES << " axles. Truncating when writing CASTOR traffic file." << std::endl;
+		m_NoAxles = CASTOR_MAX_AXLES;
+	}
+
 	int velocity	= Round(m_Velocity*10);
 	int grossWeight = Round(m_GVW/KG100_TO_KN);
 	int length		= Round(m_Length*10);
@@ -450,7 +457,7 @@ std::string CVehicle::writeCASTORData()
 
 	std::ostringstream oFile;
 
-	oFile.width(4);	oFile << m_Head;
+	oFile.width(4);	oFile << truncate(m_Head,4);
 	oFile.width(2);	oFile << m_Day;
 	oFile.width(2);	oFile << m_Month;
 	oFile.width(2);	oFile << truncate(m_Year,2); // only use two digits to represent years
@@ -472,7 +479,7 @@ std::string CVehicle::writeCASTORData()
 		oFile.width(j);	oFile << Round(this->getAW(i)/KG100_TO_KN);	// convert from kN to kg/100
 		j = 2;
 
-		if(i == 8) break;
+		if(i == CASTOR_MAX_AXLES-1) break;
 
 		oFile.width(j);	oFile << Round(this->getAS(i)*10);		// convert from m to dm
 		j = 3;
@@ -483,7 +490,7 @@ std::string CVehicle::writeCASTORData()
 		oFile.width(j);	oFile << "0";
 		j = 2;
 
-		if(i == 8) break;
+		if(i == CASTOR_MAX_AXLES-1) break;
 
 		oFile.width(j);	oFile << "0";
 		j = 3;
@@ -503,6 +510,12 @@ std::string CVehicle::writeBEDITData()
 	// GVW / 0.981 for KN to KG/100 
 	// Trns = trns/10 for metres to decimetres
 
+	if (m_NoAxles > BEDIT_MAX_AXLES)
+	{
+		std::cout << "*** WARNING: Vehicle " << m_Head << " has more than " << BEDIT_MAX_AXLES << " axles. Truncating when writing BeDIT traffic file." << std::endl;
+		m_NoAxles = BEDIT_MAX_AXLES;
+	}
+
 	int velocity	= Round(m_Velocity*10);
 	int grossWeight = Round(m_GVW/KG100_TO_KN);
 	int length		= Round(m_Length*10);
@@ -512,7 +525,7 @@ std::string CVehicle::writeBEDITData()
 
 	std::ostringstream oFile;
 
-	oFile.width(4);	oFile << m_Head;
+	oFile.width(4);	oFile << truncate(m_Head,4);
 	oFile.width(2);	oFile << m_Day;
 	oFile.width(2);	oFile << m_Month;
 	oFile.width(2);	oFile << truncate(m_Year,2); // only use two digits to represent years
@@ -557,6 +570,12 @@ std::string CVehicle::writeDITISData()
 	// GVW / 0.981 for KN to KG/100 
 	// Trns = trns/10 for metres to decimetres
 
+	if (m_NoAxles > DITIS_MAX_AXLES)
+	{
+		std::cout << "*** WARNING: Vehicle " << m_Head << " has more than " << DITIS_MAX_AXLES << " axles. Truncating when writing DITIS traffic file." << std::endl;
+		m_NoAxles = DITIS_MAX_AXLES;
+	}
+
 	int velocity	= Round(m_Velocity*10);
 	int grossWeight = Round(m_GVW/KG100_TO_KN);
 	int length		= Round(m_Length*10);
@@ -567,7 +586,7 @@ std::string CVehicle::writeDITISData()
 
 	std::ostringstream oFile;
 
-	oFile.width(4);	oFile << m_Head;
+	oFile.width(4);	oFile << truncate(m_Head,4);
 	oFile.width(2);	oFile << m_Day;
 	oFile.width(2);	oFile << m_Month;
 	oFile.width(4);	oFile << truncate(m_Year,4); // using 4 digits to represent years
@@ -588,19 +607,19 @@ std::string CVehicle::writeDITISData()
 	{
 		oFile.width(len);	oFile << Round(this->getAW(i)/KG100_TO_KN);	// convert from kN to kg/100
 		oFile.width(len);	oFile << Round(this->getAT(i)*100);		// convert from m to cm
-		if(i == m_NoAxles-1) 
+		if(i == DITIS_MAX_AXLES-1) 
 			break;	// no extra axle spacing
 		oFile.width(len);	oFile << Round(this->getAS(i)*10);		// convert from m to dm
 	}
-/*
-	for(unsigned int i = m_NoAxles; i < BEDIT_MAX_AXLES; i++)
+
+	for(unsigned int i = m_NoAxles; i < DITIS_MAX_AXLES; i++)
 	{
 		oFile.width(len);	oFile << "0";	// Axle weight
 		oFile.width(len);	oFile << "0";	// Axle track width
-		if(i == BEDIT_MAX_AXLES-1) break;	// no extra axle spacing
+		if(i == DITIS_MAX_AXLES-1) break;	// no extra axle spacing
 		oFile.width(len);	oFile << "0";
 	}
-*/
+
 	// oFile << std::ends;
 
 	return oFile.str();
@@ -640,7 +659,7 @@ std::string CVehicle::writeMONData()
 	oFile.width(1);	oFile << m_Dir - 1;	// dir is zero-based in MON file
 	oFile.width(4);	oFile << transPos;
 
-	// Notice ncludes last axle spacing to allow for calculation of overhangs
+	// Notice includes last axle spacing to allow for calculation of overhangs
 	size_t len = 5;	// string length
 	for (size_t i = 0; i < m_NoAxles; i++)
 	{
@@ -648,11 +667,11 @@ std::string CVehicle::writeMONData()
 		oFile.width(len);	oFile << Round(this->getAS(i) * 1000);		// convert from m to mm
 	}
 	
-	for (size_t i = m_NoAxles; i < MON_MAX_AXLES; i++)
-	{
-		oFile.width(len);	oFile << "0";
-		oFile.width(len);	oFile << "0";
-	}
+	// for (size_t i = m_NoAxles; i < MON_MAX_AXLES; i++)
+	// {
+	// 	oFile.width(len);	oFile << "0";
+	// 	oFile.width(len);	oFile << "0";
+	// }
 
 	// oFile << std::ends;
 
@@ -723,24 +742,24 @@ void CVehicle::setTime(double time)
 
 void CVehicle::setAS(size_t i, double s)
 {
-	m_vAxles[i].Spacing = s;
+	m_vAxles.at(i).Spacing = s;
 }
 
 void CVehicle::setAW(size_t i, double w)
 {
-	m_vAxles[i].Weight = w;
+	m_vAxles.at(i).Weight = w;
 }
 
 void CVehicle::setAT(size_t i, double tw)
 {
-	m_vAxles[i].TrackWidth = tw;
+	m_vAxles.at(i).TrackWidth = tw;
 }
 
 void CVehicle::setNoAxles(size_t noAxle)
 {
 	m_vAxles.clear();
 	m_NoAxles = noAxle;
-	for (size_t i = 0; i < m_NoAxles + 1; i++)  // Not sure why +1 is needed
+	for (size_t i = 0; i < m_NoAxles; i++)  // Not sure why +1 is needed
 	{
 		Axle temp;
 		temp.Spacing = 0.0;
@@ -894,17 +913,17 @@ size_t CVehicle::getNoAxles()
 
 double CVehicle::getAS(size_t i)
 {
-	return m_vAxles[i].Spacing;
+	return m_vAxles.at(i).Spacing;
 }
 
 double CVehicle::getAW(size_t i)
 {
-	return m_vAxles[i].Weight;
+	return m_vAxles.at(i).Weight;
 }
 
 double CVehicle::getAT(size_t i)
 {
-	return m_vAxles[i].TrackWidth;
+	return m_vAxles.at(i).TrackWidth;
 }
 
 double CVehicle::getTrans()

@@ -119,7 +119,7 @@ private:
 	double	m_GVW;
 	double	m_Trns;
 	size_t	m_NoAxles;
-	size_t	m_NoAxleGroups;
+	size_t	m_NoAxleGroups; // not used in the LE calculation
 	double	m_Length;
 	double	m_TrackWidth; // width
 	double	m_TimeOnBridge;
@@ -146,6 +146,7 @@ private:
 	double	KG_TO_KN;
 	size_t	CASTOR_MAX_AXLES;
 	size_t	BEDIT_MAX_AXLES;
+	size_t	DITIS_MAX_AXLES;
 	size_t	MON_MAX_AXLES;
 	size_t	MON_BASE_YEAR;
 

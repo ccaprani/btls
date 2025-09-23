@@ -30,7 +30,9 @@ def plot_BM_S(data: pd.DataFrame, save_to: Path = None) -> None:
     data = data.fillna(0.0)
     no_event_types = len(data.columns) - 1
 
-    fig, axes = plt.subplots(no_event_types, 1, sharex=True, figsize=(8, 5 * no_event_types))
+    fig, axes = plt.subplots(
+        no_event_types, 1, sharex=True, figsize=(8, 5 * no_event_types)
+    )
     if no_event_types == 1:
         axes = [axes]
 
@@ -43,7 +45,7 @@ def plot_BM_S(data: pd.DataFrame, save_to: Path = None) -> None:
         ax.set_ylabel(f"{i}-Truck Event")
     fig.supxlabel("Block Index")
     fig.supylabel("Effect Amplitude")
-    
+
     fig.tight_layout()
 
     if save_to is not None:
