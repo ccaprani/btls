@@ -17,7 +17,7 @@ on:
         description: "CIBW_SKIP selector"
         required: false
         type: string
-        default: "*-manylinux_i686 *-win32 pp*"
+        default: "*-manylinux_i686 *-musllinux_* *-win32 pp*"
       test_extras:
         description: "CIBW_TEST_EXTRAS"
         required: false
