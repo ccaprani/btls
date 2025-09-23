@@ -2,10 +2,10 @@ name: Wheels
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches: [ main ]
-  # pull_request:
-  #   branches: [ main ]
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,42 +16,22 @@ jobs:
     uses: ./.github/workflows/_build_wheels_sdist.yml
     with:
       os: ubuntu-latest
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      skip: "*-manylinux_i686 *-win32 pp*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
       build_sdist: true
 
   build-windows:
     uses: ./.github/workflows/_build_wheels_sdist.yml
     with:
       os: windows-latest
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      skip: "*-win32 pp*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
       build_sdist: false
 
   build-macos-intel:
     uses: ./.github/workflows/_build_wheels_sdist.yml
     with:
       os: macos-13
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      skip: "pp*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
       build_sdist: false
 
   build-macos-arm:
     uses: ./.github/workflows/_build_wheels_sdist.yml
     with:
       os: macos-14
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      skip: "pp*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
       build_sdist: false

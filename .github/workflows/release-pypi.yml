@@ -18,40 +18,24 @@ jobs:
     uses: ./.github/workflows/_build_wheels_sdist.yml
     with:
       os: ubuntu-latest
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
       build_sdist: true
 
   build-windows:
     uses: ./.github/workflows/_build_wheels_sdist.yml
     with:
       os: windows-latest
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
       build_sdist: false
 
   build-macos-intel:
     uses: ./.github/workflows/_build_wheels_sdist.yml
     with:
       os: macos-13
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
       build_sdist: false
 
   build-macos-arm:
     uses: ./.github/workflows/_build_wheels_sdist.yml
     with:
       os: macos-14
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
       build_sdist: false
 
   publish:
