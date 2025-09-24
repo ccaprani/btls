@@ -1,7 +1,7 @@
-.. figure:: docs/source/images/logo/PyBTLS_logo.png
+.. figure:: https://raw.githubusercontent.com/ccaprani/btls/main/docs/source/images/logo/PyBTLS_logo.png
    :alt: PyBTLS logo
    :align: center
-   :scale: 40
+   :width: 320px
 
 **********************************************
 PyBTLS - Python Bridge Traffic Load Simulation
