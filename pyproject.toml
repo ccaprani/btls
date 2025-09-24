@@ -1,6 +1,6 @@
 [project]
 name = "pybtls"
-version = "1.0.0"
+version = "1.0.1"
 description = "A package for short-to-mid span bridge traffic loading simulation"
 readme = "README.rst"
 requires-python = ">=3.10" # must be consistent with ci.yml
