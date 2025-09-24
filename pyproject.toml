@@ -1,6 +1,6 @@
 [project]
 name = "pybtls"
-version = "0.4.0"
+version = "1.0.0"
 description = "A package for short-to-mid span bridge traffic loading simulation"
 readme = "README.rst"
 requires-python = ">=3.9"
@@ -46,25 +46,10 @@ Binary = "OFF"
 PythonLib = "ON"
 
 [tool.cibuildwheel]
-# The CPython wheels (cibuildwheel handles the matrix internally)
-build = "cp39-* cp310-* cp311-* cp312-*"
-# Baseline skips (no PyPy)
-skip = "pp*"
-# Test settings
+build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
+skip = "*-musllinux_* *_i686 *-win32 pp*"
+
 test-extras = ["test"]
 test-command = "pytest -q {project}/tests"
 build-verbosity = 1
-
-# Linux-specific: also skip 32-bit manylinux if you don’t ship it
-[tool.cibuildwheel.linux]
-skip = "*-manylinux_i686 pp*"
-
-# Windows-specific: skip 32-bit
-[tool.cibuildwheel.windows]
-skip = "*-win32 pp*"
-
-# macOS-specific (both Intel & Apple Silicon runners)
-[tool.cibuildwheel.macos]
-# nothing extra here, can pin a minimum target if needed, e.g.:
-# environment = { MACOSX_DEPLOYMENT_TARGET = "11.0" }
-
+before-all = "python -m pip install -U pip"

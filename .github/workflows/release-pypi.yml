@@ -5,77 +5,97 @@ on:
     types: [published]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  id-token: write  # PyPI Trusted Publishing
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  id-token: write  # For PyPI trusted publishing
-
 jobs:
   build-ubuntu:
-    uses: ./.github/workflows/_build_wheels_sdist.yml
-    with:
-      os: ubuntu-latest
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      skip: "*-manylinux_i686 *-win32 pp*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
-      build_sdist: true
+    runs-on: ubuntu-latest  # x86_64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: pypa/cibuildwheel@v2.21.3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-ubuntu
+          path: wheelhouse/*.whl
 
   build-windows:
-    uses: ./.github/workflows/_build_wheels_sdist.yml
-    with:
-      os: windows-latest
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      skip: "*-win32 pp*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
-      build_sdist: false
+    runs-on: windows-latest  # x86_64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: pypa/cibuildwheel@v2.21.3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-windows
+          path: wheelhouse/*.whl
 
   build-macos-intel:
-    uses: ./.github/workflows/_build_wheels_sdist.yml
-    with:
-      os: macos-13
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      skip: "pp*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
-      build_sdist: false
+    runs-on: macos-13   # Intel x86_64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: pypa/cibuildwheel@v2.21.3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-macos-intel
+          path: wheelhouse/*.whl
 
   build-macos-arm:
-    uses: ./.github/workflows/_build_wheels_sdist.yml
-    with:
-      os: macos-14
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      skip: "pp*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
-      build_sdist: false
+    runs-on: macos-14   # Apple Silicon arm64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: pypa/cibuildwheel@v2.21.3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-macos-arm
+          path: wheelhouse/*.whl
 
-  publish:
-    name: Publish to PyPI
-    needs: [build-ubuntu, build-windows, build-macos-intel, build-macos-arm]
+  build-sdist:
     runs-on: ubuntu-latest
     steps:
-      - name: Download wheels
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          python -m pip install -U pip build
+          python -m build --sdist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  publish:
+    name: Upload to PyPI
+    needs: [build-ubuntu, build-windows, build-macos-intel, build-macos-arm, build-sdist]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
         with:
           pattern: wheels-*
           path: dist
           merge-multiple: true
-      - name: Download sdist
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: sdist
           path: dist
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.12.5
+      - uses: pypa/gh-action-pypi-publish@v1.12.5
         with:
           skip-existing: true
           print-hash: true

@@ -11,52 +11,55 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  HOST_PYTHON: "3.12"     # Single python runner
-  CIBW_VERSION: "v2.21.3" # one pin, one place
-
 jobs:
-  wheels:
-    name: Build wheels (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
-        # Note CPython versions specified in pyproject.toml
-
+  build-ubuntu:
+    runs-on: ubuntu-latest  # x86_64
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python ${{ env.HOST_PYTHON }}
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
+        with: 
+          python-version: '3.12'
+      - uses: pypa/cibuildwheel@v2.21.3
+      - uses: actions/upload-artifact@v4
         with:
-          python-version: ${{ env.HOST_PYTHON }}
-
-      - name: Build wheels with cibuildwheel
-        uses: pypa/cibuildwheel@${{ env.CIBW_VERSION }}
-
-      - name: Upload wheel artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-${{ matrix.os }}
+          name: wheels-ubuntu
           path: wheelhouse/*.whl
 
-  sdist:
-    name: Build sdist (once)
-    runs-on: ubuntu-latest
+  build-windows:
+    runs-on: windows-latest  # x86_64
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ env.HOST_PYTHON }}
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.HOST_PYTHON }}
-      - name: Build sdist
-        run: |
-          python -m pip install --upgrade pip build
-          python -m build --sdist
-      - name: Upload sdist artifact
-        uses: actions/upload-artifact@v4
+          python-version: '3.12'
+      - uses: pypa/cibuildwheel@v2.21.3
+      - uses: actions/upload-artifact@v4
         with:
-          name: sdist
-          path: dist/*.tar.gz
+          name: wheels-windows
+          path: wheelhouse/*.whl
+
+  build-macos-intel:
+    runs-on: macos-13   # Intel x86_64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: pypa/cibuildwheel@v2.21.3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-macos-intel
+          path: wheelhouse/*.whl
+
+  build-macos-arm:
+    runs-on: macos-14   # Apple Silicon arm64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: pypa/cibuildwheel@v2.21.3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-macos-arm
+          path: wheelhouse/*.whl
