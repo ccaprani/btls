@@ -1,0 +1,28 @@
+name: Wheels on Main (cp312 only)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "pyproject.toml"
+      - "CMakeLists.txt"
+      - "py/**"
+      - "cpp/**"
+      - ".github/workflows/_wheels-util.yml"
+      - ".github/workflows/wheels-on-main.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    uses: ./.github/workflows/_wheels-util.yml
+    with:
+      py_selector: 'cp312-*'
+      publish: false
+      build_sdist: false

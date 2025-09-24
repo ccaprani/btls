@@ -1,0 +1,99 @@
+name: Reusable - Wheels Build/Test/Publish
+
+on:
+  workflow_call:
+    inputs:
+      os_list:
+        description: 'Json array of runners'
+        required: false
+        default: '["ubuntu-latest","windows-latest","macos-13","macos-14"]'
+        type: string
+      py_selector:  # To reduce action usage
+        description: 'CIBW_BUILD selector; empty = use pyproject.toml config'
+        required: false
+        default: ""
+        type: string
+      publish:
+        description: 'If publish artifacts to PyPI (Trusted Publisher)'
+        required: true
+        default: false
+        type: boolean
+      build_sdist:
+        description: 'If build sdist'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write   # PyPI Trusted Publishing
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(inputs.os_list) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # For cibuildwheel only, does not affect wheel versions
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build wheels via cibuildwheel
+        uses: pypa/cibuildwheel@v2.21.3
+        env:
+          # if with py_selector，override；otherwise let cibuildwheel read pyproject.toml
+          CIBW_BUILD: ${{ inputs.py_selector }}
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+
+  sdist:
+    if: ${{ inputs.build_sdist }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          python -m pip install -U pip build
+          python -m build --sdist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  publish:
+    needs: [build, sdist]
+    if: ${{ inputs.publish }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist
+      - uses: actions/download-artifact@v4
+        if: ${{ inputs.build_sdist }}
+        with:
+          name: sdist
+          path: dist
+      - name: Publish to PyPI (Trusted Publisher)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          print-hash: true

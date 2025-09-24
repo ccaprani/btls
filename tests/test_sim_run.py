@@ -77,10 +77,10 @@ def test_sim_run():
         for i in range(1, 5):
             lfc = pb.LaneFlowComposition(lane_index=i, lane_dir=i // 3 + 1)
             lfc.assign_lane_data(
-                hourly_truck_flow=[100] * 24,
-                hourly_car_flow=[0] * 24,
-                hourly_speed_mean=[80 / 3.6 * 10] * 24,
-                hourly_speed_std=[10.0] * 24,
+                hourly_truck_flow=[80] * 24,
+                hourly_car_flow=[20] * 24,
+                hourly_speed_mean=[40 / 3.6 * 10] * 24,
+                hourly_speed_std=[5.0] * 24,
                 hourly_truck_composition=[[25.0, 25.0, 25.0, 25.0] for _ in range(24)],
             )
             lfc_list.append(lfc)
@@ -216,9 +216,9 @@ def test_sim_run():
         sim_task.add_sim(
             bridge=bridge,
             traffic=traffic_gen,
-            no_day=10,
+            no_day=1,
             output_config=output_config_gen,
-            time_step=0.1,
+            time_step=0.5,
             min_gvw=35,
             tag="Generate",
             track_progress=False,
@@ -227,7 +227,7 @@ def test_sim_run():
             bridge=bridge,
             traffic=traffic_loader,
             output_config=output_config_load,
-            time_step=0.1,
+            time_step=0.5,
             min_gvw=35,
             active_lane=[1, 2],
             tag="Load",

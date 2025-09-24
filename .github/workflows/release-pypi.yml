@@ -1,101 +1,24 @@
-name: Publish to PyPI
+name: Wheels on Release (publish)
 
 on:
   release:
     types: [published]
+  # push:
+  #   tags:
+  #     - "v*.*.*"
   workflow_dispatch:
 
 permissions:
   contents: read
-  id-token: write  # PyPI Trusted Publishing
+  id-token: write   # PyPI Trusted Publishing
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build-ubuntu:
-    runs-on: ubuntu-latest  # x86_64
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - uses: pypa/cibuildwheel@v2.21.3
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wheels-ubuntu
-          path: wheelhouse/*.whl
-
-  build-windows:
-    runs-on: windows-latest  # x86_64
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - uses: pypa/cibuildwheel@v2.21.3
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wheels-windows
-          path: wheelhouse/*.whl
-
-  build-macos-intel:
-    runs-on: macos-13   # Intel x86_64
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - uses: pypa/cibuildwheel@v2.21.3
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wheels-macos-intel
-          path: wheelhouse/*.whl
-
-  build-macos-arm:
-    runs-on: macos-14   # Apple Silicon arm64
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - uses: pypa/cibuildwheel@v2.21.3
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wheels-macos-arm
-          path: wheelhouse/*.whl
-
-  build-sdist:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: |
-          python -m pip install -U pip build
-          python -m build --sdist
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sdist
-          path: dist/*.tar.gz
-
-  publish:
-    name: Upload to PyPI
-    needs: [build-ubuntu, build-windows, build-macos-intel, build-macos-arm, build-sdist]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: wheels-*
-          path: dist
-          merge-multiple: true
-      - uses: actions/download-artifact@v4
-        with:
-          name: sdist
-          path: dist
-      - uses: pypa/gh-action-pypi-publish@v1.12.5
-        with:
-          skip-existing: true
-          print-hash: true
+  build-and-publish:
+    uses: ./.github/workflows/_wheels-util.yml
+    with:
+      publish: true
+      build_sdist: true

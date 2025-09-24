@@ -3,7 +3,7 @@ name = "pybtls"
 version = "1.0.0"
 description = "A package for short-to-mid span bridge traffic loading simulation"
 readme = "README.rst"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     { name="Colin Caprani", email="colin.caprani@monash.edu" }, 
     { name="Ziyi Zhou", email="ziyi.zhou@monash.edu" },
@@ -46,7 +46,7 @@ Binary = "OFF"
 PythonLib = "ON"
 
 [tool.cibuildwheel]
-build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
+build = "cp310-* cp311-* cp312-* cp313-*"
 skip = "*-musllinux_* *_i686 *-win32 pp*"
 
 test-extras = ["test"]
