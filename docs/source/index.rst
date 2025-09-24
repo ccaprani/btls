@@ -54,12 +54,12 @@
 Welcome to PyBTLS's documentation!
 ==================================
 
-:Date: June 2024
+:Date: September 2025
 :Authors: The PyBTLS Developers (Colin Caprani, Ziyi Zhou, Akbar Rizqiansyah)
 :Web site: http://github.com/ccaprani/btls
 :Copyright: This document has been placed in the public domain.
 :License: PyBTLS is released under the GNU General Public Licence v3.0.
-:Version: 0.4.0
+:Version: 1.0.0
 
 PyBTLS is a Python wrapper for the C++ based Bridge Traffic Load Simulation (BTLS) program, designed for traffic simulations on short-to-medium length bridges where lane-changing is negligible. It calculates load effects using influence lines or surfaces, with several built-in options and user-defined possibilities. Features include generating new traffic from historical data, efficient simulation with C++ backend and Python multiprocessing, and well-organized output in pandas DataFrame. 
 

@@ -1,17 +1,9 @@
-[build-system]
-requires = [
-    "scikit-build-core>=0.8",
-    "pybind11>=2.10.0",
-    "wheel",
-]
-build-backend = "scikit_build_core.build"
-
 [project]
 name = "pybtls"
-version = "0.4.0"
+version = "1.0.0"
 description = "A package for short-to-mid span bridge traffic loading simulation"
 readme = "README.rst"
-requires-python = ">=3.9"
+requires-python = ">=3.10" # must be consistent with ci.yml
 authors = [
     { name="Colin Caprani", email="colin.caprani@monash.edu" }, 
     { name="Ziyi Zhou", email="ziyi.zhou@monash.edu" },
@@ -34,6 +26,16 @@ Tracker = "https://github.com/ccaprani/btls/issues"
 [project.optional-dependencies]
 test = ["pytest>=6.0", "pycba>=0.5"]
 
+[build-system]
+requires = [
+    "scikit-build-core>=0.8",
+    "pybind11>=2.10.0",
+    "cmake>=3.25",
+    "ninja",
+    "wheel",
+]
+build-backend = "scikit_build_core.build"
+
 [tool.scikit-build]
 wheel.packages = ["py/pybtls"]
 sdist.include = ["py/pybtls/data/*/*/*.csv"]
@@ -43,5 +45,18 @@ sdist.exclude = []
 Binary = "OFF"
 PythonLib = "ON"
 
+[tool.cibuildwheel]
+build = "cp3*-*" # will only build python versions in ci.yml
+skip = "pp*"
+test-extras = ["test"]
+test-command = "pytest -q {project}/tests"
+build-verbosity = 1
 
+[tool.cibuildwheel.linux]
+skip = "*-manylinux_i686 *-musllinux_*"
 
+[tool.cibuildwheel.windows]
+skip = "*-win32"            # drop 32-bit on Windows
+
+# [tool.cibuildwheel.macos]
+# (no extra skips needed if using separate macOS runners for Intel/ARM)

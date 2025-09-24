@@ -1,57 +1,79 @@
 name: Wheels
 
 on:
+  push:
+    branches: [main]
+    tags: ['v*']
   workflow_dispatch:
-  # push:
-  #   branches: [ main ]
-  # pull_request:
-  #   branches: [ main ]
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+permissions:
+  contents: read
+  id-token: write   # for PyPI Trusted Publishing
+
+env:
+  HOST_PYTHON: '3.12'
+  CIBW_VERSION: 'v2.21.3'
 
 jobs:
-  build-ubuntu:
-    uses: ./.github/workflows/_build_wheels_sdist.yml
-    with:
-      os: ubuntu-latest
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      skip: "*-manylinux_i686 *-win32 pp*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
-      build_sdist: true
+  build:
+    name: Build wheels (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+    steps:
+      - uses: actions/checkout@v4
 
-  build-windows:
-    uses: ./.github/workflows/_build_wheels_sdist.yml
-    with:
-      os: windows-latest
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      skip: "*-win32 pp*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
-      build_sdist: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.HOST_PYTHON }}
 
-  build-macos-intel:
-    uses: ./.github/workflows/_build_wheels_sdist.yml
-    with:
-      os: macos-13
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      skip: "pp*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
-      build_sdist: false
+      - name: Build wheels with cibuildwheel
+        uses: pypa/cibuildwheel@v2.21.3  # Update version as necessary
 
-  build-macos-arm:
-    uses: ./.github/workflows/_build_wheels_sdist.yml
-    with:
-      os: macos-14
-      build: "cp39-* cp310-* cp311-* cp312-*"
-      skip: "pp*"
-      test_extras: "test"
-      test_command: "pytest -q {project}/tests"
-      build_verbosity: "1"
-      build_sdist: false
+      - name: Upload wheel artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+
+  sdist:
+    name: Build sdist
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.HOST_PYTHON }}
+
+      - name: Build sdist
+        run: |
+          python -m pip install -U pip build
+          python -m build --sdist
+
+      - name: Upload sdist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, sdist]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi   # optional: add protection/approvers in repo settings
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish to PyPI (Trusted Publishing)
+        uses: pypa/gh-action-pypi-publish@release/v1

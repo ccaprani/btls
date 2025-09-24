@@ -7,7 +7,7 @@ such as Clang (MacOS), GCC (Linux) and MSVC (Windows).
 
 Required Dependencies
 ---------------------
-- Python 3.9 or later
+- Python 3.10 or later
 - matplotlib
 - numpy
 - pandas

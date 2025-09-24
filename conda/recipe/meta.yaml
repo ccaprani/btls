@@ -19,13 +19,13 @@ requirements:
     - make  # [unix]
     - ninja  # [win]
   host:
-    - python >=3.9
+    - python >=3.10
     - pip
     - scikit-build-core >=0.8
     - pybind11 >=2.10.0
     - wheel
   run:
-    - python >=3.9
+    - python >=3.10
     - numpy
     - pandas
     - scipy
