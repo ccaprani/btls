@@ -31,7 +31,7 @@ jobs:
           python-version: ${{ env.HOST_PYTHON }}
 
       - name: Build wheels with cibuildwheel
-        uses: pypa/cibuildwheel@v2.21.3  # Update version as necessary
+        uses: pypa/cibuildwheel@v3.2.0  # Update version as necessary
 
       - name: Upload wheel artifacts
         uses: actions/upload-artifact@v4
