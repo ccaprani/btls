@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/ccaprani/btls"
+Documentation = "https://ccaprani.github.io/btls/"
 Source = "https://github.com/ccaprani/btls"
 Tracker = "https://github.com/ccaprani/btls/issues"
 
