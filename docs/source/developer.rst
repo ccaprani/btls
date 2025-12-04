@@ -81,10 +81,9 @@ Develop and create pull-request (PR)
 	* ``make html``
 	* ``xdg-open build/html/index.html``
 
-8. Update version number in the following files
+8. Update version number in the following file
 
 	* ``./pyproject.toml``
-	* ``./py/pybtls/__init__.py``
 
 9. Stage changes; commit; and push to remote fork
 

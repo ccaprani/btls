@@ -2,6 +2,7 @@
 The methods and classes that are not defined in Python are defined in C++ py_main.cpp.
 """
 
+from typing import Literal
 from ..lib.BTLS import _ConfigDataCore
 
 __all__ = ["OutputConfig"]
@@ -39,7 +40,7 @@ class OutputConfig(_ConfigDataCore):
     def set_vehicle_file_output(
         self,
         write_vehicle_file: bool = False,
-        vehicle_file_format: int = 4,
+        vehicle_file_format: Literal[1,2,3,4] = 4,
         vehicle_file_name: str = "output_traffic.txt",
         buffer_size: int = 10000,
     ) -> None:
@@ -51,8 +52,12 @@ class OutputConfig(_ConfigDataCore):
         write_vehicle_file : bool, optional\n
             Whether to write vehicles to HDD. The default is False.
 
-        vehicle_file_format : int, optional\n
-            The format of the vehicle file. The default is 4.
+        vehicle_file_format : Literal[1,2,3,4], optional\n
+            The format of the vehicle file. The default is 4.\n
+            1: CASTOR format. \n
+            2: BEDIT format. \n
+            3: DITIS format. \n
+            4: MON format.
 
         vehicle_file_name : str, optional\n
             The name of the vehicle file. The default is "output_traffic.txt".
