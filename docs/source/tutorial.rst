@@ -4,18 +4,17 @@
 Tutorials
 *********
 
-These tutorials will guide you through typical PyBTLS simulation. Familiarity
-with Python is assumed, so if you are new to Python, books such as [Lutz2007]_
-or [Langtangen2009]_ are the place to start. Plenty of online documentation
-can also be found on the `Python documentation`_ page.
+Work through the notebooks below to see PyBTLS in action. 
+Start with a minimum running case, then move to traffic generation/loading with advanced features, and finish with the statistical post-processing examples.
+An additional running example with a single vehicle case is also provided for reference.
 
 .. toctree::
     :maxdepth: 1
 
-    notebooks/single_vehicle
-    notebooks/gen_traffic
-    notebooks/read_traffic
-    notebooks/what_else
+    notebooks/minimum_example
+    notebooks/gen_traffic_example
+    notebooks/read_traffic_example
+    notebooks/single_vehicle_example
     notebooks/BM
     notebooks/POT
 
