@@ -57,3 +57,60 @@ Load effects
    :members:
    :protected-members:
    :private-members:
+
+Events
+------
+
+.. doxygenclass:: CEventManager
+   :project: pybtls
+   :members:
+   :protected-members:
+   :private-members:
+
+.. doxygenclass:: CEvent
+   :project: pybtls
+   :members:
+   :protected-members:
+   :private-members:
+
+.. doxygenclass:: CEffect
+   :project: pybtls
+   :members:
+   :protected-members:
+   :private-members:
+
+.. doxygenclass:: CEventBuffer
+   :project: pybtls
+   :members:
+   :protected-members:
+   :private-members:
+
+Event output managers
+---------------------
+
+Both managers below derive from ``COutputManagerBase`` (see
+``cpp/include/OutputManagerBase.h``), which factors out the shared file
+handling. The shared base is documented inline in the header file and
+is not rendered here as its own section — Breathe would emit inherited
+symbols for each derived class, causing duplicate cross-references in
+the same page.
+
+.. doxygenclass:: CPOTManager
+   :project: pybtls
+   :members: Update
+
+.. doxygenclass:: CBlockMaxManager
+   :project: pybtls
+   :members: Update
+
+.. doxygenclass:: CBlockMaxEvent
+   :project: pybtls
+   :members:
+   :protected-members:
+   :private-members:
+
+.. doxygenclass:: CEventStatistics
+   :project: pybtls
+   :members:
+   :protected-members:
+   :private-members:
