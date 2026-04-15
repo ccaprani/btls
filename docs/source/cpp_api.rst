@@ -219,3 +219,99 @@ to avoid duplicate inherited-symbol targets.
 .. doxygenclass:: CFlowGenConstant
    :project: pybtls
    :members: GenerateGap, GenerateSpeed
+
+Configuration
+-------------
+
+The configuration object is exposed in two flavours: ``CConfigDataCore``
+is the full settings tree and is the class documented below;
+``CConfigData`` is a thin singleton subclass that exposes a
+process-wide instance via ``CConfigData::get()`` for classes that cannot
+easily receive a reference through their constructor. ``CConfigData``
+itself is documented inline in its header only — rendering both
+alongside each other triggers the Breathe duplicate-inherited-target
+issue described above.
+
+.. doxygenclass:: CConfigDataCore
+   :project: pybtls
+   :members:
+   :private-members:
+
+Vehicle model data
+------------------
+
+The vehicle-model-data hierarchy roots at ``CModelData`` (see
+``cpp/include/ModelData.h``), which carries the shared configuration
+reference and CSV parser. The intermediate ``CVehicleModelData``
+defines the fields common to all vehicle models; the three concrete
+subclasses layer model-specific distributions on top. Both bases are
+documented inline in their headers and are not rendered here to avoid
+the duplicate-inherited-target pattern.
+
+.. doxygenclass:: CVehicleModelData
+   :project: pybtls
+   :members: getModel, getTruckClassCount, getVehClassification, getLaneEccStd, getComposition, getKernelType
+
+.. doxygenclass:: CVehModelDataGarage
+   :project: pybtls
+   :members: ReadDataIn, getGarageCount, getVehicle, getKernels, readGarage, readKernels, assignGarage, assignKernels
+
+.. doxygenclass:: CVehModelDataGrave
+   :project: pybtls
+   :members: ReadDataIn, GetGVWRange, GetSpacingDist, GetAxleWeightDist, GetTrackWidthDist, GetGVW, Add2AxleSpacings, Add3AxleSpacings, Add4AxleSpacings, Add5AxleSpacings, Add2AxleTrackWidth, Add3AxleTrackWidth, Add4AxleTrackWidth, Add5AxleTrackWidth, Add2AxleWeight, Add3AxleWeight, Add45AxleWeight, AddGVW, AddSpeed, GetSpeed
+
+.. doxygenclass:: CVehModelDataNominal
+   :project: pybtls
+   :members: ReadDataIn, getKernels, getNominalVehicle, readNominalVehicle, assignNominalVehicle, makeNominalVehicle
+
+Flow model data
+---------------
+
+The flow-model-data hierarchy shares the same base ``CModelData``.
+``CFlowModelData`` defines the per-block flow/speed fields; four
+concrete subclasses map to the headway models in
+``FlowGenerator.h``.
+
+.. doxygenclass:: CFlowModelData
+   :project: pybtls
+   :members: getCarPercent, getFlow, getSpeedParams, getGapLimits, getModel, getModelHasCars, getBlockInfo
+
+.. doxygenclass:: CFlowModelDataHeDS
+   :project: pybtls
+   :members: ReadDataIn, GetHeDS, ReadFile_HeDS
+
+.. doxygenclass:: CFlowModelDataCongested
+   :project: pybtls
+   :members: ReadDataIn, getSpeed, getGapParams
+
+.. doxygenclass:: CFlowModelDataPoisson
+   :project: pybtls
+   :members: ReadDataIn
+
+.. doxygenclass:: CFlowModelDataConstant
+   :project: pybtls
+   :members: ReadDataIn, getConstSpeed, getConstGap
+
+Random number generation
+------------------------
+
+.. doxygenclass:: CRNGWrapper
+   :project: pybtls
+   :members:
+
+.. doxygenclass:: CDistribution
+   :project: pybtls
+   :members:
+   :private-members:
+
+.. doxygenclass:: CMultiModalNormal
+   :project: pybtls
+   :members:
+
+Miscellaneous
+-------------
+
+.. doxygenclass:: CClassPercent
+   :project: pybtls
+   :members:
+   :private-members:
