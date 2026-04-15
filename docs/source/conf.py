@@ -11,6 +11,17 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath("../../py/"))  # Add the project root to the system path
 
+import warnings
+
+# sphinx-autodoc-typehints 3.6.1 (latest) still uses an API that Sphinx 9.x
+# marks as deprecated; the warning is noise, not a real problem. Drop it
+# here until a newer upstream release fixes it.
+warnings.filterwarnings(
+    "ignore",
+    message=r".*set_application.*is deprecated.*",
+    category=DeprecationWarning,
+)
+
 from pybtls import __version__ as ver
 
 # -- Project information -----------------------------------------------------
