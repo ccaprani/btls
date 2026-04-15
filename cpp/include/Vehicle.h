@@ -37,9 +37,9 @@ namespace py = pybind11;
  *
  * Vehicles can be parsed from any of four supported traffic data file
  * formats (CASTOR, BeDIT, DITIS, MON) via create(), and serialised back
- * with Write(). When PyBTLS is built with pybind11 support, the full
- * vehicle state is exposed to Python via a tuple interface
- * (getPropInTuple() / setPropByTuple()).
+ * with Write(). In the PyBTLS (pybind11) build the full vehicle state is
+ * also exposed to Python via a tuple interface (getPropInTuple() /
+ * setPropByTuple()), guarded by the @c PyBTLS preprocessor macro.
  *
  * @note Unit conventions: length in metres, velocity in metres per
  *       second, gross and axle weights in kN, axle spacings in metres.

@@ -11,14 +11,14 @@
 #endif // _MSC_VER > 1000
 
 /**
- * @brief Legacy analytical load-effect calculator.
+ * @brief Unused analytical load-effect calculator.
  *
  * Provides closed-form load-effect functions (effect1–7, effect16, A1/A2,
- * B1/B2, C1/C2, Beam1–5) for a point load on a beam of a given span. This
- * class predates the influence-line framework used by @ref CInfluenceLine
- * and is retained for historical completeness. It is instantiated as a
- * member of @ref CBridge but is not exercised by the current simulation
- * path, which routes all load effects through CInfluenceLine.
+ * B1/B2, C1/C2, Beam1–5) for a point load on a beam of a given span. The
+ * class is instantiated as a member of @ref CBridge but its methods are
+ * not invoked by the current simulation path in either the standalone
+ * BTLS binary or the PyBTLS extension; all load effects are routed
+ * through @ref CInfluenceLine instead.
  *
  * @note New code should use @ref CInfluenceLine instead. The influence-line
  *       framework supports arbitrary discrete ordinates and influence
