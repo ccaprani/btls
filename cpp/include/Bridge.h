@@ -11,7 +11,6 @@
 #include "BridgeLane.h"
 #include "EventManager.h"
 #include "Vehicle.h"
-#include "CalcEffect.h"
 #include "ConfigData.h"
 
 
@@ -34,7 +33,6 @@
  *
  * @see CBridgeLane
  * @see CEventManager
- * @see CCalcEffect
  */
 class CBridge
 {
@@ -198,7 +196,6 @@ private:
 	const std::vector<CVehicle_sp> AssembleVehicles(void);
 
 	CEventManager				m_EventMgr;        ///< Load-effect event manager for this bridge.
-	CCalcEffect					m_CalcEff;         ///< Load-effect calculator associated with the bridge.
 	std::vector<double>			m_vEffectValues;   ///< Working buffer for per-step load-effect values, one per load effect.
 	std::vector<double>			m_vThresholds;     ///< Peak-recording thresholds, one per load effect.
 	std::vector<CBridgeLane>	m_vLanes;          ///< Lanes on the bridge (across both directions).
