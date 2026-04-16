@@ -2,6 +2,7 @@
 // the main file for the PyBTLS Build
 
 #include "PrepareSim.h"
+#include "Distribution.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include "pybind11/stl/filesystem.h"
@@ -19,6 +20,30 @@ PYBIND11_MODULE(libbtls, m) {
 		m.attr("__version__") = "dev";
 	#endif
 	m.def("get_info", &preamble, "Print the information of the BTLS library.");
+	m.def("_sample_uniform", []() {
+		CDistribution d;
+		return d.GenerateUniform();
+	}, "Internal test helper: draw one uniform [0,1) sample from the process-wide RNG.");
+	m.def("seed", &CRNGWrapper::seed,
+		R"(
+		Seed the process-wide random number generator.
+
+		If never called, the generator is seeded non-deterministically at
+		library load time (the default behaviour). Calling seed() makes all
+		subsequent traffic generation and sampling deterministic for the
+		given value.
+
+		In multiprocessing contexts (spawn start method), each worker
+		process has its own copy of the generator, so calling
+		``seed(master_seed + worker_id)`` in each worker produces
+		independent, reproducible streams.
+
+		Parameters
+		----------
+		s : int
+			Seed value (unsigned 64-bit integer).
+		)",
+		py::arg("s"));
 	m.def("run", &run, 
 		R"(
 		Run the simulation in the traditional BTLS way. 

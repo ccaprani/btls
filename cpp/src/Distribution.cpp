@@ -14,7 +14,16 @@ std::normal_distribution<double> CRNGWrapper::m_Norm(0.0,1.0);
 //std::mt19937 CRNGWrapper::m_MTgen(100); // MAGIC NUMBER - constant seed for debugging
 std::mt19937 CRNGWrapper::m_MTgen(std::random_device{}());
 
-inline double CRNGWrapper::rand() 
+void CRNGWrapper::seed(uint64_t s)
+{
+	m_MTgen.seed(s);
+	// Reset the distributions so they don't carry cached state from
+	// the previous seed.
+	m_Uniform.reset();
+	m_Norm.reset();
+}
+
+inline double CRNGWrapper::rand()
 {
 	return m_Uniform(m_MTgen);
 };
