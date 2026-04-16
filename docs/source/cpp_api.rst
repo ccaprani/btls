@@ -308,10 +308,109 @@ Random number generation
    :project: pybtls
    :members:
 
-Miscellaneous
--------------
+Output managers (fatigue, statistics)
+-------------------------------------
+
+Both managers below derive from ``COutputManagerBase``. Explicit
+member lists are used to avoid the inherited-target duplication.
+
+.. doxygenclass:: CFatigueManager
+   :project: pybtls
+   :members: Update, addLoadEffectValues, cleanLoadEffectValues, CheckBuffer, doRainflow, writeRainflowBuffer, cleanRainflowOutCountValues
+
+.. doxygenclass:: CStatsManager
+   :project: pybtls
+   :members: Update, WriteSummaryFiles, CheckBuffer, WriteBuffer, WriteCumulativeFile, WriteIntervalHeadings, accumulateLE
+
+.. doxygenclass:: CRainflow
+   :project: pybtls
+   :members:
+   :private-members:
+
+Lane flow composition
+---------------------
+
+.. doxygenclass:: CLaneFlowComposition
+   :project: pybtls
+   :members:
+   :private-members:
+
+.. doxygenclass:: CLaneFlowData
+   :project: pybtls
+   :members: ReadDataIn, getLaneComp, getNoDirn, getNoLanes, getNoLanesDir1, getNoLanesDir2
+
+.. doxygenclass:: CLaneFlow
+   :project: pybtls
+   :members:
+   :private-members:
+
+Bridge and IL file I/O
+----------------------
+
+.. doxygenclass:: CBridgeFile
+   :project: pybtls
+   :members:
+   :private-members:
+
+.. doxygenclass:: CReadILFile
+   :project: pybtls
+   :members:
+   :private-members:
+
+.. doxygenclass:: CInfluenceSurface
+   :project: pybtls
+   :members:
+   :private-members:
+
+Vehicle classification
+----------------------
+
+.. doxygenclass:: CVehicleClassification
+   :project: pybtls
+   :members:
+
+.. doxygenclass:: CVehClassAxle
+   :project: pybtls
+   :members: setClassification
+
+.. doxygenclass:: CVehClassPattern
+   :project: pybtls
+   :members: setClassification, getPattern
+
+Utilities
+---------
+
+.. doxygenclass:: CCSVParse
+   :project: pybtls
+   :members:
+   :private-members:
 
 .. doxygenclass:: CClassPercent
    :project: pybtls
    :members:
    :private-members:
+
+.. doxygenclass:: CMatrix
+   :project: pybtls
+   :members:
+   :private-members:
+
+Standalone BTLS entry point
+---------------------------
+
+The following free functions form the standalone BTLS binary's
+orchestration layer (compiled only with the ``Binary`` CMake option).
+The PyBTLS Python layer reimplements the same orchestration in
+``simulation.py``.
+
+.. doxygenfunction:: run
+   :project: pybtls
+
+.. doxygenfunction:: doSimulation
+   :project: pybtls
+
+.. doxygenfunction:: PrepareBridges
+   :project: pybtls
+
+.. doxygenfunction:: preamble
+   :project: pybtls
