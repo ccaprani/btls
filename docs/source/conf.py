@@ -56,7 +56,28 @@ extensions = [
     "sphinx.ext.githubpages",
     # .. "recommonmark",
     "nbsphinx",
+    "breathe",
 ]
+
+# -- Breathe / Doxygen integration -------------------------------------------
+import os as _os
+import subprocess as _sp
+
+_docs_dir = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), ".."))
+_doxy_xml = _os.path.join(_docs_dir, "doxygen", "xml")
+
+try:
+    _sp.run(["doxygen", "Doxyfile"], cwd=_docs_dir, check=True,
+            stdout=_sp.PIPE, stderr=_sp.PIPE)
+    print("[conf.py] Doxygen XML regenerated at", _doxy_xml)
+except FileNotFoundError:
+    print("[conf.py] doxygen not found on PATH; skipping C++ API regeneration.")
+except _sp.CalledProcessError as _e:
+    print("[conf.py] Doxygen failed:\n" + _e.stderr.decode(errors="replace"))
+
+breathe_projects = {"pybtls": _doxy_xml}
+breathe_default_project = "pybtls"
+breathe_default_members = ("members",)
 
 autodoc_member_order = "bysource"
 autosummary_generate = True  # Turn on sphinx.ext.autosummary

@@ -3,6 +3,7 @@ sphinx
 sphinx-autodoc-typehints
 nbsphinx
 pydata-sphinx-theme
+breathe>=4.35
 
 ipython
 markupsafe==2.0.1

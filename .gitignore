@@ -100,7 +100,9 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/build/
 docs/source/gen/
+docs/doxygen/
 
 # PyBuilder
 target/
