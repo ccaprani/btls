@@ -77,6 +77,7 @@ PyBTLS is a Python wrapper for the C++ based Bridge Traffic Load Simulation (BTL
    tutorial
    api
    IO_formats
+   parallel
    theory
    references
    developer
