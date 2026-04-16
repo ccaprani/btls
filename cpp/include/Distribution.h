@@ -16,6 +16,16 @@ class CRNGWrapper
 public:
 	double rand();
 	double norm();
+
+	/// Seed the process-wide Mersenne Twister generator.
+	/// If never called, the generator is seeded from std::random_device
+	/// at library load time (non-reproducible). Calling seed() makes
+	/// subsequent random output deterministic for the given seed value.
+	/// In multiprocessing contexts (spawn start method), each worker
+	/// process has its own copy of the static generator, so calling
+	/// seed(master_seed + worker_id) in each worker produces independent
+	/// reproducible streams.
+	static void seed(uint64_t s);
 };
 
 class CDistribution  
