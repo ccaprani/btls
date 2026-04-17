@@ -39,56 +39,47 @@ Neither of these requires the chunks to run in sequence.
 Recipe
 ------
 
+The ``seed`` parameter on ``Simulation.add_sim()`` does the heavy
+lifting.  Add one sim per chunk, each with its own seed, then call
+``run()`` with the desired core count:
+
 .. code-block:: python
 
-   import multiprocessing
-   import pybtls
+   from pybtls import Simulation, Bridge, TrafficGenerator, OutputConfig
 
-   MASTER_SEED = 12345
-   TOTAL_DAYS  = 25000          # e.g. 100 years × 250 days
-   WARMUP_SECS = 60.0           # >> max bridge crossing time
-   N_WORKERS   = 30             # match your core count
+   MASTER_SEED    = 12345
+   TOTAL_DAYS     = 25000     # e.g. 100 years × 250 days
+   N_CHUNKS       = 30        # match your core count
+   DAYS_PER_CHUNK = TOTAL_DAYS // N_CHUNKS
 
-   def run_chunk(args):
-       chunk_id, day_start, day_end = args
+   # Set up bridge, traffic, output config as usual
+   bridge  = Bridge(...)
+   traffic = TrafficGenerator(...)
+   output  = OutputConfig(...)
 
-       # 1. Seed — each worker gets a unique, deterministic stream
-       pybtls.lib.libbtls.seed(MASTER_SEED + chunk_id)
+   sim = Simulation(output_dir="./parallel_run")
 
-       # 2. Build sim as usual (bridge, traffic config, etc.)
-       sim = pybtls.Simulation()
-       # ... configure bridge, influence lines, traffic model ...
+   for i in range(N_CHUNKS):
+       sim.add_sim(
+           bridge=bridge,
+           traffic=traffic,
+           no_day=DAYS_PER_CHUNK,
+           output_config=output,
+           seed=MASTER_SEED + i,      # unique deterministic stream
+           tag=f"chunk_{i:03d}",
+       )
 
-       # 3. Set the time window with a warmup buffer
-       #    Start slightly before the chunk so vehicles are already
-       #    on the bridge at the chunk boundary.
-       sim_start = max(0.0, day_start * 86400.0 - WARMUP_SECS)
-       sim_end   = day_end * 86400.0
+   sim.run(no_core=N_CHUNKS)          # maps across Pool workers
 
-       # 4. Run
-       sim.run(start_time=sim_start, end_time=sim_end)
+   # Each chunk's output is in sim.get_output()["chunk_000"], etc.
+   # Merge POT / BlockMax / Stats post-hoc (see below).
 
-       # 5. Discard warmup results and return the chunk output
-       #    (POT events, block-max events, etc.)
-       return sim.get_results(after=day_start * 86400.0)
-
-   if __name__ == "__main__":
-       # Divide the timeline into chunks
-       days_per_chunk = TOTAL_DAYS // N_WORKERS
-       chunks = [
-           (i, i * days_per_chunk, (i + 1) * days_per_chunk)
-           for i in range(N_WORKERS)
-       ]
-
-       # Map across workers (PyBTLS already uses 'spawn')
-       with multiprocessing.Pool(N_WORKERS) as pool:
-           results = pool.map(run_chunk, chunks)
-
-       # 6. Merge results
-       #    - POT: concatenate event lists across chunks
-       #    - Block-max: take the maximum across chunks per block
-       #    - Stats: combine online-moment accumulators
-       merged = merge_results(results)
+Because each chunk is seeded differently, the traffic in chunk 0 is
+statistically independent of chunk 1 — as if they were different
+stretches of a very long traffic stream.  The flow model's hourly
+pattern repeats identically in every chunk (same hour-of-day profile),
+so the merged result has the same distributional properties as a
+single sequential run.
 
 
 The warmup buffer

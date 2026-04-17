@@ -14,7 +14,7 @@ keywords = ["bridge", "traffic", "simulation"]
 dependencies = [
     "matplotlib",
     "numpy",
-    "pandas",
+    "pandas>=1.5,<2.3",
     "scipy"
 ]
 
