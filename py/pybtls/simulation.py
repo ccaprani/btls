@@ -55,6 +55,7 @@ class Simulation:
         vehicle: Vehicle = None,
         active_lane: list[int] = None,
         tag: str = None,
+        seed: int = None,
         **kwargs,
     ) -> None:
         """
@@ -89,6 +90,16 @@ class Simulation:
         tag : str, optional\n
             The tag for the simulation. The default tag will be "Sim_{Simulation Order}".
 
+        seed : int, optional\n
+            Seed for the C++ random number generator. If provided,
+            ``libbtls.seed(seed)`` is called at the start of this
+            simulation, making the traffic generation deterministic.
+            For day-level parallelism, pass a different seed per chunk
+            (e.g. ``master_seed + chunk_id``) so each worker gets an
+            independent, reproducible stream. If None (default), the
+            RNG keeps its current state (non-reproducible, same as the
+            pre-seed-API behaviour).
+
         Keyword Arguments
         -----------------
         overlap_avoid_distance : float, optional\n
@@ -121,6 +132,7 @@ class Simulation:
                 overlap_avoid_distance,
                 track_progress,
                 self._output_root,
+                seed,
             )
         )
 
@@ -192,6 +204,7 @@ class Simulation:
             overlap_avoid_distance,
             track_progress,
             output_root,
+            seed,
         ) = args
 
         if traffic is not None:
@@ -207,6 +220,7 @@ class Simulation:
                 overlap_avoid_distance,
                 track_progress,
                 output_root,
+                seed,
             )
         elif vehicle is not None:
             return self._single_vehicle_sim(
@@ -300,7 +314,12 @@ class Simulation:
         overlap_avoid_distance,
         track_progress,
         output_root,
+        seed=None,
     ) -> _OutputManager:
+        if seed is not None:
+            from .lib import libbtls
+            libbtls.seed(seed)
+
         sim_root = Path("./").resolve()
         os.makedirs(output_root / str(sim_tag), exist_ok=False)
         os.chdir(output_root / str(sim_tag))
