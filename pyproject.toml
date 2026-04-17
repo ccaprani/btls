@@ -15,7 +15,7 @@ dependencies = [
     "matplotlib",
     "numpy",
     "pandas>=1.5,<2.3",
-    "scipy"
+    "scipy>=1.10,<1.17"
 ]
 
 [project.urls]
