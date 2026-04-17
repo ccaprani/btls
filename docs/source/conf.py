@@ -11,6 +11,17 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath("../../py/"))  # Add the project root to the system path
 
+import warnings
+
+# sphinx-autodoc-typehints 3.6.1 (latest) still uses an API that Sphinx 9.x
+# marks as deprecated; the warning is noise, not a real problem. Drop it
+# here until a newer upstream release fixes it.
+warnings.filterwarnings(
+    "ignore",
+    message=r".*set_application.*is deprecated.*",
+    category=DeprecationWarning,
+)
+
 from pybtls import __version__ as ver
 
 # -- Project information -----------------------------------------------------
@@ -45,7 +56,28 @@ extensions = [
     "sphinx.ext.githubpages",
     # .. "recommonmark",
     "nbsphinx",
+    "breathe",
 ]
+
+# -- Breathe / Doxygen integration -------------------------------------------
+import os as _os
+import subprocess as _sp
+
+_docs_dir = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), ".."))
+_doxy_xml = _os.path.join(_docs_dir, "doxygen", "xml")
+
+try:
+    _sp.run(["doxygen", "Doxyfile"], cwd=_docs_dir, check=True,
+            stdout=_sp.PIPE, stderr=_sp.PIPE)
+    print("[conf.py] Doxygen XML regenerated at", _doxy_xml)
+except FileNotFoundError:
+    print("[conf.py] doxygen not found on PATH; skipping C++ API regeneration.")
+except _sp.CalledProcessError as _e:
+    print("[conf.py] Doxygen failed:\n" + _e.stderr.decode(errors="replace"))
+
+breathe_projects = {"pybtls": _doxy_xml}
+breathe_default_project = "pybtls"
+breathe_default_members = ("members",)
 
 autodoc_member_order = "bysource"
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
