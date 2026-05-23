@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include "Vehicle.h"
+#include "TrafficFileFormat.h"
 #include "ConfigData.h"
 
 
@@ -412,25 +413,24 @@ std::string CVehicle::Write()
 
 std::string CVehicle::Write(size_t file_type)
 {
+	TrafficFileFormatSpec spec = requireTrafficFileWriteFormat(file_type);
+
 	if(m_Trns < 0.01)	// generated vehicles have 0.0 trans but eccentricity
 		m_Trns = 1.80 + m_LaneEccentricity;
 
-	switch(file_type)
+	switch(spec.Format)
 	{
-	case 1:
+	case ETrafficFileFormat::Castor:
 		return writeCASTORData();
-	case 2:
+	case ETrafficFileFormat::Bedit:
 		return writeBEDITData();
-	case 3:
+	case ETrafficFileFormat::Ditis:
 		return writeDITISData();
-	case 4:
+	case ETrafficFileFormat::Mon:
 		return writeMONData();
 	default:
-		return writeCASTORData();
+		throw std::invalid_argument(std::string("Traffic file format ") + spec.Name + " does not support vehicle serialisation");
 	}
-
-	// reset trans
-	m_Trns = 0.0;
 }
 
 	/** Prepares a vehicle for printing to a CASTOR file */
@@ -691,6 +691,16 @@ void CVehicle::setLength(double length)
 	m_Length = length;
 }
 
+void CVehicle::setDateTime(size_t year, size_t month, size_t day, size_t hour, size_t min, double sec)
+{
+	m_Year = year >= MON_BASE_YEAR ? year - MON_BASE_YEAR : year;
+	m_Month = month;
+	m_Day = day;
+	m_Hour = hour;
+	m_Min = min;
+	m_Sec = sec;
+}
+
 // Set local lane number within its direction, 1-based
 void CVehicle::setLocalLane(size_t localLaneIndex)
 {
@@ -767,6 +777,11 @@ void CVehicle::setNoAxles(size_t noAxle)
 		temp.TrackWidth = m_TrackWidth;
 		m_vAxles.push_back(temp);
 	}
+}
+
+void CVehicle::setNoAxleGroups(size_t noAxleGroups)
+{
+	m_NoAxleGroups = noAxleGroups;
 }
 
 void CVehicle::setTrans(double trans)

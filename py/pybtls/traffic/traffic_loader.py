@@ -64,7 +64,7 @@ class TrafficLoader:
     def add_traffic(
         self,
         traffic: Union[Path, list[Vehicle]],
-        traffic_format: Literal[1, 2, 3, 4] = None,
+        traffic_format: Literal[1, 2, 3, 4, 5] = None,
         use_average_speed: bool = False,
         use_const_speed: bool = False,
         const_speed_value: float = 0.0,
@@ -79,12 +79,13 @@ class TrafficLoader:
             The path to the traffic file,
             or a list of vehicles.
 
-        traffic_format : Literal[1, 2, 3, 4], optional\n
-            The format of the .txt traffic file.\n
+        traffic_format : Literal[1, 2, 3, 4, 5], optional\n
+            The format of the traffic file.\n
             1: CASTOR format.\n
             2: BEDIT format.\n
             3: DITIS format.\n
-            4: MON format.
+            4: MON format.\n
+            5: SiWIM CSV format.
 
         use_average_speed : bool, optional\n
             Whether to use the average speed of the vehicle. \n
