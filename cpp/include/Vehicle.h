@@ -102,6 +102,8 @@ public:
 
 	/// @brief Set the vehicle arrival time in seconds (updates the day/month/year/hour/min/sec fields).
 	void	setTime(double time);
+	/// @brief Set vehicle arrival date/time components directly.
+	void	setDateTime(size_t year, size_t month, size_t day, size_t hour, size_t min, double sec);
 	/// @brief Set the overall vehicle length in metres.
 	void	setLength(double length);
 	/// @brief Set the vehicle velocity in metres per second.
@@ -116,6 +118,8 @@ public:
 	void	setGVW(double weight);
 	/// @brief Set the number of axles (resizes the internal axle vector).
 	void	setNoAxles(size_t noAxle);
+	/// @brief Set the number of axle groups.
+	void	setNoAxleGroups(size_t noAxleGroups);
 	/**
 	 * @brief Set axle weight for axle @p i.
 	 * @param[in] i Zero-based axle index.

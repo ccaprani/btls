@@ -235,7 +235,7 @@ class VehicleGenGarage:
         self,
         garage: Union[Path, list[Vehicle]],
         kernel: list[list[float]],
-        garage_format: Literal[1, 2, 3, 4] = None,
+        garage_format: Literal[1, 2, 3, 4, 5] = None,
         **kwargs,
     ):
         """
@@ -256,12 +256,13 @@ class VehicleGenGarage:
                 [Mean_AxleSpacing, Std_AxleSpacing]\n
                 ].
 
-        garage_format : Literal[1,2,3,4], optional\n
-            The format of the .txt garage file.\n
+        garage_format : Literal[1,2,3,4,5], optional\n
+            The format of the garage file.\n
             1: CASTOR format.\n
             2: BEDIT format.\n
             3: DITIS format.\n
-            4: MON format.
+            4: MON format.\n
+            5: SiWIM CSV format.
 
         Keyword Arguments
         -----------------
