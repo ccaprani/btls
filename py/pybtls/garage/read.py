@@ -15,7 +15,7 @@ __all__ = ["read_garage_file"]
 
 
 def read_garage_file(
-    garage_path: Path, garage_format: Literal[1, 2, 3, 4], **kwargs
+    garage_path: Path, garage_format: Literal[1, 2, 3, 4, 5], **kwargs
 ) -> list[Vehicle]:
     """
     Read a .txt garage file.
@@ -25,12 +25,13 @@ def read_garage_file(
     garage_path : Path \n
         The path of the garage file.
 
-    garage_format : Literal[1,2,3,4] \n
-        The format of the .txt garage file. \n
+    garage_format : Literal[1,2,3,4,5] \n
+        The format of the garage/traffic file. \n
         1: CASTOR format. \n
         2: BEDIT format. \n
         3: DITIS format. \n
-        4: MON format.
+        4: MON format. \n
+        5: SiWIM CSV format.
 
     Keyword Arguments
     -----------------

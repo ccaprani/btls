@@ -10,13 +10,23 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <memory>
 #include "Vehicle.h"
+
+class CVehicleFileParser
+{
+public:
+	virtual ~CVehicleFileParser() = default;
+	virtual CVehicle_sp nextVehicle() = 0;
+};
 
 /**
  * @brief Reads a traffic data file and produces a sequence of @ref CVehicle instances.
  *
- * CVehicleTrafficFile parses one of the four supported fixed-width
- * traffic formats (CASTOR, BeDIT, DITIS, MON) into @ref CVehicle objects
+ * CVehicleTrafficFile delegates file parsing to a CVehicleFileParser.
+ * Fixed-width formats (CASTOR, BeDIT, DITIS, MON) and header-based CSV
+ * formats (currently SiWIM) are handled by separate parser implementations
+ * that all produce @ref CVehicle objects
  * with their timestamps, geometry and weights populated. It is used
  * both by the standalone BTLS binary (to feed a replay-mode simulation)
  * and by the PyBTLS Python layer (to load observed WIM data).
@@ -53,7 +63,7 @@ public:
 	 * @brief Parse a traffic file.
 	 *
 	 * @param[in] file     Path to the input file.
-	 * @param[in] filetype File-format tag (1 = CASTOR, 2 = BeDIT, 3 = DITIS, 4 = MON).
+	 * @param[in] filetype File-format tag (1 = CASTOR, 2 = BeDIT, 3 = DITIS, 4 = MON, 5 = SiWIM CSV).
 	 */
 	void Read(std::filesystem::path file, int filetype);
 
