@@ -18,3 +18,14 @@ Traffic file format
    :alt: WIM database format
    :align: center
    :figwidth: 90%
+
+Rainflow residual sidecar (FRR_*.txt)
+-------------------------------------
+Written only by chunked simulations (or when
+``set_fatigue_output(write_residuals=True)``): one file per load effect
+named ``FRR_{bridge_length}_{effect}.txt``. The first line holds the
+rainflow binning parameters (``decimal`` and ``cutoff``, tab-separated);
+each following line is one unclosed residual reversal value at full
+double precision. PyBTLS uses these to splice the rainflow histograms
+of consecutive chunks together exactly; they are not meant to be read
+directly.
