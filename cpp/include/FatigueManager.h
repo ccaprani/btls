@@ -48,7 +48,7 @@ public:
 	void Initialize(double bridgeLength, size_t noLoadEffects);
 
 	/// @brief No-op event consumer (fatigue uses addLoadEffectValues instead).
-	void Update(CEvent Ev) {};
+	void Update(CEvent& Ev) {};
 
 	/// @brief Trigger a flush of the accumulated series through the rainflow algorithm.
 	void Update();

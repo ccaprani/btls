@@ -41,7 +41,7 @@ public:
 	 * @brief Consume one completed event and fold its max into the accumulators.
 	 * @param[in] Ev Completed event.
 	 */
-	virtual void Update(CEvent Ev);
+	virtual void Update(CEvent& Ev);
 
 	/**
 	 * @brief Initialize with bridge length, load-effect count, and simulation start time.

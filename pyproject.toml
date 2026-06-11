@@ -40,6 +40,7 @@ build-backend = "scikit_build_core.build"
 wheel.packages = ["py/pybtls"]
 sdist.include = ["py/pybtls/data/*/*/*.csv"]
 sdist.exclude = []
+cmake.build-type = "Release"
 
 [tool.scikit-build.cmake.define]
 Binary = "OFF"

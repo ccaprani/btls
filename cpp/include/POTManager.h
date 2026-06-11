@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "OutputManagerBase.h"
 
 /**
@@ -42,7 +44,7 @@ public:
 	 *
 	 * @param[in] Ev Completed event.
 	 */
-	virtual void Update(CEvent Ev);
+	virtual void Update(CEvent& Ev);
 
 	/**
 	 * @brief Initialize thresholds, buffers and output files.
@@ -79,7 +81,9 @@ private:
 	void UpdateCounter();
 
 	size_t m_NoPeaks;                                 ///< Running count of peaks written across all load effects.
-	std::vector< std::vector<CEvent> >	m_vEvents;    ///< Buffered events per load effect.
+	/// Buffered events per load effect. An event exceeding several
+	/// thresholds is stored once and shared, not deep-copied per effect.
+	std::vector< std::vector<std::shared_ptr<CEvent>> >	m_vEvents;
 	std::string m_EventFile;                          ///< Current event output filename.
 	std::vector<double> m_vThreshold;                 ///< Peak thresholds, one per load effect.
 	std::string m_CounterFile;                        ///< Block counter output filename.

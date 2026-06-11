@@ -27,7 +27,7 @@ void CPOTManager::Initialize(double BridgeLength, std::vector<double> vThreshold
 	m_vThreshold = vThreshold;
 	m_NoLoadEffects = m_vThreshold.size();
 
-	std::vector<CEvent> vEv;
+	std::vector<std::shared_ptr<CEvent>> vEv;
 	m_vEvents.assign(m_NoLoadEffects,vEv);
 
 	UpdateCounter();
@@ -42,7 +42,7 @@ void CPOTManager::Initialize(double BridgeLength, std::vector<double> vThreshold
 		OpenCounterFile();
 }
 
-void CPOTManager::Update(CEvent curEvent)
+void CPOTManager::Update(CEvent& curEvent)
 {
 	double curTime = curEvent.getStartTime();
 	
@@ -52,11 +52,15 @@ void CPOTManager::Update(CEvent curEvent)
 	size_t nEventVehs = curEvent.getNoVehicles();
 	if(nEventVehs > 0)
 	{
+		// an event exceeding several thresholds is stored once and shared
+		std::shared_ptr<CEvent> pEvent;
 		for (size_t i = 0; i < m_NoLoadEffects; i++)
-		{	
+		{
 			if(curEvent.getMaxEffect(i).getValue() > m_vThreshold.at(i))
 			{
-				m_vEvents.at(i).push_back(curEvent);
+				if (!pEvent)
+					pEvent = std::make_shared<CEvent>(curEvent);
+				m_vEvents.at(i).push_back(pEvent);
 				m_vCounter.back().at(i)++;
 			}
 		}
@@ -148,12 +152,25 @@ void CPOTManager::WriteVehicleFiles()
 {
 	for (size_t i = 0; i < m_NoLoadEffects; i++)
 	{
+		if (m_vEvents.at(i).empty())
+			continue;
+
+		// open the file once per flush - opening it per event dominated
+		// the simulation wall time
+		std::ofstream outFile(m_vOutFiles[i].c_str(), std::ios::app);
+		if (!outFile)
+		{
+			std::cerr << "Event file could not be opened" << std::endl;
+			exit(1);
+		}
+
 		for (size_t iEv = 0; iEv < m_vEvents.at(i).size(); iEv++)
 		{
-			CEvent& Ev = m_vEvents.at(i).at(iEv);
+			CEvent& Ev = *m_vEvents.at(i).at(iEv);
 			Ev.setID(iEv+1);
-			Ev.writeToFile(m_vOutFiles[i]);
+			Ev.writeToFile(outFile);
 		}
+		outFile.close();
 	}
 }
 
@@ -165,7 +182,7 @@ void CPOTManager::WriteSummaryFiles()
 		
 		for (size_t iEv = 0; iEv < m_vEvents.at(iLE).size(); iEv++)
 		{
-			CEvent& Ev = m_vEvents.at(iLE).at(iEv);
+			CEvent& Ev = *m_vEvents.at(iLE).at(iEv);
 			Ev.setCurEffect(iLE);
 			
 			std::ostringstream oStr;

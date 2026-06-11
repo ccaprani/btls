@@ -46,7 +46,7 @@ public:
 	 *
 	 * @param[in] Ev Completed event.
 	 */
-	virtual void Update(CEvent Ev);
+	virtual void Update(CEvent& Ev);
 
 	/**
 	 * @brief Initialize bucket storage and output files.
@@ -77,7 +77,7 @@ private:
 	void	AddExtraEvents();
 
 	/// @brief Update the mixed-events stream with @p Ev.
-	void	UpdateMixedEvents(CEvent Ev);
+	void	UpdateMixedEvents(CEvent& Ev);
 
 	CBlockMaxEvent				m_BlockMaxEvent;   ///< Running block max indexed by vehicle count.
 	CEvent						m_BMMixedEvent;    ///< Running block max across all vehicle counts (mixed stream).

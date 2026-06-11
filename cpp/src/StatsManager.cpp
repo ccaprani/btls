@@ -39,7 +39,7 @@ void CStatsManager::Initialize(double BridgeLength,size_t nLE, double SimStartTi
 	}
 }
 
-void CStatsManager::Update(CEvent curEvent)
+void CStatsManager::Update(CEvent& curEvent)
 {
 	m_CurTime = curEvent.getStartTime();
 	

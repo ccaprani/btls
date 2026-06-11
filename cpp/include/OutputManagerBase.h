@@ -51,7 +51,7 @@ public:
 	 *
 	 * @param[in] Ev Completed event (by value so subclasses can mutate).
 	 */
-	virtual void Update(CEvent Ev) = 0;
+	virtual void Update(CEvent& Ev) = 0;
 
 	/// @brief Flush remaining buffers and close output files.
 	void Finish();

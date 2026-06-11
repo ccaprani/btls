@@ -1,4 +1,5 @@
 #include "InfluenceLine.h"
+#include <algorithm>
 
 
 CInfluenceLine::CInfluenceLine(void)
@@ -30,9 +31,32 @@ CInfluenceSurface* CInfluenceLine::getIS()
 // get the load effect value given an axle vector
 double CInfluenceLine::getLoadEffect(std::vector<CAxle>& vAxles)
 {
+	// Hot path: the IL type is loop-invariant, so dispatch once instead of
+	// per axle. The per-axle arithmetic is kept identical to
+	// getAxleLoadEffect()/getOrdinate() for bit-exact results.
+	const size_t nAxles = vAxles.size();
 	double effVal = 0.0;
-	for(unsigned int j = 0; j < vAxles.size(); j++)
-		effVal += getAxleLoadEffect(vAxles[j]);
+
+	switch (m_Type)
+	{
+	case 3:	// Influence surface
+		for (size_t j = 0; j < nAxles; j++)
+		{
+			CAxle& axle = vAxles[j];
+			double ord1 = m_IS.giveOrdinate(axle.m_Position, axle.m_Eccentricity - axle.m_TrackWidth/2, axle.m_Lane);
+			double ord2 = m_IS.giveOrdinate(axle.m_Position, axle.m_Eccentricity + axle.m_TrackWidth/2, axle.m_Lane);
+			effVal += 0.5*axle.m_AxleWeight*(ord1 + ord2); // assumes half axle weight on each wheel
+		}
+		break;
+	case 2:	// Discrete influence line
+		for (size_t j = 0; j < nAxles; j++)
+			effVal += vAxles[j].m_AxleWeight * (getDiscreteOrdinate(vAxles[j].m_Position) * m_Weight);
+		break;
+	default:	// Equation influence line
+		for (size_t j = 0; j < nAxles; j++)
+			effVal += vAxles[j].m_AxleWeight * (getEquationOrdinate(vAxles[j].m_Position) * m_Weight);
+		break;
+	}
 	return effVal;
 }
 
@@ -116,21 +140,21 @@ void CInfluenceLine::setWeight(double weight)
 
 double CInfluenceLine::getDiscreteOrdinate(double x)
 {
-	int i = 0;
 	// right at the end of the IL
 	if(x >= m_Length - 0.001 && x <= m_Length + 0.001)
-		return m_vOrdinate.at(m_NoPoints-1);
+		return m_vOrdinate[m_NoPoints-1];
 	// not on the IL
-	else if(x < m_vDistance.at(0) || x > m_Length)
+	else if(x < m_vDistance[0] || x > m_Length)
 		return 0.0;
 	// On the IL, but not at the end
 	else
 	{
-		while(x >= m_vDistance.at(i)) i++;	// find the index
-		double deltaX = m_vDistance.at(i) - m_vDistance.at(i-1);
-		double ord1 = m_vOrdinate.at(i-1);
-		double ord2 = m_vOrdinate.at(i);
-		double ordinate = ord1 + (x-m_vDistance.at(i-1))/deltaX*(ord2-ord1);
+		// first index with m_vDistance[i] > x - same as the former linear scan
+		size_t i = std::upper_bound(m_vDistance.begin(), m_vDistance.end(), x) - m_vDistance.begin();
+		double deltaX = m_vDistance[i] - m_vDistance[i-1];
+		double ord1 = m_vOrdinate[i-1];
+		double ord2 = m_vOrdinate[i];
+		double ordinate = ord1 + (x-m_vDistance[i-1])/deltaX*(ord2-ord1);
 		return ordinate;
 	}
 }
