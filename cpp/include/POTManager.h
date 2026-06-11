@@ -46,6 +46,9 @@ public:
 	 */
 	virtual void Update(CEvent& Ev);
 
+	/// @brief Finish, filling silent trailing counter blocks up to the simulated end time.
+	void FinishAt(double simEndTime);
+
 	/**
 	 * @brief Initialize thresholds, buffers and output files.
 	 *

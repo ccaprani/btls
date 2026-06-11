@@ -129,6 +129,11 @@ void CBridge::Finish()
 	m_EventMgr.Finish();
 }
 
+void CBridge::Finish(double simEndTime)
+{
+	m_EventMgr.Finish(simEndTime);
+}
+
 double CBridge::TimeNextVehOffBridge()
 {
 	double TimeOff = 1e300; // MAGIC NUMBER - very big time

@@ -545,9 +545,9 @@ class Simulation:
                         sim_progress_print = ""
 
         if isinstance(bridge, Bridge):
-            load_calc.finish()
+            load_calc.finish(end_time)
 
-        vehicle_buffer.flushBuffer()
+        vehicle_buffer.flushBuffer(end_time)
         os.chdir(sim_root)
 
         return _OutputManager(output_root, sim_tag, output_config)

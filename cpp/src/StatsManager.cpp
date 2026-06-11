@@ -60,6 +60,14 @@ void CStatsManager::Update(CEvent& curEvent)
 
 }
 
+void CStatsManager::FinishAt(double simEndTime)
+{
+	// fill any silent trailing intervals up to the simulated end time
+	while( simEndTime - m_SimStartTime > (double)(m_CurIntervalNo)*WRITE_SS_INTERVAL_SIZE && WRITE_SS_INTERVALS )
+		CheckBuffer(false);
+	Finish();
+}
+
 void CStatsManager::CheckBuffer(bool bForceOutput)
 {
 	if(bForceOutput)

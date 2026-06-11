@@ -71,6 +71,14 @@ void CPOTManager::Update(CEvent& curEvent)
 	CheckBuffer(false);
 }
 
+void CPOTManager::FinishAt(double simEndTime)
+{
+	// fill any silent trailing counter blocks up to the simulated end time
+	while( simEndTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
+		UpdateCounter();
+	Finish();
+}
+
 void CPOTManager::CheckBuffer(bool bForceOutput)
 {
 	// finish allows for block max buffers greater than the simulation length

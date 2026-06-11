@@ -313,7 +313,8 @@ PYBIND11_MODULE(libbtls, m) {
 			.def("addVehicle", &CBridge::AddVehicle, py::arg("vehicle"))
 			.def("setCalcTimeStep", &CBridge::setCalcTimeStep, py::arg("time_step"))
 			.def("update", &CBridge::Update, py::arg("next_arrival_time"), py::arg("current_time"))
-			.def("finish", &CBridge::Finish)
+			.def("finish", py::overload_cast<>(&CBridge::Finish))
+			.def("finish", py::overload_cast<double>(&CBridge::Finish), py::arg("sim_end_time"), "Finish, filling silent trailing blocks/intervals up to the simulated end time.")
 			.def("initializeDataMgr", &CBridge::InitializeDataMgr, py::arg("sim_start_time"));
 	py::class_<CBridgeLane> cbridgelane(m, "_BridgeLane");
 		cbridgelane.def("addLoadEffect", &CBridgeLane::addLoadEffect, py::arg("IL"), py::arg("weight"));
@@ -670,7 +671,8 @@ PYBIND11_MODULE(libbtls, m) {
 	py::class_<CVehicleBuffer> cvehiclebuffer(m, "_VehicleBuffer");
 		cvehiclebuffer.def(py::init<CConfigDataCore&, CVehicleClassification_sp, double>(), py::arg("config"), py::arg("vehicle_classifier"), py::arg("start_time"))
 			.def("addVehicle", &CVehicleBuffer::AddVehicle, py::arg("vehicle"))
-			.def("flushBuffer", &CVehicleBuffer::FlushBuffer);
+			.def("flushBuffer", py::overload_cast<>(&CVehicleBuffer::FlushBuffer))
+			.def("flushBuffer", py::overload_cast<double>(&CVehicleBuffer::FlushBuffer), py::arg("sim_end_time"), "Flush, filling silent trailing FlowData hours up to the simulated end time.");
 
 
 	py::class_<CMultiModalNormal> cmultimodalnormal(m, "_MultiModalNormal");

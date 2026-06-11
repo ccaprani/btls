@@ -135,6 +135,9 @@ public:
 	 */
 	void Finish();
 
+	/// @brief Finish, filling silent trailing blocks up to the simulated end time.
+	void Finish(double simEndTime);
+
 	/// @brief Get the bridge index within the simulation.
 	size_t getIndex(void);
 

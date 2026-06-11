@@ -48,6 +48,9 @@ public:
 	 */
 	virtual void Update(CEvent& Ev);
 
+	/// @brief Finish, filling silent trailing blocks up to the simulated end time.
+	void FinishAt(double simEndTime);
+
 	/**
 	 * @brief Initialize bucket storage and output files.
 	 *

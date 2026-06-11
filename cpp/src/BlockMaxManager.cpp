@@ -130,6 +130,14 @@ void CBlockMaxManager::OpenVehicleFiles()
 	}
 }
 
+void CBlockMaxManager::FinishAt(double simEndTime)
+{
+	// fill any silent trailing blocks up to the simulated end time
+	while (simEndTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
+		CheckBuffer(false);
+	Finish();
+}
+
 void CBlockMaxManager::CheckBuffer(bool bForceOutput)
 {
 	// finish allows for block max buffers greater than the simulation length

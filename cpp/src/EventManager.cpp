@@ -160,10 +160,28 @@ void CEventManager::Finish()
 
 	if(WRITE_FATIGUE_EVENT)
 		m_FatigueEventBuffer.FlushBuffer();
-	
+
 	if(WRITE_BM) m_BlockMaxManager.Finish();
 	if(WRITE_POT) m_POTManager.Finish();
 	if(WRITE_STATS) m_StatsManager.Finish();
+	if(DO_FATIGUE_RAINFLOW) m_FatigueManager.Finish();
+}
+
+// called at the end of the simulation, with the simulated end time so
+// that trailing silent blocks/intervals are written out too (otherwise
+// outputs end at the last event and chunked runs cannot be merged
+// index-aligned under sparse traffic)
+void CEventManager::Finish(double simEndTime)
+{
+	if(WRITE_EACH_EVENT)
+		m_AllEventBuffer.FlushBuffer();
+
+	if(WRITE_FATIGUE_EVENT)
+		m_FatigueEventBuffer.FlushBuffer();
+
+	if(WRITE_BM) m_BlockMaxManager.FinishAt(simEndTime);
+	if(WRITE_POT) m_POTManager.FinishAt(simEndTime);
+	if(WRITE_STATS) m_StatsManager.FinishAt(simEndTime);
 	if(DO_FATIGUE_RAINFLOW) m_FatigueManager.Finish();
 }
 

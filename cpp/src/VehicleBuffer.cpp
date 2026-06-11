@@ -70,6 +70,18 @@ void CVehicleBuffer::AddVehicle(const CVehicle_sp& pVeh)
 		FlushBuffer();
 }
 
+void CVehicleBuffer::FlushBuffer(double simEndTime)
+{
+	if (WRITE_FLOW_STATS)
+	{
+		// fill any silent trailing hours up to the simulated end time
+		double endRelTime = simEndTime - m_FirstHour*3600.0;
+		while (endRelTime > m_CurHour*3600.0)
+			flushFlowData();
+	}
+	FlushBuffer();
+}
+
 void CVehicleBuffer::FlushBuffer()
 {
 	if(WRITE_VEHICLE_FILE)
