@@ -196,6 +196,7 @@ class OutputConfig(_ConfigDataCore):
         rainflow_decimal: int = 1,
         rainflow_cut_off: float = 0.0,
         buffer_size: int = 10000,
+        write_residuals: bool = False,
     ) -> None:
         """
         Config for recording fatigue event, doing rainflow count and writing data to HDD.
@@ -216,6 +217,13 @@ class OutputConfig(_ConfigDataCore):
 
         buffer_size : int, optional\n
             The buffer size for writing data to HDD. The default is 10000.
+
+        write_residuals : bool, optional\n
+            Chunk mode: at the end of the simulation, write the unclosed
+            residual reversals to a sidecar file (FRR_*.txt) instead of
+            closing them into the rainflow histogram, so consecutive
+            day-chunks can be spliced together exactly. Set automatically
+            by ``Simulation.add_sim(no_chunk=...)``. The default is False.
         """
 
         self._Output.WRITE_FATIGUE_EVENT = write_fatigue_event
@@ -224,3 +232,4 @@ class OutputConfig(_ConfigDataCore):
         self._Output.Fatigue.RAINFLOW_CUTOFF = rainflow_cut_off
         self._Output.WRITE_EVENT_BUFFER_SIZE = buffer_size
         self._Output.Fatigue.WRITE_FATIGUE_BUFFER_SIZE = buffer_size
+        self._Output.Fatigue.WRITE_RAINFLOW_RESIDUALS = write_residuals

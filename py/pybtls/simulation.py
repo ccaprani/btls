@@ -13,6 +13,7 @@ from pathlib import Path
 import importlib.metadata as package_metadata
 import multiprocessing
 import os
+import pickle
 import random
 import sys
 import platform
@@ -155,6 +156,13 @@ class Simulation:
 
         chunk_days = self._validate_chunking(traffic, vehicle, no_day, no_chunk, output_config)
         master_seed = seed if seed is not None else random.SystemRandom().randrange(1, 2**31)
+
+        # Chunk runs keep their rainflow residuals open (written to FRR_*
+        # sidecars) so the merged histogram can be spliced exactly. Copy the
+        # config so the caller's object is not mutated.
+        if output_config._Output.Fatigue.DO_FATIGUE_RAINFLOW:
+            output_config = pickle.loads(pickle.dumps(output_config))
+            output_config._Output.Fatigue.WRITE_RAINFLOW_RESIDUALS = True
 
         chunk_tags = []
         for i in range(no_chunk):

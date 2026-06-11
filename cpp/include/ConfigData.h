@@ -167,6 +167,7 @@ public:
 			int RAINFLOW_DECIMAL;           ///< Decimal precision for rainflow binning.
 			double RAINFLOW_CUTOFF;         ///< Amplitude cut-off below which cycles are ignored.
 			size_t WRITE_FATIGUE_BUFFER_SIZE;  ///< Buffer size for rainflow events.
+			bool WRITE_RAINFLOW_RESIDUALS;  ///< Chunk mode: write residual reversals at finish instead of closing them.
 		} Fatigue;
 
 	} Output = {false, false, 10000, false,
@@ -174,7 +175,7 @@ public:
 				{false, false, false, false, 1, 0, 10000},		// BlockMax_Config
 				{false, false, false, false, 1, 0, 10000},		// POT_Config
 				{false, false, false, 3600, 10000},				// Stats_Config
-				{false, 3, 0.0, 10000}};						// Fatigue_Config
+				{false, 3, 0.0, 10000, false}};					// Fatigue_Config
 
 	/// @brief Time-unit constants used throughout the simulation.
 	struct Time_Config

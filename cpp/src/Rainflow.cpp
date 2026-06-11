@@ -26,6 +26,9 @@ void CRainflow::processData(const std::vector<double> &series)
 
 std::vector<double> CRainflow::extractReversals(const std::vector<double> &series) const
 {
+	if (series.size() < 2)
+		return series;	// guard: a 0/1-point series has no reversals to eliminate
+
 	std::vector<double> reversalsOut;
 
 	double xLast = series[0];
@@ -72,32 +75,27 @@ CRainflow::ExtractCycleOut CRainflow::formatOutput(double point1, double point2,
 	return formatOutputReturn;
 };
 
-// The start and the end of each event are always extracted as reversals, so they can be fake reversals. 
+// The start and the end of each event are always extracted as reversals, so they can be fake reversals.
 void CRainflow::calcCycles(bool bIsFinal)
 {
-	std::vector<CRainflow::ExtractCycleOut> cycles;
-
-	if (bIsFinal)  // Sim end case
-	{
+	if (bIsFinal)
 		m_vReversals.push_back(0.0);  // Sim should be end at 0.0
-		m_vReversals = extractReversals(m_vReversals);  // To eliminate the fake reversals between events. 
 
-		cycles = extractCycles();
-	}
-	else  // No. event buffer reached case
+	if (m_vReversals.size() < 2)
 	{
-		m_vReversals = extractReversals(m_vReversals);  // To eliminate the fake reversals between events.
-
-		double lastReversal = m_vReversals.back();
-		m_vReversals.pop_back();
-		double secondLastReversal = m_vReversals.back();
-
-		cycles = extractCycles();
-
-		m_vReversals.clear();
-		m_vReversals.push_back(secondLastReversal);
-		m_vReversals.push_back(lastReversal);
+		if (bIsFinal)
+			m_vReversals.clear();
+		return;
 	}
+
+	m_vReversals = extractReversals(m_vReversals);  // To eliminate the fake reversals between events.
+
+	// Closed cycles are counted now; the unclosed residual is carried over
+	// to the next buffer (or closed out as half cycles when bIsFinal), so
+	// the result does not depend on the buffer cadence.
+	std::vector<double> residual;
+	std::vector<CRainflow::ExtractCycleOut> cycles = extractCycles(bIsFinal, residual);
+	m_vReversals = residual;
 
 	std::vector<std::pair<double, double>> rainflowOut = countCycles(cycles);
 	for (size_t i = 0; i < rainflowOut.size(); i++)
@@ -109,57 +107,63 @@ void CRainflow::calcCycles(bool bIsFinal)
 	}
 }
 
-// Have not added the check for 1-reversal case, but that case is impossible considering the buffer_size.
-std::vector<CRainflow::ExtractCycleOut> CRainflow::extractCycles() const
+std::vector<CRainflow::ExtractCycleOut> CRainflow::extractCycles(
+	bool bCloseResidual, std::vector<double> &residualOut) const
 {
 	std::deque<double> points;
 	std::vector<ExtractCycleOut> cycles;
 	double x1;
 	double x2;
 	double x3;
-	double X;
-	double Y;
-	
+	double x4;
+
 	for (size_t i = 0; i < m_vReversals.size(); i++)
 	{
 		points.push_back(m_vReversals[i]);
-		while (points.size() >= 3)
+		// Four-point closure: a cycle (x2,x3) closes when its range is
+		// bracketed by its neighbours. This rule is independent of the
+		// points in front of the window, so the residual concatenation of
+		// consecutive chunks reproduces a whole-series count exactly, and
+		// (with the half-cycle closure of the residual at end of data) it
+		// is equivalent to the ASTM E1049-85 one-pass count.
+		while (points.size() >= 4)
 		{
-			// Form ranges X and Y from the three most recent points
-			x1 = points.at(points.size() - 3);
-			x2 = points.at(points.size() - 2);
-			x3 = points.at(points.size() - 1);
-			X = abs(x3 - x2);
-			Y = abs(x2 - x1);
+			x1 = points.at(points.size() - 4);
+			x2 = points.at(points.size() - 3);
+			x3 = points.at(points.size() - 2);
+			x4 = points.at(points.size() - 1);
 
-			if (X < Y)
+			if (abs(x3 - x2) <= abs(x2 - x1) && abs(x3 - x2) <= abs(x4 - x3))
+			{
+				// Count (x2,x3) as one cycle and discard its peak and valley
+				cycles.push_back(formatOutput(x2, x3, 1.0));
+				points.pop_back();
+				points.pop_back();
+				points.pop_back();
+				points.push_back(x4);
+			}
+			else
 			{
 				// Read the next point
 				break;
 			}
-			else if (points.size() == 3)
-			{
-				// Y contains the starting point
-				// Count Y as one-half cycle and discard the first point
-				cycles.push_back(formatOutput(points[0], points[1], 0.5));
-				points.pop_front();
-			}
-			else
-			{
-				// Count Y as one cycle and discard the peak and the valley of Y
-				cycles.push_back(formatOutput(points.at(points.size() - 3), points.at(points.size() - 2), 1.0));
-				double last = points.back();
-				points.pop_back();
-				points.pop_back();
-				points.pop_back();
-				points.push_back(last);
-			}
 		}
 	}
-	while (points.size() > 1)
+
+	if (bCloseResidual)
 	{
-		cycles.push_back(formatOutput(points[0], points[1], 0.5));
-		points.pop_front();
+		// End of data (ASTM E1049-85 rule 5): each remaining range counts
+		// as one-half cycle, front to back.
+		while (points.size() > 1)
+		{
+			cycles.push_back(formatOutput(points[0], points[1], 0.5));
+			points.pop_front();
+		}
+		residualOut.clear();
+	}
+	else
+	{
+		residualOut.assign(points.begin(), points.end());
 	}
 	return cycles;
 };

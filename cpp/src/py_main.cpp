@@ -134,6 +134,7 @@ PYBIND11_MODULE(libbtls, m) {
 					fatigue_dict["RAINFLOW_DECIMAL"] = self.Output.Fatigue.RAINFLOW_DECIMAL;
 					fatigue_dict["RAINFLOW_CUTOFF"] = self.Output.Fatigue.RAINFLOW_CUTOFF;
 					fatigue_dict["WRITE_FATIGUE_BUFFER_SIZE"] = self.Output.Fatigue.WRITE_FATIGUE_BUFFER_SIZE;
+					fatigue_dict["WRITE_RAINFLOW_RESIDUALS"] = self.Output.Fatigue.WRITE_RAINFLOW_RESIDUALS;
 					output_dict["Fatigue"] = fatigue_dict;
 
 					attribute_dict["Road"] = road_dict;
@@ -201,6 +202,7 @@ PYBIND11_MODULE(libbtls, m) {
 					config.Output.Fatigue.RAINFLOW_DECIMAL = attribute_dict["Output"]["Fatigue"]["RAINFLOW_DECIMAL"].cast<int>();
 					config.Output.Fatigue.RAINFLOW_CUTOFF = attribute_dict["Output"]["Fatigue"]["RAINFLOW_CUTOFF"].cast<double>();
 					config.Output.Fatigue.WRITE_FATIGUE_BUFFER_SIZE = attribute_dict["Output"]["Fatigue"]["WRITE_FATIGUE_BUFFER_SIZE"].cast<size_t>();
+					config.Output.Fatigue.WRITE_RAINFLOW_RESIDUALS = attribute_dict["Output"]["Fatigue"]["WRITE_RAINFLOW_RESIDUALS"].cast<bool>();
 
 					return config;
 				}
@@ -271,8 +273,22 @@ PYBIND11_MODULE(libbtls, m) {
 					fatigue_config.def_readwrite("DO_FATIGUE_RAINFLOW", &CConfigDataCore::Output_Config::Fatigue_Config::DO_FATIGUE_RAINFLOW)
 						.def_readwrite("RAINFLOW_DECIMAL", &CConfigDataCore::Output_Config::Fatigue_Config::RAINFLOW_DECIMAL)
 						.def_readwrite("RAINFLOW_CUTOFF", &CConfigDataCore::Output_Config::Fatigue_Config::RAINFLOW_CUTOFF)
-						.def_readwrite("WRITE_FATIGUE_BUFFER_SIZE", &CConfigDataCore::Output_Config::Fatigue_Config::WRITE_FATIGUE_BUFFER_SIZE);
+						.def_readwrite("WRITE_FATIGUE_BUFFER_SIZE", &CConfigDataCore::Output_Config::Fatigue_Config::WRITE_FATIGUE_BUFFER_SIZE)
+						.def_readwrite("WRITE_RAINFLOW_RESIDUALS", &CConfigDataCore::Output_Config::Fatigue_Config::WRITE_RAINFLOW_RESIDUALS);
 
+	py::class_<CRainflow> crainflow(m, "_Rainflow");
+		crainflow.doc() = "ASTM E1049-85 rainflow cycle counter. Used to close spliced chunk residuals exactly.";
+		crainflow.def(py::init<int, double>(), py::arg("decimal"), py::arg("cutoff"))
+			.def("processData", &CRainflow::processData, py::arg("series"),
+				"Feed a load-effect series (or a residual reversal sequence) into the reversal buffer.")
+			.def("calcCycles", &CRainflow::calcCycles, py::arg("is_final"),
+				"Run the rainflow count; pass True to close the residual at end of data.")
+			.def("getRainflowOutput", &CRainflow::getRainflowOutput,
+				py::return_value_policy::copy,
+				"Get the accumulated output: dict of rounded range -> cycle count.")
+			.def("getResiduals", &CRainflow::getResiduals,
+				py::return_value_policy::copy,
+				"Get the residual (unclosed) reversal sequence after calcCycles(False).");
 
 	py::class_<CInfluenceLine> cinfluenceline(m, "_InfluenceLine");
 		cinfluenceline.def(py::init<>())

@@ -78,6 +78,15 @@ private:
 	/// @brief Write the current rainflow output buffer to disk.
 	void writeRainflowBuffer();
 
+	/**
+	 * @brief Write the residual (unclosed) reversal sequences to disk.
+	 *
+	 * One file per load effect ("FRR_{length}_{i}.txt"): a header line with
+	 * the rainflow decimal and cutoff, then one full-precision reversal per
+	 * line. Used to splice chunked simulations together exactly.
+	 */
+	void writeResidualFiles();
+
 	/// @brief Zero the cycle counts in the rainflow output maps.
 	void cleanRainflowOutCountValues();
 
@@ -91,4 +100,5 @@ private:
 	bool DO_FATIGUE_RAINFLOW;                            ///< Enable fatigue rainflow counting (from config).
 	int RAINFLOW_DECIMAL;                                ///< Decimal precision for rainflow binning (from config).
 	double RAINFLOW_CUTOFF;                              ///< Amplitude cut-off below which cycles are ignored (from config).
+	bool WRITE_RAINFLOW_RESIDUALS;                       ///< Chunk mode: write residuals at finish instead of closing them (from config).
 };

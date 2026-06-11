@@ -26,12 +26,8 @@ import pytest
 from pathlib import Path
 from utils import remove_folder
 
-from pybtls.output._merge import (
-    MERGE_REGISTRY,
-    merge_bin_sum,
-    merge_concat,
-    merge_cumulative_stats,
-)
+from pybtls.output._merge import MERGE_REGISTRY
+from pybtls.output.chunked_manager import _ChunkedOutputManager
 
 DAY = 86400.0
 GUARD = 15.0  # s, > max bridge crossing time (20 m at >5 m/s)
@@ -39,20 +35,28 @@ SEED = 20260612
 TIME_STEP = 0.1
 MIN_GVW = 35
 
-# Output keys checked exactly in this test (concat category, Phase 1 scope).
-EXACT_KEYS = [
-    "time_history",
-    "all_events",
-    "BM_by_no_trucks",
-    "BM_by_mixed",
-    "BM_summary",
-    "POT_vehicle",
-    "POT_summary",
-    "POT_counter",
-    "traffic_statistics",
-    "E_interval_statistics",
-    "fatigue_events",
-]
+# Per-key comparison tolerances. These cover text-formatting quanta only:
+# fixed-point files round to 0.01-0.001 (atol) and AllEvents/POT event
+# writers historically used magnitude-dependent formatting (rtol); the
+# underlying doubles agree to ~1e-12. SS_C is looser because the merge
+# inverts 0.01-quantised statistics back to raw moments.
+KEY_TOLERANCES = {
+    "time_history": dict(rtol=1e-5, atol=0.011),
+    "all_events": dict(rtol=1e-5, atol=0.011),
+    "BM_by_no_trucks": dict(rtol=1e-5, atol=0.011),
+    "BM_by_mixed": dict(rtol=1e-5, atol=0.011),
+    "BM_summary": dict(rtol=1e-5, atol=0.011),
+    "POT_vehicle": dict(rtol=1e-5, atol=0.011),
+    "POT_summary": dict(rtol=1e-5, atol=0.011),
+    "POT_counter": dict(rtol=1e-5, atol=0.011),
+    "traffic_statistics": dict(rtol=1e-5, atol=0.011),
+    "E_cumulative_statistics": dict(rtol=1e-3, atol=0.03),
+    "E_interval_statistics": dict(rtol=1e-5, atol=0.011),
+    "fatigue_events": dict(rtol=1e-5, atol=0.011),
+    # Exact residue splicing: amplitudes are decimal-rounded bins and
+    # counts are halves, so the comparison is essentially exact.
+    "fatigue_rainflow": dict(rtol=1e-9, atol=1e-6),
+}
 
 
 def _make_bridge() -> "pb.Bridge":
@@ -141,13 +145,20 @@ def _split_traffic(recorded: Path, out_dir: Path) -> tuple[Path, Path, Path]:
 
 
 def _replay(traffic_files: dict[str, tuple[Path, int]], out_root: Path) -> dict:
-    """Replay each recorded stream through an identical bridge."""
-    output_config = pb.OutputConfig()
-    output_config.set_event_output(write_time_history=True, write_each_event=True)
-    output_config.set_BM_output(write_vehicle=True, write_summary=True, write_mixed=True)
-    output_config.set_POT_output(write_vehicle=True, write_summary=True, write_counter=True)
-    output_config.set_fatigue_output(write_fatigue_event=True, write_rainflow_output=True)
-    output_config.set_stats_output(write_flow_stats=True, write_overall=True, write_intervals=True)
+    """Replay each recorded stream through an identical bridge. Chunk
+    replays keep their rainflow residuals open (write_residuals) so the
+    merged histogram can be spliced exactly, as the auto-chunk path does."""
+
+    def make_config(residuals: bool) -> "pb.OutputConfig":
+        output_config = pb.OutputConfig()
+        output_config.set_event_output(write_time_history=True, write_each_event=True)
+        output_config.set_BM_output(write_vehicle=True, write_summary=True, write_mixed=True)
+        output_config.set_POT_output(write_vehicle=True, write_summary=True, write_counter=True)
+        output_config.set_fatigue_output(
+            write_fatigue_event=True, write_rainflow_output=True, write_residuals=residuals
+        )
+        output_config.set_stats_output(write_flow_stats=True, write_overall=True, write_intervals=True)
+        return output_config
 
     sim = pb.Simulation(output_dir=out_root)
     for tag, (traffic_file, no_day) in traffic_files.items():
@@ -162,7 +173,7 @@ def _replay(traffic_files: dict[str, tuple[Path, int]], out_root: Path) -> dict:
             bridge=_make_bridge(),
             traffic=loader,
             no_day=no_day,
-            output_config=output_config,
+            output_config=make_config(residuals=tag.startswith("chunk")),
             time_step=TIME_STEP,
             min_gvw=MIN_GVW,
             tag=tag,
@@ -187,76 +198,34 @@ def replayed_outputs():
     remove_folder(root)
 
 
-def _frames(output, key) -> dict[str, pd.DataFrame]:
-    data = output.read_data(key)
+def _frames(data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
     # The Trucks column holds Vehicle objects — excluded from comparison.
     return {
         stem: df.drop(columns=["Trucks"], errors="ignore") for stem, df in data.items()
     }
 
 
-@pytest.mark.parametrize("key", EXACT_KEYS)
+@pytest.mark.parametrize("key", sorted(KEY_TOLERANCES))
 def test_merged_chunks_equal_full_run(replayed_outputs, key):
-    full = _frames(replayed_outputs["full"], key)
-    chunk_a = _frames(replayed_outputs["chunk_a"], key)
-    chunk_b = _frames(replayed_outputs["chunk_b"], key)
+    # Merge through the production path: the same _ChunkedOutputManager
+    # that Simulation.add_sim(no_chunk=...) returns.
+    chunked = _ChunkedOutputManager(
+        [replayed_outputs["chunk_a"], replayed_outputs["chunk_b"]],
+        chunk_days=[1, 1],
+        sim_tag="merged",
+    )
+    assert key in MERGE_REGISTRY
 
-    assert set(full) == set(chunk_a) == set(chunk_b), f"file sets differ for {key}"
+    full = _frames(replayed_outputs["full"].read_data(key))
+    merged = _frames(chunked.read_data(key))
 
-    spec = MERGE_REGISTRY[key]
+    assert set(full) == set(merged), f"file sets differ for {key}"
+
     for stem in full:
-        merged = merge_concat([chunk_a[stem], chunk_b[stem]], spec, [0.0, DAY])
-        # Tolerances cover text-formatting quanta only: fixed-point files
-        # round to 0.01 (atol), and AllEvents/POT write times with C++
-        # default 6-significant-digit formatting, so the quantum scales
-        # with magnitude (rtol). The underlying doubles agree to ~1e-12.
         pd.testing.assert_frame_equal(
-            merged,
+            merged[stem],
             full[stem],
             check_exact=False,
-            rtol=1e-5,
-            atol=0.011,
             obj=f"{key}/{stem}",
+            **KEY_TOLERANCES[key],
         )
-
-
-def test_merged_cumulative_stats_equal_full_run(replayed_outputs):
-    # SS_C is merged by inverting each chunk's reported statistics back to
-    # raw moment sums and combining them with the Chan parallel formulas.
-    # The combination is mathematically exact; tolerances cover the 0.01
-    # quantisation of the input files (amplified slightly by the M3/M4
-    # inversion for skewness/kurtosis).
-    key = "E_cumulative_statistics"
-    full = _frames(replayed_outputs["full"], key)
-    chunk_a = _frames(replayed_outputs["chunk_a"], key)
-    chunk_b = _frames(replayed_outputs["chunk_b"], key)
-
-    assert set(full) == set(chunk_a) == set(chunk_b)
-
-    for stem in full:
-        merged = merge_cumulative_stats([chunk_a[stem], chunk_b[stem]])
-        pd.testing.assert_frame_equal(
-            merged,
-            full[stem],
-            check_exact=False,
-            rtol=1e-3,
-            atol=0.03,
-            obj=f"{key}/{stem}",
-        )
-
-
-def test_merged_rainflow_close_to_full_run(replayed_outputs):
-    # Exact residual-reversal splicing lands in Phase 2; until then the
-    # boundary closure may shift a handful of cycles between bins.
-    key = "fatigue_rainflow"
-    full = _frames(replayed_outputs["full"], key)
-    chunk_a = _frames(replayed_outputs["chunk_a"], key)
-    chunk_b = _frames(replayed_outputs["chunk_b"], key)
-
-    spec = MERGE_REGISTRY[key]
-    for stem in full:
-        merged = merge_bin_sum([chunk_a[stem], chunk_b[stem]], spec)
-        total_full = full[stem]["No. Cycles"].sum()
-        total_merged = merged["No. Cycles"].sum()
-        assert total_full > 0
-        assert abs(total_merged - total_full) <= max(4, 0.01 * total_full)

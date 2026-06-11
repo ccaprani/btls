@@ -42,6 +42,7 @@ __all__ = [
     "merge_bin_sum",
     "merge_cumulative_stats",
     "merge_vehicle_traffic",
+    "merge_rainflow",
 ]
 
 # Simulation calendar (CConfigData::Time defaults): 25-day "months",
@@ -99,10 +100,12 @@ MERGE_REGISTRY: dict[str, MergeSpec] = {
     "fatigue_events": MergeSpec(
         "concat", time_cols=("Start Time", "Effect * Time")
     ),
-    # v1: closed-cycle histograms add bin-wise. Residual reversals at chunk
-    # boundaries are spliced exactly in Phase 2.
+    # Closed-cycle histograms add bin-wise; the unclosed residual reversal
+    # sequences (FRR_* sidecars, written in chunk mode) are concatenated and
+    # closed with the same C++ algorithm — exact residue splicing. Falls
+    # back to plain bin_sum when no sidecars exist.
     "fatigue_rainflow": MergeSpec(
-        "bin_sum", sum_key_cols=("Amplitude",), sum_value_cols=("No. Cycles",)
+        "rainflow_splice", sum_key_cols=("Amplitude",), sum_value_cols=("No. Cycles",)
     ),
 }
 
@@ -313,6 +316,70 @@ def _invert_moments(
         m3 = np.where(ok, skewness * np.sqrt(m2**3) / np.sqrt(n), 0.0)
         m4 = np.where(ok, (kurtosis + 3.0) * m2**2 / n, 0.0)
     return np.nan_to_num(m2), np.nan_to_num(m3), np.nan_to_num(m4)
+
+
+def merge_rainflow(
+    chunk_dfs: list[pd.DataFrame],
+    residual_seqs: list[list[float]],
+    decimal: int,
+    cutoff: float,
+) -> pd.DataFrame:
+    """
+    Merge rainflow histograms exactly: sum the per-chunk closed-cycle
+    counts, then concatenate the chunks' residual reversal sequences in
+    order and close them with the same C++ rainflow algorithm (residue
+    splicing). The result equals what one continuous run would report.
+
+    Parameters
+    ----------
+    chunk_dfs : list[pd.DataFrame]\n
+        Per-chunk frames as returned by ``read_FR`` (closed cycles only,
+        i.e. the chunks were run with ``write_residuals=True``).
+    residual_seqs : list[list[float]]\n
+        Per-chunk residual reversal sequences, in chunk (time) order.
+    decimal : int\n
+        Rainflow binning precision (RAINFLOW_DECIMAL).
+    cutoff : float\n
+        Amplitude cut-off (RAINFLOW_CUTOFF).
+
+    Returns
+    -------
+    pd.DataFrame\n
+        Columns Amplitude / No. Cycles, sorted by amplitude.
+    """
+
+    from ..lib import libbtls
+
+    frames = [df for df in chunk_dfs if not df.empty]
+
+    spliced = []
+    for seq in residual_seqs:
+        spliced.extend(seq)
+    if spliced:
+        counter = libbtls._Rainflow(decimal, cutoff)
+        counter.processData(spliced)
+        counter.calcCycles(True)
+        closure = counter.getRainflowOutput()
+        if closure:
+            frames.append(
+                pd.DataFrame(
+                    {
+                        "Amplitude": list(closure.keys()),
+                        "No. Cycles": list(closure.values()),
+                    }
+                )
+            )
+
+    if not frames:
+        return chunk_dfs[0].copy() if chunk_dfs else pd.DataFrame()
+
+    merged = pd.concat(frames, ignore_index=True)
+    # Re-round so text-parsed amplitudes and C++-computed bin keys collapse
+    # into the same groups despite last-ulp float differences.
+    if decimal >= 0:
+        merged["Amplitude"] = merged["Amplitude"].round(decimal)
+    merged = merged.groupby("Amplitude", as_index=False)["No. Cycles"].sum()
+    return merged.sort_values("Amplitude", ignore_index=True)
 
 
 def merge_vehicle_traffic(

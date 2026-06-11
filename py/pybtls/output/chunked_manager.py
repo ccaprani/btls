@@ -9,6 +9,7 @@ from ._merge import (
     merge_bin_sum,
     merge_concat,
     merge_cumulative_stats,
+    merge_rainflow,
     merge_vehicle_traffic,
 )
 from .output_manager import _OutputManager
@@ -124,11 +125,37 @@ class _ChunkedOutputManager:
                 merged[stem] = merge_cumulative_stats(frames)
             elif spec.category == "vehicles_concat":
                 merged[stem] = merge_vehicle_traffic(frames, self._day_offsets)
+            elif spec.category == "rainflow_splice":
+                merged[stem] = self._merge_rainflow_stem(stem, frames, spec)
             else:  # pragma: no cover - registry and dispatch must stay in sync
                 raise NotImplementedError(
                     f"No merge implementation for category '{spec.category}'."
                 )
         return merged
+
+    def _merge_rainflow_stem(
+        self, stem: str, frames: list[pd.DataFrame], spec
+    ) -> pd.DataFrame:
+        """Exact residue splicing when the FRR_* sidecars exist; otherwise
+        fall back to summing the per-chunk histograms."""
+
+        residual_paths = [
+            chunk._output_root / chunk._this_output_dir
+            / (stem.replace("FR_", "FRR_", 1) + ".txt")
+            for chunk in self._chunks
+        ]
+        if not all(path.is_file() for path in residual_paths):
+            return merge_bin_sum(frames, spec)
+
+        residual_seqs = []
+        decimal, cutoff = None, None
+        for path in residual_paths:
+            with open(path, "r") as file:
+                header = file.readline().split()
+                decimal, cutoff = int(header[0]), float(header[1])
+                residual_seqs.append([float(line) for line in file if line.strip()])
+
+        return merge_rainflow(frames, residual_seqs, decimal, cutoff)
 
     def read_chunk_data(self, key: str) -> list[dict[str, pd.DataFrame]]:
         """

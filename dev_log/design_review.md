@@ -4,8 +4,18 @@
 （2026-06-12「把发现的bug都修了」）；设计类仍待逐项讨论。
 
 状态总览：
-- **已修复（bug）**：DR-1、DR-8、DR-9、DR-10、DR-11、DR-12
+- **已修复（bug）**：DR-1、DR-8、DR-9、DR-10、DR-11、DR-12、DR-13
 - **待讨论（设计）**：DR-2、DR-3、DR-4、DR-5、DR-6、DR-7
+
+## DR-13: 雨流计数依赖 IO 缓冲尺寸（C++ bug，**已修复**）
+
+原 `CRainflow::calcCycles(false)` 每次 flush 把未闭合点折成半循环、只带
+2 个反转点过界——直方图随 buffer_size 变化、跨 flush 大循环被切碎。
+已重写为真四点法 + residual 跨 flush 携带 + 末端 ASTM 闭合：确定性、
+与教科书 ASTM E1049-85 一致、且满足 chunk 拼接结合律。详见
+[03_phase2.md](03_phase2.md)。**行为变化**：新 FR 直方图与旧值有少量
+bin 级差异（新值是正确的整列计数）。另修 extractReversals 对 0/1 点
+序列的越界 UB。
 
 ## DR-1: FlowData 小时分箱在静默小时会错位（C++ bug，**已修复**）
 
