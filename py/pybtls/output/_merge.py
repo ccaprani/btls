@@ -32,9 +32,23 @@ vehicles_concat
 from dataclasses import dataclass, field
 from fnmatch import fnmatch
 
+import numpy as np
 import pandas as pd
 
-__all__ = ["MergeSpec", "MERGE_REGISTRY", "merge_concat", "merge_bin_sum"]
+__all__ = [
+    "MergeSpec",
+    "MERGE_REGISTRY",
+    "merge_concat",
+    "merge_bin_sum",
+    "merge_cumulative_stats",
+    "merge_vehicle_traffic",
+]
+
+# Simulation calendar (CConfigData::Time defaults): 25-day "months",
+# 10-month "years" - used by the vehicle-record day arithmetic.
+_DAYS_PER_MT = 25
+_MTS_PER_YR = 10
+_DAYS_PER_YR = _DAYS_PER_MT * _MTS_PER_YR
 
 
 @dataclass(frozen=True)
@@ -182,3 +196,170 @@ def merge_bin_sum(chunk_dfs: list[pd.DataFrame], spec: MergeSpec) -> pd.DataFram
     values = list(spec.sum_value_cols)
     merged = merged.groupby(keys, as_index=False)[values].sum()
     return merged.sort_values(keys, ignore_index=True)
+
+
+def merge_cumulative_stats(chunk_dfs: list[pd.DataFrame]) -> pd.DataFrame:
+    """
+    Merge SS_C cumulative-statistics frames (one row per load effect) by
+    reconstructing the raw moment sums from each chunk's reported
+    statistics and combining them with the parallel (Chan et al.) update
+    formulas - the exact counterpart of the C++ online accumulator
+    (CEventStatistics::accumulator/finalize).
+
+    The inversion (M2 from Variance, M3 from Skewness, M4 from Kurtosis)
+    is mathematically exact; the only error source is the fixed-precision
+    text formatting of the input files.
+
+    Parameters
+    ----------
+    chunk_dfs : list[pd.DataFrame]\n
+        One frame per chunk, as returned by ``read_E_CS`` (columns:
+        Effect, No. Events, No. Vehicles, No. Trucks, Min, Max, Mean,
+        Std Dev, Variance, Skewness, Kurtosis).
+
+    Returns
+    -------
+    pd.DataFrame\n
+        A single frame with the same columns, equal to what one
+        continuous run would have reported.
+    """
+
+    frames = [df for df in chunk_dfs if not df.empty]
+    if not frames:
+        return chunk_dfs[0].copy() if chunk_dfs else pd.DataFrame()
+
+    # Combined integer tallies are exact.
+    out = frames[0].copy()
+    base = frames[0].set_index("Effect")
+    effects = base.index
+
+    n = base["No. Events"].to_numpy(dtype=float)
+    mean = base["Mean"].to_numpy(dtype=float)
+    m2, m3, m4 = _invert_moments(base, n)
+    lo = base["Min"].to_numpy(dtype=float)
+    hi = base["Max"].to_numpy(dtype=float)
+    vehs = base["No. Vehicles"].to_numpy(dtype=np.int64)
+    trks = base["No. Trucks"].to_numpy(dtype=np.int64)
+
+    for df in frames[1:]:
+        other = df.set_index("Effect").loc[effects]
+        nb = other["No. Events"].to_numpy(dtype=float)
+        mean_b = other["Mean"].to_numpy(dtype=float)
+        m2b, m3b, m4b = _invert_moments(other, nb)
+
+        na = n
+        ntot = na + nb
+        delta = mean_b - mean
+        with np.errstate(invalid="ignore", divide="ignore"):
+            mean = np.where(ntot > 0, mean + delta * nb / ntot, 0.0)
+            m4 = (
+                m4
+                + m4b
+                + delta**4 * na * nb * (na**2 - na * nb + nb**2) / ntot**3
+                + 6.0 * delta**2 * (na**2 * m2b + nb**2 * m2) / ntot**2
+                + 4.0 * delta * (na * m3b - nb * m3) / ntot
+            )
+            m3 = (
+                m3
+                + m3b
+                + delta**3 * na * nb * (na - nb) / ntot**2
+                + 3.0 * delta * (na * m2b - nb * m2) / ntot
+            )
+            m2 = m2 + m2b + delta**2 * na * nb / ntot
+        m4 = np.nan_to_num(m4)
+        m3 = np.nan_to_num(m3)
+        m2 = np.nan_to_num(m2)
+        n = ntot
+
+        lo = np.where(nb > 0, np.minimum(lo, other["Min"].to_numpy(dtype=float)), lo)
+        hi = np.where(nb > 0, np.maximum(hi, other["Max"].to_numpy(dtype=float)), hi)
+        vehs = vehs + other["No. Vehicles"].to_numpy(dtype=np.int64)
+        trks = trks + other["No. Trucks"].to_numpy(dtype=np.int64)
+
+    # Finalize exactly like CEventStatistics::finalize().
+    ok = (n >= 2) & (m2 > 0.0)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        variance = np.where(ok, m2 / (n - 1), 0.0)
+        std_dev = np.sqrt(variance)
+        skewness = np.where(ok, np.sqrt(n) * m3 / np.sqrt(m2**3), 0.0)
+        kurtosis = np.where(ok, n * m4 / m2**2 - 3.0, 0.0)
+
+    out["No. Events"] = n.astype(np.int64)
+    out["No. Vehicles"] = vehs
+    out["No. Trucks"] = trks
+    out["Min"] = lo
+    out["Max"] = hi
+    out["Mean"] = mean
+    out["Std Dev"] = std_dev
+    out["Variance"] = variance
+    out["Skewness"] = skewness
+    out["Kurtosis"] = kurtosis
+    return out
+
+
+def _invert_moments(
+    indexed_df: pd.DataFrame, n: "np.ndarray"
+) -> tuple["np.ndarray", "np.ndarray", "np.ndarray"]:
+    """Recover (M2, M3, M4) from finalized statistics, inverting
+    CEventStatistics::finalize()."""
+
+    variance = indexed_df["Variance"].to_numpy(dtype=float)
+    skewness = indexed_df["Skewness"].to_numpy(dtype=float)
+    kurtosis = indexed_df["Kurtosis"].to_numpy(dtype=float)
+
+    ok = n >= 2
+    with np.errstate(invalid="ignore", divide="ignore"):
+        m2 = np.where(ok, variance * (n - 1), 0.0)
+        m3 = np.where(ok, skewness * np.sqrt(m2**3) / np.sqrt(n), 0.0)
+        m4 = np.where(ok, (kurtosis + 3.0) * m2**2 / n, 0.0)
+    return np.nan_to_num(m2), np.nan_to_num(m3), np.nan_to_num(m4)
+
+
+def merge_vehicle_traffic(
+    chunk_dfs: list[pd.DataFrame], day_offsets: list[int]
+) -> pd.DataFrame:
+    """
+    Merge recorded-vehicle frames (``read_traffic``) by advancing each
+    chunk's calendar fields by its start offset in days. The simulation
+    calendar uses 25-day months and 10-month years (CConfigData::Time).
+
+    Parameters
+    ----------
+    chunk_dfs : list[pd.DataFrame]\n
+        One frame per chunk, in chunk order.
+    day_offsets : list[int]\n
+        Start day of each chunk on the merged timeline (chunk 0 = 0).
+
+    Returns
+    -------
+    pd.DataFrame\n
+        The merged vehicle frame with continuous calendar fields and
+        unique vehicle IDs ("Head").
+    """
+
+    if len(chunk_dfs) != len(day_offsets):
+        raise ValueError("chunk_dfs and day_offsets must have equal length.")
+
+    shifted = []
+    head_base = 0
+    for df, offset in zip(chunk_dfs, day_offsets):
+        if df.empty:
+            continue
+        df = df.copy()
+        abs_day = (
+            (df["Year"].astype(np.int64)) * _DAYS_PER_YR
+            + (df["Month"].astype(np.int64) - 1) * _DAYS_PER_MT
+            + (df["Day"].astype(np.int64) - 1)
+            + int(offset)
+        )
+        df["Year"] = abs_day // _DAYS_PER_YR
+        df["Month"] = (abs_day % _DAYS_PER_YR) // _DAYS_PER_MT + 1
+        df["Day"] = abs_day % _DAYS_PER_MT + 1
+        df["Head"] = df["Head"] + head_base
+        head_base = int(df["Head"].max())
+        shifted.append(df)
+
+    if not shifted:
+        return chunk_dfs[0].copy() if chunk_dfs else pd.DataFrame()
+
+    return pd.concat(shifted, ignore_index=True)

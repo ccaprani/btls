@@ -26,7 +26,12 @@ import pytest
 from pathlib import Path
 from utils import remove_folder
 
-from pybtls.output._merge import MERGE_REGISTRY, merge_bin_sum, merge_concat
+from pybtls.output._merge import (
+    MERGE_REGISTRY,
+    merge_bin_sum,
+    merge_concat,
+    merge_cumulative_stats,
+)
 
 DAY = 86400.0
 GUARD = 15.0  # s, > max bridge crossing time (20 m at >5 m/s)
@@ -211,6 +216,31 @@ def test_merged_chunks_equal_full_run(replayed_outputs, key):
             check_exact=False,
             rtol=1e-5,
             atol=0.011,
+            obj=f"{key}/{stem}",
+        )
+
+
+def test_merged_cumulative_stats_equal_full_run(replayed_outputs):
+    # SS_C is merged by inverting each chunk's reported statistics back to
+    # raw moment sums and combining them with the Chan parallel formulas.
+    # The combination is mathematically exact; tolerances cover the 0.01
+    # quantisation of the input files (amplified slightly by the M3/M4
+    # inversion for skewness/kurtosis).
+    key = "E_cumulative_statistics"
+    full = _frames(replayed_outputs["full"], key)
+    chunk_a = _frames(replayed_outputs["chunk_a"], key)
+    chunk_b = _frames(replayed_outputs["chunk_b"], key)
+
+    assert set(full) == set(chunk_a) == set(chunk_b)
+
+    for stem in full:
+        merged = merge_cumulative_stats([chunk_a[stem], chunk_b[stem]])
+        pd.testing.assert_frame_equal(
+            merged,
+            full[stem],
+            check_exact=False,
+            rtol=1e-3,
+            atol=0.03,
             obj=f"{key}/{stem}",
         )
 
