@@ -46,7 +46,7 @@ void CPOTManager::Update(CEvent curEvent)
 {
 	double curTime = curEvent.getStartTime();
 	
-	if( curTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
+	while( curTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )	// while, not if: fill in any silent blocks
 		UpdateCounter();
 
 	size_t nEventVehs = curEvent.getNoVehicles();

@@ -43,8 +43,8 @@ void CStatsManager::Update(CEvent curEvent)
 {
 	m_CurTime = curEvent.getStartTime();
 	
-	if( m_CurTime - m_SimStartTime > (double)(m_CurIntervalNo)*WRITE_SS_INTERVAL_SIZE && WRITE_SS_INTERVALS )
-		CheckBuffer(false);	// at the end of a block
+	while( m_CurTime - m_SimStartTime > (double)(m_CurIntervalNo)*WRITE_SS_INTERVAL_SIZE && WRITE_SS_INTERVALS )
+		CheckBuffer(false);	// at the end of a block; while, not if: fill in any silent intervals
 
 	if(curEvent.getNoVehicles() > 0)
 	{

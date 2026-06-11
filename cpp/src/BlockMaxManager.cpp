@@ -64,8 +64,8 @@ void CBlockMaxManager::Update(CEvent curEvent)
 {
 	double curTime = curEvent.getStartTime();
 	
-	if (curTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
-		CheckBuffer(false);	// at the end of a block
+	while (curTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
+		CheckBuffer(false);	// at the end of a block; while, not if: fill in any silent blocks
 
 	m_CurEventNoVehicles = curEvent.getNoVehicles();
 	if(m_CurEventNoVehicles > 0)

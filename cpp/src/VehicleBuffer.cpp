@@ -106,7 +106,7 @@ void CVehicleBuffer::updateFlowData(const CVehicle_sp& pV)
 		return;
 
 	double curRelTime = pV->getTime() - m_FirstHour*3600.0;
-	if (curRelTime > m_CurHour*3600.0)
+	while (curRelTime > m_CurHour*3600.0)	// while, not if: fill in any silent hours
 		flushFlowData();
 	
 	// get ref to data

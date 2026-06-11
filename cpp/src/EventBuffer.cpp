@@ -73,8 +73,11 @@ void CEventBuffer::FlushAllEventsBuff()
 	CEvent Ev = m_vEvents[nEvs-1];
 	std::cout << std::endl << "Bridge " << to_string(m_BridgeLength) << " m: Flushing AllEvents buffer: " << nEvs << " events at " << Ev.getTimeStr() << '\t';
 	
+	// fixed precision: the default 6-significant-digit formatting degrades
+	// with simulation length (at 100 years the times lose second-level accuracy)
+	m_OutFile << std::fixed << std::setprecision(3);
 	for (size_t i = 0; i < nEvs; i++)
-	{	
+	{
 		CEvent& Ev = m_vEvents[i];
 
 		m_OutFile << Ev.getStartTime() << '\t';

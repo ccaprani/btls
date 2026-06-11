@@ -29,14 +29,17 @@ def read_E_CS(file_path: Path) -> pd.DataFrame:
     )
 
     # Remove the truck presence counts (it could mislead user to a wrong number of trucks presence since a truck could be involved in multiple events).
-    return_data = return_data.drop(return_data.columns[9:], axis=1)
+    return_data = return_data.drop(return_data.columns[11:], axis=1)
 
-    # Set the column names
+    # Set the column names (must match CEventStatistics::outputString order:
+    # N, vehicles, trucks, min, max, mean, stddev, variance, skewness, kurtosis)
     return_data.columns = [
         "Effect",
         "No. Events",
         "No. Vehicles",
         "No. Trucks",
+        "Min",
+        "Max",
         "Mean",
         "Std Dev",
         "Variance",
