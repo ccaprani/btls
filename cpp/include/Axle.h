@@ -90,6 +90,11 @@ public:
 	double m_TransPos;      ///< Transverse position of the axle centreline in metres (from measured traffic).
 	double m_Eccentricity;  ///< Transverse eccentricity from the lane centreline in metres (from generated traffic).
 	size_t m_Lane;          ///< Zero-based bridge lane index this axle belongs to.
+	double m_Acceleration;  ///< Longitudinal acceleration in metres per second squared. Negative values represent
+	                        ///< braking; zero (default) means constant-velocity motion. Used by the
+	                        ///< braking mode in @ref CInfluenceLine::getAxleLoadEffect; for the standard
+	                        ///< constant-velocity simulation, this field stays at zero and does not affect
+	                        ///< @ref UpdatePosition (which retains its linear-motion model).
 
 private:
 	int m_Sign;             ///< Direction sign: +1 if m_Dirn == 1, -1 otherwise.
