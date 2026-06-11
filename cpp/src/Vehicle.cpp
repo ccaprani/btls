@@ -11,7 +11,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CVehicle::CVehicle() : m_Class(Classification(0, "default"))
+CVehicle::CVehicle() : m_Class(Classification(0, "default")), m_Acceleration(0.0)
 {
 	setConstants();
 }
@@ -686,6 +686,11 @@ void CVehicle::setVelocity(double vel)
 	m_Velocity = vel;
 }
 
+void CVehicle::setAcceleration(double acc)
+{
+	m_Acceleration = acc;
+}
+
 void CVehicle::setLength(double length)
 {
 	m_Length = length;
@@ -837,6 +842,11 @@ double CVehicle::getTimeOnBridge()
 double CVehicle::getVelocity()
 {
 	return m_Velocity;
+}
+
+double CVehicle::getAcceleration()
+{
+	return m_Acceleration;
 }
 
 double CVehicle::getLength()

@@ -143,6 +143,55 @@ public:
 	 */
 	void setWeight(double weight);
 
+	/**
+	 * @brief Load-effect mode tag for the per-axle force formula.
+	 *
+	 * The bridge-geometry factors (radius R, superelevation factor k_e for
+	 * centrifugal; lever-arm or design constants for braking) are intentionally
+	 * kept on the caller side: the caller bakes them into the influence-line
+	 * ordinates (or applies them via @ref setWeight) so that the IL remains
+	 * the single source of bridge-specific physics. The C++ dispatch below
+	 * only selects the per-axle force proxy:
+	 *
+	 * - Vertical (default): F_axle = AxleWeight; ordinary vertical reaction.
+	 * - Centrifugal: F_axle = AxleWeight * Speed^2 / g, taking the per-axle
+	 *   speed m_Speed (per-vehicle, set by the upstream traffic generator).
+	 *   The caller is expected to supply an IL whose ordinates carry the
+	 *   k_e / R factor so that the convolution yields a force in the same
+	 *   units as the vertical reaction.
+	 * - Braking: F_axle = AxleWeight * |Acceleration| / g, taking the per-axle
+	 *   m_Acceleration (per-vehicle / per-time, set by the upstream solver).
+	 *   If m_Acceleration is exactly zero, falls back to AxleWeight times the
+	 *   scalar @ref setBrakingFactor (= a_design / g) for code-prescribed
+	 *   constant-deceleration cases.
+	 */
+	enum LoadEffectMode {
+		LE_Vertical    = 0,
+		LE_Centrifugal = 1,
+		LE_Braking     = 2
+	};
+
+	/**
+	 * @brief Select the load-effect mode used in @ref getLoadEffect.
+	 *
+	 * @param[in] mode One of LE_Vertical (0), LE_Centrifugal (1), LE_Braking (2).
+	 */
+	void setLoadEffectMode(size_t mode);
+
+	/**
+	 * @brief Configure the dimensionless braking-mode scalar fallback.
+	 *
+	 * Used in braking mode whenever the per-axle CAxle::m_Acceleration is zero
+	 * (for example, when the upstream traffic generator does not write a
+	 * per-vehicle deceleration). The per-axle braking force becomes
+	 *   F_B = AxleWeight * brakingFactor
+	 * with @p brakingFactor interpreted as a dimensionless deceleration ratio
+	 * (a / g) for a code-prescribed constant-deceleration design rule.
+	 *
+	 * @param[in] brakingFactor Dimensionless braking ratio (deceleration / g).
+	 */
+	void setBrakingFactor(double brakingFactor);
+
 private:
 	/// @brief Compute the load effect contribution of a single axle.
 	double getAxleLoadEffect(CAxle& axle);
@@ -188,4 +237,7 @@ private:
 
 	std::vector<LEfptr> m_vLEfptr;    ///< Dispatch table for type-1 load-effect functions.
 	LEfptr m_LEfptr;                  ///< Cached function pointer for the current analytical expression.
+
+	size_t m_LoadEffectMode;          ///< Per-axle force formula: 0 = vertical, 1 = centrifugal, 2 = braking.
+	double m_BrakingFactor;           ///< Dimensionless braking ratio fallback (braking mode only); used when CAxle::m_Acceleration is zero.
 };
