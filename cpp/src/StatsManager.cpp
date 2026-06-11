@@ -62,19 +62,27 @@ void CStatsManager::Update(CEvent curEvent)
 
 void CStatsManager::CheckBuffer(bool bForceOutput)
 {
+	if(bForceOutput)
+		// store the current (final) interval so it gets written too,
+		// otherwise the last interval of every simulation is lost
+		m_vIntStatsBuffer.push_back(m_vIntervalStats);
+
 	if(m_vIntStatsBuffer.size() == WRITE_BUFFER_SIZE || bForceOutput)
 		WriteBuffer();
 
 	if(bForceOutput && WRITE_SS_CUMULATIVE)
 		WriteCumulativeFile();
-	
+
+	if(bForceOutput)
+		return;	// end of simulation - no next interval to prepare
+
 	// store data and update for next interval
 	m_vIntStatsBuffer.push_back(m_vIntervalStats);
-	
+
 	m_CurIntervalNo++;
 
 	m_vIntervalStats.clear();
-	CEventStatistics temp; 
+	CEventStatistics temp;
 	temp.m_ID = m_CurIntervalNo;
 	m_vIntervalStats.assign(m_NoLoadEffects, temp);
 }
