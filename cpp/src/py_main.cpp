@@ -2,6 +2,7 @@
 // the main file for the PyBTLS Build
 
 #include "PrepareSim.h"
+#include "ConsoleOutput.h"
 #include "Distribution.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
@@ -20,6 +21,10 @@ PYBIND11_MODULE(libbtls, m) {
 		m.attr("__version__") = "dev";
 	#endif
 	m.def("get_info", &preamble, "Print the information of the BTLS library.");
+	m.def("set_console_output", [](bool enable) { btls::console_output = enable; },
+		"Enable or disable routine console messages (buffer-flush notices). "
+		"Default is off; errors and warnings are always printed.",
+		py::arg("enable"));
 	m.def("_sample_uniform", []() {
 		CDistribution d;
 		return d.GenerateUniform();
@@ -134,6 +139,7 @@ PYBIND11_MODULE(libbtls, m) {
 					fatigue_dict["RAINFLOW_DECIMAL"] = self.Output.Fatigue.RAINFLOW_DECIMAL;
 					fatigue_dict["RAINFLOW_CUTOFF"] = self.Output.Fatigue.RAINFLOW_CUTOFF;
 					fatigue_dict["WRITE_FATIGUE_BUFFER_SIZE"] = self.Output.Fatigue.WRITE_FATIGUE_BUFFER_SIZE;
+					fatigue_dict["WRITE_RAINFLOW_RESIDUALS"] = self.Output.Fatigue.WRITE_RAINFLOW_RESIDUALS;
 					output_dict["Fatigue"] = fatigue_dict;
 
 					attribute_dict["Road"] = road_dict;
@@ -201,6 +207,7 @@ PYBIND11_MODULE(libbtls, m) {
 					config.Output.Fatigue.RAINFLOW_DECIMAL = attribute_dict["Output"]["Fatigue"]["RAINFLOW_DECIMAL"].cast<int>();
 					config.Output.Fatigue.RAINFLOW_CUTOFF = attribute_dict["Output"]["Fatigue"]["RAINFLOW_CUTOFF"].cast<double>();
 					config.Output.Fatigue.WRITE_FATIGUE_BUFFER_SIZE = attribute_dict["Output"]["Fatigue"]["WRITE_FATIGUE_BUFFER_SIZE"].cast<size_t>();
+					config.Output.Fatigue.WRITE_RAINFLOW_RESIDUALS = attribute_dict["Output"]["Fatigue"]["WRITE_RAINFLOW_RESIDUALS"].cast<bool>();
 
 					return config;
 				}
@@ -271,8 +278,22 @@ PYBIND11_MODULE(libbtls, m) {
 					fatigue_config.def_readwrite("DO_FATIGUE_RAINFLOW", &CConfigDataCore::Output_Config::Fatigue_Config::DO_FATIGUE_RAINFLOW)
 						.def_readwrite("RAINFLOW_DECIMAL", &CConfigDataCore::Output_Config::Fatigue_Config::RAINFLOW_DECIMAL)
 						.def_readwrite("RAINFLOW_CUTOFF", &CConfigDataCore::Output_Config::Fatigue_Config::RAINFLOW_CUTOFF)
-						.def_readwrite("WRITE_FATIGUE_BUFFER_SIZE", &CConfigDataCore::Output_Config::Fatigue_Config::WRITE_FATIGUE_BUFFER_SIZE);
+						.def_readwrite("WRITE_FATIGUE_BUFFER_SIZE", &CConfigDataCore::Output_Config::Fatigue_Config::WRITE_FATIGUE_BUFFER_SIZE)
+						.def_readwrite("WRITE_RAINFLOW_RESIDUALS", &CConfigDataCore::Output_Config::Fatigue_Config::WRITE_RAINFLOW_RESIDUALS);
 
+	py::class_<CRainflow> crainflow(m, "_Rainflow");
+		crainflow.doc() = "ASTM E1049-85 rainflow cycle counter. Used to close spliced chunk residuals exactly.";
+		crainflow.def(py::init<int, double>(), py::arg("decimal"), py::arg("cutoff"))
+			.def("processData", &CRainflow::processData, py::arg("series"),
+				"Feed a load-effect series (or a residual reversal sequence) into the reversal buffer.")
+			.def("calcCycles", &CRainflow::calcCycles, py::arg("is_final"),
+				"Run the rainflow count; pass True to close the residual at end of data.")
+			.def("getRainflowOutput", &CRainflow::getRainflowOutput,
+				py::return_value_policy::copy,
+				"Get the accumulated output: dict of rounded range -> cycle count.")
+			.def("getResiduals", &CRainflow::getResiduals,
+				py::return_value_policy::copy,
+				"Get the residual (unclosed) reversal sequence after calcCycles(False).");
 
 	py::class_<CInfluenceLine> cinfluenceline(m, "_InfluenceLine");
 		cinfluenceline.def(py::init<>())
@@ -297,7 +318,8 @@ PYBIND11_MODULE(libbtls, m) {
 			.def("addVehicle", &CBridge::AddVehicle, py::arg("vehicle"))
 			.def("setCalcTimeStep", &CBridge::setCalcTimeStep, py::arg("time_step"))
 			.def("update", &CBridge::Update, py::arg("next_arrival_time"), py::arg("current_time"))
-			.def("finish", &CBridge::Finish)
+			.def("finish", py::overload_cast<>(&CBridge::Finish))
+			.def("finish", py::overload_cast<double>(&CBridge::Finish), py::arg("sim_end_time"), "Finish, filling silent trailing blocks/intervals up to the simulated end time.")
 			.def("initializeDataMgr", &CBridge::InitializeDataMgr, py::arg("sim_start_time"));
 	py::class_<CBridgeLane> cbridgelane(m, "_BridgeLane");
 		cbridgelane.def("addLoadEffect", &CBridgeLane::addLoadEffect, py::arg("IL"), py::arg("weight"));
@@ -654,7 +676,8 @@ PYBIND11_MODULE(libbtls, m) {
 	py::class_<CVehicleBuffer> cvehiclebuffer(m, "_VehicleBuffer");
 		cvehiclebuffer.def(py::init<CConfigDataCore&, CVehicleClassification_sp, double>(), py::arg("config"), py::arg("vehicle_classifier"), py::arg("start_time"))
 			.def("addVehicle", &CVehicleBuffer::AddVehicle, py::arg("vehicle"))
-			.def("flushBuffer", &CVehicleBuffer::FlushBuffer);
+			.def("flushBuffer", py::overload_cast<>(&CVehicleBuffer::FlushBuffer))
+			.def("flushBuffer", py::overload_cast<double>(&CVehicleBuffer::FlushBuffer), py::arg("sim_end_time"), "Flush, filling silent trailing FlowData hours up to the simulated end time.");
 
 
 	py::class_<CMultiModalNormal> cmultimodalnormal(m, "_MultiModalNormal");

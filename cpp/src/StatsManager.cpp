@@ -39,12 +39,12 @@ void CStatsManager::Initialize(double BridgeLength,size_t nLE, double SimStartTi
 	}
 }
 
-void CStatsManager::Update(CEvent curEvent)
+void CStatsManager::Update(CEvent& curEvent)
 {
 	m_CurTime = curEvent.getStartTime();
 	
-	if( m_CurTime - m_SimStartTime > (double)(m_CurIntervalNo)*WRITE_SS_INTERVAL_SIZE && WRITE_SS_INTERVALS )
-		CheckBuffer(false);	// at the end of a block
+	while( m_CurTime - m_SimStartTime > (double)(m_CurIntervalNo)*WRITE_SS_INTERVAL_SIZE && WRITE_SS_INTERVALS )
+		CheckBuffer(false);	// at the end of a block; while, not if: fill in any silent intervals
 
 	if(curEvent.getNoVehicles() > 0)
 	{
@@ -60,21 +60,37 @@ void CStatsManager::Update(CEvent curEvent)
 
 }
 
+void CStatsManager::FinishAt(double simEndTime)
+{
+	// fill any silent trailing intervals up to the simulated end time
+	while( simEndTime - m_SimStartTime > (double)(m_CurIntervalNo)*WRITE_SS_INTERVAL_SIZE && WRITE_SS_INTERVALS )
+		CheckBuffer(false);
+	Finish();
+}
+
 void CStatsManager::CheckBuffer(bool bForceOutput)
 {
+	if(bForceOutput)
+		// store the current (final) interval so it gets written too,
+		// otherwise the last interval of every simulation is lost
+		m_vIntStatsBuffer.push_back(m_vIntervalStats);
+
 	if(m_vIntStatsBuffer.size() == WRITE_BUFFER_SIZE || bForceOutput)
 		WriteBuffer();
 
 	if(bForceOutput && WRITE_SS_CUMULATIVE)
 		WriteCumulativeFile();
-	
+
+	if(bForceOutput)
+		return;	// end of simulation - no next interval to prepare
+
 	// store data and update for next interval
 	m_vIntStatsBuffer.push_back(m_vIntervalStats);
-	
+
 	m_CurIntervalNo++;
 
 	m_vIntervalStats.clear();
-	CEventStatistics temp; 
+	CEventStatistics temp;
 	temp.m_ID = m_CurIntervalNo;
 	m_vIntervalStats.assign(m_NoLoadEffects, temp);
 }

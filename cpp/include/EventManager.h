@@ -97,6 +97,9 @@ public:
 	 */
 	void Finish();
 
+	/// @brief Finish, filling silent trailing blocks up to the simulated end time.
+	void Finish(double simEndTime);
+
 	/**
 	 * @brief Update the running maxima for the current event.
 	 *

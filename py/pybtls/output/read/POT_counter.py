@@ -31,11 +31,10 @@ def read_POT_C(
     # Read data
     return_data = pd.read_csv(
         file_path,
-        sep="[\s\t]+",
+        sep=r"\s+",
         header=None,
         skiprows=max(1, start_line),
         nrows=no_lines,
-        engine="python",
     )
     no_effects = len(return_data.columns) - 1
 

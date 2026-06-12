@@ -7,11 +7,14 @@ from .lib.BTLS import Vehicle, _VehClassPattern, _VehClassAxle, _VehicleBuffer
 from .bridge import Bridge
 from .traffic import TrafficGenerator, TrafficLoader
 from .output import OutputConfig, _OutputManager
+from .output.chunked_manager import _ChunkedOutputManager
 from typing import Union
 from pathlib import Path
 import importlib.metadata as package_metadata
 import multiprocessing
 import os
+import pickle
+import random
 import sys
 import platform
 
@@ -37,6 +40,7 @@ class Simulation:
         self._sim_count = 0
         self._sim_argument = []
         self._sim_output = {}
+        self._chunk_groups = {}
         self._output_root = (
             Path(output_dir).resolve()
             if not isinstance(output_dir, Path)
@@ -56,6 +60,7 @@ class Simulation:
         active_lane: list[int] = None,
         tag: str = None,
         seed: int = None,
+        no_chunk: int = None,
         **kwargs,
     ) -> None:
         """
@@ -94,11 +99,22 @@ class Simulation:
             Seed for the C++ random number generator. If provided,
             ``libbtls.seed(seed)`` is called at the start of this
             simulation, making the traffic generation deterministic.
-            For day-level parallelism, pass a different seed per chunk
-            (e.g. ``master_seed + chunk_id``) so each worker gets an
-            independent, reproducible stream. If None (default), the
-            RNG keeps its current state (non-reproducible, same as the
-            pre-seed-API behaviour).
+            If None (default), the RNG keeps its current state
+            (non-reproducible, same as the pre-seed-API behaviour).
+            For a chunked simulation (``no_chunk > 1``) this acts as
+            the master seed: chunk i runs with ``seed + i``.
+
+        no_chunk : int, optional\n
+            Split this simulation into ``no_chunk`` independent
+            day-chunks that run in parallel across cores (each chunk
+            gets its own RNG stream), then merge the outputs into a
+            single result on ``get_output()``. The merged outputs are
+            statistically equivalent to - and formatted identically
+            to - a single sequential run. Requires a TrafficGenerator
+            traffic and ``no_day`` divisible by ``no_chunk``; the
+            chunk length must also align with the configured BM / POT
+            block sizes and statistics intervals (validated here).
+            Default is None (no chunking).
 
         Keyword Arguments
         -----------------
@@ -118,23 +134,118 @@ class Simulation:
         overlap_avoid_distance = kwargs.get("min_chase_distance", 100.0)
         track_progress = kwargs.get("track_progress", False)
 
-        self._sim_argument.append(
-            (
-                bridge,
-                traffic,
-                no_day,
-                output_config,
-                time_step,
-                min_gvw,
-                vehicle,
-                active_lane,
-                sim_tag,
-                overlap_avoid_distance,
-                track_progress,
-                self._output_root,
-                seed,
+        if no_chunk is None or no_chunk == 1:
+            self._sim_argument.append(
+                (
+                    bridge,
+                    traffic,
+                    no_day,
+                    output_config,
+                    time_step,
+                    min_gvw,
+                    vehicle,
+                    active_lane,
+                    sim_tag,
+                    overlap_avoid_distance,
+                    track_progress,
+                    self._output_root,
+                    seed,
+                )
             )
-        )
+            return
+
+        chunk_days = self._validate_chunking(traffic, vehicle, no_day, no_chunk, output_config)
+        master_seed = seed if seed is not None else random.SystemRandom().randrange(1, 2**31)
+
+        # Chunk runs keep their rainflow residuals open (written to FRR_*
+        # sidecars) so the merged histogram can be spliced exactly. Copy the
+        # config so the caller's object is not mutated.
+        if output_config._Output.Fatigue.DO_FATIGUE_RAINFLOW:
+            output_config = pickle.loads(pickle.dumps(output_config))
+            output_config._Output.Fatigue.WRITE_RAINFLOW_RESIDUALS = True
+
+        chunk_tags = []
+        for i in range(no_chunk):
+            chunk_tag = f"{sim_tag}/chunk_{i:03d}"
+            chunk_tags.append(chunk_tag)
+            self._sim_argument.append(
+                (
+                    bridge,
+                    traffic,
+                    chunk_days,
+                    output_config,
+                    time_step,
+                    min_gvw,
+                    vehicle,
+                    active_lane,
+                    chunk_tag,
+                    overlap_avoid_distance,
+                    track_progress,
+                    self._output_root,
+                    master_seed + i,
+                )
+            )
+
+        self._chunk_groups[sim_tag] = {
+            "chunk_tags": chunk_tags,
+            "chunk_days": [chunk_days] * no_chunk,
+            "master_seed": master_seed,
+        }
+
+    def _validate_chunking(
+        self, traffic, vehicle, no_day, no_chunk, output_config
+    ) -> int:
+        """Validate a chunked add_sim request; return the days per chunk."""
+
+        if vehicle is not None:
+            raise ValueError("no_chunk does not apply to single-vehicle simulations.")
+        if not isinstance(traffic, TrafficGenerator):
+            raise ValueError(
+                "no_chunk requires a TrafficGenerator traffic: recorded "
+                "traffic (TrafficLoader) cannot be re-seeded per chunk."
+            )
+        if not isinstance(no_chunk, int) or no_chunk < 2:
+            raise ValueError("no_chunk must be an integer >= 2.")
+        if no_day is None:
+            raise ValueError("no_chunk requires no_day to be given.")
+        if no_day % no_chunk != 0:
+            raise ValueError(
+                f"no_day ({no_day}) must be divisible by no_chunk ({no_chunk}) "
+                "so that chunks cover whole days."
+            )
+        if not isinstance(output_config, OutputConfig):
+            raise TypeError("Argument output needs to be OutputConfig type.")
+
+        chunk_days = int(no_day) // int(no_chunk)
+        chunk_secs = chunk_days * 86400
+
+        out = output_config._Output
+        if out.BlockMax.WRITE_BM_VEHICLES or out.BlockMax.WRITE_BM_MIXED or out.BlockMax.WRITE_BM_SUMMARY:
+            block_secs = out.BlockMax.BLOCK_SIZE_DAYS * 86400 + out.BlockMax.BLOCK_SIZE_SECS
+            if block_secs == 0 or chunk_secs % block_secs != 0:
+                raise ValueError(
+                    f"Chunk length ({chunk_days} days) must be a multiple of "
+                    f"the block-maximum block size ({block_secs} s) for the "
+                    "merged result to equal a sequential run."
+                )
+        if out.POT.WRITE_POT_COUNTER:
+            pot_secs = out.POT.POT_COUNT_SIZE_DAYS * 86400 + out.POT.POT_COUNT_SIZE_SECS
+            if pot_secs == 0 or chunk_secs % pot_secs != 0:
+                raise ValueError(
+                    f"Chunk length ({chunk_days} days) must be a multiple of "
+                    f"the POT counter block size ({pot_secs} s) for the "
+                    "merged result to equal a sequential run."
+                )
+        if out.Stats.WRITE_SS_INTERVALS:
+            interval = out.Stats.WRITE_SS_INTERVAL_SIZE
+            if interval == 0 or chunk_secs % interval != 0:
+                raise ValueError(
+                    f"Chunk length ({chunk_days} days) must be a multiple of "
+                    f"the statistics interval size ({interval} s) for the "
+                    "merged result to equal a sequential run."
+                )
+
+        return chunk_days
 
     def run(self, no_core: int = None) -> None:
         """
@@ -165,15 +276,33 @@ class Simulation:
             for i, sim_arg in enumerate(self._sim_argument):
                 self._sim_output[sim_arg[8]] = temp[i]
 
-    def get_output(self) -> dict[str, _OutputManager]:
+        self._reduce_chunk_groups()
+
+    def _reduce_chunk_groups(self) -> None:
+        """Replace per-chunk outputs with one merged view per chunked sim."""
+
+        for parent_tag, group in self._chunk_groups.items():
+            chunk_managers = [
+                self._sim_output.pop(chunk_tag) for chunk_tag in group["chunk_tags"]
+            ]
+            self._sim_output[parent_tag] = _ChunkedOutputManager(
+                chunk_managers,
+                group["chunk_days"],
+                parent_tag,
+                master_seed=group["master_seed"],
+            )
+
+    def get_output(self) -> dict[str, Union[_OutputManager, _ChunkedOutputManager]]:
         """
         Get the output manager for each simulation.
 
         Returns
         -------
-        dict[str, _OutputManager]
-            A dict storing output manager for each simulation.\n
-            The keys are the sim_tags.
+        dict[str, Union[_OutputManager, _ChunkedOutputManager]]
+            A dict storing the output manager for each simulation.\n
+            The keys are the sim_tags. A simulation added with
+            ``no_chunk > 1`` is represented by a single
+            ``_ChunkedOutputManager`` that reads as one merged result.
         """
 
         return self._sim_output
@@ -416,9 +545,9 @@ class Simulation:
                         sim_progress_print = ""
 
         if isinstance(bridge, Bridge):
-            load_calc.finish()
+            load_calc.finish(end_time)
 
-        vehicle_buffer.flushBuffer()
+        vehicle_buffer.flushBuffer(end_time)
         os.chdir(sim_root)
 
         return _OutputManager(output_root, sim_tag, output_config)

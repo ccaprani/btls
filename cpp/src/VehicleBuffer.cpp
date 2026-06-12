@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include "VehicleBuffer.h"
+#include "ConsoleOutput.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -70,6 +71,18 @@ void CVehicleBuffer::AddVehicle(const CVehicle_sp& pVeh)
 		FlushBuffer();
 }
 
+void CVehicleBuffer::FlushBuffer(double simEndTime)
+{
+	if (WRITE_FLOW_STATS)
+	{
+		// fill any silent trailing hours up to the simulated end time
+		double endRelTime = simEndTime - m_FirstHour*3600.0;
+		while (endRelTime > m_CurHour*3600.0)
+			flushFlowData();
+	}
+	FlushBuffer();
+}
+
 void CVehicleBuffer::FlushBuffer()
 {
 	if(WRITE_VEHICLE_FILE)
@@ -77,9 +90,12 @@ void CVehicleBuffer::FlushBuffer()
 		size_t nVehs = m_vVehicles.size();
 		if(nVehs > 0)
 		{
-			CVehicle_up& pVeh = m_vVehicles.at(nVehs-1);
-			std::cout << std::endl  << "Flushing buffer of " 
-				<< nVehs << " vehicles at " << pVeh->getTimeStr() <<  std::endl;
+			if (btls::console_output)
+			{
+				CVehicle_up& pVeh = m_vVehicles.at(nVehs-1);
+				std::cout << std::endl  << "Flushing buffer of "
+					<< nVehs << " vehicles at " << pVeh->getTimeStr() <<  std::endl;
+			}
 			
 			for (size_t i = 0; i < nVehs; i++)
 				m_OutFileVeh << m_vVehicles.at(i)->Write(FILE_FORMAT) << '\n';
@@ -106,7 +122,7 @@ void CVehicleBuffer::updateFlowData(const CVehicle_sp& pV)
 		return;
 
 	double curRelTime = pV->getTime() - m_FirstHour*3600.0;
-	if (curRelTime > m_CurHour*3600.0)
+	while (curRelTime > m_CurHour*3600.0)	// while, not if: fill in any silent hours
 		flushFlowData();
 	
 	// get ref to data

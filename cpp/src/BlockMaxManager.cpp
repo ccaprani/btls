@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "BlockMaxManager.h"
+#include <algorithm>
 
 
 //////////////////////////////////////////////////////////////////////
@@ -60,12 +61,12 @@ void CBlockMaxManager::Initialize(double BridgeLength, size_t nLE, double SimSta
 	}
 }
 
-void CBlockMaxManager::Update(CEvent curEvent)
+void CBlockMaxManager::Update(CEvent& curEvent)
 {
 	double curTime = curEvent.getStartTime();
 	
-	if (curTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
-		CheckBuffer(false);	// at the end of a block
+	while (curTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
+		CheckBuffer(false);	// at the end of a block; while, not if: fill in any silent blocks
 
 	m_CurEventNoVehicles = curEvent.getNoVehicles();
 	if(m_CurEventNoVehicles > 0)
@@ -92,7 +93,7 @@ void CBlockMaxManager::Update(CEvent curEvent)
 	UpdateMixedEvents(curEvent);
 }
 
-void CBlockMaxManager::UpdateMixedEvents(CEvent Ev)
+void CBlockMaxManager::UpdateMixedEvents(CEvent& Ev)
 {
 	for(unsigned int k = 0; k < m_NoLoadEffects; k++)
 	{	
@@ -129,6 +130,14 @@ void CBlockMaxManager::OpenVehicleFiles()
 	}
 }
 
+void CBlockMaxManager::FinishAt(double simEndTime)
+{
+	// fill any silent trailing blocks up to the simulated end time
+	while (simEndTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
+		CheckBuffer(false);
+	Finish();
+}
+
 void CBlockMaxManager::CheckBuffer(bool bForceOutput)
 {
 	// finish allows for block max buffers greater than the simulation length
@@ -153,13 +162,21 @@ void CBlockMaxManager::WriteBuffer()
 	// call base class implementation first
 	COutputManagerBase::WriteBuffer();
 
-	if(WRITE_BM_MIXED)
+	if(WRITE_BM_MIXED && !m_vMixedEvents.empty())
 	{
+		// open the file once per flush rather than once per event
+		std::ofstream outFile(m_MixedEventFile.c_str(), std::ios::app);
+		if (!outFile)
+		{
+			std::cerr << "Event file could not be opened" << std::endl;
+			exit(1);
+		}
 		for(unsigned int iBlock = 0; iBlock < m_vMixedEvents.size(); iBlock++)
 		{
 			CEvent& Ev = m_vMixedEvents[iBlock];
-			Ev.writeToFile(m_MixedEventFile);
+			Ev.writeToFile(outFile);
 		}
+		outFile.close();
 	}
 
 	m_vBMEventsBuffer.clear();
@@ -168,15 +185,27 @@ void CBlockMaxManager::WriteBuffer()
 
 void CBlockMaxManager::WriteVehicleFiles()
 {
+	// file-major iteration so each output file is opened once per flush;
+	// the per-file byte order (block order) is unchanged
+	size_t maxSize = 0;
 	for(unsigned int iBlock = 0; iBlock < m_vBMEventsBuffer.size(); iBlock++)
+		maxSize = (std::max)(maxSize, m_vBMEventsBuffer[iBlock].getSize());
+
+	for(size_t iEv = 0; iEv < maxSize; iEv++)
 	{
-		CBlockMaxEvent BMEv = m_vBMEventsBuffer[iBlock];
-			
-		for(unsigned int iEv = 0; iEv < BMEv.getSize(); iEv++)
+		std::ofstream outFile(m_vOutFiles[iEv].c_str(), std::ios::app);
+		if (!outFile)
 		{
-			CEvent& Ev = BMEv.getEvent(iEv);
-			Ev.writeToFile(m_vOutFiles[iEv]);
+			std::cerr << "Event file could not be opened" << std::endl;
+			exit(1);
 		}
+		for(unsigned int iBlock = 0; iBlock < m_vBMEventsBuffer.size(); iBlock++)
+		{
+			CBlockMaxEvent& BMEv = m_vBMEventsBuffer[iBlock];
+			if(iEv < BMEv.getSize())
+				BMEv.getEvent(iEv).writeToFile(outFile);
+		}
+		outFile.close();
 	}
 }
 
@@ -188,7 +217,7 @@ void CBlockMaxManager::WriteSummaryFiles()
 		
 		for(unsigned int iBlock = 0; iBlock < m_vBMEventsBuffer.size(); iBlock++)
 		{
-			CBlockMaxEvent BMEv = m_vBMEventsBuffer[iBlock];
+			CBlockMaxEvent& BMEv = m_vBMEventsBuffer[iBlock];
 
 			outFile << BMEv.getID() << '\t';
 		

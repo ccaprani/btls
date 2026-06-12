@@ -45,14 +45,18 @@ def read_E_IS(
     # Convert to DataFrame
     return_data = pd.DataFrame(data_rows)
     return_data = return_data.drop(
-        return_data.columns[10:], axis=1
+        return_data.columns[12:], axis=1
     )  # Remove the useless truck presence counts
+    # Column names must match CEventStatistics::outputString order:
+    # N, vehicles, trucks, min, max, mean, stddev, variance, skewness, kurtosis
     return_data.columns = [
         "Index",
         "Time",
         "No. Events",
         "No. Vehicles",
         "No. Trucks",
+        "Min",
+        "Max",
         "Mean",
         "Std Dev",
         "Variance",
@@ -66,10 +70,7 @@ def read_E_IS(
     return_data["No. Events"] = return_data["No. Events"].astype(int)
     return_data["No. Vehicles"] = return_data["No. Vehicles"].astype(int)
     return_data["No. Trucks"] = return_data["No. Trucks"].astype(int)
-    return_data["Mean"] = return_data["Mean"].astype(float)
-    return_data["Std Dev"] = return_data["Std Dev"].astype(float)
-    return_data["Variance"] = return_data["Variance"].astype(float)
-    return_data["Skewness"] = return_data["Skewness"].astype(float)
-    return_data["Kurtosis"] = return_data["Kurtosis"].astype(float)
+    for col in ("Min", "Max", "Mean", "Std Dev", "Variance", "Skewness", "Kurtosis"):
+        return_data[col] = return_data[col].astype(float)
 
     return return_data
