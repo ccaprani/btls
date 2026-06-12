@@ -2,6 +2,7 @@
 // the main file for the PyBTLS Build
 
 #include "PrepareSim.h"
+#include "ConsoleOutput.h"
 #include "Distribution.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
@@ -20,6 +21,10 @@ PYBIND11_MODULE(libbtls, m) {
 		m.attr("__version__") = "dev";
 	#endif
 	m.def("get_info", &preamble, "Print the information of the BTLS library.");
+	m.def("set_console_output", [](bool enable) { btls::console_output = enable; },
+		"Enable or disable routine console messages (buffer-flush notices). "
+		"Default is off; errors and warnings are always printed.",
+		py::arg("enable"));
 	m.def("_sample_uniform", []() {
 		CDistribution d;
 		return d.GenerateUniform();

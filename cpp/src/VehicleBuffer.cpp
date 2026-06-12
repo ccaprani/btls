@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include "VehicleBuffer.h"
+#include "ConsoleOutput.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -89,9 +90,12 @@ void CVehicleBuffer::FlushBuffer()
 		size_t nVehs = m_vVehicles.size();
 		if(nVehs > 0)
 		{
-			CVehicle_up& pVeh = m_vVehicles.at(nVehs-1);
-			std::cout << std::endl  << "Flushing buffer of " 
-				<< nVehs << " vehicles at " << pVeh->getTimeStr() <<  std::endl;
+			if (btls::console_output)
+			{
+				CVehicle_up& pVeh = m_vVehicles.at(nVehs-1);
+				std::cout << std::endl  << "Flushing buffer of "
+					<< nVehs << " vehicles at " << pVeh->getTimeStr() <<  std::endl;
+			}
 			
 			for (size_t i = 0; i < nVehs; i++)
 				m_OutFileVeh << m_vVehicles.at(i)->Write(FILE_FORMAT) << '\n';

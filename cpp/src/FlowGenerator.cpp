@@ -1,7 +1,7 @@
 #include "FlowGenerator.h"
 
 CFlowGenerator::CFlowGenerator(CFlowModelData_sp pFMD, EFlowModel fm)
-	: m_pFlowModelData(pFMD), m_FlowModel(fm), m_TotalFlow(0.0), m_TruckFlow(0.0)
+	: m_pFlowModelData(pFMD), m_FlowModel(fm), m_CurTime(0.0), m_TotalFlow(0.0), m_TruckFlow(0.0)
 	, m_CurBlock(0), m_BlockSize(3600), m_BlockCount(24)
 {
 	m_pPrevVeh = nullptr;
@@ -25,6 +25,7 @@ CFlowGenerator::~CFlowGenerator()
 
 void CFlowGenerator::prepareNextGen(double time, CVehicle_sp pPrevVeh, CVehicle_sp pNextVeh)
 {
+	m_CurTime = time;
 	m_pPrevVeh = pPrevVeh;
 	m_pNextVeh = pNextVeh;
 
@@ -33,6 +34,9 @@ void CFlowGenerator::prepareNextGen(double time, CVehicle_sp pPrevVeh, CVehicle_
 
 double CFlowGenerator::Generate()
 {
+	// A zero-flow block has no arrivals: jump to the next block with flow
+	double deadTime = skipZeroFlowBlocks();
+
 	// Assign speed based on flow model, then check min gap
 	m_pNextVeh->setVelocity(GenerateSpeed());
 	setMinGap();
@@ -51,7 +55,34 @@ double CFlowGenerator::Generate()
 		}
 	}
 
-	return gap;
+	return deadTime + gap;
+}
+
+double CFlowGenerator::skipZeroFlowBlocks()
+{
+	if (m_TotalFlow > 0.0 || m_pFlowModelData == nullptr)
+		return 0.0;
+
+	// find the next block with flow, within one full cycle
+	size_t iBlock = (size_t)(m_CurTime / static_cast<double>(m_BlockSize));
+	for (size_t k = 1; k <= m_BlockCount; k++)
+	{
+		size_t cand = (iBlock + k) % m_BlockCount;
+		double totalFlow = 0.0, truckFlow = 0.0;
+		m_pFlowModelData->getFlow(cand, totalFlow, truckFlow);
+		if (totalFlow > 0.0)
+		{
+			// restart the arrival process at the start of that block
+			double tNext = static_cast<double>(iBlock + k) * m_BlockSize;
+			double deadTime = tNext - m_CurTime;
+			m_CurTime = tNext;
+			updateBlock(tNext);
+			return deadTime;
+		}
+	}
+
+	std::cout << "***Warning: all flow blocks have zero flow" << std::endl;
+	return 0.0;
 }
 
 void CFlowGenerator::setMaxBridgeLength(double length) 

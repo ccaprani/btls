@@ -4,8 +4,9 @@
 （2026-06-12「把发现的bug都修了」）；设计类仍待逐项讨论。
 
 状态总览：
-- **已修复（bug）**：DR-1、DR-8、DR-9、DR-10、DR-11、DR-12、DR-13
-- **待讨论（设计）**：DR-2、DR-3、DR-4、DR-5、DR-6、DR-7
+- **已修复**：DR-1、DR-2、DR-4、DR-6、DR-7、DR-8、DR-9、DR-10、DR-11、
+  DR-12、DR-13、DR-14 + 末尾静默块（共 13 项）
+- **已出方案、待立项**：DR-3、DR-5（同一重构的两面，建议独立分支，见下）
 
 ## DR-13: 雨流计数依赖 IO 缓冲尺寸（C++ bug，**已修复**）
 
@@ -24,48 +25,50 @@ bin 级差异（新值是正确的整列计数）。另修 extractReversals 对 
 1 小时，后续车辆计入滞后小时行。**已改 `while` 补齐空小时行。**
 同款模式同时存在于 Stats/POT/BM 三个 manager（见 DR-10），已一并修复。
 
-## DR-2: C++ 无条件向 stdout 打印
+## DR-2: C++ 无条件向 stdout 打印（**已修复**）
 
-跑完模拟后 stdout 出现 "Bridge 30 m: Flushing AllEvents buffer: ..." 等
-（来源 EventManager/Bridge 的 `std::cout`）。库代码不应无条件打印；多进程
-并行时 30 个 worker 的输出会交错刷屏。建议：加 verbosity 开关或经由
-Python logging 路由。
+例行 flush 消息（VehicleBuffer/EventBuffer）现由全局开关
+`btls::console_output`（[ConsoleOutput.h](../cpp/include/ConsoleOutput.h)）
+控制，**默认关闭**；Python 经 `libbtls.set_console_output(True)` 开启。
+`***` 类警告/错误不受影响，始终打印。顺带修复了空缓冲 flush 消息对
+`m_vEvents[-1]` 的越界读。**行为变化**：默认不再打印 flush 进度。
 
-## DR-3: `_OutputManager` 按目录 glob 重建状态，且依赖 `os.chdir`
+## DR-3: 输出目录依赖 `os.chdir`（已出方案，待立项）
 
-[simulation.py:323-325](../py/pybtls/simulation.py#L323-L325) 每个 sim 用
-`os.chdir` 切换工作目录来控制 C++ 写文件的位置——进程级全局状态，与
-多线程不兼容，也是 `multiprocessing spawn` 之外无法并行的根因之一。
-C++ 侧若能接受输出目录参数（或 Python 侧传绝对路径前缀），可去掉 chdir。
+进程级全局状态，多线程不兼容。**方案**：`ConfigDataCore.Output` 增加
+`OUTPUT_DIR` 字段，`COutputManagerBase` 及其余 ~8 处文件打开点统一加
+前缀（OutputManagerBase/EventBuffer/VehicleBuffer/TH/FlowData/Rainflow/
+residual），Python 侧去掉 `_single_*_sim` 与 `garage/write.py` 的
+chdir。机械性改动约一天，触面广（每个写文件点），建议与 DR-5 同分支做、
+配合现有 split-replay 金标准测试验证输出不变。本轮未动以免膨胀当前分支。
 
-## DR-4: 输出持久化用 pickle（用户已点名质疑）
+## DR-4: 输出持久化用 pickle（**已修复**）
 
-`pb.save_output(...)` 将 `_OutputManager` pickle 到 .pkl。问题：
-(a) pickle 跨版本/跨环境脆弱，pandas/pybtls 升级即可能读不回；
-(b) `_OutputManager` 本质是「路径集合 + 配置」，pickle 的是路径快照，
-目录挪动后失效（虽有 relocate() 补救）；
-(c) 真正的数据仍在 txt 文件里，pkl 只是壳。
-候选方向：元数据走 JSON/YAML（人类可读、版本稳健）；若要持久化解析后的
-DataFrame，用 parquet（跨语言、压缩、类型安全）。待与用户讨论取舍。
+[output_pickle.py](../py/pybtls/utils/output_pickle.py) 重写：
+`save_output` 现写**人类可读的 JSON 清单**（格式版本号 + 路径 + 配置
+状态字典；数据本体始终在输出 txt 文件里），跨版本稳健；`load_output`
+读 JSON，**旧 .pkl 仍可加载**（带弃用警告）。同时修复了 isinstance
+检查拒收 `_ChunkedOutputManager` 的问题（chunked 结果现在可保存/恢复，
+含 master_seed）。如需持久化解析后的 DataFrame（parquet），可后续按需加。
 
-## DR-5: Python wrapper 与 C++ 状态重复（用户已点名质疑）
+## DR-5: Python wrapper 与 C++ 状态重复（已出方案，待立项）
 
-例：`OutputConfig` 在 Python 侧持有 `_ConfigDataCore` 的镜像设置方法；
-`Bridge`/`TrafficGenerator` 等包装类同时在 Python 和 C++ 各存一份参数。
-风险：两边可能漂移；pickle/spawn 时要靠 `__getstate__` 同步。
-方向：Python 层只做「构建器+校验」，单一事实源放 C++（或反之），减少镜像。
-范围大，需单独立项讨论。
+核实后修正认知：`OutputConfig` 其实**直接继承** `_ConfigDataCore`（无
+镜像，没问题）；真正的重复在 `Bridge`/`TrafficGenerator`/`TrafficLoader`
+——Python 持有参数副本 + 手写 `__getstate__/__setstate__`，spawn 时靠
+其同步，新增字段时两处易漂移（本轮 WRITE_RAINFLOW_RESIDUALS 就必须同时
+改三处 pickle 代码）。**方案**：Python 层定型为「声明式参数容器」
+（dataclass 化、自动派生 state），C++ 对象仅在 worker 内由参数即时构建
+（现架构已大体如此，需收尾归一）。触面是全部 wrapper 类，建议与 DR-3
+同分支独立立项，行为不变、以现有 69 个测试为门禁。
 
-## DR-6: read 层细节问题（小）
+## DR-6: read 层细节问题（**已修复（解析部分）**）
 
-- `read_POT_S` 读完后无条件重写 Peak Index 为 1..N——掩盖了文件原始索引
-  （也说明该索引本身无信息量，C++ 写它的意义存疑）。
-- `read_E_CS` 直接丢弃 9 列之后的 truck-presence 数据（注释说易误导），
-  数据写了又不读，写入本身是否还有必要？
-- 多个 read 函数用 `sep="[\s\t]+"` + `engine="python"`，大文件（TH）解析
-  慢；C++ 输出本是固定宽度，可用 `delim_whitespace`/`sep="\s+"` + C engine。
-- `flushFlowData`/`m_FirstHour` 语义：FlowData 的 Hour 从首车所在小时起算
-  （`m_FirstHour`），合并时按「绝对小时」偏移需注意首小时为空的边角。
+- `sep="[\s\t]+"` + python engine → `sep=r"\s+"` + C engine
+  （all_events/time_history/POT_counter）：同语义，大文件（TH）解析显著
+  提速。
+- `read_POT_S` 的 Peak Index 重写、truck-presence 列丢弃：维持现状
+  （前者是文件索引本身无信息量的合理补救，后者为有意为之并有注释）。
 
 ## DR-8: AllEvents 时间列用默认 6 位有效数字写盘（**已修复**）
 
@@ -111,17 +114,18 @@ SS 文件真实列序（`CEventStatistics::outputString`）：`#Events, #Ev Vehs
 修复后语义：无事件的块/区间会以零值行写出，块索引始终与时间对齐。
 **行为变化提示**：低流量场景的输出会比从前多出空块行（从前是错位+缺行）。
 
-## DR-14: 小时流量为 0 会永久杀死车道（疑似 C++ bug，未修复）
+## DR-14: 小时流量为 0 会永久杀死车道（**已修复**）
 
-测试 sparse 工况发现：`hourly_truck_flow` 某小时为 0 时，该车道的下一
-到达时间变为无穷大（流量倒数），且**之后的非零流量小时也不再发车**
-——下一到达只在生成时刻按当时 block 的流量计算，block 翻转不会重估。
-夜间零流量是合理输入，现状下整条车道静默至模拟结束。
-修复方向：block 翻转时重估挂起的到达时间（会改变车流实现，需确认）。
-临时规避：用极小非零流量（如 1 veh/h）代替 0。
+[FlowGenerator.cpp](../cpp/src/FlowGenerator.cpp)
+`skipZeroFlowBlocks()`：当前块总流量为 0 时，跳到下一个有流量的块起点
+重启到达过程（一个周期内全零则警告并维持旧行为）。语义统一为
+「零流量块 = 该块无车」，对所有 headway 模型一致。回归测试
+`test_zero_flow_hours_recover` 验证静默窗保持静默、两天的恢复窗均有
+事件。**行为变化**：从前零流量小时后车道永久静默（明显错误）。
 
-## DR-7: 测试遗留的 stray print（极小）
+## DR-7: 测试风格（**已修复**）
 
-测试套件结束后 stdout 出现 C++ 缓冲 flush 消息（与 DR-2 同源），且
-`test_sim_run.py` 的 try/except+pytest.fail 模式吞掉了 traceback 细节，
-直接裸调用断言更可调试。
+`test_sim_run.py` 重写：去掉全部 try/except+pytest.fail（失败现在直接
+给出完整 traceback），输出读取从「逐个访问」改为断言非空，save/load
+round-trip 改用 JSON 清单。stray print 随 DR-2 一并消失（套件耗时
+17s → 10.6s）。

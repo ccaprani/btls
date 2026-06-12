@@ -155,6 +155,30 @@ def test_interval_stats_sum_to_cumulative(outputs):
     assert intervals["No. Events"].sum() == stats["No. Events"].sum()
 
 
+def test_zero_flow_hours_recover():
+    # DR-14: an hour with zero total flow must produce no arrivals in that
+    # hour AND must not silence the lane for the rest of the simulation.
+    root = Path(__file__).parent / "temp_zero_flow"
+    remove_folder(root)
+    flow = [10] * 6 + [0] * 6 + [10] * 6 + [0] * 6
+    out = _run(_make_traffic(flow), root, "zeroflow")
+
+    events = next(iter(out.read_data("all_events").values()))
+    second_of_day = events["Start Time"] % 86400.0
+
+    # silent windows stay silent (small margin for events that started just
+    # before the boundary)
+    in_silent = (second_of_day > 6.5 * 3600) & (second_of_day < 11.5 * 3600)
+    assert in_silent.sum() == 0
+
+    # flow resumes after each silent window, on both days
+    in_resumed = (second_of_day >= 12 * 3600) & (second_of_day < 18 * 3600)
+    assert (in_resumed & (events["Start Time"] < 86400.0)).sum() > 0
+    assert (in_resumed & (events["Start Time"] >= 86400.0)).sum() > 0
+
+    remove_folder(root)
+
+
 def test_garage_round_trip(tmp_path):
     # Vehicle files must round-trip: read -> write -> read preserves every
     # vehicle's fields (the values are already quantised by the format).

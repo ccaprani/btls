@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "EventBuffer.h"
+#include "ConsoleOutput.h"
 
 
 //////////////////////////////////////////////////////////////////////
@@ -70,8 +71,11 @@ void CEventBuffer::FlushBuffer()
 void CEventBuffer::FlushAllEventsBuff()
 {
 	size_t nEvs = m_vEvents.size();
-	CEvent Ev = m_vEvents[nEvs-1];
-	std::cout << std::endl << "Bridge " << to_string(m_BridgeLength) << " m: Flushing AllEvents buffer: " << nEvs << " events at " << Ev.getTimeStr() << '\t';
+	if (btls::console_output && nEvs > 0)
+	{
+		CEvent& Ev = m_vEvents[nEvs-1];
+		std::cout << std::endl << "Bridge " << to_string(m_BridgeLength) << " m: Flushing AllEvents buffer: " << nEvs << " events at " << Ev.getTimeStr() << '\t';
+	}
 	
 	// fixed precision: the default 6-significant-digit formatting degrades
 	// with simulation length (at 100 years the times lose second-level accuracy)
@@ -98,8 +102,11 @@ void CEventBuffer::FlushFatigueBuff()
 	// first column is event start time and no. trucks in lines 1 & 2.
 
 	size_t nEvs = m_vEvents.size();
-	CEvent Ev = m_vEvents[nEvs-1];
-	std::cout << std::endl << "Bridge " << to_string(m_BridgeLength) << " m: Flushing Fatigue buffer: " << nEvs << " events at " << Ev.getTimeStr() << '\t';
+	if (btls::console_output && nEvs > 0)
+	{
+		CEvent& Ev = m_vEvents[nEvs-1];
+		std::cout << std::endl << "Bridge " << to_string(m_BridgeLength) << " m: Flushing Fatigue buffer: " << nEvs << " events at " << Ev.getTimeStr() << '\t';
+	}
 	
 	for (size_t i = 0; i < nEvs; i++)
 	{	
