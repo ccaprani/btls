@@ -26,6 +26,8 @@ __all__ = [
 
 
 class HeadwayGenHeDS:
+    """Headway generator using the HeDS (headway distribution statistics) model from Auxerre data."""
+
     def __init__(self, **kwargs):
         """
         The HeadwayGenHeDS instance in Python stores the data for creating a CFlowGenHeDS instance in C++. \n
@@ -68,6 +70,8 @@ class HeadwayGenHeDS:
 
 
 class HeadwayGenConstant:
+    """Headway generator producing a constant speed and constant gap between vehicles."""
+
     def __init__(self, constant_speed: float, constant_gap: float, **kwargs):
         """
         The HeadwayGenConstant instance in Python stores the data for creating a CFlowGenConstant instance in C++. \n
@@ -115,6 +119,8 @@ class HeadwayGenConstant:
 
 
 class HeadwayGenCongested:
+    """Headway generator for congested traffic: constant speed with normally distributed gaps."""
+
     def __init__(self, congested_spacing: float, congested_speed: float, **kwargs):
         """
         The HeadwayGenCongested instance in Python stores the data for creating a CFlowGenCongested instance in C++. \n
@@ -171,6 +177,8 @@ class HeadwayGenCongested:
 
 
 class HeadwayGenFreeflow:
+    """Headway generator for free-flowing traffic: Poisson arrivals (exponential gaps)."""
+
     def __init__(self, **kwargs):
         """
         The HeadwayGenFreeflow instance in Python stores the data for creating a CFlowGenPoisson instance in C++. \n

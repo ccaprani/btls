@@ -11,6 +11,8 @@ __all__ = ["InfluenceLine", "InfluenceSurface"]
 
 
 class InfluenceLine:
+    """An influence line (built-in, discrete, or wrapping an influence surface) for one load effect."""
+
     _IL_Index = 0
 
     def __init__(self, IL_type: Literal["discrete", "built-in"]):
@@ -177,6 +179,8 @@ class InfluenceLine:
 
 
 class InfluenceSurface:
+    """A 2D influence surface defined on a grid, for load effects that vary transversely."""
+
     _IS_Index = 0
 
     def __init__(self):

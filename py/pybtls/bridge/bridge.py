@@ -13,6 +13,8 @@ __all__ = ["Bridge"]
 
 
 class Bridge:
+    """A bridge definition: span length, lanes, and load effects given by influence lines or surfaces."""
+
     _Bridge_Index = 0
 
     def __init__(self, length: float, no_lane: int):

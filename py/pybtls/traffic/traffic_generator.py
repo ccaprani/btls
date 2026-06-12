@@ -85,6 +85,8 @@ class Lane:
 # In fact, the data recorded in the lfc, aside from truck composition, is not accessed by the vehicle generator. The vehicle generator receives relevant data from the lfc through its `update()` method, which reads from the headway model data.
 # Moreover, both the Vehicle Generator and the Headway Generator do not record any lane direction data from the lfc.
 class TrafficGenerator:
+    """Combines per-lane vehicle generators, headway generators, and lane flow compositions into a traffic stream."""
+
     def __init__(self, no_lane: int):
         """
         The TrafficGenerator instance stores the information for creating CTrafficGenerator instances for each lane.

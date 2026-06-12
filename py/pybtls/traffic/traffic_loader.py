@@ -16,6 +16,8 @@ __all__ = ["TrafficLoader"]
 
 
 class TrafficLoader:
+    """Loads recorded traffic (e.g. WIM data) from file for replaying through a bridge."""
+
     def __init__(self, no_lane: int):
         """
         The TrafficLoader instance stores the information for creating CTrafficLoader instances for each lane.

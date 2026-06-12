@@ -328,7 +328,7 @@ PYBIND11_MODULE(libbtls, m) {
 		cbridgelane.def("addLoadEffect", &CBridgeLane::addLoadEffect, py::arg("IL"), py::arg("weight"));
 
 
-	py::class_<CVehicle, CVehicle_sp> cvehicle(m, "Vehicle");
+	py::class_<CVehicle, CVehicle_sp> cvehicle(m, "Vehicle", "A vehicle: axle weights/spacings/widths, speed, lane, direction and arrival time.");
 		cvehicle.def(py::init<size_t>(), 
 				R"(
 				The Vehicle class is inherited from the CVehicle class in the C++ BTLS library. 

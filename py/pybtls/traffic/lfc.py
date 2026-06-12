@@ -9,6 +9,8 @@ __all__ = ["LaneFlowComposition"]
 
 
 class LaneFlowComposition:
+    """Per-lane hourly traffic data: flow rates, speeds, and truck composition."""
+
     def __init__(
         self,
         lane_index: int,

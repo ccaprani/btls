@@ -25,6 +25,8 @@ __all__ = ["VehicleGenNominal", "VehicleGenGrave", "VehicleGenGarage"]
 
 
 class VehicleGenNominal:
+    """Vehicle generator producing copies of a nominal vehicle, optionally randomised by COV."""
+
     def __init__(self, nominal_vehicle: Vehicle, COV_list: list[float], **kwargs):
         """
         The VehicleGenNominal instance in Python stores the data for creating a CVehicleGenNominal instance in C++.\n
@@ -106,6 +108,8 @@ class VehicleGenNominal:
 
 
 class VehicleGenGrave:
+    """Vehicle generator using the Grave model calibrated to built-in traffic sites (e.g. Auxerre)."""
+
     def __init__(
         self,
         traffic_site: Literal[
@@ -225,6 +229,8 @@ class VehicleGenGrave:
 
 
 class VehicleGenGarage:
+    """Vehicle generator sampling from a recorded vehicle pool (garage), optionally randomised by a kernel."""
+
     def __init__(
         self,
         garage: Union[Path, list[Vehicle]],

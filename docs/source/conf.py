@@ -80,6 +80,7 @@ breathe_default_project = "pybtls"
 breathe_default_members = ("members",)
 
 autodoc_member_order = "bysource"
+autoclass_content = "both"  # class summary line + __init__ parameter docs
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
 autoclass_content = "both"  # Add __init__ doc (ie. params) to class summaries
 html_show_sourcelink = (

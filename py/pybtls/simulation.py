@@ -22,6 +22,8 @@ __all__ = ["Simulation"]
 
 
 class Simulation:
+    """Assembles bridges, traffic, and output settings into runnable simulations, optionally parallelised across cores."""
+
     def __init__(self, output_dir: Path = Path("./")):
         """
         This is the class for setting and running simulations.
