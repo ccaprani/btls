@@ -31,32 +31,9 @@ CInfluenceSurface* CInfluenceLine::getIS()
 // get the load effect value given an axle vector
 double CInfluenceLine::getLoadEffect(std::vector<CAxle>& vAxles)
 {
-	// Hot path: the IL type is loop-invariant, so dispatch once instead of
-	// per axle. The per-axle arithmetic is kept identical to
-	// getAxleLoadEffect()/getOrdinate() for bit-exact results.
-	const size_t nAxles = vAxles.size();
 	double effVal = 0.0;
-
-	switch (m_Type)
-	{
-	case 3:	// Influence surface
-		for (size_t j = 0; j < nAxles; j++)
-		{
-			CAxle& axle = vAxles[j];
-			double ord1 = m_IS.giveOrdinate(axle.m_Position, axle.m_Eccentricity - axle.m_TrackWidth/2, axle.m_Lane);
-			double ord2 = m_IS.giveOrdinate(axle.m_Position, axle.m_Eccentricity + axle.m_TrackWidth/2, axle.m_Lane);
-			effVal += 0.5*axle.m_AxleWeight*(ord1 + ord2); // assumes half axle weight on each wheel
-		}
-		break;
-	case 2:	// Discrete influence line
-		for (size_t j = 0; j < nAxles; j++)
-			effVal += vAxles[j].m_AxleWeight * (getDiscreteOrdinate(vAxles[j].m_Position) * m_Weight);
-		break;
-	default:	// Equation influence line
-		for (size_t j = 0; j < nAxles; j++)
-			effVal += vAxles[j].m_AxleWeight * (getEquationOrdinate(vAxles[j].m_Position) * m_Weight);
-		break;
-	}
+	for(unsigned int j = 0; j < vAxles.size(); j++)
+		effVal += getAxleLoadEffect(vAxles[j]);
 	return effVal;
 }
 
