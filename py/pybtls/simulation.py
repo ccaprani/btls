@@ -16,9 +16,18 @@ import os
 import pickle
 import random
 import sys
+import time
 import platform
 
 __all__ = ["Simulation"]
+
+
+def _fmt_duration(seconds: float) -> str:
+    if seconds >= 3600:
+        return f"{int(seconds // 3600)}h{int(seconds % 3600 // 60):02d}m"
+    if seconds >= 60:
+        return f"{int(seconds // 60)}m{int(seconds % 60):02d}s"
+    return f"{seconds:.0f}s"
 
 
 class Simulation:
@@ -249,7 +258,7 @@ class Simulation:
 
         return chunk_days
 
-    def run(self, no_core: int = None) -> None:
+    def run(self, no_core: int = None, show_progress: bool = True) -> None:
         """
         Run the simulations. \n
 
@@ -261,24 +270,57 @@ class Simulation:
             Otherwise, the running will be multi-core. \n
             By default, (no_cpu_logic_core - 2) processes will be used for multi-core running.
 
+        show_progress : bool, optional\n
+            Print one line as each simulation (or chunk) completes, with
+            elapsed time and an ETA. Only the main process prints, so the
+            lines do not interleave. Default is True; nothing is printed
+            when there is only one task.
+
         Returns
         -------
         None
         """
 
-        if no_core == 1 or len(self._sim_argument) == 1:
-            for sim_arg in self._sim_argument:
+        total = len(self._sim_argument)
+        start = time.perf_counter()
+        done = 0
+
+        def report(index: int) -> None:
+            nonlocal done
+            done += 1
+            if not show_progress or total < 2:
+                return
+            elapsed = time.perf_counter() - start
+            eta = elapsed / done * (total - done)
+            width = len(str(total))
+            print(
+                f"[{done:>{width}}/{total}] {self._sim_argument[index][8]} done, "
+                f"elapsed {_fmt_duration(elapsed)}, ETA ~{_fmt_duration(eta)}",
+                flush=True,
+            )
+
+        if no_core == 1 or total == 1:
+            for i, sim_arg in enumerate(self._sim_argument):
                 self._sim_output[sim_arg[8]] = self._single_sim(sim_arg)
+                report(i)
         else:
             no_processes = (
                 no_core if no_core is not None else multiprocessing.cpu_count() - 2
             )
             with multiprocessing.Pool(processes=no_processes) as pool:
-                temp = pool.map(self._single_sim, self._sim_argument)
-            for i, sim_arg in enumerate(self._sim_argument):
-                self._sim_output[sim_arg[8]] = temp[i]
+                for i, result in pool.imap_unordered(
+                    self._single_sim_indexed, list(enumerate(self._sim_argument))
+                ):
+                    self._sim_output[self._sim_argument[i][8]] = result
+                    report(i)
 
         self._reduce_chunk_groups()
+
+    def _single_sim_indexed(self, indexed_arg: tuple):
+        """Run one simulation, carrying its queue index through the pool."""
+
+        index, sim_arg = indexed_arg
+        return index, self._single_sim(sim_arg)
 
     def _reduce_chunk_groups(self) -> None:
         """Replace per-chunk outputs with one merged view per chunked sim."""
