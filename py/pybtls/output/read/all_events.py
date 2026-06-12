@@ -29,11 +29,10 @@ def read_AE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     # Read data
     return_data = pd.read_csv(
         file_path,
-        sep="[\s\t]+",
+        sep=r"\s+",
         header=None,
         skiprows=max(0, start_line - 1),
         nrows=no_lines,
-        engine="python",
     )
     no_effects = len(return_data.columns) - 2
 

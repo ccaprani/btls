@@ -101,6 +101,9 @@ public:
 	 */
 	void FlushBuffer();
 
+	/// @brief Flush, filling silent trailing FlowData hours up to the simulated end time.
+	void FlushBuffer(double simEndTime);
+
 private:
 	/// @brief Write all buffered vehicles to the vehicle output file.
 	void writeFlowData();

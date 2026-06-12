@@ -111,6 +111,7 @@ protected:
 	CVehicle_sp m_pNextVeh;              ///< Next vehicle to be emitted.
 
 	double m_MinGap;                     ///< Minimum physical gap in seconds (car-following constraint).
+	double m_CurTime;                    ///< Absolute time of the last arrival (set by prepareNextGen).
 	double m_TotalFlow;                  ///< Total vehicle flow for the current block (veh/h).
 	double m_TruckFlow;                  ///< Truck flow for the current block (truck/h).
 	size_t m_CurBlock;                   ///< Current block index — i.e. which hour of day.
@@ -122,6 +123,16 @@ protected:
 	double m_BufferGapTime;              ///< Additional safety gap in seconds.
 
 private:
+	/**
+	 * @brief Skip blocks with zero total flow.
+	 *
+	 * A block with zero flow has no arrivals: advance to the start of the
+	 * next block with flow and return the dead time to add to the gap.
+	 * Without this, an infinite exponential gap (mean 3600/0) permanently
+	 * silenced the lane for the rest of the simulation.
+	 */
+	double skipZeroFlowBlocks();
+
 	/// @brief Advance @c m_CurBlock when @p time crosses a block boundary.
 	void updateBlock(double time);
 
