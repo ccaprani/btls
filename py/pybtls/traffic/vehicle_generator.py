@@ -25,6 +25,8 @@ __all__ = ["VehicleGenNominal", "VehicleGenGrave", "VehicleGenGarage"]
 
 
 class VehicleGenNominal:
+    """Vehicle generator producing copies of a nominal vehicle, optionally randomised by COV."""
+
     def __init__(self, nominal_vehicle: Vehicle, COV_list: list[float], **kwargs):
         """
         The VehicleGenNominal instance in Python stores the data for creating a CVehicleGenNominal instance in C++.\n
@@ -61,22 +63,6 @@ class VehicleGenNominal:
         self._COV_list = COV_list  # COV_list = [COV_AS, COV_AW]
 
         self._set_config(**kwargs)
-
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-        attribute_dict["nominal_vehicle"] = self._nominal_vehicle
-        attribute_dict["COV_list"] = self._COV_list
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
-        self._nominal_vehicle = attribute_dict["nominal_vehicle"]
-        self._COV_list = attribute_dict["COV_list"]
 
     @property
     def tag(self) -> str:
@@ -122,6 +108,8 @@ class VehicleGenNominal:
 
 
 class VehicleGenGrave:
+    """Vehicle generator using the Grave model calibrated to built-in traffic sites (e.g. Auxerre)."""
+
     def __init__(
         self,
         traffic_site: Literal[
@@ -188,18 +176,6 @@ class VehicleGenGrave:
 
         self._set_config(**kwargs)
 
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
-
     @property
     def tag(self) -> str:
         return self._tag
@@ -253,6 +229,8 @@ class VehicleGenGrave:
 
 
 class VehicleGenGarage:
+    """Vehicle generator sampling from a recorded vehicle pool (garage), optionally randomised by a kernel."""
+
     def __init__(
         self,
         garage: Union[Path, list[Vehicle]],
@@ -323,24 +301,6 @@ class VehicleGenGarage:
         self._garage_format = garage_format
 
         self._set_config(**kwargs)
-
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-        attribute_dict["garage"] = self._garage
-        attribute_dict["garage_format"] = self._garage_format
-        attribute_dict["kernel"] = self._kernel
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
-        self._garage = attribute_dict["garage"]
-        self._garage_format = attribute_dict["garage_format"]
-        self._kernel = attribute_dict["kernel"]
 
     @property
     def tag(self) -> str:

@@ -13,6 +13,8 @@ __all__ = ["Bridge"]
 
 
 class Bridge:
+    """A bridge definition: span length, lanes, and load effects given by influence lines or surfaces."""
+
     _Bridge_Index = 0
 
     def __init__(self, length: float, no_lane: int):
@@ -38,24 +40,6 @@ class Bridge:
 
         self._inf_file_dict = defaultdict(dict)
         self._threshold_list = []
-
-    def __getstate__(self):
-        attribute_dict = {}
-        attribute_dict["bridge_index"] = self._bridge_index
-        attribute_dict["length"] = self._length
-        attribute_dict["no_lane"] = self._no_lane
-        attribute_dict["no_load_effect"] = self._no_load_effect
-        attribute_dict["inf_file_dict"] = self._inf_file_dict
-        attribute_dict["threshold_list"] = self._threshold_list
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._bridge_index = attribute_dict["bridge_index"]
-        self._length = attribute_dict["length"]
-        self._no_lane = attribute_dict["no_lane"]
-        self._no_load_effect = attribute_dict["no_load_effect"]
-        self._inf_file_dict = attribute_dict["inf_file_dict"]
-        self._threshold_list = attribute_dict["threshold_list"]
 
     def add_load_effect(
         self,

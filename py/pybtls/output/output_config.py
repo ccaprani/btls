@@ -9,6 +9,8 @@ __all__ = ["OutputConfig"]
 
 
 class OutputConfig(_ConfigDataCore):
+    """Selects which simulation outputs are written and configures their block sizes and buffers."""
+
     def __init__(self):
         super().__init__()
 
