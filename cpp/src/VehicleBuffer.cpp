@@ -5,6 +5,7 @@
 #include <iostream>
 #include "VehicleBuffer.h"
 #include "ConsoleOutput.h"
+#include "FilePath.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -18,6 +19,7 @@ CVehicleBuffer::CVehicleBuffer(CConfigDataCore& config, CVehicleClassification_s
 	WRITE_VEHICLE_BUFFER_SIZE	= config.Output.VehicleFile.WRITE_VEHICLE_BUFFER_SIZE;
 	WRITE_FLOW_STATS			= config.Output.VehicleFile.WRITE_FLOW_STATS;
 
+	m_OutputDir = config.Output.OUTPUT_DIR;
 	NO_LANES_DIR1	= config.Road.NO_LANES_DIR1;
 	NO_LANES_DIR2	= config.Road.NO_LANES_DIR2;
 
@@ -36,7 +38,7 @@ CVehicleBuffer::CVehicleBuffer(CConfigDataCore& config, CVehicleClassification_s
 	
 	if(WRITE_VEHICLE_FILE)
 	{
-		m_OutFileVeh.open(VEHICLE_FILENAME.c_str(), std::ios::out);
+		m_OutFileVeh.open(btls::outPath(m_OutputDir, VEHICLE_FILENAME).c_str(), std::ios::out);
 		m_vVehicles.reserve(WRITE_VEHICLE_BUFFER_SIZE);	
 	}
 }
@@ -157,7 +159,7 @@ void CVehicleBuffer::writeFlowData()
 	{
 		int dir = iLane < NO_LANES_DIR1 ? 1 : 2;
 
-		std::string file = ("FlowData_" + to_string(dir) + "_" + to_string(iLane+1) + ".txt");
+		std::string file = btls::outPath(m_OutputDir, "FlowData_" + to_string(dir) + "_" + to_string(iLane+1) + ".txt");
 		m_OutFileFlow.open(file.c_str(), std::ios::out);
 
 		std::ostringstream oStr;

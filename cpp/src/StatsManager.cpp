@@ -1,8 +1,10 @@
 #include "StatsManager.h"
+#include "FilePath.h"
 
 
 CStatsManager::CStatsManager(CConfigDataCore& config) : COutputManagerBase("SS")
 {
+	m_OutputDir = config.Output.OUTPUT_DIR;
 	WRITE_SS_CUMULATIVE		= config.Output.Stats.WRITE_SS_CUMULATIVE;
 	WRITE_SS_INTERVALS		= config.Output.Stats.WRITE_SS_INTERVALS;
 	WRITE_SS_INTERVAL_SIZE	= config.Output.Stats.WRITE_SS_INTERVAL_SIZE;
@@ -141,7 +143,7 @@ void CStatsManager::WriteIntervalHeadings()
 
 void CStatsManager::WriteCumulativeFile()
 {
-	std::string file = m_FileStem + "_C_" + to_string(m_BridgeLength) + ".txt";
+	std::string file = btls::outPath(m_OutputDir, m_FileStem + "_C_" + to_string(m_BridgeLength) + ".txt");
 	std::ofstream outFile( file.c_str(), std::ios::out );
 
 	CEventStatistics s;

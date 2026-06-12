@@ -45,7 +45,6 @@ def write_garage_file(
         pattern (Default): Categorise vehicle by pattern. \n
     """
 
-    current_dir = Path("./").resolve()
     file_name = out_path.name
     absolute_out_dir = (
         Path(out_path).resolve().parent
@@ -54,7 +53,6 @@ def write_garage_file(
     )
 
     os.makedirs(absolute_out_dir, exist_ok=True)
-    os.chdir(absolute_out_dir)
 
     config = OutputConfig()
     config.set_vehicle_file_output(
@@ -62,6 +60,7 @@ def write_garage_file(
         vehicle_file_name=file_name,
         vehicle_file_format=out_garage_format,
     )
+    config._Output.OUTPUT_DIR = str(absolute_out_dir)
 
     if kwargs.get("vehicle_class_type") == "axle":
         vehicle_classification = _VehClassAxle()
@@ -73,5 +72,3 @@ def write_garage_file(
         vehicle_buffer.addVehicle(vehicle)
 
     vehicle_buffer.flushBuffer()
-
-    os.chdir(current_dir)

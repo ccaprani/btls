@@ -75,11 +75,13 @@ __all__ = [
 
 
 class MultiModalNormal(_MultiModalNormal):
+    """A multi-modal normal distribution for randomising vehicle properties (used by generator kernels)."""
 
     pass
 
 
 class Distribution(_Distribution):
+    """Random sampling utility exposing the C++ distributions (uniform, normal, exponential, GEV, ...)."""
 
     pass
 

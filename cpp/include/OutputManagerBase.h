@@ -101,6 +101,7 @@ protected:
 
 	double	m_BridgeLength;                     ///< Bridge length in metres, used for filename stemming.
 	const std::string m_FileStem;               ///< Output-file name stem supplied at construction.
+	std::string m_OutputDir;                    ///< Directory output files are written into ("" = cwd).
 
 	double m_SimStartTime;                      ///< Simulation start time in seconds.
 

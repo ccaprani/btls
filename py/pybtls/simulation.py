@@ -22,6 +22,8 @@ __all__ = ["Simulation"]
 
 
 class Simulation:
+    """Assembles bridges, traffic, and output settings into runnable simulations, optionally parallelised across cores."""
+
     def __init__(self, output_dir: Path = Path("./")):
         """
         This is the class for setting and running simulations.
@@ -361,9 +363,7 @@ class Simulation:
     def _single_vehicle_sim(
         self, bridge, vehicle, active_lane, sim_tag, output_root
     ) -> _OutputManager:
-        sim_root = Path("./").resolve()
         os.makedirs(output_root / str(sim_tag), exist_ok=False)
-        os.chdir(output_root / str(sim_tag))
 
         if not isinstance(bridge, Bridge):
             raise TypeError("Argument bridge needs to be Bridge type.")
@@ -400,8 +400,9 @@ class Simulation:
             current_time = 0.0
             vehicle.set_time(current_time)
 
-            os.mkdir("dir" + str(i + 1))
-            os.chdir("dir" + str(i + 1))
+            dir_path = output_root / str(sim_tag) / ("dir" + str(i + 1))
+            os.mkdir(dir_path)
+            output_config._Output.OUTPUT_DIR = str(dir_path)
             output_config._setRoad(
                 bridge.no_lane, 1, no_lane_dir_1[i], no_lane_dir_2[i]
             )
@@ -424,9 +425,6 @@ class Simulation:
                 current_time = next_arrival_time
 
             load_calc.finish()
-            os.chdir("..")
-
-        os.chdir(sim_root)
 
         return _OutputManager(output_root, sim_tag, None)
 
@@ -449,9 +447,8 @@ class Simulation:
             from .lib import libbtls
             libbtls.seed(seed)
 
-        sim_root = Path("./").resolve()
-        os.makedirs(output_root / str(sim_tag), exist_ok=False)
-        os.chdir(output_root / str(sim_tag))
+        sim_dir = output_root / str(sim_tag)
+        os.makedirs(sim_dir, exist_ok=False)
 
         if isinstance(traffic, TrafficGenerator) and no_day is None:
             raise ValueError("Argument no_day is not given.")
@@ -462,6 +459,11 @@ class Simulation:
 
         if not isinstance(output_config, OutputConfig):
             raise TypeError("Argument output needs to be OutputConfig type.")
+
+        # all C++ writers place their files under OUTPUT_DIR; work on a copy
+        # so the caller's config object is not mutated
+        output_config = pickle.loads(pickle.dumps(output_config))
+        output_config._Output.OUTPUT_DIR = str(sim_dir)
 
         output_config._setRoad(
             traffic.no_lane,
@@ -548,7 +550,6 @@ class Simulation:
             load_calc.finish(end_time)
 
         vehicle_buffer.flushBuffer(end_time)
-        os.chdir(sim_root)
 
         return _OutputManager(output_root, sim_tag, output_config)
 

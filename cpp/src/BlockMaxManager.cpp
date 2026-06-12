@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "BlockMaxManager.h"
+#include "FilePath.h"
 #include <algorithm>
 
 
@@ -15,6 +16,7 @@ CBlockMaxManager::CBlockMaxManager(CConfigDataCore& config)
 	, m_BlockMaxEvent(config.Output.VehicleFile.FILE_FORMAT)
 	, m_BMMixedEvent(config.Output.VehicleFile.FILE_FORMAT)
 {
+	m_OutputDir = config.Output.OUTPUT_DIR;
 	BLOCK_SIZE_DAYS		= config.Output.BlockMax.BLOCK_SIZE_DAYS;
 	BLOCK_SIZE_SECS		= config.Output.BlockMax.BLOCK_SIZE_SECS;
 
@@ -56,7 +58,7 @@ void CBlockMaxManager::Initialize(double BridgeLength, size_t nLE, double SimSta
 	if(WRITE_BM_MIXED)
 	{
 		// This is the mixed event output file
-		m_MixedEventFile = m_FileStem + "_V_" + to_string(m_BridgeLength) + "_All.txt";
+		m_MixedEventFile = btls::outPath(m_OutputDir, m_FileStem + "_V_" + to_string(m_BridgeLength) + "_All.txt");
 		std::ofstream outFile( m_MixedEventFile.c_str(), std::ios::out ); outFile.close();
 	}
 }
