@@ -32,7 +32,7 @@ void CEventBuffer::setMode(bool bFatigue)
 
 void CEventBuffer::setOutFile(std::string OutFile)
 {
-	m_OutFile.open(OutFile.c_str(), std::ios::out);
+	m_OutFile.open(btls::outPath(m_OutputDir, OutFile).c_str(), std::ios::out);
 }
 
 void CEventBuffer::setOutFile(double BridgeLength)
@@ -40,7 +40,7 @@ void CEventBuffer::setOutFile(double BridgeLength)
 	std::string stem = m_Mode == ALLEVENTS ? "_AllEvents" : "_Fatigue";
 	std::string OutFile;
 	m_BridgeLength = BridgeLength;
-	OutFile = "BL_" + to_string(m_BridgeLength) + stem + ".txt";
+	OutFile = btls::outPath(m_OutputDir, "BL_" + to_string(m_BridgeLength) + stem + ".txt");
 	m_OutFile.open(OutFile.c_str(), std::ios::out);
 }
 

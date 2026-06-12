@@ -1,8 +1,10 @@
 #include "POTManager.h"
+#include "FilePath.h"
 
 
 CPOTManager::CPOTManager(CConfigDataCore& config) : COutputManagerBase("PT")
 {
+	m_OutputDir = config.Output.OUTPUT_DIR;
 	WRITE_BUFFER_SIZE	= config.Output.POT.WRITE_POT_BUFFER_SIZE;
 	WRITE_VEHICLES		= config.Output.POT.WRITE_POT_VEHICLES;
 	WRITE_SUMMARY		= config.Output.POT.WRITE_POT_SUMMARY;
@@ -127,7 +129,7 @@ void CPOTManager::OpenVehicleFiles()
 
 void CPOTManager::OpenCounterFile()
 {
-	m_CounterFile = m_FileStem + "_C_" + to_string(m_BridgeLength) + ".txt";
+	m_CounterFile = btls::outPath(m_OutputDir, m_FileStem + "_C_" + to_string(m_BridgeLength) + ".txt");
 	
 	// this clears anything already in the file if it exists.
 	std::ofstream outFile( m_CounterFile.c_str(), std::ios::out );

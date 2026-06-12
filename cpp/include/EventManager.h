@@ -162,6 +162,7 @@ private:
 	int					m_CurBlockNo;        ///< Zero-based index of the current time block.
 	double				m_CurTime;           ///< Most recent simulation time passed to UpdateEffects().
 	double				m_BridgeLength;      ///< Bridge length in metres (copied from Initialize).
+	std::string			m_OutputDir;         ///< Directory output files are written into ("" = cwd).
 	size_t				m_NoLoadEffects;     ///< Number of load effects tracked.
 
 	/// @brief Update @ref m_CurEvent with the per-timestep maxima computed in UpdateEffects().

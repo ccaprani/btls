@@ -170,12 +170,15 @@ public:
 			bool WRITE_RAINFLOW_RESIDUALS;  ///< Chunk mode: write residual reversals at finish instead of closing them.
 		} Fatigue;
 
+		std::string OUTPUT_DIR;             ///< Directory all output files are written into ("" = current working directory).
+
 	} Output = {false, false, 10000, false,
 				{false, 4, "output_traffic.txt", 10000, false},	// VehicleFile_Config
 				{false, false, false, false, 1, 0, 10000},		// BlockMax_Config
 				{false, false, false, false, 1, 0, 10000},		// POT_Config
 				{false, false, false, 3600, 10000},				// Stats_Config
-				{false, 3, 0.0, 10000, false}};					// Fatigue_Config
+				{false, 3, 0.0, 10000, false},					// Fatigue_Config
+				""};											// OUTPUT_DIR
 
 	/// @brief Time-unit constants used throughout the simulation.
 	struct Time_Config

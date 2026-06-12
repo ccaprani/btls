@@ -38,18 +38,6 @@ class HeadwayGenHeDS:
 
         self._set_config(**kwargs)
 
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
-
     @property
     def tag(self) -> str:
         return self._tag
@@ -101,18 +89,6 @@ class HeadwayGenConstant:
         self._constant_gap = constant_gap  # in s
 
         self._set_config(**kwargs)
-
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
 
     @property
     def tag(self) -> str:
@@ -166,18 +142,6 @@ class HeadwayGenCongested:
 
         self._set_config(**kwargs)
 
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
-
     @property
     def tag(self) -> str:
         return self._tag
@@ -217,18 +181,6 @@ class HeadwayGenFreeflow:
         self._config = _ConfigData()
 
         self._set_config(**kwargs)
-
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
 
     @property
     def tag(self) -> str:

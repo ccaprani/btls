@@ -44,28 +44,6 @@ class Lane:
             + lfc.tag
         )
 
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["index"] = self._index
-        attribute_dict["dir"] = self._dir
-        attribute_dict["vehicle_gen"] = self._vehicle_gen
-        attribute_dict["headway_gen"] = self._headway_gen
-        attribute_dict["lfc"] = self._lfc
-        attribute_dict["start_time"] = self._start_time
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._index = attribute_dict["index"]
-        self._dir = attribute_dict["dir"]
-        self._vehicle_gen = attribute_dict["vehicle_gen"]
-        self._headway_gen = attribute_dict["headway_gen"]
-        self._lfc = attribute_dict["lfc"]
-        self._start_time = attribute_dict["start_time"]
-
     @property
     def tag(self) -> str:
         return self._tag
@@ -127,28 +105,6 @@ class TrafficGenerator:
         self._vehicle_classifier = 1
 
         self._lanes: list[Lane] = [None] * no_lane
-
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["no_lane"] = self._no_lane
-        attribute_dict["no_dir"] = self._no_dir
-        attribute_dict["no_lane_dir_1"] = self._no_lane_dir_1
-        attribute_dict["no_lane_dir_2"] = self._no_lane_dir_2
-        attribute_dict["vehicle_classifier"] = self._vehicle_classifier
-        attribute_dict["lanes"] = self._lanes
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._no_lane = attribute_dict["no_lane"]
-        self._no_dir = attribute_dict["no_dir"]
-        self._no_lane_dir_1 = attribute_dict["no_lane_dir_1"]
-        self._no_lane_dir_2 = attribute_dict["no_lane_dir_2"]
-        self._vehicle_classifier = attribute_dict["vehicle_classifier"]
-        self._lanes = attribute_dict["lanes"]
 
     def add_lane(
         self,

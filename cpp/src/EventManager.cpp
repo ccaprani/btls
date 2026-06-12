@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "EventManager.h"
+#include "FilePath.h"
 
 
 //////////////////////////////////////////////////////////////////////
@@ -33,6 +34,10 @@ CEventManager::CEventManager(CConfigDataCore& config)
 	m_NoEvents = 0;
 	m_CurTime = 0.0;
 	m_FatigueEventBuffer.setMode(true);
+
+	m_OutputDir = m_Config.Output.OUTPUT_DIR;
+	m_AllEventBuffer.setOutputDir(m_OutputDir);
+	m_FatigueEventBuffer.setOutputDir(m_OutputDir);
 }
 
 CEventManager::~CEventManager()
@@ -192,7 +197,7 @@ void CEventManager::DoTimeHistory(int i, std::vector<double>& vEff)
 	case 1:
 		{
 			std::string file;
-			file = "TH_" + to_string(m_BridgeLength) + ".txt";
+			file = btls::outPath(m_OutputDir, "TH_" + to_string(m_BridgeLength) + ".txt");
 			m_TimeHistoryFile.open(file.c_str(), std::ios::out);
 			m_TimeHistoryFile << std::setw(12) << "TIME (s)" << "\t\t" 
 					<< "NO. TRUCKS" << "\t" << "EFFECTS" << std::endl;

@@ -1,7 +1,9 @@
 #include "FatigueManager.h"
+#include "FilePath.h"
 
 CFatigueManager::CFatigueManager(CConfigDataCore &config) : COutputManagerBase("F")
 {
+	m_OutputDir = config.Output.OUTPUT_DIR;
 	DO_FATIGUE_RAINFLOW = config.Output.Fatigue.DO_FATIGUE_RAINFLOW;
 	RAINFLOW_DECIMAL = config.Output.Fatigue.RAINFLOW_DECIMAL;
 	RAINFLOW_CUTOFF = config.Output.Fatigue.RAINFLOW_CUTOFF;
@@ -82,7 +84,7 @@ void CFatigueManager::writeResidualFiles()
 	for (size_t i = 0; i < m_NoLoadEffects; i++)
 	{
 		std::string file;
-		file = m_FileStem + "RR_" + to_string(m_BridgeLength) + "_" + to_string(i + 1) + ".txt";  // "FRR_*.txt"
+		file = btls::outPath(m_OutputDir, m_FileStem + "RR_" + to_string(m_BridgeLength) + "_" + to_string(i + 1) + ".txt");  // "FRR_*.txt"
 		std::ofstream outFile(file.c_str(), std::ios::out);
 
 		// header: the binning parameters needed to close the spliced residuals
@@ -109,7 +111,7 @@ void CFatigueManager::writeRainflowBuffer()
 	for (size_t i = 0; i < m_NoLoadEffects; i++)
 	{
 		std::string file;
-		file = m_FileStem + "R_" + to_string(m_BridgeLength) + "_" + to_string(i + 1) + ".txt";  // "FR_*.txt"
+		file = btls::outPath(m_OutputDir, m_FileStem + "R_" + to_string(m_BridgeLength) + "_" + to_string(i + 1) + ".txt");  // "FR_*.txt"
 		std::ostringstream oStr;
 
 		if (m_WriteRainflowHeadLine)

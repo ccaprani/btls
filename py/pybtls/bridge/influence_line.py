@@ -39,20 +39,6 @@ class InfluenceLine:
 
         self._data_assigned = False
 
-    def __getstate__(self):
-        attribute_dict = {}
-        attribute_dict["IL_type"] = self._IL_type
-        attribute_dict["IL_index"] = self._IL_index
-        attribute_dict["data_dict"] = self._data_dict
-        attribute_dict["data_assigned"] = self._data_assigned
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._IL_type = attribute_dict["IL_type"]
-        self._IL_index = attribute_dict["IL_index"]
-        self._data_dict = attribute_dict["data_dict"]
-        self._data_assigned = attribute_dict["data_assigned"]
-
     def set_IL(self, **kwargs) -> None:
         """
         Set influence line data.
@@ -204,18 +190,6 @@ class InfluenceSurface:
         self._data_dict = {"lane_position": None, "IS_matrix": None}
 
         self._data_assigned = False
-
-    def __getstate__(self):
-        attribute_dict = {}
-        attribute_dict["IS_index"] = self._IS_index
-        attribute_dict["data_dict"] = self._data_dict
-        attribute_dict["data_assigned"] = self._data_assigned
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._IS_index = attribute_dict["IS_index"]
-        self._data_dict = attribute_dict["data_dict"]
-        self._data_assigned = attribute_dict["data_assigned"]
 
     def set_IS(
         self, IS_matrix: Union[list, np.ndarray], lane_position: Union[list, np.ndarray]

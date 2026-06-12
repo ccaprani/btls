@@ -93,6 +93,7 @@ PYBIND11_MODULE(libbtls, m) {
 					traffic_dict["CONSTANT_GAP"] = self.Traffic.CONSTANT_GAP;
 
 					py::dict output_dict;
+					output_dict["OUTPUT_DIR"] = self.Output.OUTPUT_DIR;
 					output_dict["WRITE_TIME_HISTORY"] = self.Output.WRITE_TIME_HISTORY;
 					output_dict["WRITE_EACH_EVENT"] = self.Output.WRITE_EACH_EVENT;
 					output_dict["WRITE_EVENT_BUFFER_SIZE"] = self.Output.WRITE_EVENT_BUFFER_SIZE;
@@ -170,6 +171,7 @@ PYBIND11_MODULE(libbtls, m) {
 					config.Traffic.CONSTANT_SPEED = attribute_dict["Traffic"]["CONSTANT_SPEED"].cast<double>();
 					config.Traffic.CONSTANT_GAP = attribute_dict["Traffic"]["CONSTANT_GAP"].cast<double>();
 
+					config.Output.OUTPUT_DIR = attribute_dict["Output"]["OUTPUT_DIR"].cast<std::string>();
 					config.Output.WRITE_TIME_HISTORY = attribute_dict["Output"]["WRITE_TIME_HISTORY"].cast<bool>();
 					config.Output.WRITE_EACH_EVENT = attribute_dict["Output"]["WRITE_EACH_EVENT"].cast<bool>();
 					config.Output.WRITE_EVENT_BUFFER_SIZE = attribute_dict["Output"]["WRITE_EVENT_BUFFER_SIZE"].cast<size_t>();
@@ -237,7 +239,8 @@ PYBIND11_MODULE(libbtls, m) {
 				.def_readwrite("CONSTANT_SPEED", &CConfigDataCore::Traffic_Config::CONSTANT_SPEED)
 				.def_readwrite("CONSTANT_GAP", &CConfigDataCore::Traffic_Config::CONSTANT_GAP);
 		py::class_<CConfigDataCore::Output_Config> output_config(cconfigdatacore, "_Output_Config");
-			output_config.def_readwrite("WRITE_TIME_HISTORY", &CConfigDataCore::Output_Config::WRITE_TIME_HISTORY)
+			output_config.def_readwrite("OUTPUT_DIR", &CConfigDataCore::Output_Config::OUTPUT_DIR)
+				.def_readwrite("WRITE_TIME_HISTORY", &CConfigDataCore::Output_Config::WRITE_TIME_HISTORY)
 				.def_readwrite("WRITE_EACH_EVENT", &CConfigDataCore::Output_Config::WRITE_EACH_EVENT)
 				.def_readwrite("WRITE_EVENT_BUFFER_SIZE", &CConfigDataCore::Output_Config::WRITE_EVENT_BUFFER_SIZE)
 				.def_readwrite("WRITE_FATIGUE_EVENT", &CConfigDataCore::Output_Config::WRITE_FATIGUE_EVENT)

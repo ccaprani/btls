@@ -3,10 +3,10 @@
 在推进主线（并行切块+合并）过程中发现的问题。**bug 类已经用户授权修复**
 （2026-06-12「把发现的bug都修了」）；设计类仍待逐项讨论。
 
-状态总览：
-- **已修复**：DR-1、DR-2、DR-4、DR-6、DR-7、DR-8、DR-9、DR-10、DR-11、
-  DR-12、DR-13、DR-14 + 末尾静默块（共 13 项）
-- **已出方案、待立项**：DR-3、DR-5（同一重构的两面，建议独立分支，见下）
+状态总览：**全部 15 项处理完毕。**
+- 分支 `auto-chunk-parallel`：DR-1、DR-2、DR-4、DR-6、DR-7、DR-8、DR-9、
+  DR-10、DR-11、DR-12、DR-13、DR-14 + 末尾静默块
+- 分支 `refactor-output-state`：DR-3、DR-5
 
 ## DR-13: 雨流计数依赖 IO 缓冲尺寸（C++ bug，**已修复**）
 
@@ -33,14 +33,16 @@ bin 级差异（新值是正确的整列计数）。另修 extractReversals 对 
 `***` 类警告/错误不受影响，始终打印。顺带修复了空缓冲 flush 消息对
 `m_vEvents[-1]` 的越界读。**行为变化**：默认不再打印 flush 进度。
 
-## DR-3: 输出目录依赖 `os.chdir`（已出方案，待立项）
+## DR-3: 输出目录依赖 `os.chdir`（**已修复**，refactor-output-state 分支）
 
-进程级全局状态，多线程不兼容。**方案**：`ConfigDataCore.Output` 增加
-`OUTPUT_DIR` 字段，`COutputManagerBase` 及其余 ~8 处文件打开点统一加
-前缀（OutputManagerBase/EventBuffer/VehicleBuffer/TH/FlowData/Rainflow/
-residual），Python 侧去掉 `_single_*_sim` 与 `garage/write.py` 的
-chdir。机械性改动约一天，触面广（每个写文件点），建议与 DR-5 同分支做、
-配合现有 split-replay 金标准测试验证输出不变。本轮未动以免膨胀当前分支。
+`ConfigDataCore.Output.OUTPUT_DIR`（默认 ""=cwd，旧行为）+
+`btls::outPath()` 辅助（[FilePath.h](../cpp/include/FilePath.h)）。
+全部写文件点（OutputManagerBase/BM mixed/POT counter/SS_C/FR/FRR/
+EventBuffer BL/TH/车辆文件/FlowData）统一前缀；OUTPUT_DIR 进 pybind
+readwrite + pickle。Python 侧 `_single_traffic_sim`/`_single_vehicle_sim`/
+`garage/write.py` 的 `os.chdir` 全部移除（traffic 路径对 config 做
+pickle 拷贝再设 OUTPUT_DIR，不污染调用方对象）。golden 哈希验证输出
+逐字节不变。
 
 ## DR-4: 输出持久化用 pickle（**已修复**）
 
@@ -51,16 +53,16 @@ chdir。机械性改动约一天，触面广（每个写文件点），建议与
 检查拒收 `_ChunkedOutputManager` 的问题（chunked 结果现在可保存/恢复，
 含 master_seed）。如需持久化解析后的 DataFrame（parquet），可后续按需加。
 
-## DR-5: Python wrapper 与 C++ 状态重复（已出方案，待立项）
+## DR-5: Python wrapper 与 C++ 状态重复（**已修复**，refactor-output-state 分支）
 
-核实后修正认知：`OutputConfig` 其实**直接继承** `_ConfigDataCore`（无
-镜像，没问题）；真正的重复在 `Bridge`/`TrafficGenerator`/`TrafficLoader`
-——Python 持有参数副本 + 手写 `__getstate__/__setstate__`，spawn 时靠
-其同步，新增字段时两处易漂移（本轮 WRITE_RAINFLOW_RESIDUALS 就必须同时
-改三处 pickle 代码）。**方案**：Python 层定型为「声明式参数容器」
-（dataclass 化、自动派生 state），C++ 对象仅在 worker 内由参数即时构建
-（现架构已大体如此，需收尾归一）。触面是全部 wrapper 类，建议与 DR-3
-同分支独立立项，行为不变、以现有 69 个测试为门禁。
+AST 核查证实：全部 14 对手写 `__getstate__/__setstate__` 均为照抄
+`__dict__` 的纯样板，且 **5 个类已经漂移**（HeadwayGenConstant/
+Congested、VehicleGenGrave、TrafficGenerator 漏 pickle 了部分属性——
+碰巧因这些属性在 `__init__` 内已折叠进 `_config` 而未爆雷）。wrapper
+本就不缓存 C++ 对象（C++ 实例在 worker 内由 `_get_*` 即时构建），
+**默认 pickle 完全够用**：28 个样板方法全部删除，行为更忠实（漏掉的
+属性现在也带上），且永久消除「加字段要改三处」的漂移源。69 测试 +
+golden 哈希验证行为不变。
 
 ## DR-6: read 层细节问题（**已修复（解析部分）**）
 

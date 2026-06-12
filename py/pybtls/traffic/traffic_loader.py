@@ -37,30 +37,6 @@ class TrafficLoader:
 
         self._lanes_vehicles = [[] for _ in range(no_lane)]
 
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["no_lane"] = self._no_lane
-        attribute_dict["sim_day"] = self._sim_day
-        attribute_dict["no_dir"] = self._no_dir
-        attribute_dict["no_lane_dir_1"] = self._no_lane_dir_1
-        attribute_dict["no_lane_dir_2"] = self._no_lane_dir_2
-        attribute_dict["vehicle_classifier"] = self._vehicle_classifier
-        attribute_dict["lanes_vehicles"] = self._lanes_vehicles
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._no_lane = attribute_dict["no_lane"]
-        self._sim_day = attribute_dict["sim_day"]
-        self._no_dir = attribute_dict["no_dir"]
-        self._no_lane_dir_1 = attribute_dict["no_lane_dir_1"]
-        self._no_lane_dir_2 = attribute_dict["no_lane_dir_2"]
-        self._vehicle_classifier = attribute_dict["vehicle_classifier"]
-        self._lanes_vehicles = attribute_dict["lanes_vehicles"]
-
     def add_traffic(
         self,
         traffic: Union[Path, list[Vehicle]],

@@ -62,22 +62,6 @@ class VehicleGenNominal:
 
         self._set_config(**kwargs)
 
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-        attribute_dict["nominal_vehicle"] = self._nominal_vehicle
-        attribute_dict["COV_list"] = self._COV_list
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
-        self._nominal_vehicle = attribute_dict["nominal_vehicle"]
-        self._COV_list = attribute_dict["COV_list"]
-
     @property
     def tag(self) -> str:
         return self._tag
@@ -187,18 +171,6 @@ class VehicleGenGrave:
         self._truck_track_width = truck_track_width
 
         self._set_config(**kwargs)
-
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
 
     @property
     def tag(self) -> str:
@@ -323,24 +295,6 @@ class VehicleGenGarage:
         self._garage_format = garage_format
 
         self._set_config(**kwargs)
-
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-        attribute_dict["garage"] = self._garage
-        attribute_dict["garage_format"] = self._garage_format
-        attribute_dict["kernel"] = self._kernel
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
-        self._garage = attribute_dict["garage"]
-        self._garage_format = attribute_dict["garage_format"]
-        self._kernel = attribute_dict["kernel"]
 
     @property
     def tag(self) -> str:
