@@ -38,8 +38,48 @@ class InfluenceLine:
             "length": None,
             "inf_surf": None,
         }
+        self._load_effect_mode = "vertical"
+        self._braking_factor = 0.0
 
         self._data_assigned = False
+
+    def set_mode(
+        self,
+        mode: Literal["vertical", "centrifugal", "braking"],
+        braking_factor: float = 0.0,
+    ) -> None:
+        """
+        Select the per-axle force formula used with this influence line.
+
+        Parameters
+        ----------
+        mode : Literal["vertical","centrifugal","braking"]
+
+            "vertical" (default): F_axle = AxleWeight - the ordinary
+            vertical reaction.
+
+            "centrifugal": F_axle = AxleWeight * v^2 / g, using each
+            vehicle's speed. Bake the bridge geometry constants (the
+            superelevation factor k_e and 1/R) into the influence line
+            ordinates so the convolved effect comes out in kN.
+
+            "braking": F_axle = AxleWeight * |a| / g, using each vehicle's
+            longitudinal acceleration (``Vehicle.set_acceleration``); when
+            a vehicle's acceleration is zero, ``braking_factor`` is used
+            instead.
+
+        braking_factor : float, optional
+
+            Dimensionless fallback deceleration ratio (a_design / g) for
+            braking mode with constant-velocity traffic. The default is 0.0.
+        """
+
+        if mode not in ("vertical", "centrifugal", "braking"):
+            raise ValueError(
+                "mode must be 'vertical', 'centrifugal' or 'braking'."
+            )
+        self._load_effect_mode = mode
+        self._braking_factor = braking_factor
 
     def set_IL(self, **kwargs) -> None:
         """
@@ -163,6 +203,13 @@ class InfluenceLine:
             inf_line.setIL(self._data_dict["id"], self._data_dict["length"])
         elif self._IL_type == "surface":
             inf_line.setIL(self._data_dict["inf_surf"]._get_IS())
+
+        mode_id = {"vertical": 0, "centrifugal": 1, "braking": 2}[
+            getattr(self, "_load_effect_mode", "vertical")
+        ]
+        if mode_id:
+            inf_line.setLoadEffectMode(mode_id)
+            inf_line.setBrakingFactor(getattr(self, "_braking_factor", 0.0))
 
         return inf_line
 

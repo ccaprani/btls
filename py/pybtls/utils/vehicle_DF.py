@@ -46,6 +46,7 @@ def vehicle_list_to_df(vehicle_list: list[Vehicle]) -> pd.DataFrame:
         "AxleWeights",  # list, all in kN
         "AxleSpacings",  # list, all in m
         "AxleWidths",  # list, all in m, 1.98m by default
+        "Acceleration",  # in m/s^2, negative = braking, 0.0 by default
     ]
 
     return pd.DataFrame(data_list, columns=column_names)
@@ -87,6 +88,7 @@ def df_to_vehicle_list(df: pd.DataFrame) -> list[Vehicle]:
             "AxleWeights",
             "AxleSpacings",
             "AxleWidths",
+            "Acceleration",
         ]
     ):
         raise ValueError("DataFrame must contain all the required columns.")
