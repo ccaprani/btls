@@ -10,7 +10,52 @@ from typing import Union, Literal
 __all__ = ["InfluenceLine", "InfluenceSurface"]
 
 
-class InfluenceLine:
+class _LoadEffectModeMixin:
+    """Shared per-axle force-mode selection for influence lines and surfaces."""
+
+    _load_effect_mode = "vertical"
+    _braking_factor = 0.0
+
+    def set_mode(
+        self,
+        mode: Literal["vertical", "centrifugal", "braking"],
+        braking_factor: float = 0.0,
+    ) -> None:
+        """
+        Select the per-axle force formula used with this influence line/surface.
+
+        Parameters
+        ----------
+        mode : Literal["vertical","centrifugal","braking"]
+
+            "vertical" (default): F_axle = AxleWeight - the ordinary
+            vertical reaction.
+
+            "centrifugal": F_axle = AxleWeight * v^2 / g, using each
+            vehicle's speed. Bake the bridge geometry constants (the
+            superelevation factor k_e and 1/R) into the influence
+            ordinates so the convolved effect comes out in kN.
+
+            "braking": F_axle = AxleWeight * |a| / g, using each vehicle's
+            longitudinal acceleration (``Vehicle.set_acceleration``); when
+            a vehicle's acceleration is zero, ``braking_factor`` is used
+            instead.
+
+        braking_factor : float, optional
+
+            Dimensionless fallback deceleration ratio (a_design / g) for
+            braking mode with constant-velocity traffic. The default is 0.0.
+        """
+
+        if mode not in ("vertical", "centrifugal", "braking"):
+            raise ValueError(
+                "mode must be 'vertical', 'centrifugal' or 'braking'."
+            )
+        self._load_effect_mode = mode
+        self._braking_factor = braking_factor
+
+
+class InfluenceLine(_LoadEffectModeMixin):
     """An influence line (built-in, discrete, or wrapping an influence surface) for one load effect."""
 
     _IL_Index = 0
@@ -164,6 +209,13 @@ class InfluenceLine:
         elif self._IL_type == "surface":
             inf_line.setIL(self._data_dict["inf_surf"]._get_IS())
 
+        mode_id = {"vertical": 0, "centrifugal": 1, "braking": 2}[
+            getattr(self, "_load_effect_mode", "vertical")
+        ]
+        if mode_id:
+            inf_line.setLoadEffectMode(mode_id)
+            inf_line.setBrakingFactor(getattr(self, "_braking_factor", 0.0))
+
         return inf_line
 
     # def show(self) -> None:
@@ -178,7 +230,7 @@ class InfluenceLine:
     #     raise NotImplementedError()
 
 
-class InfluenceSurface:
+class InfluenceSurface(_LoadEffectModeMixin):
     """A 2D influence surface defined on a grid, for load effects that vary transversely."""
 
     _IS_Index = 0

@@ -1,11 +1,24 @@
 #include "InfluenceLine.h"
 #include <algorithm>
 
+#include <cmath>
+
+
+// Acceleration due to gravity used in centrifugal- and braking-mode
+// force conversion. CAxle::m_AxleWeight is in kN (= mass[kg] * g[m/s^2]
+// / 1000); dividing by g recovers an axle "mass coefficient" so that
+// the per-axle centrifugal force AxleWeight * v^2 / g (kN.m, before
+// IL convolution that bakes in 1/R) and braking force
+// AxleWeight * |a| / g (kN) come out in the right units.
+static constexpr double GRAVITY_MS2_FOR_LE = 9.80665;
 
 CInfluenceLine::CInfluenceLine(void)
 	: m_Type(0), m_Weight(1.0)
+	, m_LoadEffectMode(0)
+	, m_BrakingFactor(0.0)
 {
 	// Type: 1 - expression, 2 - discrete, 3 - Surface
+	// LoadEffectMode: 0 - vertical (default), 1 - centrifugal, 2 - braking
 
 	m_vLEfptr.push_back(&CInfluenceLine::LoadEffect1);
 	m_vLEfptr.push_back(&CInfluenceLine::LoadEffect2);
@@ -41,15 +54,50 @@ double CInfluenceLine::getAxleLoadEffect(CAxle& axle)
 {
 	double effVal = 0.0;
 
+	// Per-axle force coefficient: depends on the load-effect mode.
+	// Bridge-geometry constants (radius R, superelevation factor k_e for
+	// centrifugal; lever-arm or design constants for braking) are baked
+	// into the influence-line ordinates by the caller (typically via
+	// setWeight() or by direct ordinate pre-multiplication at IL
+	// construction time). The C++ side computes only the per-axle
+	// kinematic force proxy.
+	//   Vertical    (0): F_axle = AxleWeight                              (default).
+	//   Centrifugal (1): F_axle = AxleWeight * Speed^2 / g                (per-vehicle v^2).
+	//                    Caller bakes k_e / R into the IL ordinates so that
+	//                    the convolved bearing reaction is in kN.
+	//   Braking     (2): F_axle = AxleWeight * |Acceleration| / g         (per-vehicle deceleration);
+	//                    falls back to AxleWeight * |brakingFactor| if Acceleration is zero, where
+	//                    brakingFactor is dimensionless (deceleration / g) configured via
+	//                    @ref setBrakingFactor for code-prescribed constant-deceleration cases.
+	double force_coeff = axle.m_AxleWeight;
+	if (m_LoadEffectMode == LE_Centrifugal)
+	{
+		double v = axle.m_Speed;
+		force_coeff = axle.m_AxleWeight * (v * v) / GRAVITY_MS2_FOR_LE;
+	}
+	else if (m_LoadEffectMode == LE_Braking)
+	{
+		// Braking force on each axle is mass * |deceleration|.
+		// Mass = AxleWeight / g; |a| from the per-axle m_Acceleration (set by the upstream
+		// traffic generator, e.g. an IDM-active solver writing per-time deceleration into
+		// each axle). If m_Acceleration is exactly zero (e.g. a constant-velocity stream
+		// without an IDM-driven deceleration), the scalar m_BrakingFactor (= a_design / g)
+		// configured via setBrakingFactor() is used as a code-prescribed-design fallback.
+		double a_over_g = (axle.m_Acceleration != 0.0)
+			? std::abs(axle.m_Acceleration) / GRAVITY_MS2_FOR_LE
+			: m_BrakingFactor;
+		force_coeff = axle.m_AxleWeight * a_over_g;
+	}
+
 	if(m_Type == 3)	// Influence surface
 	{
 		double ord1 = m_IS.giveOrdinate(axle.m_Position,axle.m_Eccentricity-axle.m_TrackWidth/2,axle.m_Lane);
 		double ord2 = m_IS.giveOrdinate(axle.m_Position,axle.m_Eccentricity+axle.m_TrackWidth/2,axle.m_Lane);
-		effVal = 0.5*axle.m_AxleWeight*(ord1+ord2); // assumes half axle weight on each wheel		
+		effVal = 0.5*force_coeff*(ord1+ord2); // assumes half axle force on each wheel
 	}
 	else
-		effVal = axle.m_AxleWeight*getOrdinate(axle.m_Position);
-	
+		effVal = force_coeff*getOrdinate(axle.m_Position);
+
 	return effVal;
 }
 
@@ -113,6 +161,18 @@ size_t CInfluenceLine::getIndex(void)
 void CInfluenceLine::setWeight(double weight)
 {
 	m_Weight = weight;
+}
+
+void CInfluenceLine::setLoadEffectMode(size_t mode)
+{
+	// 0 = vertical (default), 1 = centrifugal, 2 = braking. Values
+	// outside this range are clamped to 0 (vertical) for safety.
+	m_LoadEffectMode = (mode <= 2) ? mode : 0;
+}
+
+void CInfluenceLine::setBrakingFactor(double brakingFactor)
+{
+	m_BrakingFactor = brakingFactor;
 }
 
 double CInfluenceLine::getDiscreteOrdinate(double x)

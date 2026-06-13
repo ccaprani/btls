@@ -304,6 +304,17 @@ PYBIND11_MODULE(libbtls, m) {
 			.def("setIL", py::overload_cast<size_t, double>(&CInfluenceLine::setIL), py::arg("built_in_IL_no"), py::arg("length"))
 			.def("setIL", py::overload_cast<std::vector<double>, std::vector<double> >(&CInfluenceLine::setIL), py::arg("positions"), py::arg("ordinates"))
 			.def("setIL", py::overload_cast<CInfluenceSurface>(&CInfluenceLine::setIL), py::arg("inf_surface"))
+			.def("setWeight", &CInfluenceLine::setWeight, py::arg("weight"))
+			.def("setLoadEffectMode", &CInfluenceLine::setLoadEffectMode, py::arg("mode"),
+				 "Load-effect mode: 0 = vertical (default), 1 = centrifugal, 2 = braking. "
+				 "For centrifugal, the per-axle force becomes AxleWeight * Speed^2 / g (per-vehicle v^2); "
+				 "the caller bakes the bridge geometric constants (k_e and 1 / R) into the IL ordinates "
+				 "so that the convolved bearing reaction is in kN. For braking, the per-axle force "
+				 "becomes AxleWeight * |Acceleration| / g (per-vehicle deceleration), with a scalar "
+				 "fallback set via setBrakingFactor.")
+			.def("setBrakingFactor", &CInfluenceLine::setBrakingFactor, py::arg("braking_factor"),
+				 "Set braking-mode dimensionless fallback factor (deceleration / g). Used when the "
+				 "per-axle CAxle::m_Acceleration is zero (e.g. constant-velocity vehicle stream).")
 			.def("getLength", &CInfluenceLine::getLength);
 	py::class_<CInfluenceSurface> cinfluencesurface(m, "_InfluenceSurface");
 		cinfluencesurface.def(py::init<>())
@@ -350,6 +361,22 @@ PYBIND11_MODULE(libbtls, m) {
 					The velocity of the vehicle, in m/s.
 				)", 
 				py::arg("velocity"))
+			.def("set_acceleration", &CVehicle::setAcceleration,
+				R"(
+				Set vehicle longitudinal acceleration.
+
+				Used by the braking mode of CInfluenceLine: each axle's per-time
+				deceleration is propagated into the load-effect convolution as
+				F_axle = AxleWeight * |a| / g. Default zero (constant-velocity
+				motion).
+
+				Parameters
+				----------
+				acceleration : float
+					The longitudinal acceleration of the vehicle, in m/s^2
+					(negative = braking).
+				)",
+				py::arg("acceleration"))
 			.def("set_local_from_global_lane", &CVehicle::setLocalFromGlobalLane, 
 				R"(
 				Set the local lane index of the vehicle from its 1-based global index.
@@ -507,6 +534,8 @@ PYBIND11_MODULE(libbtls, m) {
 				py::arg("index"), py::arg("width"))
 			.def("get_length", &CVehicle::getLength, "Get the vehicle length.")
 			.def("get_velocity", &CVehicle::getVelocity, "Get the vehicle velocity.")
+			.def("get_acceleration", &CVehicle::getAcceleration,
+				 "Get the vehicle longitudinal acceleration in m/s^2 (negative = braking).")
 			.def("get_gvw", &CVehicle::getGVW, "Get the gross vehicle weight of the vehicle.")
 			.def("get_no_axles", &CVehicle::getNoAxles, "Get the number of axles of the vehicle.")
 			.def("get_axle_weights", 
