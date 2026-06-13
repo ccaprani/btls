@@ -81,6 +81,49 @@ def test_braking_uses_vehicle_acceleration(peaks):
     )
 
 
+def test_surface_centrifugal_mode():
+    # set_mode on an InfluenceSurface must reach the C++ load calculation
+    # through Bridge's internal wrapping.
+    root = Path(__file__).parent / "temp_le_surface"
+    remove_folder(root)
+
+    lane_position = [(0.5, 4.0), (4.0, 7.5)]
+    IS_matrix = [
+        [0.0, 0.0, 8.0],
+        [0.0, 0.0, 0.0],
+        [10.0, 5.0, 5.0],
+        [20.0, 0.0, 0.0],
+    ]
+
+    peaks = {}
+    for mode in ("vertical", "centrifugal"):
+        inf_surf = pb.InfluenceSurface()
+        inf_surf.set_IS(IS_matrix, lane_position)
+        if mode != "vertical":
+            inf_surf.set_mode(mode)
+
+        bridge = pb.Bridge(length=20.0, no_lane=2)
+        bridge.add_load_effect(inf_line_surf=inf_surf, threshold=0.0)
+
+        vehicle = pb.Vehicle(no_axles=2)
+        vehicle.set_axle_weights([100.0, 100.0])
+        vehicle.set_axle_spacings([5.0, 0.0])
+        vehicle.set_axle_widths([2.0, 2.0])
+
+        sim = pb.Simulation(output_dir=root / mode)
+        sim.add_sim(bridge=bridge, vehicle=vehicle, tag=mode)
+        sim.run(no_core=1)
+        output = next(iter(sim.get_output().values()))
+        history = output.read_data("time_history")
+        peaks[mode] = max(df["Effect 1"].abs().max() for df in history.values())
+
+    assert peaks["vertical"] > 0.0
+    assert peaks["centrifugal"] / peaks["vertical"] == pytest.approx(
+        SPEED**2 / GRAVITY, rel=1e-4
+    )
+    remove_folder(root)
+
+
 def test_invalid_mode_raises():
     inf_line = pb.InfluenceLine(IL_type="built-in")
     inf_line.set_IL(id=1, length=20.0)

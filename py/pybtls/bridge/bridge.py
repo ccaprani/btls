@@ -137,6 +137,10 @@ class Bridge:
                 elif isinstance(temp_inf_file, InfluenceSurface):
                     temp_IL_file = InfluenceLine("surface")
                     temp_IL_file.set_IL(inf_surf=temp_inf_file)
+                    temp_IL_file.set_mode(
+                        temp_inf_file._load_effect_mode,
+                        temp_inf_file._braking_factor,
+                    )
                     temp_IL = temp_IL_file._get_IL()
 
                 temp_IL.setIndex(int(load_case))
