@@ -134,6 +134,58 @@ class Simulation:
 
         track_progress : bool, optional\n
             Whether to track the simulation progress. A single-vehicle simulation will ignore this argument. The default is False.
+
+        engine : str, optional\n
+            Load-effect engine for traffic simulation. Default "cpu".
+
+            Each value names the device the engine runs on:
+
+            - "cpu": the C++ time-stepping engine, on the **CPU**. Full-featured
+              (time history, block maxima, POT, statistics, fatigue/rainflow) and
+              the right choice for essentially all runs.
+            - "cuda" / "mps" / "xpu": the experimental GPU engine (PyTorch +
+              Triton). The engine name IS the torch device:
+                * "cuda" -> **NVIDIA**, and **AMD** via ROCm (both use torch's
+                  cuda device); float64.
+                * "mps"  -> **Apple Silicon** (Metal); runs in float32 (MPS has
+                  no float64). The MPS backend may lack ``searchsorted`` /
+                  ``scatter_reduce`` — the engine probes for this and raises a
+                  clear error; set ``PYTORCH_ENABLE_MPS_FALLBACK=1`` to run those
+                  ops on the CPU (slower).
+                * "xpu"  -> **Intel** GPU; float64.
+              Only "cuda" is currently tested; "mps"/"xpu" are wired but
+              unverified (the engine probes each backend for the ops it needs
+              and errors clearly if one is missing). Needs ``pybtls[gpu]`` (a build of torch for that
+              device). It computes per-effect block-maxima (BM),
+              peaks-over-threshold (POT: PT_S/PT_C/PT_V), fatigue rainflow
+              (FR), flow statistics (SS_C/SS_S) and time history (TH) via
+              per-vehicle superposition, honouring the matching OutputConfig
+              flags. POT/SS rebuild the "cpu" event
+              partition, so event / vehicle / truck counts track "cpu" to ~1%
+              (uniform sampling merges composition changes inside one time step);
+              peak values/times, statistics and fatigue cycle amplitudes carry
+              uniform-grid sampling noise. Scope: recorded or generated traffic;
+              discrete, built-in or surface influence lines, including a distinct
+              IL/weight per lane; vertical / centrifugal / braking modes. It does
+              NOT produce the per-event / per-vehicle detail outputs
+              (write_each_event, the vehicle file, BM-vehicle / mixed,
+              write_fatigue_event, rainflow residuals, flow statistics); those are
+              skipped with a warning — use engine="cpu" for them.
+
+            When is the GPU engine worth it? Only when the load-effect *computation*
+            dominates the run — which it usually does NOT. Profiling shows the
+            per-step load summation is typically ~15-20% of wall-clock; the
+            bottleneck is the output writers (time history, POT, fatigue) plus
+            per-event overhead, none of which the GPU engine accelerates. The
+            GPU engine pays off in the compute-dominated regime: a long-span or
+            congested bridge (many axles on the deck at once), many load effects
+            (tens to hundreds), a fine ``time_step``, and you need block maxima /
+            POT / fatigue rather than time history. In that
+            regime it reaches roughly 15x (free-flow) to ~40x (congested /
+            influence-surface-heavy) over a 16-core CPU, in float64, with the
+            working set tiled to fit GPU memory. For ordinary short-span bridges
+            with a handful of effects, or any run needing the full output set,
+            use "cpu".
         """
 
         self._sim_count += 1
@@ -144,6 +196,11 @@ class Simulation:
 
         overlap_avoid_distance = kwargs.get("min_chase_distance", 100.0)
         track_progress = kwargs.get("track_progress", False)
+        engine = kwargs.get("engine", "cpu")
+        if engine not in ("cpu", "cuda", "mps", "xpu"):
+            raise ValueError(
+                'engine must be "cpu", "cuda", "mps" or "xpu".'
+            )
 
         if no_chunk is None or no_chunk == 1:
             self._sim_argument.append(
@@ -161,6 +218,7 @@ class Simulation:
                     track_progress,
                     self._output_root,
                     seed,
+                    engine,
                 )
             )
             return
@@ -194,6 +252,7 @@ class Simulation:
                     track_progress,
                     self._output_root,
                     master_seed + i,
+                    engine,
                 )
             )
 
@@ -378,8 +437,16 @@ class Simulation:
             track_progress,
             output_root,
             seed,
+            engine,
         ) = args
 
+        if traffic is not None and engine in ("cuda", "mps", "xpu"):
+            from .gpu import run as gpu_run
+            return gpu_run(
+                bridge, traffic, no_day, time_step, min_gvw, active_lane,
+                sim_tag, overlap_avoid_distance, output_root, seed, device=engine,
+                output_config=output_config,
+            )
         if traffic is not None:
             return self._single_traffic_sim(
                 bridge,

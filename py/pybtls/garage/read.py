@@ -11,6 +11,8 @@ from ..lib.BTLS import (
 from pathlib import Path
 from typing import Literal
 
+from .._resource import warn_if_file_too_large
+
 __all__ = ["read_garage_file"]
 
 
@@ -54,6 +56,7 @@ def read_garage_file(
         Path(garage_path) if not isinstance(garage_path, Path) else garage_path
     )
 
+    warn_if_file_too_large(garage_path, "garage file")
     garage_txt = _VehicleTrafficFile(vehicle_classification, False, False, 80.0)
     garage_txt.read(garage_path, garage_format)
     vehicle_list = garage_txt.getVehicles()
