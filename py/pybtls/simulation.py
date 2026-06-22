@@ -158,7 +158,8 @@ class Simulation:
               and errors clearly if one is missing). Needs ``pybtls[gpu]`` (a build of torch for that
               device). It computes per-effect block-maxima (BM),
               peaks-over-threshold (POT: PT_S/PT_C/PT_V), fatigue rainflow
-              (FR), flow statistics (SS_C/SS_S) and time history (TH) via
+              (FR), load-effect statistics (SS_C/SS_S), vehicle flow statistics
+              (FlowData) and time history (TH) via
               per-vehicle superposition, honouring the matching OutputConfig
               flags. POT/SS rebuild the "cpu" event
               partition, so event / vehicle / truck counts track "cpu" to ~1%
@@ -169,8 +170,8 @@ class Simulation:
               IL/weight per lane; vertical / centrifugal / braking modes. It does
               NOT produce the per-event / per-vehicle detail outputs
               (write_each_event, the vehicle file, BM-vehicle / mixed,
-              write_fatigue_event, rainflow residuals, flow statistics); those are
-              skipped with a warning — use engine="cpu" for them.
+              write_fatigue_event, rainflow residuals); those are skipped with a
+              warning — use engine="cpu" for them.
 
             When is the GPU engine worth it? Only when the load-effect *computation*
             dominates the run — which it usually does NOT. Profiling shows the

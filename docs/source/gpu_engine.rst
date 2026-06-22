@@ -82,15 +82,15 @@ The GPU engine is experimental and intentionally narrower than the CPU engine:
   (``PT_S`` / ``PT_C`` / ``PT_V``), fatigue rainflow (``FR_*``, via
   ``set_fatigue_output``; each block's E(t) is reduced to turning points on the
   device and fed to the same ASTM E1049-85 counter the CPU uses, with the
-  residual carried across blocks), flow statistics (``SS_C`` / ``SS_S``, via
-  ``set_stats_output``) and time history (``TH``), selected through the same
+  residual carried across blocks), load-effect statistics (``SS_C`` / ``SS_S``),
+  vehicle flow statistics (``FlowData_*``, via ``set_stats_output``
+  ``write_flow_stats``) and time history (``TH``), selected through the same
   :class:`OutputConfig` flags as the CPU engine.
 * **Not produced** (configure these and they are skipped with a warning — use
   ``engine="cpu"``): every-event output (``write_each_event``), the vehicle file
   (``set_vehicle_file_output``), per-block-max / fatigue-event vehicle detail
-  (``set_BM_output`` ``write_vehicle`` / ``write_mixed``, ``write_fatigue_event``),
-  rainflow residuals (``write_residuals``) and vehicle flow statistics
-  (``set_stats_output`` ``write_flow_stats``). These are per-event / per-vehicle
+  (``set_BM_output`` ``write_vehicle`` / ``write_mixed``, ``write_fatigue_event``)
+  and rainflow residuals (``write_residuals``). These are per-event / per-vehicle
   detail outputs — the I/O-bound ones the GPU does not accelerate anyway.
 
 The POT and statistics paths rebuild the C++ engine's *event* partition — an

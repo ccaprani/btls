@@ -155,6 +155,33 @@ def test_stats_interval_file_silent_intervals(tmp_path):
     assert df.loc[1, "Mean"] == 0.0 and df.loc[1, "Max"] == 0.0
 
 
+# --- flow statistics accumulator (flow.py) -----------------------------------
+
+def test_flow_stats_accumulator(tmp_path):
+    from pybtls.gpu.flow import FlowStatsAccumulator
+    acc = FlowStatsAccumulator(no_lane=4, classifier_type=1, no_lane_dir1=2,
+                               total_hours=2, hour_origin=0.0)
+    # 3 vehicles in hour 0 lane 1 (2 cars bin1, 1 truck bin2), 1 truck in hour 1 lane 3
+    vtime = np.array([10.0, 20.0, 30.0, 3601.0])
+    vlane = np.array([1, 1, 1, 3])
+    viscar = np.array([1, 1, 0, 0])
+    viscls = np.array([1, 1, 2, 3])
+    acc.update(vtime, vlane, viscar, viscls)
+    assert acc.n_veh[0, 0] == 3 and acc.n_car[0, 0] == 2 and acc.n_trk[0, 0] == 1
+    assert acc.hist[0, 0, 1] == 2 and acc.hist[0, 0, 2] == 1
+    assert acc.n_veh[1, 2] == 1 and acc.n_trk[1, 2] == 1 and acc.hist[1, 2, 3] == 1
+
+    acc.write(tmp_path)
+    names = sorted(p.name for p in tmp_path.glob("FlowData*.txt"))
+    # one file per global lane, direction split at no_lane_dir1=2
+    assert names == ["FlowData_1_1.txt", "FlowData_1_2.txt",
+                     "FlowData_2_3.txt", "FlowData_2_4.txt"]
+    head = (tmp_path / "FlowData_1_1.txt").read_text().splitlines()[0]
+    assert "Pattern" in head and "Hour" in head      # pattern classifier header
+    row1 = (tmp_path / "FlowData_1_1.txt").read_text().splitlines()[1].split()
+    assert row1[:4] == ["1", "3", "1", "2"]           # Hour, #Vehicles, #Trucks, #Cars
+
+
 # --- influence-surface / influence-line resampling (influence.py) ------------
 
 def test_is_uniform():

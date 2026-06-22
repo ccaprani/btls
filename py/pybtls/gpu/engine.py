@@ -151,7 +151,8 @@ def _reconstruct_axles(extracted, bridge_length, min_gvw, need_transverse,
     vectorized in numpy. ``time_offset`` shifts all vehicle times to a window-local
     origin so a streamed run processes one window at a time on a small
     (window-length) sample grid instead of an absolute one."""
-    vtime, vspeed, vdir, vgvw, vlane, vtrans, vlen, vacc, vcount, aw, asp, at, viscar = extracted
+    (vtime, vspeed, vdir, vgvw, vlane, vtrans, vlen, vacc, vcount, aw, asp, at,
+     viscar, _viscls) = extracted   # _viscls (flow-stats class bin) used by the runner, not here
 
     keep = vgvw > min_gvw
     if not keep.any():

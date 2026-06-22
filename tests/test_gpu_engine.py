@@ -694,6 +694,40 @@ def test_gpu_stats_streamed_equals_single_window():
             f"streamed != single-window for {col}: {one[col].values} vs {many[col].values}"
 
 
+def test_gpu_flow_stats_matches_cpu():
+    # Flow statistics (FlowData_{dir}_{lane}.txt) are pure per-hour/per-lane vehicle
+    # counts by class — no load effect, no grid sampling — so on recorded traffic
+    # (identical stream) the GPU files must be byte-for-byte identical to engine=cpu,
+    # including the class histogram (the GPU extracts each vehicle's classifier bin
+    # in C++ and reproduces the C++ FlowData layout).
+    def factory():
+        il = pb.InfluenceLine(IL_type="discrete")
+        il.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 10.0, 0.0])
+        b = pb.Bridge(length=20.0, no_lane=4)
+        b.add_load_effect(inf_line_surf=il, threshold=0.0)
+        return b
+
+    def run(engine, tag):
+        cfg = pb.OutputConfig()
+        cfg.set_stats_output(write_flow_stats=True)
+        sim = pb.Simulation(output_dir=ROOT)
+        sim.add_sim(bridge=factory(), traffic=_loader(), output_config=cfg,
+                    time_step=TIME_STEP, min_gvw=0, tag=tag, engine=engine)
+        sim.run(no_core=1)
+        return ROOT / tag
+
+    remove_folder(ROOT)
+    cdir, gdir = run("cpu", "cpu"), run("cuda", "gpu")
+    cfiles = sorted(p.name for p in cdir.glob("FlowData*.txt"))
+    gfiles = sorted(p.name for p in gdir.glob("FlowData*.txt"))
+    assert cfiles == gfiles and cfiles, f"FlowData file set differs: {cfiles} vs {gfiles}"
+    for name in cfiles:
+        cpu_txt = (cdir / name).read_text()
+        gpu_txt = (gdir / name).read_text()
+        assert cpu_txt == gpu_txt, f"{name} differs between cpu and cuda flow stats"
+    remove_folder(ROOT)
+
+
 def test_gpu_engine_op_preflight():
     # The engine probes each non-CUDA backend for the ops it needs (searchsorted,
     # index_add, scatter_reduce amax) so a gap (esp. on Apple MPS) surfaces as a
