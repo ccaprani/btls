@@ -7,11 +7,77 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include "pybind11/stl/filesystem.h"
+#include "pybind11/numpy.h"
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
 namespace py = pybind11;
+
+
+// Bulk-extract per-vehicle scalars and flat per-axle arrays from a vehicle list
+// in one C++ pass, so the GPU engine avoids ~6 Python->C++ getter calls per
+// vehicle. Returns numpy arrays; all the trajectory math stays vectorized in
+// Python. Output: (time, speed, dirn, gvw, global_lane, trans, length, accel,
+// axle_count[/veh], axle_weight[/axle], axle_spacing[/axle], axle_track[/axle]).
+static py::tuple _extract_axle_data(const std::vector<CVehicle_sp>& vehs, std::size_t no_lane)
+{
+	std::size_t n = vehs.size();
+	std::vector<double> vtime(n), vspeed(n), vgvw(n), vtrans(n), vlen(n), vacc(n);
+	std::vector<std::int64_t> vdir(n), vlane(n), vcount(n), viscar(n);
+	std::vector<double> aw, asp, at;
+	for (std::size_t i = 0; i < n; i++)
+	{
+		CVehicle& v = *vehs[i];
+		vtime[i]  = v.getTime();
+		vspeed[i] = v.getVelocity();
+		vgvw[i]   = v.getGVW();
+		vtrans[i] = v.getTrans();
+		vlen[i]   = v.getLength();
+		vacc[i]   = v.getAcceleration();
+		vdir[i]   = (std::int64_t)v.getDirection();
+		vlane[i]  = (std::int64_t)v.getGlobalLane(no_lane);
+		viscar[i] = (std::int64_t)v.IsCar();
+		std::size_t na = v.getNoAxles();
+		vcount[i] = (std::int64_t)na;
+		for (std::size_t j = 0; j < na; j++)
+		{
+			aw.push_back(v.getAW(j));
+			asp.push_back(v.getAS(j));
+			at.push_back(v.getAT(j));
+		}
+	}
+	auto d = [](const std::vector<double>& v) { return py::array_t<double>(v.size(), v.data()); };
+	auto l = [](const std::vector<std::int64_t>& v) { return py::array_t<std::int64_t>(v.size(), v.data()); };
+	return py::make_tuple(d(vtime), d(vspeed), l(vdir), d(vgvw), l(vlane),
+						  d(vtrans), d(vlen), d(vacc), l(vcount), d(aw), d(asp), d(at),
+						  l(viscar));
+}
+
+
+// Generate the next slice of generated traffic up to end_time in ONE C++ call:
+// repeatedly pull the globally-earliest-arriving lane (the same interleaving the
+// Python loop did, so the RNG draw order — hence the vehicle stream — is
+// identical), returning the vehicles in arrival order. Lets the GPU engine
+// stream generated traffic without a per-vehicle Python<->C++ round trip.
+static std::vector<CVehicle_sp> _generate_traffic_stream(
+		std::vector<CLaneGenTraffic_sp> lanes, double end_time)
+{
+	std::vector<CVehicle_sp> out;
+	while (true)
+	{
+		int earliest = -1;
+		double best = end_time;
+		for (std::size_t i = 0; i < lanes.size(); i++)
+		{
+			double t = lanes[i]->GetNextArrivalTime();
+			if (t < best) { best = t; earliest = (int)i; }
+		}
+		if (earliest < 0) break;  // every lane's next arrival is >= end_time
+		out.push_back(lanes[earliest]->GetNextVehicle());
+	}
+	return out;
+}
 
 
 PYBIND11_MODULE(libbtls, m) {
@@ -29,6 +95,13 @@ PYBIND11_MODULE(libbtls, m) {
 		CDistribution d;
 		return d.GenerateUniform();
 	}, "Internal test helper: draw one uniform [0,1) sample from the process-wide RNG.");
+	m.def("_extract_axle_data", &_extract_axle_data, py::arg("vehicles"), py::arg("no_lane"),
+		"Bulk-extract per-vehicle/per-axle arrays from a vehicle list in one C++ pass "
+		"(used by the GPU engine to avoid per-vehicle Python getter calls).");
+	m.def("_generate_traffic_stream", &_generate_traffic_stream, py::arg("lanes"), py::arg("end_time"),
+		"Generate generated-traffic vehicles up to end_time in one C++ pass, pulling the "
+		"globally-earliest lane each step (identical interleaving/RNG order to the per-vehicle "
+		"loop). Lets the GPU engine stream generation without per-vehicle Python calls.");
 	m.def("seed", &CRNGWrapper::seed,
 		R"(
 		Seed the process-wide random number generator.
@@ -533,6 +606,17 @@ PYBIND11_MODULE(libbtls, m) {
 				)",
 				py::arg("index"), py::arg("width"))
 			.def("get_length", &CVehicle::getLength, "Get the vehicle length.")
+			.def("write",
+				[](CVehicle_sp self, size_t file_format) { return self->Write(file_format); },
+				R"(
+				Serialise the vehicle to one line in the given traffic-file format.
+
+				Parameters
+				----------
+				file_format : int
+					The traffic file format (1=CASTOR, 2=BEDIT, 3=DITIS, 4=MON).
+				)",
+				py::arg("file_format"))
 			.def("get_velocity", &CVehicle::getVelocity, "Get the vehicle velocity.")
 			.def("get_acceleration", &CVehicle::getAcceleration,
 				 "Get the vehicle longitudinal acceleration in m/s^2 (negative = braking).")

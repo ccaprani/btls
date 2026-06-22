@@ -121,7 +121,7 @@ void CBridge::Update(double NextArrivalTime, double curTime)
 			m_NoVehs += m_vLanes[i].purgeVehicles(m_CurTime);	// remove pointer from lane
 
 	} // while loop until next vehicle arrives
-	
+
 }
 
 void CBridge::Finish()
