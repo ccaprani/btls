@@ -522,7 +522,9 @@ def test_gpu_pot_event_partition_matches_cpu_definition():
     b = factory()
     il_specs, _ = _il_specs_from_bridge(b)
     vehicles, _ = _collect_vehicles(_loader(), b, None, None, None)
-    _, _, veh = prepare_axles(vehicles, il_specs, b.length, TIME_STEP, 0, b.no_lane)
+    from pybtls.lib import libbtls
+    extracted = libbtls._extract_axle_data(vehicles, b.no_lane)
+    _, _, veh = prepare_axles(extracted, il_specs, b.length, TIME_STEP, 0)
     B, win_count, _, _ = potmod.build_partition(veh["t_on"], veh["t_off"])
     rec_start = np.sort(B[:-1][win_count >= 1])  # event = window with >=1 vehicle
     rec_n = len(rec_start)

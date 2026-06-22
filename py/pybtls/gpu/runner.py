@@ -334,7 +334,7 @@ def _vehicle_stream(traffic, bridge, active_lane, seed, end_time):
         )
 
 
-def _traffic_windows(traffic, bridge, n_days, active_lane, seed, target, align_days):
+def _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target, align_days):
     """Yield (vehicles, day_offset, window_days): contiguous, block-aligned day
     windows each holding about ``target`` vehicles (a vehicle goes to the window
     containing its arrival day). Bounds host memory to one window for generated
@@ -369,6 +369,56 @@ def _traffic_windows(traffic, bridge, n_days, active_lane, seed, target, align_d
             exhausted = True
         yield vehicles, day0, win_end_day - day0
         day0 = win_end_day
+
+
+def _array_windows(traffic, bridge, n_days, active_lane, seed, target, align_days):
+    """Fast generated-traffic path: fuse generate+extract per day (no Python
+    Vehicle objects) and accumulate whole days into a window of about ``target``
+    vehicles. Yields (extracted, day_offset, window_days) where ``extracted`` is
+    the per-window vehicle/axle array tuple. Day boundaries match
+    :func:`_vehicle_windows` (a vehicle goes to the window containing its arrival
+    day), so the result is identical to the per-vehicle path."""
+    from ..lib import libbtls
+    if seed is not None:
+        libbtls.seed(seed)
+    lane_list = traffic._get_traffic_generator(bridge.length)
+    lanes = lane_list if active_lane is None else [lane_list[i - 1] for i in active_lane]
+    no_lane = bridge.no_lane
+    day0 = 0
+    while day0 < n_days:
+        win_end_day = min(day0 + align_days, n_days)
+        chunks = []
+        count = 0
+        while True:  # grow the window in block-aligned day steps up to ~target
+            chunk = libbtls._generate_and_extract(lanes, win_end_day * SECONDS_PER_DAY, no_lane)
+            chunks.append(chunk)
+            count += len(chunk[0])
+            if count >= target or win_end_day >= n_days:
+                break
+            win_end_day = min(win_end_day + align_days, n_days)
+        extracted = (chunks[0] if len(chunks) == 1
+                     else tuple(np.concatenate([c[k] for c in chunks]) for k in range(len(chunks[0]))))
+        yield extracted, day0, win_end_day - day0
+        day0 = win_end_day
+
+
+def _traffic_windows(traffic, bridge, n_days, active_lane, seed, target, align_days,
+                     want_vehicles):
+    """Yield (extracted, vehicles, day_offset, window_days) day-windows.
+    ``extracted`` (the per-window vehicle/axle array tuple) is always present;
+    ``vehicles`` is the Vehicle list — kept only when a per-vehicle output (PT_V)
+    needs it, else ``None``. Generated traffic without such an output takes the
+    fused generate+extract fast path (no Python Vehicle objects)."""
+    no_lane = bridge.no_lane
+    if isinstance(traffic, TrafficGenerator) and not want_vehicles:
+        for extracted, day0, win_days in _array_windows(
+                traffic, bridge, n_days, active_lane, seed, target, align_days):
+            yield extracted, None, day0, win_days
+    else:
+        from ..lib import libbtls
+        for vehicles, day0, win_days in _vehicle_windows(
+                traffic, bridge, n_days, active_lane, seed, target, align_days):
+            yield libbtls._extract_axle_data(vehicles, no_lane), vehicles, day0, win_days
 
 
 def run(bridge, traffic, no_day, time_step, min_gvw, active_lane,
@@ -471,17 +521,19 @@ def run(bridge, traffic, no_day, time_step, min_gvw, active_lane,
 
     target = _window_target_vehicles(n_eff, device, want_pot)
     file_format = out.VehicleFile.FILE_FORMAT
+    # PT_V serialises the member Vehicle objects, so it needs the vehicle list;
+    # otherwise generated traffic takes the fused generate+extract fast path.
+    want_vehicles = bool(want_pot and out.POT.WRITE_POT_VEHICLES)
 
     show_progress = n_days > 730  # multi-year streamed runs: report window progress
     t_start = time.perf_counter()
-    for vehicles, day0, win_days in _traffic_windows(
-            traffic, bridge, n_days, active_lane, seed, target, align_days):
+    for extracted, vehicles, day0, win_days in _traffic_windows(
+            traffic, bridge, n_days, active_lane, seed, target, align_days, want_vehicles):
         time_offset = day0 * SECONDS_PER_DAY
         if want_pot or want_stats:  # both need the per-event partition + peak_value
             pot = compute_pot(
-                vehicles=vehicles, il_specs=il_specs, weights=weights,
-                bridge_length=bridge.length, time_step=time_step,
-                no_lane=bridge.no_lane, min_gvw=min_gvw,
+                extracted, il_specs=il_specs, weights=weights,
+                bridge_length=bridge.length, time_step=time_step, min_gvw=min_gvw,
                 block_size_days=bm_block_days, device=device, time_offset=time_offset,
                 rainflows=rainflows, th_file=th_file,
             )
@@ -500,9 +552,9 @@ def run(bridge, traffic, no_day, time_step, min_gvw, active_lane,
             win_bm = pot["block_maxima"]
         else:
             result = compute_load_effect_maxima(
-                vehicles=vehicles, il_specs=il_specs, weights=weights,
+                extracted, il_specs=il_specs, weights=weights,
                 bridge_length=bridge.length, time_step=time_step, n_days=win_days,
-                no_lane=bridge.no_lane, min_gvw=min_gvw,
+                min_gvw=min_gvw,
                 block_size_days=bm_block_days, device=device, time_offset=time_offset,
                 rainflows=rainflows, th_file=th_file,
             )

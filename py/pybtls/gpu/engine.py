@@ -139,21 +139,19 @@ def _surface_ordinate(torch, X, Y, ISords, x, y):
     return torch.where(oob, torch.zeros_like(xsi), xsi)
 
 
-def _reconstruct_axles(vehicles, bridge_length, min_gvw, no_lane, need_transverse,
+def _reconstruct_axles(extracted, bridge_length, min_gvw, need_transverse,
                        time_offset=0.0):
-    """Each vehicle -> per-axle (datum, sign, speed, weight) and, if a surface
-    effect is present, per-axle (lane, trans, track) for the transverse model.
+    """Pre-extracted per-vehicle/per-axle arrays -> per-axle (datum, sign, speed,
+    weight) and, if a surface effect is present, per-axle (lane, trans, track) for
+    the transverse model.
 
-    Vehicle scalars and flat axle arrays are pulled in one C++ pass
-    (libbtls._extract_axle_data) to avoid per-vehicle Python getter calls; all
-    per-axle kinematics is then vectorized in numpy. ``time_offset`` shifts all
-    vehicle times to a window-local origin so a streamed run processes one window
-    at a time on a small (window-length) sample grid instead of an absolute one."""
-    from ..lib import libbtls
-
-    vtime, vspeed, vdir, vgvw, vlane, vtrans, vlen, vacc, vcount, aw, asp, at, viscar = (
-        libbtls._extract_axle_data(vehicles, no_lane)
-    )
+    ``extracted`` is the flat-array tuple from ``libbtls._extract_axle_data``
+    (loader) or ``libbtls._generate_and_extract`` (generator) — a vehicle is
+    unpacked once, in C++, regardless of source; all per-axle kinematics is then
+    vectorized in numpy. ``time_offset`` shifts all vehicle times to a window-local
+    origin so a streamed run processes one window at a time on a small
+    (window-length) sample grid instead of an absolute one."""
+    vtime, vspeed, vdir, vgvw, vlane, vtrans, vlen, vacc, vcount, aw, asp, at, viscar = extracted
 
     keep = vgvw > min_gvw
     if not keep.any():
@@ -205,18 +203,19 @@ def _reconstruct_axles(vehicles, bridge_length, min_gvw, no_lane, need_transvers
     return out
 
 
-def prepare_axles(vehicles, il_specs, bridge_length, time_step, min_gvw, no_lane,
+def prepare_axles(extracted, il_specs, bridge_length, time_step, min_gvw,
                   time_offset=0.0):
-    """Device-agnostic step: reconstruct per-axle trajectory arrays (getters +
-    vectorized kinematics). Returns (axles_dict, n_total, veh) or (None, 0, None);
-    ``veh`` holds the per-vehicle on-bridge windows used for POT events. The
-    per-time-sample pair expansion is deferred to the device (compute_from_axles)
-    so the (much larger) pair arrays never materialize on the host. ``time_offset``
-    is subtracted from all vehicle times (window-local origin for streamed runs)."""
+    """Device-agnostic step: reconstruct per-axle trajectory arrays from the
+    pre-extracted vehicle/axle arrays (vectorized kinematics). Returns
+    (axles_dict, n_total, veh) or (None, 0, None); ``veh`` holds the per-vehicle
+    on-bridge windows used for POT events. The per-time-sample pair expansion is
+    deferred to the device (compute_from_axles) so the (much larger) pair arrays
+    never materialize on the host. ``time_offset`` is subtracted from all vehicle
+    times (window-local origin for streamed runs)."""
     # surfaces need (lane, trans, track); per-lane 1D effects need the lane
     need_lane = any(s["kind"] in ("surface", "per_lane") for s in il_specs)
     datum, sign, speed, weight, accel, lane, trans, track, veh = _reconstruct_axles(
-        vehicles, bridge_length, min_gvw, no_lane, need_lane, time_offset
+        extracted, bridge_length, min_gvw, need_lane, time_offset
     )
     if len(datum) == 0:
         return None, 0, None
@@ -503,13 +502,12 @@ def compute_from_axles(axles, n_total, il_specs, weights, bridge_length, time_st
 
 
 def compute_load_effect_maxima(
-    vehicles,
+    extracted,
     il_specs,
     weights,
     bridge_length,
     time_step,
     n_days,
-    no_lane=1,
     min_gvw=0,
     block_size_days=1,
     device="cuda",
@@ -521,13 +519,14 @@ def compute_load_effect_maxima(
     """Per-effect block maxima and global maxima via superposition.
 
     Returns dict with "block_maxima" (n_blocks x n_eff) and "global_maxima" (n_eff,).
+    ``extracted`` is the pre-extracted vehicle/axle array tuple.
     ``time_offset`` shifts vehicle times to a window-local origin (streamed runs).
     ``rainflows`` (one ``_Rainflow`` per effect) accumulates fatigue cycles;
     ``th_file`` (an open file) receives the per-sample time history.
     """
     n_eff = len(il_specs)
     axles, n_total, veh = prepare_axles(
-        vehicles, il_specs, bridge_length, time_step, min_gvw, no_lane, time_offset
+        extracted, il_specs, bridge_length, time_step, min_gvw, time_offset
     )
     if axles is None:
         return {"block_maxima": np.zeros((0, n_eff)), "global_maxima": np.zeros(n_eff)}
@@ -539,12 +538,11 @@ def compute_load_effect_maxima(
 
 
 def compute_pot(
-    vehicles,
+    extracted,
     il_specs,
     weights,
     bridge_length,
     time_step,
-    no_lane=1,
     min_gvw=0,
     block_size_days=1,
     device="cuda",
@@ -566,7 +564,7 @@ def compute_pot(
     from . import pot as potmod
 
     axles, n_total, veh = prepare_axles(
-        vehicles, il_specs, bridge_length, time_step, min_gvw, no_lane, time_offset
+        extracted, il_specs, bridge_length, time_step, min_gvw, time_offset
     )
     if axles is None:
         return None
