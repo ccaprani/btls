@@ -42,7 +42,7 @@ class OutputConfig(_ConfigDataCore):
     def set_vehicle_file_output(
         self,
         write_vehicle_file: bool = False,
-        vehicle_file_format: Literal[1,2,3,4] = 4,
+        vehicle_file_format: Literal[1, 2, 3, 4] = 4,
         vehicle_file_name: str = "output_traffic.txt",
         buffer_size: int = 10000,
     ) -> None:

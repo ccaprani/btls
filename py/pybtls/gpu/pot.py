@@ -91,7 +91,7 @@ def window_members_csr(k_start, k_end, n_win):
     veh_rep = np.repeat(np.arange(len(k_start), dtype=np.int64), spans)
     starts = np.cumsum(spans) - spans
     win_rep = np.repeat(k_start, spans) + (np.arange(total) - np.repeat(starts, spans))
-    order = np.argsort(win_rep, kind="stable")     # group by window
+    order = np.argsort(win_rep, kind="stable")  # group by window
     members = veh_rep[order]
     counts = np.bincount(win_rep, minlength=n_win)
     indptr[1:] = np.cumsum(counts)

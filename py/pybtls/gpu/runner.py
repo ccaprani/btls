@@ -36,14 +36,18 @@ def _il_to_spec(il):
     per-axle force mode (vertical / centrifugal / braking) and braking_factor are
     carried along so the device applies the same per-axle force coefficient the
     C++ engine does (cpp/src/InfluenceLine.cpp:getAxleLoadEffect)."""
-    mode = {"mode": getattr(il, "_load_effect_mode", "vertical"),
-            "braking_factor": float(getattr(il, "_braking_factor", 0.0))}
+    mode = {
+        "mode": getattr(il, "_load_effect_mode", "vertical"),
+        "braking_factor": float(getattr(il, "_braking_factor", 0.0)),
+    }
     if isinstance(il, InfluenceSurface):
         M = np.asarray(il._data_dict["IS_matrix"], dtype=float)
         lp = il._data_dict["lane_position"]
         return {
             "kind": "surface",
-            "X": M[1:, 0], "Y": M[0, 1:], "ISords": M[1:, 1:],
+            "X": M[1:, 0],
+            "Y": M[0, 1:],
+            "ISords": M[1:, 1:],
             "lane_centre": np.array([(a + b) / 2.0 for a, b in lp]),
             "lane_width": np.array([abs(b - a) for a, b in lp]),
             **mode,
@@ -87,9 +91,15 @@ def _il_specs_from_bridge(bridge):
                     "engine='cuda' (experimental) does not support per-lane influence "
                     "surfaces (a single surface already spans all lanes)."
                 )
-            il_specs.append({"kind": "per_lane", "lane_specs": lane_specs, "lane_weights": wts,
-                             "mode": getattr(ils[0], "_load_effect_mode", "vertical"),
-                             "braking_factor": float(getattr(ils[0], "_braking_factor", 0.0))})
+            il_specs.append(
+                {
+                    "kind": "per_lane",
+                    "lane_specs": lane_specs,
+                    "lane_weights": wts,
+                    "mode": getattr(ils[0], "_load_effect_mode", "vertical"),
+                    "braking_factor": float(getattr(ils[0], "_braking_factor", 0.0)),
+                }
+            )
             weights.append(1.0)  # folded into lane_weights
     return il_specs, weights
 
@@ -109,11 +119,16 @@ def _collect_vehicles(traffic, bridge, no_day, active_lane, seed):
             raise ValueError("engine='cuda' with a TrafficGenerator requires no_day.")
         if seed is not None:
             from ..lib import libbtls
+
             libbtls.seed(seed)
         n_days = int(no_day)
         end_time = n_days * SECONDS_PER_DAY
         lane_list = traffic._get_traffic_generator(bridge.length)
-        lanes = lane_list if active_lane is None else [lane_list[i - 1] for i in active_lane]
+        lanes = (
+            lane_list
+            if active_lane is None
+            else [lane_list[i - 1] for i in active_lane]
+        )
         vehicles = []
         current_time = 0.0
         while current_time <= end_time:
@@ -177,34 +192,69 @@ def _lead_dist(members, t, veh, bridge_length):
     return float(sgn * sp * (t - datum0))
 
 
-def _accumulate_pot(accum, pot, thresholds, time_step, time_offset, vehicles,
-                    out, file_format, counter_secs, n_counter_blocks):
+def _accumulate_pot(
+    accum,
+    pot,
+    thresholds,
+    time_step,
+    time_offset,
+    vehicles,
+    out,
+    file_format,
+    counter_secs,
+    n_counter_blocks,
+):
     """Fold one window's above-threshold events into the run-wide accumulator,
     converting window-local times to absolute. PT_V member-vehicle lines are
     serialized now, while the window's vehicles are still in memory."""
     events = _pot_events_per_effect(pot, thresholds)
-    pv, pix, win_count, B = pot["peak_value"], pot["peak_index"], pot["win_count"], pot["B"]
+    pv, pix, win_count, B = (
+        pot["peak_value"],
+        pot["peak_index"],
+        pot["win_count"],
+        pot["B"],
+    )
     n_eff = pv.shape[0]
     write_v = out.POT.WRITE_POT_VEHICLES
     if write_v:
         veh, L = pot["veh"], pot["_bridge_length"]
         kept_idx, t_on = veh["kept_idx"], veh["t_on"]
-        indptr, members = potmod.window_members_csr(pot["k_start"], pot["k_end"], len(B) - 1)
+        indptr, members = potmod.window_members_csr(
+            pot["k_start"], pot["k_end"], len(B) - 1
+        )
     for e in range(n_eff):
         for w in events[e]:
-            rec = {"time": float(pix[e, w] * time_step + time_offset),
-                   "value": float(pv[e, w]), "no_trucks": int(win_count[w])}
+            rec = {
+                "time": float(pix[e, w] * time_step + time_offset),
+                "value": float(pv[e, w]),
+                "no_trucks": int(win_count[w]),
+            }
             if write_v:
-                mem = members[indptr[w]:indptr[w + 1]]
+                mem = members[indptr[w] : indptr[w + 1]]
                 mem = mem[np.argsort(t_on[mem], kind="stable")]  # by arrival time
                 # dist uses window-LOCAL time (veh windows are local); the printed
                 # time is absolute (local + offset)
                 rec["all_val"] = [float(pv[k, w]) for k in range(n_eff)]
-                rec["all_time"] = [float(pix[k, w] * time_step + time_offset) if pix[k, w] >= 0 else 0.0
-                                   for k in range(n_eff)]
-                rec["all_dist"] = [_lead_dist(mem, float(pix[k, w] * time_step) if pix[k, w] >= 0 else 0.0, veh, L)
-                                   for k in range(n_eff)]
-                rec["veh_lines"] = [vehicles[int(kept_idx[m])].write(file_format) for m in mem]
+                rec["all_time"] = [
+                    (
+                        float(pix[k, w] * time_step + time_offset)
+                        if pix[k, w] >= 0
+                        else 0.0
+                    )
+                    for k in range(n_eff)
+                ]
+                rec["all_dist"] = [
+                    _lead_dist(
+                        mem,
+                        float(pix[k, w] * time_step) if pix[k, w] >= 0 else 0.0,
+                        veh,
+                        L,
+                    )
+                    for k in range(n_eff)
+                ]
+                rec["veh_lines"] = [
+                    vehicles[int(kept_idx[m])].write(file_format) for m in mem
+                ]
             accum["events"][e].append(rec)
         if accum["counts"] is not None:
             for w in events[e]:
@@ -220,14 +270,20 @@ def _write_pot_files(sim_dir, length_str, accum, out, n_eff):
         for e in range(n_eff):
             with open(sim_dir / f"PT_S_{length_str}_Eff_{e + 1}.txt", "w") as fh:
                 for i, rec in enumerate(events[e]):
-                    fh.write(f"{i + 1:>6}{rec['time']:>15.1f}{rec['no_trucks']:>4}{rec['value']:>10.1f}\n")
+                    fh.write(
+                        f"{i + 1:>6}{rec['time']:>15.1f}{rec['no_trucks']:>4}{rec['value']:>10.1f}\n"
+                    )
 
     if out.POT.WRITE_POT_COUNTER and accum["counts"] is not None:
         counts = accum["counts"]
         with open(sim_dir / f"PT_C_{length_str}.txt", "w") as fh:
             fh.write("Block\t" + "".join(f"LE {e + 1}\t" for e in range(n_eff)) + "\n")
             for b in range(counts.shape[0]):
-                fh.write(f"{b + 1}\t" + "".join(f"{counts[b, e]}\t" for e in range(n_eff)) + "\n")
+                fh.write(
+                    f"{b + 1}\t"
+                    + "".join(f"{counts[b, e]}\t" for e in range(n_eff))
+                    + "\n"
+                )
 
     if out.POT.WRITE_POT_VEHICLES:
         for e in range(n_eff):
@@ -235,8 +291,10 @@ def _write_pot_files(sim_dir, length_str, accum, out, n_eff):
                 for i, rec in enumerate(events[e]):
                     fh.write(f"{i + 1}\n")
                     for k in range(n_eff):  # C++ writes a block for ALL effects
-                        fh.write(f"{k + 1:>2}{rec['all_val'][k]:>10.1f}{rec['all_time'][k]:>15.1f}"
-                                 f"{rec['all_dist'][k]:>10.2f}{rec['no_trucks']:>4}\n")
+                        fh.write(
+                            f"{k + 1:>2}{rec['all_val'][k]:>10.1f}{rec['all_time'][k]:>15.1f}"
+                            f"{rec['all_dist'][k]:>10.2f}{rec['no_trucks']:>4}\n"
+                        )
                         for line in rec["veh_lines"]:
                             fh.write(line + "\n")
 
@@ -246,6 +304,7 @@ def _free_device_bytes(device):
     (the per-day device tiling means MPS/XPU are bounded by RAM in practice)."""
     try:
         import torch
+
         if torch.device(device).type == "cuda" and torch.cuda.is_available():
             free, _total = torch.cuda.mem_get_info(torch.device(device))
             return int(free)
@@ -258,12 +317,15 @@ def _free_device_bytes(device):
 # analysis outputs; the per-event / per-vehicle detail outputs are exactly the
 # I/O-bound ones for which the GPU does not pay off — use engine="cpu" for them).
 _UNSUPPORTED_OUTPUTS = (
-    ("WRITE_EACH_EVENT",                 "every-event output (set_event_output write_each_event)"),
-    ("VehicleFile.WRITE_VEHICLE_FILE",   "vehicle file (set_vehicle_file_output)"),
-    ("BlockMax.WRITE_BM_VEHICLES",       "block-max vehicles (set_BM_output write_vehicle)"),
-    ("BlockMax.WRITE_BM_MIXED",          "block-max mixed (set_BM_output write_mixed)"),
-    ("WRITE_FATIGUE_EVENT",              "fatigue events (set_fatigue_output write_fatigue_event)"),
-    ("Fatigue.WRITE_RAINFLOW_RESIDUALS", "rainflow residuals (set_fatigue_output write_residuals)"),
+    ("WRITE_EACH_EVENT", "every-event output (set_event_output write_each_event)"),
+    ("VehicleFile.WRITE_VEHICLE_FILE", "vehicle file (set_vehicle_file_output)"),
+    ("BlockMax.WRITE_BM_VEHICLES", "block-max vehicles (set_BM_output write_vehicle)"),
+    ("BlockMax.WRITE_BM_MIXED", "block-max mixed (set_BM_output write_mixed)"),
+    ("WRITE_FATIGUE_EVENT", "fatigue events (set_fatigue_output write_fatigue_event)"),
+    (
+        "Fatigue.WRITE_RAINFLOW_RESIDUALS",
+        "rainflow residuals (set_fatigue_output write_residuals)",
+    ),
 )
 
 
@@ -278,9 +340,13 @@ def _warn_unsupported_outputs(out):
         if obj:
             missing.append(label)
     if missing:
-        print("Warning: engine='cuda' does not produce these requested outputs, "
-              "they will be skipped (use engine='cpu' for them):\n  - "
-              + "\n  - ".join(missing), file=sys.stderr, flush=True)
+        print(
+            "Warning: engine='cuda' does not produce these requested outputs, "
+            "they will be skipped (use engine='cpu' for them):\n  - "
+            + "\n  - ".join(missing),
+            file=sys.stderr,
+            flush=True,
+        )
 
 
 def _window_target_vehicles(n_eff, device, want_pot):
@@ -290,8 +356,10 @@ def _window_target_vehicles(n_eff, device, want_pot):
     an over-small one only costs a little speed, so the fraction is well under 1
     and the per-vehicle estimates are generous."""
     FRACTION = 0.5
-    HOST_BYTES = 2500                                  # Python vehicle + numpy axle arrays / veh
-    VRAM_BYTES = 400 + (60 * n_eff if want_pot else 0)  # device axle arrays + POT accumulators / veh
+    HOST_BYTES = 2500  # Python vehicle + numpy axle arrays / veh
+    VRAM_BYTES = 400 + (
+        60 * n_eff if want_pot else 0
+    )  # device axle arrays + POT accumulators / veh
 
     targets = [int(FRACTION * available_host_memory()) // HOST_BYTES]
     free_vram = _free_device_bytes(device)
@@ -315,10 +383,15 @@ def _vehicle_stream(traffic, bridge, active_lane, seed, end_time):
             yield v
     elif isinstance(traffic, TrafficGenerator):
         from ..lib import libbtls
+
         if seed is not None:
             libbtls.seed(seed)
         lane_list = traffic._get_traffic_generator(bridge.length)
-        lanes = lane_list if active_lane is None else [lane_list[i - 1] for i in active_lane]
+        lanes = (
+            lane_list
+            if active_lane is None
+            else [lane_list[i - 1] for i in active_lane]
+        )
         # generate in day-sized bulk passes: the C++ pulls the globally-earliest
         # lane each step, so the stream (and RNG draw order) is identical to a
         # per-vehicle Python loop, but without the per-vehicle Python<->C++ cost.
@@ -371,7 +444,9 @@ def _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target, align_d
         day0 = win_end_day
 
 
-def _array_windows(traffic, bridge, n_days, active_lane, seed, target, align_days, classifier):
+def _array_windows(
+    traffic, bridge, n_days, active_lane, seed, target, align_days, classifier
+):
     """Fast generated-traffic path: fuse generate+extract per day (no Python
     Vehicle objects) and accumulate whole days into a window of about ``target``
     vehicles. Yields (extracted, day_offset, window_days) where ``extracted`` is
@@ -379,10 +454,13 @@ def _array_windows(traffic, bridge, n_days, active_lane, seed, target, align_day
     :func:`_vehicle_windows` (a vehicle goes to the window containing its arrival
     day), so the result is identical to the per-vehicle path."""
     from ..lib import libbtls
+
     if seed is not None:
         libbtls.seed(seed)
     lane_list = traffic._get_traffic_generator(bridge.length)
-    lanes = lane_list if active_lane is None else [lane_list[i - 1] for i in active_lane]
+    lanes = (
+        lane_list if active_lane is None else [lane_list[i - 1] for i in active_lane]
+    )
     no_lane = bridge.no_lane
     day0 = 0
     while day0 < n_days:
@@ -391,14 +469,20 @@ def _array_windows(traffic, bridge, n_days, active_lane, seed, target, align_day
         count = 0
         while True:  # grow the window in block-aligned day steps up to ~target
             chunk = libbtls._generate_and_extract(
-                lanes, win_end_day * SECONDS_PER_DAY, no_lane, classifier)
+                lanes, win_end_day * SECONDS_PER_DAY, no_lane, classifier
+            )
             chunks.append(chunk)
             count += len(chunk[0])
             if count >= target or win_end_day >= n_days:
                 break
             win_end_day = min(win_end_day + align_days, n_days)
-        extracted = (chunks[0] if len(chunks) == 1
-                     else tuple(np.concatenate([c[k] for c in chunks]) for k in range(len(chunks[0]))))
+        extracted = (
+            chunks[0]
+            if len(chunks) == 1
+            else tuple(
+                np.concatenate([c[k] for c in chunks]) for k in range(len(chunks[0]))
+            )
+        )
         yield extracted, day0, win_end_day - day0
         day0 = win_end_day
 
@@ -413,8 +497,17 @@ def _flow_hour_origin(traffic):
     return float(int(min(firsts) // 3600) * 3600) if firsts else 0.0
 
 
-def _traffic_windows(traffic, bridge, n_days, active_lane, seed, target, align_days,
-                     want_vehicles, classifier=None):
+def _traffic_windows(
+    traffic,
+    bridge,
+    n_days,
+    active_lane,
+    seed,
+    target,
+    align_days,
+    want_vehicles,
+    classifier=None,
+):
     """Yield (extracted, vehicles, day_offset, window_days) day-windows.
     ``extracted`` (the per-window vehicle/axle array tuple) is always present;
     ``vehicles`` is the Vehicle list — kept only when a per-vehicle output (PT_V)
@@ -425,18 +518,34 @@ def _traffic_windows(traffic, bridge, n_days, active_lane, seed, target, align_d
     no_lane = bridge.no_lane
     if isinstance(traffic, TrafficGenerator) and not want_vehicles:
         for extracted, day0, win_days in _array_windows(
-                traffic, bridge, n_days, active_lane, seed, target, align_days, classifier):
+            traffic, bridge, n_days, active_lane, seed, target, align_days, classifier
+        ):
             yield extracted, None, day0, win_days
     else:
         from ..lib import libbtls
+
         for vehicles, day0, win_days in _vehicle_windows(
-                traffic, bridge, n_days, active_lane, seed, target, align_days):
-            yield libbtls._extract_axle_data(vehicles, no_lane, classifier), vehicles, day0, win_days
+            traffic, bridge, n_days, active_lane, seed, target, align_days
+        ):
+            yield libbtls._extract_axle_data(
+                vehicles, no_lane, classifier
+            ), vehicles, day0, win_days
 
 
-def run(bridge, traffic, no_day, time_step, min_gvw, active_lane,
-        sim_tag, overlap_avoid_distance, output_root, seed, device="cuda",
-        output_config=None):
+def run(
+    bridge,
+    traffic,
+    no_day,
+    time_step,
+    min_gvw,
+    active_lane,
+    sim_tag,
+    overlap_avoid_distance,
+    output_root,
+    seed,
+    device="cuda",
+    output_config=None,
+):
     """Run the GPU load-effect engine and return an _OutputManager.
 
     ``device`` is the torch device name (``"cuda"`` covers NVIDIA and AMD-ROCm).
@@ -463,7 +572,8 @@ def run(bridge, traffic, no_day, time_step, min_gvw, active_lane,
         raise ValueError("engine='cuda' with a TrafficGenerator requires no_day.")
     if not isinstance(traffic, (TrafficGenerator, TrafficLoader)):
         raise NotImplementedError(
-            "engine='cuda' supports TrafficLoader or TrafficGenerator traffic.")
+            "engine='cuda' supports TrafficLoader or TrafficGenerator traffic."
+        )
 
     os.makedirs(output_root / str(sim_tag), exist_ok=True)
     sim_dir = output_root / str(sim_tag)
@@ -482,7 +592,9 @@ def run(bridge, traffic, no_day, time_step, min_gvw, active_lane,
     out = output_config._Output
 
     want_pot = out.POT.WRITE_POT and (
-        out.POT.WRITE_POT_SUMMARY or out.POT.WRITE_POT_COUNTER or out.POT.WRITE_POT_VEHICLES
+        out.POT.WRITE_POT_SUMMARY
+        or out.POT.WRITE_POT_COUNTER
+        or out.POT.WRITE_POT_VEHICLES
     )
     want_bm = out.BlockMax.WRITE_BM and out.BlockMax.WRITE_BM_SUMMARY
     want_fatigue = out.Fatigue.DO_FATIGUE_RAINFLOW
@@ -493,8 +605,9 @@ def run(bridge, traffic, no_day, time_step, min_gvw, active_lane,
         want_bm = True  # default standalone behavior
     _warn_unsupported_outputs(out)
 
-    bm_block_days = (out.BlockMax.BLOCK_SIZE_DAYS
-                     + out.BlockMax.BLOCK_SIZE_SECS / SECONDS_PER_DAY) or 1
+    bm_block_days = (
+        out.BlockMax.BLOCK_SIZE_DAYS + out.BlockMax.BLOCK_SIZE_SECS / SECONDS_PER_DAY
+    ) or 1
     align_days = max(1, int(round(bm_block_days)))  # windows never split a block
 
     total_blocks = max(0, int(np.ceil(n_days / bm_block_days)))
@@ -505,42 +618,68 @@ def run(bridge, traffic, no_day, time_step, min_gvw, active_lane,
     n_counter_blocks = 0
     accum = None
     if want_pot:
-        counter_secs = out.POT.POT_COUNT_SIZE_DAYS * SECONDS_PER_DAY + out.POT.POT_COUNT_SIZE_SECS
+        counter_secs = (
+            out.POT.POT_COUNT_SIZE_DAYS * SECONDS_PER_DAY + out.POT.POT_COUNT_SIZE_SECS
+        )
         if counter_secs <= 0:
             counter_secs = SECONDS_PER_DAY
         n_counter_blocks = max(1, int(np.ceil(n_days * SECONDS_PER_DAY / counter_secs)))
-        accum = {"events": [[] for _ in range(n_eff)],
-                 "counts": (np.zeros((n_counter_blocks, n_eff), dtype=np.int64)
-                            if out.POT.WRITE_POT_COUNTER else None)}
+        accum = {
+            "events": [[] for _ in range(n_eff)],
+            "counts": (
+                np.zeros((n_counter_blocks, n_eff), dtype=np.int64)
+                if out.POT.WRITE_POT_COUNTER
+                else None
+            ),
+        }
 
     rainflows = None
     if want_fatigue:
         from ..lib import libbtls
-        rainflows = [libbtls._Rainflow(int(out.Fatigue.RAINFLOW_DECIMAL),
-                                       float(out.Fatigue.RAINFLOW_CUTOFF))
-                     for _ in range(n_eff)]
+
+        rainflows = [
+            libbtls._Rainflow(
+                int(out.Fatigue.RAINFLOW_DECIMAL), float(out.Fatigue.RAINFLOW_CUTOFF)
+            )
+            for _ in range(n_eff)
+        ]
 
     th_file = None
     if want_th:
         th_file = open(sim_dir / f"TH_{length_str}.txt", "w")
-        th_file.write("Time\tNo. Trucks\t" + "\t".join(f"Effect {e + 1}" for e in range(n_eff)) + "\n")
+        th_file.write(
+            "Time\tNo. Trucks\t"
+            + "\t".join(f"Effect {e + 1}" for e in range(n_eff))
+            + "\n"
+        )
 
     stats = None
     if want_stats:
         interval_size = float(out.Stats.WRITE_SS_INTERVAL_SIZE)
         want_intervals = out.Stats.WRITE_SS_INTERVALS
-        total_intervals = (int(np.ceil(n_days * SECONDS_PER_DAY / interval_size))
-                           if want_intervals else 0)
+        total_intervals = (
+            int(np.ceil(n_days * SECONDS_PER_DAY / interval_size))
+            if want_intervals
+            else 0
+        )
         stats = StatsAccumulator(n_eff, want_intervals, interval_size, total_intervals)
 
     flow = None
     classifier = None
     if want_flow:
         from ..lib import libbtls
-        ctype = traffic.vehicle_classifier   # 0 = axle, 1 = pattern
-        classifier = libbtls._VehClassAxle() if ctype == 0 else libbtls._VehClassPattern()
-        flow = FlowStatsAccumulator(bridge.no_lane, ctype, traffic._no_lane_dir_1,
-                                    n_days * 24, _flow_hour_origin(traffic))
+
+        ctype = traffic.vehicle_classifier  # 0 = axle, 1 = pattern
+        classifier = (
+            libbtls._VehClassAxle() if ctype == 0 else libbtls._VehClassPattern()
+        )
+        flow = FlowStatsAccumulator(
+            bridge.no_lane,
+            ctype,
+            traffic._no_lane_dir_1,
+            n_days * 24,
+            _flow_hour_origin(traffic),
+        )
 
     target = _window_target_vehicles(n_eff, device, want_pot)
     file_format = out.VehicleFile.FILE_FORMAT
@@ -551,38 +690,72 @@ def run(bridge, traffic, no_day, time_step, min_gvw, active_lane,
     show_progress = n_days > 730  # multi-year streamed runs: report window progress
     t_start = time.perf_counter()
     for extracted, vehicles, day0, win_days in _traffic_windows(
-            traffic, bridge, n_days, active_lane, seed, target, align_days,
-            want_vehicles, classifier):
+        traffic,
+        bridge,
+        n_days,
+        active_lane,
+        seed,
+        target,
+        align_days,
+        want_vehicles,
+        classifier,
+    ):
         time_offset = day0 * SECONDS_PER_DAY
         if want_flow:  # raw per-vehicle counts (time, global lane, is-car, class bin)
             flow.update(extracted[0], extracted[4], extracted[12], extracted[13])
         if want_pot or want_stats:  # both need the per-event partition + peak_value
             pot = compute_pot(
-                extracted, il_specs=il_specs, weights=weights,
-                bridge_length=bridge.length, time_step=time_step, min_gvw=min_gvw,
-                block_size_days=bm_block_days, device=device, time_offset=time_offset,
-                rainflows=rainflows, th_file=th_file,
+                extracted,
+                il_specs=il_specs,
+                weights=weights,
+                bridge_length=bridge.length,
+                time_step=time_step,
+                min_gvw=min_gvw,
+                block_size_days=bm_block_days,
+                device=device,
+                time_offset=time_offset,
+                rainflows=rainflows,
+                th_file=th_file,
             )
             if pot is None:  # empty window (no vehicle above min_gvw)
                 continue
             if want_pot:
                 pot["_bridge_length"] = bridge.length
-                _accumulate_pot(accum, pot, thresholds, time_step, time_offset,
-                                vehicles, out, file_format, counter_secs, n_counter_blocks)
+                _accumulate_pot(
+                    accum,
+                    pot,
+                    thresholds,
+                    time_step,
+                    time_offset,
+                    vehicles,
+                    out,
+                    file_format,
+                    counter_secs,
+                    n_counter_blocks,
+                )
             if want_stats:
                 n_win = len(pot["B"]) - 1
                 wtrk = potmod.truck_occupancy(
-                    pot["k_start"], pot["k_end"], n_win, ~pot["veh"]["is_car"])
-                stats.update(pot["peak_value"], pot["win_count"], wtrk,
-                             pot["B"], time_offset)
+                    pot["k_start"], pot["k_end"], n_win, ~pot["veh"]["is_car"]
+                )
+                stats.update(
+                    pot["peak_value"], pot["win_count"], wtrk, pot["B"], time_offset
+                )
             win_bm = pot["block_maxima"]
         else:
             result = compute_load_effect_maxima(
-                extracted, il_specs=il_specs, weights=weights,
-                bridge_length=bridge.length, time_step=time_step, n_days=win_days,
+                extracted,
+                il_specs=il_specs,
+                weights=weights,
+                bridge_length=bridge.length,
+                time_step=time_step,
+                n_days=win_days,
                 min_gvw=min_gvw,
-                block_size_days=bm_block_days, device=device, time_offset=time_offset,
-                rainflows=rainflows, th_file=th_file,
+                block_size_days=bm_block_days,
+                device=device,
+                time_offset=time_offset,
+                rainflows=rainflows,
+                th_file=th_file,
             )
             win_bm = result["block_maxima"]
 
@@ -590,21 +763,27 @@ def run(bridge, traffic, no_day, time_step, min_gvw, active_lane,
             start = int(round(day0 / bm_block_days))
             expected = max(1, int(round(win_days / bm_block_days)))
             wb = win_bm[:expected]
-            global_bm[start:start + len(wb)] = wb
+            global_bm[start : start + len(wb)] = wb
 
         if show_progress:
             done = day0 + win_days
             el = time.perf_counter() - t_start
             eta = el / done * (n_days - done)
-            print(f"  GPU streaming: day {done}/{n_days} ({100 * done / n_days:.0f}%), "
-                  f"elapsed {el:.0f}s, ETA ~{eta:.0f}s", file=sys.stderr, flush=True)
+            print(
+                f"  GPU streaming: day {done}/{n_days} ({100 * done / n_days:.0f}%), "
+                f"elapsed {el:.0f}s, ETA ~{eta:.0f}s",
+                file=sys.stderr,
+                flush=True,
+            )
 
     if want_bm:
         _write_bm_summary(sim_dir, length_str, global_bm, n_eff)
     if want_pot:
         _write_pot_files(sim_dir, length_str, accum, out, n_eff)
     if want_fatigue:
-        _write_fatigue(sim_dir, length_str, rainflows, int(out.Fatigue.RAINFLOW_DECIMAL))
+        _write_fatigue(
+            sim_dir, length_str, rainflows, int(out.Fatigue.RAINFLOW_DECIMAL)
+        )
     if want_stats:
         if out.Stats.WRITE_SS_CUMULATIVE:
             stats.write_cumulative(sim_dir / f"SS_C_{length_str}.txt")

@@ -152,12 +152,20 @@ def _replay(traffic_files: dict[str, tuple[Path, int]], out_root: Path) -> dict:
     def make_config(residuals: bool) -> "pb.OutputConfig":
         output_config = pb.OutputConfig()
         output_config.set_event_output(write_time_history=True, write_each_event=True)
-        output_config.set_BM_output(write_vehicle=True, write_summary=True, write_mixed=True)
-        output_config.set_POT_output(write_vehicle=True, write_summary=True, write_counter=True)
-        output_config.set_fatigue_output(
-            write_fatigue_event=True, write_rainflow_output=True, write_residuals=residuals
+        output_config.set_BM_output(
+            write_vehicle=True, write_summary=True, write_mixed=True
         )
-        output_config.set_stats_output(write_flow_stats=True, write_overall=True, write_intervals=True)
+        output_config.set_POT_output(
+            write_vehicle=True, write_summary=True, write_counter=True
+        )
+        output_config.set_fatigue_output(
+            write_fatigue_event=True,
+            write_rainflow_output=True,
+            write_residuals=residuals,
+        )
+        output_config.set_stats_output(
+            write_flow_stats=True, write_overall=True, write_intervals=True
+        )
         return output_config
 
     sim = pb.Simulation(output_dir=out_root)

@@ -199,9 +199,7 @@ class Simulation:
         track_progress = kwargs.get("track_progress", False)
         engine = kwargs.get("engine", "cpu")
         if engine not in ("cpu", "cuda", "mps", "xpu"):
-            raise ValueError(
-                'engine must be "cpu", "cuda", "mps" or "xpu".'
-            )
+            raise ValueError('engine must be "cpu", "cuda", "mps" or "xpu".')
 
         if no_chunk is None or no_chunk == 1:
             self._sim_argument.append(
@@ -224,8 +222,12 @@ class Simulation:
             )
             return
 
-        chunk_days = self._validate_chunking(traffic, vehicle, no_day, no_chunk, output_config)
-        master_seed = seed if seed is not None else random.SystemRandom().randrange(1, 2**31)
+        chunk_days = self._validate_chunking(
+            traffic, vehicle, no_day, no_chunk, output_config
+        )
+        master_seed = (
+            seed if seed is not None else random.SystemRandom().randrange(1, 2**31)
+        )
 
         # Chunk runs keep their rainflow residuals open (written to FRR_*
         # sidecars) so the merged histogram can be spliced exactly. Copy the
@@ -291,8 +293,14 @@ class Simulation:
         chunk_secs = chunk_days * 86400
 
         out = output_config._Output
-        if out.BlockMax.WRITE_BM_VEHICLES or out.BlockMax.WRITE_BM_MIXED or out.BlockMax.WRITE_BM_SUMMARY:
-            block_secs = out.BlockMax.BLOCK_SIZE_DAYS * 86400 + out.BlockMax.BLOCK_SIZE_SECS
+        if (
+            out.BlockMax.WRITE_BM_VEHICLES
+            or out.BlockMax.WRITE_BM_MIXED
+            or out.BlockMax.WRITE_BM_SUMMARY
+        ):
+            block_secs = (
+                out.BlockMax.BLOCK_SIZE_DAYS * 86400 + out.BlockMax.BLOCK_SIZE_SECS
+            )
             if block_secs == 0 or chunk_secs % block_secs != 0:
                 raise ValueError(
                     f"Chunk length ({chunk_days} days) must be a multiple of "
@@ -345,15 +353,21 @@ class Simulation:
         # device compute (no speed-up) while each worker process replicates its
         # window in host RAM + VRAM, so multi-core only multiplies memory and can
         # OOM. Warn so the default no_core (cpu_count-2) isn't applied to GPU runs.
-        effective_cores = (no_core if no_core is not None
-                           else multiprocessing.cpu_count() - 2)
-        gpu_tasks = sum(1 for a in self._sim_argument if a[13] in ("cuda", "mps", "xpu"))
+        effective_cores = (
+            no_core if no_core is not None else multiprocessing.cpu_count() - 2
+        )
+        gpu_tasks = sum(
+            1 for a in self._sim_argument if a[13] in ("cuda", "mps", "xpu")
+        )
         if gpu_tasks and effective_cores > 1:
-            print(f"Warning: {gpu_tasks} GPU task(s) queued with no_core="
-                  f"{effective_cores}. GPU tasks share one device — concurrency gives "
-                  "no speed-up, but each process replicates its window in host RAM + "
-                  "VRAM (risking OOM). Use no_core=1 for GPU runs.",
-                  file=sys.stderr, flush=True)
+            print(
+                f"Warning: {gpu_tasks} GPU task(s) queued with no_core="
+                f"{effective_cores}. GPU tasks share one device — concurrency gives "
+                "no speed-up, but each process replicates its window in host RAM + "
+                "VRAM (risking OOM). Use no_core=1 for GPU runs.",
+                file=sys.stderr,
+                flush=True,
+            )
 
         total = len(self._sim_argument)
         start = time.perf_counter()
@@ -457,9 +471,19 @@ class Simulation:
 
         if traffic is not None and engine in ("cuda", "mps", "xpu"):
             from .gpu import run as gpu_run
+
             return gpu_run(
-                bridge, traffic, no_day, time_step, min_gvw, active_lane,
-                sim_tag, overlap_avoid_distance, output_root, seed, device=engine,
+                bridge,
+                traffic,
+                no_day,
+                time_step,
+                min_gvw,
+                active_lane,
+                sim_tag,
+                overlap_avoid_distance,
+                output_root,
+                seed,
+                device=engine,
                 output_config=output_config,
             )
         if traffic is not None:
@@ -569,6 +593,7 @@ class Simulation:
     ) -> _OutputManager:
         if seed is not None:
             from .lib import libbtls
+
             libbtls.seed(seed)
 
         sim_dir = output_root / str(sim_tag)

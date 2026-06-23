@@ -43,6 +43,7 @@ def is_available(device="cuda") -> bool:
     (``device`` is a torch device name: "cuda" covers NVIDIA + AMD-ROCm)."""
     try:
         import torch
+
         return _device_present(torch, device)
     except Exception:
         return False
@@ -82,10 +83,15 @@ def _missing_ops(torch, dev):
     probes = {
         "searchsorted": lambda: torch.searchsorted(
             torch.tensor([0.0, 1.0, 2.0], dtype=dt, device=dev),
-            torch.tensor([0.5, 1.5], dtype=dt, device=dev), right=True),
-        "index_add": lambda: torch.zeros(2, dtype=dt, device=dev).index_add_(0, idx, one),
-        "scatter_reduce(amax)": lambda: torch.zeros(2, dtype=dt, device=dev).scatter_reduce_(
-            0, idx, one, reduce="amax", include_self=True),
+            torch.tensor([0.5, 1.5], dtype=dt, device=dev),
+            right=True,
+        ),
+        "index_add": lambda: torch.zeros(2, dtype=dt, device=dev).index_add_(
+            0, idx, one
+        ),
+        "scatter_reduce(amax)": lambda: torch.zeros(
+            2, dtype=dt, device=dev
+        ).scatter_reduce_(0, idx, one, reduce="amax", include_self=True),
     }
     missing = []
     for name, fn in probes.items():
@@ -105,8 +111,10 @@ def _require_ops(torch, dev, device):
     if missing:
         hint = ""
         if dev.type == "mps":
-            hint = (" Set PYTORCH_ENABLE_MPS_FALLBACK=1 before importing torch to "
-                    "fall back to CPU for these ops (slower, but functional).")
+            hint = (
+                " Set PYTORCH_ENABLE_MPS_FALLBACK=1 before importing torch to "
+                "fall back to CPU for these ops (slower, but functional)."
+            )
         raise GpuEngineError(
             f"engine='{device}': this PyTorch build lacks required ops on the "
             f"'{dev.type}' backend: {', '.join(missing)}.{hint}"
@@ -116,8 +124,10 @@ def _require_ops(torch, dev, device):
 def _interp(torch, xp, fp, x):
     """Linear interpolation of discrete (xp, fp) at x; 0 outside [xp[0], xp[-1]]."""
     idx = torch.searchsorted(xp, x, right=True).clamp_(1, xp.shape[0] - 1)
-    x0 = xp[idx - 1]; x1 = xp[idx]
-    y0 = fp[idx - 1]; y1 = fp[idx]
+    x0 = xp[idx - 1]
+    x1 = xp[idx]
+    y0 = fp[idx - 1]
+    y1 = fp[idx]
     out = y0 + (x - x0) / (x1 - x0) * (y1 - y0)
     return torch.where((x < xp[0]) | (x > xp[-1]), torch.zeros_like(out), out)
 
@@ -125,13 +135,16 @@ def _interp(torch, xp, fp, x):
 def _surface_ordinate(torch, X, Y, ISords, x, y):
     """Bilinear interpolation on an influence surface, mirroring
     CInfluenceSurface::giveOrdinate (cpp/src/InfluenceSurface.cpp:86-131)."""
-    nx = X.shape[0]; ny = Y.shape[0]
+    nx = X.shape[0]
+    ny = Y.shape[0]
     iX = torch.searchsorted(X, x, right=True).clamp_(1, nx - 1)
     iY = torch.searchsorted(Y, y, right=True).clamp_(1, ny - 1)
     dX = X[iX] - X[iX - 1]
     dY = Y[iY] - Y[iY - 1]
-    xsi1 = ISords[iX - 1, iY]; xsi2 = ISords[iX, iY]
-    xsi3 = ISords[iX - 1, iY - 1]; xsi4 = ISords[iX, iY - 1]
+    xsi1 = ISords[iX - 1, iY]
+    xsi2 = ISords[iX, iY]
+    xsi3 = ISords[iX - 1, iY - 1]
+    xsi4 = ISords[iX, iY - 1]
     xsiA = xsi1 + (x - X[iX - 1]) / dX * (xsi2 - xsi1)
     xsiB = xsi3 + (x - X[iX - 1]) / dX * (xsi4 - xsi3)
     xsi = xsiB + (y - Y[iY - 1]) / dY * (xsiA - xsiB)
@@ -139,8 +152,9 @@ def _surface_ordinate(torch, X, Y, ISords, x, y):
     return torch.where(oob, torch.zeros_like(xsi), xsi)
 
 
-def _reconstruct_axles(extracted, bridge_length, min_gvw, need_transverse,
-                       time_offset=0.0):
+def _reconstruct_axles(
+    extracted, bridge_length, min_gvw, need_transverse, time_offset=0.0
+):
     """Pre-extracted per-vehicle/per-axle arrays -> per-axle (datum, sign, speed,
     weight) and, if a surface effect is present, per-axle (lane, trans, track) for
     the transverse model.
@@ -151,17 +165,31 @@ def _reconstruct_axles(extracted, bridge_length, min_gvw, need_transverse,
     vectorized in numpy. ``time_offset`` shifts all vehicle times to a window-local
     origin so a streamed run processes one window at a time on a small
     (window-length) sample grid instead of an absolute one."""
-    (vtime, vspeed, vdir, vgvw, vlane, vtrans, vlen, vacc, vcount, aw, asp, at,
-     viscar, _viscls) = extracted   # _viscls (flow-stats class bin) used by the runner, not here
+    (
+        vtime,
+        vspeed,
+        vdir,
+        vgvw,
+        vlane,
+        vtrans,
+        vlen,
+        vacc,
+        vcount,
+        aw,
+        asp,
+        at,
+        viscar,
+        _viscls,
+    ) = extracted  # _viscls (flow-stats class bin) used by the runner, not here
 
     keep = vgvw > min_gvw
     if not keep.any():
         return [np.array([]) for _ in range(4)] + [None, None, None, None, None]
 
-    axle_keep = np.repeat(keep, vcount)        # axle-level mask (full vcount)
-    counts = vcount[keep]                       # kept vehicles' axle counts
+    axle_keep = np.repeat(keep, vcount)  # axle-level mask (full vcount)
+    counts = vcount[keep]  # kept vehicles' axle counts
     a_speed = np.repeat(vspeed[keep], counts)
-    a_accel = np.repeat(vacc[keep], counts)     # per-axle longitudinal acceleration
+    a_accel = np.repeat(vacc[keep], counts)  # per-axle longitudinal acceleration
     a_sign = np.where(np.repeat(vdir[keep] == 1, counts), 1.0, -1.0)
     a_time = np.repeat(vtime[keep] - time_offset, counts)
     a_dir2 = np.repeat(vdir[keep] == 2, counts)
@@ -187,14 +215,14 @@ def _reconstruct_axles(extracted, bridge_length, min_gvw, need_transverse,
         "t_off": v_off,
         "speed": v_speed,
         "sign": np.where(vdir[keep] == 1, 1.0, -1.0),
-        "is_car": viscar[keep].astype(bool),   # per kept vehicle (for stats no.-trucks)
+        "is_car": viscar[keep].astype(bool),  # per kept vehicle (for stats no.-trucks)
         "kept_idx": np.nonzero(keep)[0],
     }
 
     out = [datum, a_sign, a_speed, weight, a_accel]
     if need_transverse:
         out += [
-            np.repeat(vlane[keep] - 1, counts),   # 0-based bridge lane
+            np.repeat(vlane[keep] - 1, counts),  # 0-based bridge lane
             np.repeat(vtrans[keep], counts),
             at[axle_keep],
         ]
@@ -204,8 +232,9 @@ def _reconstruct_axles(extracted, bridge_length, min_gvw, need_transverse,
     return out
 
 
-def prepare_axles(extracted, il_specs, bridge_length, time_step, min_gvw,
-                  time_offset=0.0):
+def prepare_axles(
+    extracted, il_specs, bridge_length, time_step, min_gvw, time_offset=0.0
+):
     """Device-agnostic step: reconstruct per-axle trajectory arrays from the
     pre-extracted vehicle/axle arrays (vectorized kinematics). Returns
     (axles_dict, n_total, veh) or (None, 0, None); ``veh`` holds the per-vehicle
@@ -221,7 +250,13 @@ def prepare_axles(extracted, il_specs, bridge_length, time_step, min_gvw,
     if len(datum) == 0:
         return None, 0, None
     n_total = int(np.ceil((datum.max() + bridge_length / speed.min()) / time_step)) + 1
-    axles = {"datum": datum, "sign": sign, "speed": speed, "weight": weight, "accel": accel}
+    axles = {
+        "datum": datum,
+        "sign": sign,
+        "speed": speed,
+        "weight": weight,
+        "accel": accel,
+    }
     if lane is not None:
         axles.update(lane=lane, trans=trans, track=track)
     return axles, n_total, veh
@@ -238,9 +273,20 @@ def _occupancy(veh, n_total, time_step):
     return np.cumsum(diff)[:n_total]
 
 
-def compute_from_axles(axles, n_total, il_specs, weights, bridge_length, time_step,
-                       block_size_days=1, device="cuda", dtype="float64",
-                       pot_boundaries=None, rainflows=None, th=None):
+def compute_from_axles(
+    axles,
+    n_total,
+    il_specs,
+    weights,
+    bridge_length,
+    time_step,
+    block_size_days=1,
+    device="cuda",
+    dtype="float64",
+    pot_boundaries=None,
+    rainflows=None,
+    th=None,
+):
     """Device-specific step: move per-axle arrays to the device, expand them into
     per-time-sample pairs ON the device (no host pair materialization), and
     compute per-effect block maxima.
@@ -257,7 +303,9 @@ def compute_from_axles(axles, n_total, il_specs, weights, bridge_length, time_st
     for fatigue. The counters are finalized and written by the caller."""
     torch = _lazy_torch()
     if not _device_present(torch, device):
-        raise GpuEngineError(f"engine='{device}' selected but no '{device}' device is available.")
+        raise GpuEngineError(
+            f"engine='{device}' selected but no '{device}' device is available."
+        )
     if device == "mps":
         dtype = "float32"  # Metal (MPS) has no float64
     dev = torch.device(device)
@@ -292,6 +340,7 @@ def compute_from_axles(axles, n_total, il_specs, weights, bridge_length, time_st
     # available (one pass, ~2.4x over the torch multi-pass); surfaces and the
     # no-Triton fallback use torch.
     from .kernels import triton_available, scatter_interp_1d, scatter_interp_2d
+
     use_triton = triton_available() and dev.type == "cuda"
     n_grid = min(max(4096, int(L / 0.005) + 1), 262144)
     x_grid = np.linspace(0.0, L, n_grid)
@@ -301,48 +350,87 @@ def compute_from_axles(axles, n_total, il_specs, weights, bridge_length, time_st
         if spec["kind"] == "surface":
             lc = torch.as_tensor(spec["lane_centre"], dtype=dt, device=dev)
             lw = torch.as_tensor(spec["lane_width"], dtype=dt, device=dev)
-            uni = uniform_surface_grid(spec["X"], spec["Y"], spec["ISords"]) if use_triton else None
-            if uni is not None:  # fused two-track bilinear + scatter on the uniform grid
+            uni = (
+                uniform_surface_grid(spec["X"], spec["Y"], spec["ISords"])
+                if use_triton
+                else None
+            )
+            if (
+                uni is not None
+            ):  # fused two-track bilinear + scatter on the uniform grid
                 Zu, x0s, dxs, y0s, dys = uni
                 nxs, nys = Zu.shape
-                Zt = torch.as_tensor(np.ascontiguousarray(Zu).ravel(),
-                                     dtype=dt, device=dev)
-                prepared.append(("surface_triton",
-                                 (Zt, nxs, nys, x0s, dxs, y0s, dys, lc, lw)))
+                Zt = torch.as_tensor(
+                    np.ascontiguousarray(Zu).ravel(), dtype=dt, device=dev
+                )
+                prepared.append(
+                    ("surface_triton", (Zt, nxs, nys, x0s, dxs, y0s, dys, lc, lw))
+                )
             else:  # non-uniform grid (or no Triton): exact torch searchsorted path
-                prepared.append(("surface", (
-                    torch.as_tensor(spec["X"], dtype=dt, device=dev),
-                    torch.as_tensor(spec["Y"], dtype=dt, device=dev),
-                    torch.as_tensor(spec["ISords"], dtype=dt, device=dev),
-                    lc, lw,
-                )))
+                prepared.append(
+                    (
+                        "surface",
+                        (
+                            torch.as_tensor(spec["X"], dtype=dt, device=dev),
+                            torch.as_tensor(spec["Y"], dtype=dt, device=dev),
+                            torch.as_tensor(spec["ISords"], dtype=dt, device=dev),
+                            lc,
+                            lw,
+                        ),
+                    )
+                )
         elif spec["kind"] == "per_lane":
             lane_prepared = []
             for ls in spec["lane_specs"]:
                 if ls["kind"] == "discrete":
-                    lane_prepared.append(("torch_discrete", (
-                        torch.as_tensor(ls["pos"], dtype=dt, device=dev),
-                        torch.as_tensor(ls["ord"], dtype=dt, device=dev))))
+                    lane_prepared.append(
+                        (
+                            "torch_discrete",
+                            (
+                                torch.as_tensor(ls["pos"], dtype=dt, device=dev),
+                                torch.as_tensor(ls["ord"], dtype=dt, device=dev),
+                            ),
+                        )
+                    )
                 else:  # built-in
                     lane_prepared.append(("torch_builtin", ls))
-            prepared.append(("per_lane", (
-                lane_prepared,
-                torch.as_tensor(spec["lane_weights"], dtype=dt, device=dev))))
+            prepared.append(
+                (
+                    "per_lane",
+                    (
+                        lane_prepared,
+                        torch.as_tensor(spec["lane_weights"], dtype=dt, device=dev),
+                    ),
+                )
+            )
         elif use_triton:
             g = resample_il(spec, x_grid)
-            prepared.append(("triton1d",
-                             (torch.as_tensor(g, dtype=dt, device=dev), L / (n_grid - 1))))
+            prepared.append(
+                (
+                    "triton1d",
+                    (torch.as_tensor(g, dtype=dt, device=dev), L / (n_grid - 1)),
+                )
+            )
         elif spec["kind"] == "discrete":
-            prepared.append(("torch_discrete", (
-                torch.as_tensor(spec["pos"], dtype=dt, device=dev),
-                torch.as_tensor(spec["ord"], dtype=dt, device=dev))))
+            prepared.append(
+                (
+                    "torch_discrete",
+                    (
+                        torch.as_tensor(spec["pos"], dtype=dt, device=dev),
+                        torch.as_tensor(spec["ord"], dtype=dt, device=dev),
+                    ),
+                )
+            )
         else:
             prepared.append(("torch_builtin", spec))
 
     # per-effect force mode: vertical (default), centrifugal (x v^2/g), braking
     # (x |a|/g, or braking_factor when a==0). The factor scales each axle's weight
     # before the influence-ordinate multiply (cpp/src/InfluenceLine.cpp).
-    modes = [(s.get("mode", "vertical"), float(s.get("braking_factor", 0.0))) for s in il_specs]
+    modes = [
+        (s.get("mode", "vertical"), float(s.get("braking_factor", 0.0)))
+        for s in il_specs
+    ]
     any_mode = any(mo != "vertical" for mo, _ in modes)
     accel = torch.as_tensor(axles["accel"], dtype=dt, device=dev) if any_mode else None
 
@@ -369,12 +457,16 @@ def compute_from_axles(axles, n_total, il_specs, weights, bridge_length, time_st
         if Pb == 0:
             bm[b] = 0.0
             continue
-        off = torch.arange(Pb, device=dev) - torch.repeat_interleave(torch.cumsum(cnt, 0) - cnt, cnt)
-        gsidx = torch.repeat_interleave(blo, cnt) + off       # global sample index
-        si = gsidx - a                                        # block-local index
-        pp = (torch.repeat_interleave(sign, cnt)
-              * torch.repeat_interleave(speed, cnt)
-              * (gsidx.to(dt) * ts - torch.repeat_interleave(datum, cnt)))
+        off = torch.arange(Pb, device=dev) - torch.repeat_interleave(
+            torch.cumsum(cnt, 0) - cnt, cnt
+        )
+        gsidx = torch.repeat_interleave(blo, cnt) + off  # global sample index
+        si = gsidx - a  # block-local index
+        pp = (
+            torch.repeat_interleave(sign, cnt)
+            * torch.repeat_interleave(speed, cnt)
+            * (gsidx.to(dt) * ts - torch.repeat_interleave(datum, cnt))
+        )
         ww = torch.repeat_interleave(weight, cnt)
         if need_transverse:
             lane_b = torch.repeat_interleave(lane_ax, cnt)
@@ -395,8 +487,11 @@ def compute_from_axles(axles, n_total, il_specs, weights, bridge_length, time_st
             elif mode == "centrifugal":
                 ww_e = ww * (speed_b * speed_b / GRAVITY)
             else:  # braking: |a|/g per axle, falling back to braking_factor if a==0
-                ww_e = ww * torch.where(accel_b != 0.0, accel_b.abs() / GRAVITY,
-                                        torch.full_like(accel_b, bf))
+                ww_e = ww * torch.where(
+                    accel_b != 0.0,
+                    accel_b.abs() / GRAVITY,
+                    torch.full_like(accel_b, bf),
+                )
             if method == "triton1d":
                 grid, dx = data
                 scatter_interp_1d(si, pp, ww_e, grid, dx, float(weights[e]), E[e])
@@ -405,13 +500,31 @@ def compute_from_axles(axles, n_total, il_specs, weights, bridge_length, time_st
                 y_centre = lc[lane_b] + trans_b - lw[lane_b] / 2.0
                 yl = (y_centre - track_b / 2.0).contiguous()
                 yr = (y_centre + track_b / 2.0).contiguous()
-                scatter_interp_2d(si, pp, yl, yr, ww_e.contiguous(), Zt,
-                                  nxs, nys, x0s, dxs, y0s, dys, float(wts[e]), E[e])
+                scatter_interp_2d(
+                    si,
+                    pp,
+                    yl,
+                    yr,
+                    ww_e.contiguous(),
+                    Zt,
+                    nxs,
+                    nys,
+                    x0s,
+                    dxs,
+                    y0s,
+                    dys,
+                    float(wts[e]),
+                    E[e],
+                )
             elif method == "surface":
                 X, Y, ISords, lc, lw = data
                 y_centre = lc[lane_b] + trans_b - lw[lane_b] / 2.0
-                ol = _surface_ordinate(torch, X, Y, ISords, pp, y_centre - track_b / 2.0)
-                orr = _surface_ordinate(torch, X, Y, ISords, pp, y_centre + track_b / 2.0)
+                ol = _surface_ordinate(
+                    torch, X, Y, ISords, pp, y_centre - track_b / 2.0
+                )
+                orr = _surface_ordinate(
+                    torch, X, Y, ISords, pp, y_centre + track_b / 2.0
+                )
                 E[e].index_add_(0, si, ww_e * 0.5 * (ol + orr) * wts[e])
             elif method == "torch_discrete":
                 xp, fp = data
@@ -420,7 +533,7 @@ def compute_from_axles(axles, n_total, il_specs, weights, bridge_length, time_st
                 ordn = builtin_ordinate(torch, data["id"], data["length"], pp)
                 E[e].index_add_(0, si, ww_e * ordn * wts[e])
             else:  # per_lane: each lane uses its own IL + weight (matches the
-                   # C++ engine's per-lane summation)
+                # C++ engine's per-lane summation)
                 lane_prepared, lane_w = data
                 for lane in range(len(lane_prepared)):
                     lm = lane_b == lane
@@ -445,7 +558,9 @@ def compute_from_axles(axles, n_total, il_specs, weights, bridge_length, time_st
             # signed largest-|E| sample per window (merging across blocks for the
             # rare event that straddles a block boundary)
             gidx = torch.arange(a, z, device=dev)
-            win_s = (torch.searchsorted(Bt, gidx.to(dt) * ts, right=True) - 1).clamp_(0, n_win - 1)
+            win_s = (torch.searchsorted(Bt, gidx.to(dt) * ts, right=True) - 1).clamp_(
+                0, n_win - 1
+            )
             zeros_win = torch.zeros(n_win, dtype=dt, device=dev)
             for e in range(n_eff):
                 mag = E[e].abs()
@@ -456,7 +571,9 @@ def compute_from_axles(axles, n_total, il_specs, weights, bridge_length, time_st
                 cand = torch.where(is_pk, gidx, torch.full_like(gidx, -1))
                 bidx = torch.full((n_win,), -1, dtype=torch.long, device=dev)
                 bidx.scatter_reduce_(0, win_s, cand, reduce="amax", include_self=True)
-                bval = torch.where(bidx >= 0, E[e].gather(0, (bidx - a).clamp_(min=0)), zeros_win)
+                bval = torch.where(
+                    bidx >= 0, E[e].gather(0, (bidx - a).clamp_(min=0)), zeros_win
+                )
                 better = bmag > peakmag[e]
                 peakmag[e] = torch.where(better, bmag, peakmag[e])
                 peakval[e] = torch.where(better, bval, peakval[e])
@@ -473,8 +590,10 @@ def compute_from_axles(axles, n_total, il_specs, weights, bridge_length, time_st
                 if row.shape[0] >= 3:
                     dl = row[1:-1] - row[:-2]
                     dr = row[2:] - row[1:-1]
-                    keep = ~((((dl > 0) & (dr > 0)) | ((dl < 0) & (dr < 0)))
-                             | ((dl == 0) & (dr == 0)))
+                    keep = ~(
+                        (((dl > 0) & (dr > 0)) | ((dl < 0) & (dr < 0)))
+                        | ((dl == 0) & (dr == 0))
+                    )
                     idx = torch.nonzero(keep, as_tuple=False).flatten() + 1
                     ends = torch.tensor([0, row.shape[0] - 1], device=dev)
                     tp_idx = torch.cat([ends[:1], idx, ends[1:]])
@@ -486,9 +605,9 @@ def compute_from_axles(axles, n_total, il_specs, weights, bridge_length, time_st
 
         if th is not None:  # time history: write this block's E(t) per sample
             fh, occ, th_offset = th
-            E_h = E.detach().cpu().numpy()                       # [n_eff, z-a]
+            E_h = E.detach().cpu().numpy()  # [n_eff, z-a]
             times = np.arange(a, z) * ts + th_offset
-            rows = np.column_stack([times, occ[a:z], E_h.T])     # [z-a, 2+n_eff]
+            rows = np.column_stack([times, occ[a:z], E_h.T])  # [z-a, 2+n_eff]
             np.savetxt(fh, rows, fmt=["%.3f", "%d"] + ["%.3f"] * n_eff, delimiter="\t")
         del E
 
@@ -531,10 +650,23 @@ def compute_load_effect_maxima(
     )
     if axles is None:
         return {"block_maxima": np.zeros((0, n_eff)), "global_maxima": np.zeros(n_eff)}
-    th = (th_file, _occupancy(veh, n_total, time_step), time_offset) if th_file is not None else None
+    th = (
+        (th_file, _occupancy(veh, n_total, time_step), time_offset)
+        if th_file is not None
+        else None
+    )
     return compute_from_axles(
-        axles, n_total, il_specs, weights, bridge_length, time_step,
-        block_size_days, device, dtype, rainflows=rainflows, th=th,
+        axles,
+        n_total,
+        il_specs,
+        weights,
+        bridge_length,
+        time_step,
+        block_size_days,
+        device,
+        dtype,
+        rainflows=rainflows,
+        th=th,
     )
 
 
@@ -571,14 +703,28 @@ def compute_pot(
         return None
 
     B, win_count, k_start, k_end = potmod.build_partition(veh["t_on"], veh["t_off"])
-    th = (th_file, _occupancy(veh, n_total, time_step), time_offset) if th_file is not None else None
+    th = (
+        (th_file, _occupancy(veh, n_total, time_step), time_offset)
+        if th_file is not None
+        else None
+    )
     out = compute_from_axles(
-        axles, n_total, il_specs, weights, bridge_length, time_step,
-        block_size_days, device, dtype, pot_boundaries=B, rainflows=rainflows, th=th,
+        axles,
+        n_total,
+        il_specs,
+        weights,
+        bridge_length,
+        time_step,
+        block_size_days,
+        device,
+        dtype,
+        pot_boundaries=B,
+        rainflows=rainflows,
+        th=th,
     )
     return {
-        "peak_value": out["pot_peak_value"],   # [n_eff, n_window], signed
-        "peak_index": out["pot_peak_index"],   # [n_eff, n_window], -1 if empty
+        "peak_value": out["pot_peak_value"],  # [n_eff, n_window], signed
+        "peak_index": out["pot_peak_index"],  # [n_eff, n_window], -1 if empty
         "block_maxima": out["block_maxima"],
         "B": B,
         "win_count": win_count,

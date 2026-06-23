@@ -43,7 +43,7 @@ def _finalize(n, S1, S2, S3, S4, vmin, vmax):
         skew = np.where(ok, np.sqrt(nf) * M3 / np.sqrt(M2**3), 0.0)
         kurt = np.where(ok, nf * M4 / M2**2 - 3.0, 0.0)
     mean = np.where(nf >= 1, mean, 0.0)
-    lo = np.where(n >= 1, vmin, 0.0)   # CEventStatistics inits min/max to 0 for empty
+    lo = np.where(n >= 1, vmin, 0.0)  # CEventStatistics inits min/max to 0 for empty
     hi = np.where(n >= 1, vmax, 0.0)
     return lo, hi, mean, std, variance, skew, kurt
 
@@ -56,8 +56,14 @@ class StatsAccumulator:
     start time in ``[(i-1)·size, i·size)``; ``sim_start`` is the time origin
     (0 for generated traffic; the first-vehicle time for recorded traffic)."""
 
-    def __init__(self, n_eff, want_intervals=False, interval_size=3600.0,
-                 total_intervals=0, sim_start=0.0):
+    def __init__(
+        self,
+        n_eff,
+        want_intervals=False,
+        interval_size=3600.0,
+        total_intervals=0,
+        sim_start=0.0,
+    ):
         self.n_eff = n_eff
         self.sim_start = sim_start
         self.n_events = 0
@@ -90,10 +96,10 @@ class StatsAccumulator:
         ``win_count`` / ``win_truck_count`` are ``[n_win]``, and ``B`` is the
         ``[n_win+1]`` window-boundary times (window-local; ``time_offset`` shifts
         them back to absolute time for interval binning)."""
-        ev = win_count >= 1                 # a window is an event iff a vehicle covers it
+        ev = win_count >= 1  # a window is an event iff a vehicle covers it
         if not ev.any():
             return
-        vals = peak_value[:, ev]            # [n_eff, n_ev]
+        vals = peak_value[:, ev]  # [n_eff, n_ev]
         wc = win_count[ev].astype(np.int64)
         wt = win_truck_count[ev].astype(np.int64)
 
@@ -128,27 +134,42 @@ class StatsAccumulator:
     def write_cumulative(self, path):
         n = np.full(self.n_eff, self.n_events, dtype=np.int64)
         lo, hi, mean, std, var, skew, kurt = _finalize(
-            n, self.S1, self.S2, self.S3, self.S4, self.vmin, self.vmax)
+            n, self.S1, self.S2, self.S3, self.S4, self.vmin, self.vmax
+        )
         with open(path, "w") as fh:
-            fh.write("    LE   #Events   #Ev Vehs #Ev Trucks    Min      Max"
-                     "        Mean     StdDev       Variance   Skewness  Kurtosis\n")
+            fh.write(
+                "    LE   #Events   #Ev Vehs #Ev Trucks    Min      Max"
+                "        Mean     StdDev       Variance   Skewness  Kurtosis\n"
+            )
             for e in range(self.n_eff):
-                fh.write(f"{e + 1:>6}{self.n_events:>10}{self.n_veh:>11}{self.n_trk:>11}"
-                         f"{lo[e]:>10.2f}{hi[e]:>10.2f}{mean[e]:>10.2f}{std[e]:>10.2f}"
-                         f"{var[e]:>15.2f}{skew[e]:>10.2f}{kurt[e]:>10.2f}\n")
+                fh.write(
+                    f"{e + 1:>6}{self.n_events:>10}{self.n_veh:>11}{self.n_trk:>11}"
+                    f"{lo[e]:>10.2f}{hi[e]:>10.2f}{mean[e]:>10.2f}{std[e]:>10.2f}"
+                    f"{var[e]:>15.2f}{skew[e]:>10.2f}{kurt[e]:>10.2f}\n"
+                )
 
     def write_intervals(self, sim_dir, length_str):
-        header = ("    ID        Time(s)   #Events   #Ev Vehs #Ev Trucks    Min"
-                  "      Max        Mean     StdDev       Variance   Skewness  Kurtosis\n")
+        header = (
+            "    ID        Time(s)   #Events   #Ev Vehs #Ev Trucks    Min"
+            "      Max        Mean     StdDev       Variance   Skewness  Kurtosis\n"
+        )
         for e in range(self.n_eff):
             lo_e, hi_e, mean_e, std_e, var_e, skew_e, kurt_e = _finalize(
-                self.iN, self.iS1[e], self.iS2[e], self.iS3[e], self.iS4[e],
-                self.ivmin[e], self.ivmax[e])
+                self.iN,
+                self.iS1[e],
+                self.iS2[e],
+                self.iS3[e],
+                self.iS4[e],
+                self.ivmin[e],
+                self.ivmax[e],
+            )
             with open(sim_dir / f"SS_S_{length_str}_Eff_{e + 1}.txt", "w") as fh:
                 fh.write(header)
                 for i in range(self.ni):
                     t = int(round(self.interval_size * (i + 1)))
-                    fh.write(f"{i + 1:>6}{t:>15}{self.iN[i]:>10}{self.inveh[i]:>11}"
-                             f"{self.intrk[i]:>11}{lo_e[i]:>10.2f}{hi_e[i]:>10.2f}"
-                             f"{mean_e[i]:>10.2f}{std_e[i]:>10.2f}{var_e[i]:>15.2f}"
-                             f"{skew_e[i]:>10.2f}{kurt_e[i]:>10.2f}\n")
+                    fh.write(
+                        f"{i + 1:>6}{t:>15}{self.iN[i]:>10}{self.inveh[i]:>11}"
+                        f"{self.intrk[i]:>11}{lo_e[i]:>10.2f}{hi_e[i]:>10.2f}"
+                        f"{mean_e[i]:>10.2f}{std_e[i]:>10.2f}{var_e[i]:>15.2f}"
+                        f"{skew_e[i]:>10.2f}{kurt_e[i]:>10.2f}\n"
+                    )

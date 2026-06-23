@@ -140,7 +140,8 @@ class _ChunkedOutputManager:
         fall back to summing the per-chunk histograms."""
 
         residual_paths = [
-            chunk._output_root / chunk._this_output_dir
+            chunk._output_root
+            / chunk._this_output_dir
             / (stem.replace("FR_", "FRR_", 1) + ".txt")
             for chunk in self._chunks
         ]

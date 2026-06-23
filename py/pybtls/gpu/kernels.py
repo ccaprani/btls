@@ -17,6 +17,7 @@ def triton_available() -> bool:
     try:
         import triton  # noqa: F401
         import torch
+
         return bool(torch.cuda.is_available())
     except Exception:
         return False
@@ -27,14 +28,24 @@ try:
     import triton.language as tl
 
     @triton.jit
-    def _scatter_interp(sidx_ptr, pos_ptr, w_ptr, il_ptr, n_il, dx, weight,
-                        E_ptr, P, BLOCK: tl.constexpr):
+    def _scatter_interp(
+        sidx_ptr,
+        pos_ptr,
+        w_ptr,
+        il_ptr,
+        n_il,
+        dx,
+        weight,
+        E_ptr,
+        P,
+        BLOCK: tl.constexpr,
+    ):
         offs = tl.program_id(0) * BLOCK + tl.arange(0, BLOCK)
         mask = offs < P
         p = tl.load(pos_ptr + offs, mask=mask, other=0.0)
         ww = tl.load(w_ptr + offs, mask=mask, other=0.0)
         s = tl.load(sidx_ptr + offs, mask=mask, other=0)
-        fidx = p / dx                         # IL grid starts at x=0
+        fidx = p / dx  # IL grid starts at x=0
         j = tl.floor(fidx).to(tl.int32)
         j = tl.maximum(0, tl.minimum(j, n_il - 2))
         frac = fidx - j.to(tl.float64)
@@ -50,13 +61,29 @@ try:
             return
         BLOCK = 1024
         grid = (triton.cdiv(P, BLOCK),)
-        _scatter_interp[grid](sidx, pos, w, il_grid, il_grid.shape[0], dx,
-                              weight, E_row, P, BLOCK=BLOCK)
+        _scatter_interp[grid](
+            sidx, pos, w, il_grid, il_grid.shape[0], dx, weight, E_row, P, BLOCK=BLOCK
+        )
 
     @triton.jit
-    def _scatter_interp_surf(sidx_ptr, pos_ptr, yl_ptr, yr_ptr, w_ptr, Z_ptr,
-                             nx, ny, x0, dx, y0, dy, weight, E_ptr, P,
-                             BLOCK: tl.constexpr):
+    def _scatter_interp_surf(
+        sidx_ptr,
+        pos_ptr,
+        yl_ptr,
+        yr_ptr,
+        w_ptr,
+        Z_ptr,
+        nx,
+        ny,
+        x0,
+        dx,
+        y0,
+        dy,
+        weight,
+        E_ptr,
+        P,
+        BLOCK: tl.constexpr,
+    ):
         offs = tl.program_id(0) * BLOCK + tl.arange(0, BLOCK)
         mask = offs < P
         p = tl.load(pos_ptr + offs, mask=mask, other=0.0)
@@ -71,7 +98,7 @@ try:
         fx = (p - x0) / dx
         jx = tl.maximum(0, tl.minimum(tl.floor(fx).to(tl.int32), nx - 2))
         tx = fx - jx.to(tl.float64)
-        base = jx * ny                     # row-major: Z[i, j] = Z_ptr[i*ny + j]
+        base = jx * ny  # row-major: Z[i, j] = Z_ptr[i*ny + j]
         x_oob = (p < x0) | (p > xmax)
 
         # --- left wheel track ---
@@ -100,8 +127,9 @@ try:
 
         tl.atomic_add(E_ptr + s, ww * 0.5 * (vl + vr) * weight, mask=mask)
 
-    def scatter_interp_2d(sidx, pos, yl, yr, w, Z, nx, ny, x0, dx, y0, dy,
-                          weight, E_row):
+    def scatter_interp_2d(
+        sidx, pos, yl, yr, w, Z, nx, ny, x0, dx, y0, dy, weight, E_row
+    ):
         """Fused two-track bilinear surface interp -> atomic_add into E_row[sidx].
 
         ``Z`` is the row-major-flattened uniform [nx, ny] surface; ``yl`` / ``yr``
@@ -112,10 +140,27 @@ try:
             return
         BLOCK = 512
         grid = (triton.cdiv(P, BLOCK),)
-        _scatter_interp_surf[grid](sidx, pos, yl, yr, w, Z, nx, ny, x0, dx, y0, dy,
-                                   weight, E_row, P, BLOCK=BLOCK)
+        _scatter_interp_surf[grid](
+            sidx,
+            pos,
+            yl,
+            yr,
+            w,
+            Z,
+            nx,
+            ny,
+            x0,
+            dx,
+            y0,
+            dy,
+            weight,
+            E_row,
+            P,
+            BLOCK=BLOCK,
+        )
 
 except ImportError:  # pragma: no cover - triton ships with the torch CUDA wheels
+
     def scatter_interp_1d(*args, **kwargs):
         raise RuntimeError("Triton is not available")
 

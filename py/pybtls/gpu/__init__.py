@@ -18,7 +18,18 @@ imported lazily only when this engine is used; Triton (installed with the torch
 CUDA wheels) provides the fused kernel and is used automatically when present.
 """
 
-from .engine import compute_load_effect_maxima, compute_pot, is_available, GpuEngineError
+from .engine import (
+    compute_load_effect_maxima,
+    compute_pot,
+    is_available,
+    GpuEngineError,
+)
 from .runner import run
 
-__all__ = ["run", "is_available", "compute_load_effect_maxima", "compute_pot", "GpuEngineError"]
+__all__ = [
+    "run",
+    "is_available",
+    "compute_load_effect_maxima",
+    "compute_pot",
+    "GpuEngineError",
+]

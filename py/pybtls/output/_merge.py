@@ -97,9 +97,7 @@ MERGE_REGISTRY: dict[str, MergeSpec] = {
     "E_interval_statistics": MergeSpec(
         "concat", time_cols=("Time",), offset_index_cols=("Index",)
     ),
-    "fatigue_events": MergeSpec(
-        "concat", time_cols=("Start Time", "Effect * Time")
-    ),
+    "fatigue_events": MergeSpec("concat", time_cols=("Start Time", "Effect * Time")),
     # Closed-cycle histograms add bin-wise; the unclosed residual reversal
     # sequences (FRR_* sidecars, written in chunk mode) are concatenated and
     # closed with the same C++ algorithm — exact residue splicing. Falls
@@ -149,9 +147,10 @@ def merge_concat(
         for col in _match_cols(df, spec.time_cols):
             new_col = df[col] + offset
             # Keep integer time columns integer (e.g. SS_S "Time").
-            if pd.api.types.is_integer_dtype(df[col].dtype) and float(
-                offset
-            ).is_integer():
+            if (
+                pd.api.types.is_integer_dtype(df[col].dtype)
+                and float(offset).is_integer()
+            ):
                 new_col = new_col.astype(df[col].dtype)
             df[col] = new_col
         for col in spec.offset_index_cols:
