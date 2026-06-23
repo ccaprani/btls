@@ -20,26 +20,32 @@ namespace py = pybind11;
 // vehicle. Returns numpy arrays; all the trajectory math stays vectorized in
 // Python. Output: (time, speed, dirn, gvw, global_lane, trans, length, accel,
 // axle_count[/veh], axle_weight[/axle], axle_spacing[/axle], axle_track[/axle]).
-static py::tuple _extract_axle_data(const std::vector<CVehicle_sp>& vehs, std::size_t no_lane)
+// Flat per-vehicle scalars + per-axle arrays for the GPU engine, shared by the
+// loader path (_extract_axle_data) and the fused generator (_generate_and_extract)
+// so a vehicle is unpacked exactly once, the same way, regardless of source.
+struct _AxleArrays
 {
-	std::size_t n = vehs.size();
-	std::vector<double> vtime(n), vspeed(n), vgvw(n), vtrans(n), vlen(n), vacc(n);
-	std::vector<std::int64_t> vdir(n), vlane(n), vcount(n), viscar(n);
+	std::vector<double> vtime, vspeed, vgvw, vtrans, vlen, vacc;
+	std::vector<std::int64_t> vdir, vlane, vcount, viscar, viscls;
 	std::vector<double> aw, asp, at;
-	for (std::size_t i = 0; i < n; i++)
+
+	// classifier (optional): when given, viscls[i] = its class-histogram bin for
+	// the vehicle (CVehicleClassification::getClassID) — for the flow statistics;
+	// otherwise -1 (load-effect runs don't need it).
+	void add(CVehicle& v, std::size_t no_lane, CVehicleClassification* classifier)
 	{
-		CVehicle& v = *vehs[i];
-		vtime[i]  = v.getTime();
-		vspeed[i] = v.getVelocity();
-		vgvw[i]   = v.getGVW();
-		vtrans[i] = v.getTrans();
-		vlen[i]   = v.getLength();
-		vacc[i]   = v.getAcceleration();
-		vdir[i]   = (std::int64_t)v.getDirection();
-		vlane[i]  = (std::int64_t)v.getGlobalLane(no_lane);
-		viscar[i] = (std::int64_t)v.IsCar();
+		vtime.push_back(v.getTime());
+		vspeed.push_back(v.getVelocity());
+		vgvw.push_back(v.getGVW());
+		vtrans.push_back(v.getTrans());
+		vlen.push_back(v.getLength());
+		vacc.push_back(v.getAcceleration());
+		vdir.push_back((std::int64_t)v.getDirection());
+		vlane.push_back((std::int64_t)v.getGlobalLane(no_lane));
+		viscar.push_back((std::int64_t)v.IsCar());
+		viscls.push_back(classifier ? (std::int64_t)classifier->getClassID(v.getClass()) : -1);
 		std::size_t na = v.getNoAxles();
-		vcount[i] = (std::int64_t)na;
+		vcount.push_back((std::int64_t)na);
 		for (std::size_t j = 0; j < na; j++)
 		{
 			aw.push_back(v.getAW(j));
@@ -47,36 +53,72 @@ static py::tuple _extract_axle_data(const std::vector<CVehicle_sp>& vehs, std::s
 			at.push_back(v.getAT(j));
 		}
 	}
-	auto d = [](const std::vector<double>& v) { return py::array_t<double>(v.size(), v.data()); };
-	auto l = [](const std::vector<std::int64_t>& v) { return py::array_t<std::int64_t>(v.size(), v.data()); };
-	return py::make_tuple(d(vtime), d(vspeed), l(vdir), d(vgvw), l(vlane),
-						  d(vtrans), d(vlen), d(vacc), l(vcount), d(aw), d(asp), d(at),
-						  l(viscar));
+
+	py::tuple to_tuple() const
+	{
+		auto d = [](const std::vector<double>& v) { return py::array_t<double>(v.size(), v.data()); };
+		auto l = [](const std::vector<std::int64_t>& v) { return py::array_t<std::int64_t>(v.size(), v.data()); };
+		return py::make_tuple(d(vtime), d(vspeed), l(vdir), d(vgvw), l(vlane),
+							  d(vtrans), d(vlen), d(vacc), l(vcount), d(aw), d(asp), d(at),
+							  l(viscar), l(viscls));
+	}
+};
+
+
+static py::tuple _extract_axle_data(const std::vector<CVehicle_sp>& vehs, std::size_t no_lane,
+		CVehicleClassification_sp classifier = nullptr)
+{
+	_AxleArrays a;
+	for (const auto& v : vehs)
+		a.add(*v, no_lane, classifier.get());
+	return a.to_tuple();
 }
 
 
-// Generate the next slice of generated traffic up to end_time in ONE C++ call:
-// repeatedly pull the globally-earliest-arriving lane (the same interleaving the
-// Python loop did, so the RNG draw order — hence the vehicle stream — is
-// identical), returning the vehicles in arrival order. Lets the GPU engine
-// stream generated traffic without a per-vehicle Python<->C++ round trip.
+// Pull the globally-earliest-arriving lane until end_time, in the same order the
+// per-vehicle Python loop did (identical RNG draw order -> identical stream).
+static int _earliest_lane(const std::vector<CLaneGenTraffic_sp>& lanes, double end_time)
+{
+	int earliest = -1;
+	double best = end_time;
+	for (std::size_t i = 0; i < lanes.size(); i++)
+	{
+		double t = lanes[i]->GetNextArrivalTime();
+		if (t < best) { best = t; earliest = (int)i; }
+	}
+	return earliest;
+}
+
+
+// Generate the next slice of generated traffic up to end_time, returning the
+// vehicle objects (used when per-vehicle output, e.g. PT_V, is needed).
 static std::vector<CVehicle_sp> _generate_traffic_stream(
 		std::vector<CLaneGenTraffic_sp> lanes, double end_time)
 {
 	std::vector<CVehicle_sp> out;
-	while (true)
-	{
-		int earliest = -1;
-		double best = end_time;
-		for (std::size_t i = 0; i < lanes.size(); i++)
-		{
-			double t = lanes[i]->GetNextArrivalTime();
-			if (t < best) { best = t; earliest = (int)i; }
-		}
-		if (earliest < 0) break;  // every lane's next arrival is >= end_time
+	int earliest;
+	while ((earliest = _earliest_lane(lanes, end_time)) >= 0)
 		out.push_back(lanes[earliest]->GetNextVehicle());
-	}
 	return out;
+}
+
+
+// Fused generate + extract: generate up to end_time and unpack each vehicle
+// inline, returning the same flat arrays as _extract_axle_data WITHOUT building a
+// Python list of Vehicle objects (the GPU generated-traffic hot path). The stream
+// is byte-identical to _generate_traffic_stream + _extract_axle_data.
+static py::tuple _generate_and_extract(
+		std::vector<CLaneGenTraffic_sp> lanes, double end_time, std::size_t no_lane,
+		CVehicleClassification_sp classifier = nullptr)
+{
+	_AxleArrays a;
+	int earliest;
+	while ((earliest = _earliest_lane(lanes, end_time)) >= 0)
+	{
+		CVehicle_sp v = lanes[earliest]->GetNextVehicle();
+		a.add(*v, no_lane, classifier.get());
+	}
+	return a.to_tuple();
 }
 
 
@@ -96,12 +138,19 @@ PYBIND11_MODULE(libbtls, m) {
 		return d.GenerateUniform();
 	}, "Internal test helper: draw one uniform [0,1) sample from the process-wide RNG.");
 	m.def("_extract_axle_data", &_extract_axle_data, py::arg("vehicles"), py::arg("no_lane"),
+		py::arg("classifier") = nullptr,
 		"Bulk-extract per-vehicle/per-axle arrays from a vehicle list in one C++ pass "
-		"(used by the GPU engine to avoid per-vehicle Python getter calls).");
+		"(used by the GPU engine to avoid per-vehicle Python getter calls). With a "
+		"classifier, also returns each vehicle's flow-statistics class bin.");
 	m.def("_generate_traffic_stream", &_generate_traffic_stream, py::arg("lanes"), py::arg("end_time"),
 		"Generate generated-traffic vehicles up to end_time in one C++ pass, pulling the "
 		"globally-earliest lane each step (identical interleaving/RNG order to the per-vehicle "
 		"loop). Lets the GPU engine stream generation without per-vehicle Python calls.");
+	m.def("_generate_and_extract", &_generate_and_extract, py::arg("lanes"), py::arg("end_time"), py::arg("no_lane"),
+		py::arg("classifier") = nullptr,
+		"Fused generate + extract: generate up to end_time and return the same flat arrays as "
+		"_extract_axle_data, without materializing Python Vehicle objects (the GPU generated-"
+		"traffic hot path). Byte-identical to _generate_traffic_stream + _extract_axle_data.");
 	m.def("seed", &CRNGWrapper::seed,
 		R"(
 		Seed the process-wide random number generator.

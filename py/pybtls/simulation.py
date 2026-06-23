@@ -158,7 +158,8 @@ class Simulation:
               and errors clearly if one is missing). Needs ``pybtls[gpu]`` (a build of torch for that
               device). It computes per-effect block-maxima (BM),
               peaks-over-threshold (POT: PT_S/PT_C/PT_V), fatigue rainflow
-              (FR), flow statistics (SS_C/SS_S) and time history (TH) via
+              (FR), load-effect statistics (SS_C/SS_S), vehicle flow statistics
+              (FlowData) and time history (TH) via
               per-vehicle superposition, honouring the matching OutputConfig
               flags. POT/SS rebuild the "cpu" event
               partition, so event / vehicle / truck counts track "cpu" to ~1%
@@ -169,8 +170,8 @@ class Simulation:
               IL/weight per lane; vertical / centrifugal / braking modes. It does
               NOT produce the per-event / per-vehicle detail outputs
               (write_each_event, the vehicle file, BM-vehicle / mixed,
-              write_fatigue_event, rainflow residuals, flow statistics); those are
-              skipped with a warning — use engine="cpu" for them.
+              write_fatigue_event, rainflow residuals); those are skipped with a
+              warning — use engine="cpu" for them.
 
             When is the GPU engine worth it? Only when the load-effect *computation*
             dominates the run — which it usually does NOT. Profiling shows the
@@ -339,6 +340,20 @@ class Simulation:
         -------
         None
         """
+
+        # GPU engines share one device: running tasks concurrently serialises the
+        # device compute (no speed-up) while each worker process replicates its
+        # window in host RAM + VRAM, so multi-core only multiplies memory and can
+        # OOM. Warn so the default no_core (cpu_count-2) isn't applied to GPU runs.
+        effective_cores = (no_core if no_core is not None
+                           else multiprocessing.cpu_count() - 2)
+        gpu_tasks = sum(1 for a in self._sim_argument if a[13] in ("cuda", "mps", "xpu"))
+        if gpu_tasks and effective_cores > 1:
+            print(f"Warning: {gpu_tasks} GPU task(s) queued with no_core="
+                  f"{effective_cores}. GPU tasks share one device — concurrency gives "
+                  "no speed-up, but each process replicates its window in host RAM + "
+                  "VRAM (risking OOM). Use no_core=1 for GPU runs.",
+                  file=sys.stderr, flush=True)
 
         total = len(self._sim_argument)
         start = time.perf_counter()
