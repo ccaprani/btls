@@ -29,6 +29,19 @@ In that regime, on an RTX 3090 in float64, it reaches roughly **15x**
 bridges with a handful of effects, or any run needing the full output set, use
 ``engine="cpu"``.
 
+Running in parallel
+-------------------
+
+Run GPU simulations with ``run(no_core=1)``. The CPU engine scales near-linearly
+when you split a run with ``add_sim(..., no_chunk=N)`` and ``run(no_core=N)``
+(each day-chunk is an independent process — measured ~3x on 4 cores, ~6x on 8,
+for a few hundred MB), but the GPU engine does **not**: concurrent tasks share
+the one device, so the device compute serialises (no speed-up) while each worker
+replicates its window in host RAM and VRAM — multiplying memory for nothing, and
+risking OOM if the default ``no_core`` (cpu_count − 2) is applied. The engine
+warns when GPU tasks are queued with ``no_core > 1``. Let the GPU parallelise
+internally on one process instead.
+
 Installation
 ------------
 
