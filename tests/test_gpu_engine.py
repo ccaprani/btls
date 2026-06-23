@@ -274,6 +274,68 @@ def test_gpu_engine_matches_cpu_per_lane_il():
     assert (rel < 0.05).all(), f"cpu={cpu_max}, gpu={gpu_max}, rel={rel}"
 
 
+def test_gpu_engine_matches_cpu_multi_vehicle_event():
+    # A deterministic multi-vehicle event: two identical trucks travel side by side
+    # (one per lane) and are on the 20 m bridge at the same instant, so the
+    # governing load effect is the SUPERPOSITION of both -> twice a single truck's
+    # peak, at a sample the C++ engine marks "No. Trucks == 2". The recorded-traffic
+    # tests above only hit the multi-vehicle path statistically; this pins it and
+    # checks engine="cuda" reproduces the engine="cpu" peak on that event.
+    #
+    # The trailing vehicle in each stream is a "sentinel": the CPU engine only
+    # writes per-sample output up to the last vehicle's arrival, so without one the
+    # event's on-bridge tail (where the trucks overlap) is never simulated.
+    def truck(lane, t):
+        v = pb.Vehicle(2)
+        v.set_time(t); v.set_velocity(20.0); v.set_direction(1)
+        v.set_axle_weights([100.0, 100.0]); v.set_axle_spacings([4.0])
+        v.set_axle_widths([2.0, 2.0]); v.set_trans(1.8); v.set_local_lane(lane)
+        return v
+
+    def factory(no_lane):
+        il = pb.InfluenceLine(IL_type="discrete")
+        il.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 10.0, 0.0])
+        b = pb.Bridge(length=20.0, no_lane=no_lane)
+        b.add_load_effect(inf_line_surf=il, threshold=0.0)
+        return b
+
+    def run(vehicles, no_lane, engine, tag):
+        remove_folder(ROOT)
+        ld = pb.TrafficLoader(no_lane=no_lane)
+        ld.add_traffic(traffic=vehicles)
+        cfg = pb.OutputConfig()
+        cfg.set_event_output(write_time_history=True)
+        cfg.set_BM_output(write_summary=True)
+        sim = pb.Simulation(output_dir=ROOT)
+        sim.add_sim(bridge=factory(no_lane), traffic=ld, no_day=1, output_config=cfg,
+                    time_step=TIME_STEP, min_gvw=0, tag=tag, engine=engine)
+        sim.run(no_core=1)
+        return sim.get_output()[tag]
+
+    # one truck (single lane) -> reference peak
+    one_th = next(iter(run([truck(1, 50.0), truck(1, 120.0)], 1, "cpu", "cpu")
+                       .read_data("time_history").values()))
+    one_peak = one_th["Effect 1"].abs().max()
+
+    # two trucks side by side -> a genuine 2-truck event
+    th = next(iter(run([truck(1, 50.0), truck(2, 50.0), truck(1, 120.0)], 2, "cpu", "cpu")
+                   .read_data("time_history").values()))
+    two_peak = th["Effect 1"].abs().max()
+    peak_trucks = th.loc[th["Effect 1"].abs().idxmax(), "No. Trucks"]
+
+    gbm = next(iter(run([truck(1, 50.0), truck(2, 50.0), truck(1, 120.0)], 2, "cuda", "gpu")
+                    .read_data("BM_summary").values()))
+    gpu_peak = gbm[[c for c in gbm.columns if c != "Block Index"]].abs().max().max()
+    remove_folder(ROOT)
+
+    # the governing sample genuinely carries both trucks ...
+    assert peak_trucks == 2, f"peak is not a 2-truck event (No. Trucks={peak_trucks})"
+    # ... their loads superimpose to twice one truck's peak ...
+    assert two_peak == pytest.approx(2.0 * one_peak, rel=0.02), f"one={one_peak} two={two_peak}"
+    # ... and engine="cuda" reproduces the CPU multi-vehicle peak within grid tolerance
+    assert abs(gpu_peak - two_peak) / two_peak < 0.015, f"cpu={two_peak} gpu={gpu_peak}"
+
+
 def test_gpu_engine_matches_cpu_surface():
     lane_position = [(0.5, 4.0), (4.0, 7.5), (8.5, 12.0), (12.0, 15.5)]
     IS_matrix = [
