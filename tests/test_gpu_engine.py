@@ -27,8 +27,12 @@ ROOT = Path(__file__).parent / "temp_gpu_engine"
 
 def _loader():
     loader = pb.TrafficLoader(no_lane=4)
-    loader.add_traffic(traffic=TRAFFIC, traffic_format=4,
-                       use_average_speed=False, use_const_speed=False)
+    loader.add_traffic(
+        traffic=TRAFFIC,
+        traffic_format=4,
+        use_average_speed=False,
+        use_const_speed=False,
+    )
     return loader
 
 
@@ -38,15 +42,28 @@ def _compare(bridge_factory, n_eff, time_step=TIME_STEP):
     cfg = pb.OutputConfig()
     cfg.set_event_output(write_time_history=True)
     sim = pb.Simulation(output_dir=ROOT)
-    sim.add_sim(bridge=bridge_factory(), traffic=_loader(), output_config=cfg,
-                time_step=time_step, min_gvw=0, tag="cpu", engine="cpu")
+    sim.add_sim(
+        bridge=bridge_factory(),
+        traffic=_loader(),
+        output_config=cfg,
+        time_step=time_step,
+        min_gvw=0,
+        tag="cpu",
+        engine="cpu",
+    )
     sim.run(no_core=1)
     th = next(iter(sim.get_output()["cpu"].read_data("time_history").values()))
     cpu_max = np.array([th[f"Effect {i + 1}"].abs().max() for i in range(n_eff)])
 
     sim2 = pb.Simulation(output_dir=ROOT)
-    sim2.add_sim(bridge=bridge_factory(), traffic=_loader(),
-                 time_step=time_step, min_gvw=0, tag="gpu", engine="cuda")
+    sim2.add_sim(
+        bridge=bridge_factory(),
+        traffic=_loader(),
+        time_step=time_step,
+        min_gvw=0,
+        tag="gpu",
+        engine="cuda",
+    )
     sim2.run(no_core=1)
     gpu_bm = sim2.get_output()["gpu"].read_data("BM_summary")
     gpu_max = np.zeros(n_eff)
@@ -62,7 +79,9 @@ def _compare(bridge_factory, n_eff, time_step=TIME_STEP):
 def test_gpu_engine_matches_cpu_discrete():
     def factory():
         il1 = pb.InfluenceLine(IL_type="discrete")
-        il1.set_IL(position=[0.0, 5.0, 10.0, 15.0, 20.0], ordinate=[0.0, 5.0, 10.0, 5.0, 0.0])
+        il1.set_IL(
+            position=[0.0, 5.0, 10.0, 15.0, 20.0], ordinate=[0.0, 5.0, 10.0, 5.0, 0.0]
+        )
         il2 = pb.InfluenceLine(IL_type="discrete")
         il2.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 8.0, 0.0])
         b = pb.Bridge(length=20.0, no_lane=4)
@@ -106,24 +125,41 @@ def test_gpu_engine_bm_summary_output_alignment():
     cfg = pb.OutputConfig()
     cfg.set_BM_output(write_summary=True)
     sim = pb.Simulation(output_dir=ROOT)
-    sim.add_sim(bridge=factory(), traffic=_loader(), output_config=cfg,
-                time_step=TIME_STEP, min_gvw=0, tag="cpu", engine="cpu")
+    sim.add_sim(
+        bridge=factory(),
+        traffic=_loader(),
+        output_config=cfg,
+        time_step=TIME_STEP,
+        min_gvw=0,
+        tag="cpu",
+        engine="cpu",
+    )
     sim.run(no_core=1)
     sim2 = pb.Simulation(output_dir=ROOT)
-    sim2.add_sim(bridge=factory(), traffic=_loader(),
-                 time_step=TIME_STEP, min_gvw=0, tag="gpu", engine="cuda")
+    sim2.add_sim(
+        bridge=factory(),
+        traffic=_loader(),
+        time_step=TIME_STEP,
+        min_gvw=0,
+        tag="gpu",
+        engine="cuda",
+    )
     sim2.run(no_core=1)
 
     cpu_bm = sim.get_output()["cpu"].read_data("BM_summary")
     gpu_bm = sim2.get_output()["gpu"].read_data("BM_summary")
 
-    assert set(cpu_bm) == set(gpu_bm), f"BM_summary file keys differ: {set(cpu_bm)} vs {set(gpu_bm)}"
+    assert set(cpu_bm) == set(
+        gpu_bm
+    ), f"BM_summary file keys differ: {set(cpu_bm)} vs {set(gpu_bm)}"
     cdf = next(iter(cpu_bm.values()))
     gdf = next(iter(gpu_bm.values()))
     assert "Block Index" in gdf.columns
     cpu_overall = cdf[[c for c in cdf.columns if c != "Block Index"]].max().max()
     gpu_overall = gdf[[c for c in gdf.columns if c != "Block Index"]].max().max()
-    assert abs(gpu_overall - cpu_overall) / cpu_overall < 0.01, f"cpu={cpu_overall}, gpu={gpu_overall}"
+    assert (
+        abs(gpu_overall - cpu_overall) / cpu_overall < 0.01
+    ), f"cpu={cpu_overall}, gpu={gpu_overall}"
     remove_folder(ROOT)
 
 
@@ -142,13 +178,18 @@ def test_gpu_engine_streamed_equals_single_window():
         for i in range(1, 5):
             lfc = pb.LaneFlowComposition(lane_index=i, lane_dir=(1 if i <= 2 else 2))
             lfc.assign_lane_data(
-                hourly_truck_flow=[60] * 24, hourly_car_flow=[15] * 24,
-                hourly_speed_mean=[40 / 3.6 * 10] * 24, hourly_speed_std=[5.0] * 24,
+                hourly_truck_flow=[60] * 24,
+                hourly_car_flow=[15] * 24,
+                hourly_speed_mean=[40 / 3.6 * 10] * 24,
+                hourly_speed_std=[5.0] * 24,
                 hourly_truck_composition=[[25.0, 25.0, 25.0, 25.0] for _ in range(24)],
             )
             g.add_lane(
-                vehicle_gen=pb.VehicleGenGarage(garage=garage, kernel=[[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]),
-                headway_gen=pb.HeadwayGenFreeflow(), lfc=lfc,
+                vehicle_gen=pb.VehicleGenGarage(
+                    garage=garage, kernel=[[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]
+                ),
+                headway_gen=pb.HeadwayGenFreeflow(),
+                lfc=lfc,
             )
         g.set_start_time(0.0)
         return g
@@ -166,8 +207,16 @@ def test_gpu_engine_streamed_equals_single_window():
         _runner._window_target_vehicles = lambda *a, **k: target
         try:
             sim = pb.Simulation(output_dir=ROOT)
-            sim.add_sim(bridge=bridge(), traffic=gen(), no_day=6,
-                        time_step=TIME_STEP, min_gvw=0, tag="g", engine="cuda", seed=7)
+            sim.add_sim(
+                bridge=bridge(),
+                traffic=gen(),
+                no_day=6,
+                time_step=TIME_STEP,
+                min_gvw=0,
+                tag="g",
+                engine="cuda",
+                seed=7,
+            )
             sim.run(no_core=1)
             df = next(iter(sim.get_output()["g"].read_data("BM_summary").values()))
             return df[[c for c in df.columns if c != "Block Index"]].values
@@ -175,10 +224,14 @@ def test_gpu_engine_streamed_equals_single_window():
             _runner._window_target_vehicles = saved
             remove_folder(ROOT)
 
-    one = bm_values(10 ** 12)      # single window
-    many = bm_values(800)          # ~1-day windows over 6 days
-    assert one.shape == many.shape and one.shape[0] == 6, f"shapes {one.shape} {many.shape}"
-    assert np.array_equal(one, many), f"streamed != single-window: max |d|={np.abs(one - many).max()}"
+    one = bm_values(10**12)  # single window
+    many = bm_values(800)  # ~1-day windows over 6 days
+    assert (
+        one.shape == many.shape and one.shape[0] == 6
+    ), f"shapes {one.shape} {many.shape}"
+    assert np.array_equal(
+        one, many
+    ), f"streamed != single-window: max |d|={np.abs(one - many).max()}"
 
 
 def test_gpu_engine_matches_cpu_generated_traffic():
@@ -193,13 +246,18 @@ def test_gpu_engine_matches_cpu_generated_traffic():
         for i in range(1, 5):
             lfc = pb.LaneFlowComposition(lane_index=i, lane_dir=(1 if i <= 2 else 2))
             lfc.assign_lane_data(
-                hourly_truck_flow=[80] * 24, hourly_car_flow=[20] * 24,
-                hourly_speed_mean=[40 / 3.6 * 10] * 24, hourly_speed_std=[5.0] * 24,
+                hourly_truck_flow=[80] * 24,
+                hourly_car_flow=[20] * 24,
+                hourly_speed_mean=[40 / 3.6 * 10] * 24,
+                hourly_speed_std=[5.0] * 24,
                 hourly_truck_composition=[[25.0, 25.0, 25.0, 25.0] for _ in range(24)],
             )
             g.add_lane(
-                vehicle_gen=pb.VehicleGenGarage(garage=garage, kernel=[[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]),
-                headway_gen=pb.HeadwayGenFreeflow(), lfc=lfc,
+                vehicle_gen=pb.VehicleGenGarage(
+                    garage=garage, kernel=[[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]
+                ),
+                headway_gen=pb.HeadwayGenFreeflow(),
+                lfc=lfc,
             )
         g.set_start_time(0.0)
         return g
@@ -215,15 +273,32 @@ def test_gpu_engine_matches_cpu_generated_traffic():
     cfg = pb.OutputConfig()
     cfg.set_event_output(write_time_history=True)
     sim = pb.Simulation(output_dir=ROOT)
-    sim.add_sim(bridge=bridge(), traffic=gen(), no_day=1, output_config=cfg,
-                time_step=TIME_STEP, min_gvw=0, tag="cpu", engine="cpu", seed=SEED)
+    sim.add_sim(
+        bridge=bridge(),
+        traffic=gen(),
+        no_day=1,
+        output_config=cfg,
+        time_step=TIME_STEP,
+        min_gvw=0,
+        tag="cpu",
+        engine="cpu",
+        seed=SEED,
+    )
     sim.run(no_core=1)
     th = next(iter(sim.get_output()["cpu"].read_data("time_history").values()))
     cpu_max = th["Effect 1"].abs().max()
 
     sim2 = pb.Simulation(output_dir=ROOT)
-    sim2.add_sim(bridge=bridge(), traffic=gen(), no_day=1,
-                 time_step=TIME_STEP, min_gvw=0, tag="gpu", engine="cuda", seed=SEED)
+    sim2.add_sim(
+        bridge=bridge(),
+        traffic=gen(),
+        no_day=1,
+        time_step=TIME_STEP,
+        min_gvw=0,
+        tag="gpu",
+        engine="cuda",
+        seed=SEED,
+    )
     sim2.run(no_core=1)
     gbm = sim2.get_output()["gpu"].read_data("BM_summary")
     gpu_max = max(
@@ -265,8 +340,11 @@ def test_gpu_engine_matches_cpu_per_lane_il():
         il_d = pb.InfluenceLine(IL_type="built-in")
         il_d.set_IL(id=1, length=20.0)
         b = pb.Bridge(length=20.0, no_lane=4)
-        b.add_load_effect(inf_line_surf=[il_a, il_b, il_c, il_d],
-                          inf_weight=[1.0, 2.0, 0.5, 1.5], threshold=0.0)
+        b.add_load_effect(
+            inf_line_surf=[il_a, il_b, il_c, il_d],
+            inf_weight=[1.0, 2.0, 0.5, 1.5],
+            threshold=0.0,
+        )
         return b
 
     cpu_max, gpu_max = _compare(factory, 1)
@@ -287,9 +365,14 @@ def test_gpu_engine_matches_cpu_multi_vehicle_event():
     # event's on-bridge tail (where the trucks overlap) is never simulated.
     def truck(lane, t):
         v = pb.Vehicle(2)
-        v.set_time(t); v.set_velocity(20.0); v.set_direction(1)
-        v.set_axle_weights([100.0, 100.0]); v.set_axle_spacings([4.0])
-        v.set_axle_widths([2.0, 2.0]); v.set_trans(1.8); v.set_local_lane(lane)
+        v.set_time(t)
+        v.set_velocity(20.0)
+        v.set_direction(1)
+        v.set_axle_weights([100.0, 100.0])
+        v.set_axle_spacings([4.0])
+        v.set_axle_widths([2.0, 2.0])
+        v.set_trans(1.8)
+        v.set_local_lane(lane)
         return v
 
     def factory(no_lane):
@@ -307,31 +390,56 @@ def test_gpu_engine_matches_cpu_multi_vehicle_event():
         cfg.set_event_output(write_time_history=True)
         cfg.set_BM_output(write_summary=True)
         sim = pb.Simulation(output_dir=ROOT)
-        sim.add_sim(bridge=factory(no_lane), traffic=ld, no_day=1, output_config=cfg,
-                    time_step=TIME_STEP, min_gvw=0, tag=tag, engine=engine)
+        sim.add_sim(
+            bridge=factory(no_lane),
+            traffic=ld,
+            no_day=1,
+            output_config=cfg,
+            time_step=TIME_STEP,
+            min_gvw=0,
+            tag=tag,
+            engine=engine,
+        )
         sim.run(no_core=1)
         return sim.get_output()[tag]
 
     # one truck (single lane) -> reference peak
-    one_th = next(iter(run([truck(1, 50.0), truck(1, 120.0)], 1, "cpu", "cpu")
-                       .read_data("time_history").values()))
+    one_th = next(
+        iter(
+            run([truck(1, 50.0), truck(1, 120.0)], 1, "cpu", "cpu")
+            .read_data("time_history")
+            .values()
+        )
+    )
     one_peak = one_th["Effect 1"].abs().max()
 
     # two trucks side by side -> a genuine 2-truck event
-    th = next(iter(run([truck(1, 50.0), truck(2, 50.0), truck(1, 120.0)], 2, "cpu", "cpu")
-                   .read_data("time_history").values()))
+    th = next(
+        iter(
+            run([truck(1, 50.0), truck(2, 50.0), truck(1, 120.0)], 2, "cpu", "cpu")
+            .read_data("time_history")
+            .values()
+        )
+    )
     two_peak = th["Effect 1"].abs().max()
     peak_trucks = th.loc[th["Effect 1"].abs().idxmax(), "No. Trucks"]
 
-    gbm = next(iter(run([truck(1, 50.0), truck(2, 50.0), truck(1, 120.0)], 2, "cuda", "gpu")
-                    .read_data("BM_summary").values()))
+    gbm = next(
+        iter(
+            run([truck(1, 50.0), truck(2, 50.0), truck(1, 120.0)], 2, "cuda", "gpu")
+            .read_data("BM_summary")
+            .values()
+        )
+    )
     gpu_peak = gbm[[c for c in gbm.columns if c != "Block Index"]].abs().max().max()
     remove_folder(ROOT)
 
     # the governing sample genuinely carries both trucks ...
     assert peak_trucks == 2, f"peak is not a 2-truck event (No. Trucks={peak_trucks})"
     # ... their loads superimpose to twice one truck's peak ...
-    assert two_peak == pytest.approx(2.0 * one_peak, rel=0.02), f"one={one_peak} two={two_peak}"
+    assert two_peak == pytest.approx(
+        2.0 * one_peak, rel=0.02
+    ), f"one={one_peak} two={two_peak}"
     # ... and engine="cuda" reproduces the CPU multi-vehicle peak within grid tolerance
     assert abs(gpu_peak - two_peak) / two_peak < 0.015, f"cpu={two_peak} gpu={gpu_peak}"
 
@@ -367,15 +475,23 @@ def test_gpu_engine_matches_cpu_surface():
 # ---------------------------------------------------------------------------
 def _pot_run(threshold, tag, engine):
     cfg = pb.OutputConfig()
-    cfg.set_POT_output(write_vehicle=True, write_summary=True,
-                       write_counter=True, POT_size_days=1)
+    cfg.set_POT_output(
+        write_vehicle=True, write_summary=True, write_counter=True, POT_size_days=1
+    )
     il = pb.InfluenceLine(IL_type="discrete")
     il.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 10.0, 0.0])
     b = pb.Bridge(length=20.0, no_lane=4)
     b.add_load_effect(inf_line_surf=il, threshold=threshold)
     sim = pb.Simulation(output_dir=ROOT)
-    sim.add_sim(bridge=b, traffic=_loader(), output_config=cfg,
-                time_step=TIME_STEP, min_gvw=0, tag=tag, engine=engine)
+    sim.add_sim(
+        bridge=b,
+        traffic=_loader(),
+        output_config=cfg,
+        time_step=TIME_STEP,
+        min_gvw=0,
+        tag=tag,
+        engine=engine,
+    )
     sim.run(no_core=1)
     return sim.get_output()[tag]
 
@@ -428,14 +544,18 @@ def test_gpu_pot_vehicle_output_structure():
     summary = next(iter(gpu.read_data("POT_summary").values()))
     veh = next(iter(gpu.read_data("POT_vehicle").values()))
     # one PT_V event block per PT_S row, and each block carries its member trucks
-    assert veh["Index"].nunique() == len(summary), \
-        f"PT_V events={veh['Index'].nunique()} PT_S rows={len(summary)}"
-    assert (veh["No. Trucks"] == veh["Trucks"].apply(len)).all(), \
-        "PT_V no.-trucks column disagrees with the listed member vehicles"
+    assert veh["Index"].nunique() == len(
+        summary
+    ), f"PT_V events={veh['Index'].nunique()} PT_S rows={len(summary)}"
+    assert (
+        veh["No. Trucks"] == veh["Trucks"].apply(len)
+    ).all(), "PT_V no.-trucks column disagrees with the listed member vehicles"
     remove_folder(ROOT)
 
 
-@pytest.mark.parametrize("mode,bf", [("vertical", 0.0), ("centrifugal", 0.0), ("braking", 0.3)])
+@pytest.mark.parametrize(
+    "mode,bf", [("vertical", 0.0), ("centrifugal", 0.0), ("braking", 0.3)]
+)
 def test_gpu_load_effect_modes_match_cpu(mode, bf):
     # The GPU applies the same per-axle force coefficient as the C++ engine:
     # vertical F=W, centrifugal F=W*v^2/g, braking F=W*|a|/g (or W*braking_factor
@@ -452,15 +572,28 @@ def test_gpu_load_effect_modes_match_cpu(mode, bf):
     cfg = pb.OutputConfig()
     cfg.set_event_output(write_time_history=True)
     sim = pb.Simulation(output_dir=ROOT)
-    sim.add_sim(bridge=factory(), traffic=_loader(), output_config=cfg,
-                time_step=TIME_STEP, min_gvw=0, tag="cpu", engine="cpu")
+    sim.add_sim(
+        bridge=factory(),
+        traffic=_loader(),
+        output_config=cfg,
+        time_step=TIME_STEP,
+        min_gvw=0,
+        tag="cpu",
+        engine="cpu",
+    )
     sim.run(no_core=1)
     th = next(iter(sim.get_output()["cpu"].read_data("time_history").values()))
     cpu_peak = th["Effect 1"].abs().max()
 
     sim2 = pb.Simulation(output_dir=ROOT)
-    sim2.add_sim(bridge=factory(), traffic=_loader(),
-                 time_step=TIME_STEP, min_gvw=0, tag="gpu", engine="cuda")
+    sim2.add_sim(
+        bridge=factory(),
+        traffic=_loader(),
+        time_step=TIME_STEP,
+        min_gvw=0,
+        tag="gpu",
+        engine="cuda",
+    )
     sim2.run(no_core=1)
     gbm = next(iter(sim2.get_output()["gpu"].read_data("BM_summary").values()))
     gpu_peak = gbm[[c for c in gbm.columns if c != "Block Index"]].abs().max().max()
@@ -477,9 +610,14 @@ def test_gpu_braking_uses_vehicle_acceleration():
         vs = []
         for t in (0.0, 30.0):
             v = pb.Vehicle(2)
-            v.set_time(t); v.set_velocity(20.0); v.set_direction(1)
-            v.set_axle_weights([100.0, 100.0]); v.set_axle_spacings([4.0])
-            v.set_axle_widths([2.0, 2.0]); v.set_trans(1.8); v.set_local_lane(1)
+            v.set_time(t)
+            v.set_velocity(20.0)
+            v.set_direction(1)
+            v.set_axle_weights([100.0, 100.0])
+            v.set_axle_spacings([4.0])
+            v.set_axle_widths([2.0, 2.0])
+            v.set_trans(1.8)
+            v.set_local_lane(1)
             v.set_acceleration(-2.0)
             vs.append(v)
         return vs
@@ -497,8 +635,15 @@ def test_gpu_braking_uses_vehicle_acceleration():
         ld = pb.TrafficLoader(no_lane=1)
         ld.add_traffic(traffic=trucks())
         sim = pb.Simulation(output_dir=ROOT)
-        sim.add_sim(bridge=bridge(mode), traffic=ld, no_day=1, time_step=TIME_STEP,
-                    min_gvw=0, tag="g", engine="cuda")
+        sim.add_sim(
+            bridge=bridge(mode),
+            traffic=ld,
+            no_day=1,
+            time_step=TIME_STEP,
+            min_gvw=0,
+            tag="g",
+            engine="cuda",
+        )
         sim.run(no_core=1)
         gbm = next(iter(sim.get_output()["g"].read_data("BM_summary").values()))
         return gbm[[c for c in gbm.columns if c != "Block Index"]].abs().max().max()
@@ -523,11 +668,19 @@ def test_gpu_fatigue_rainflow_matches_cpu():
 
     def run(engine, tag):
         cfg = pb.OutputConfig()
-        cfg.set_fatigue_output(write_rainflow_output=True, rainflow_decimal=0,
-                               rainflow_cut_off=0.0)
+        cfg.set_fatigue_output(
+            write_rainflow_output=True, rainflow_decimal=0, rainflow_cut_off=0.0
+        )
         sim = pb.Simulation(output_dir=ROOT)
-        sim.add_sim(bridge=factory(), traffic=_loader(), output_config=cfg,
-                    time_step=TIME_STEP, min_gvw=0, tag=tag, engine=engine)
+        sim.add_sim(
+            bridge=factory(),
+            traffic=_loader(),
+            output_config=cfg,
+            time_step=TIME_STEP,
+            min_gvw=0,
+            tag=tag,
+            engine=engine,
+        )
         sim.run(no_core=1)
         return next(iter(sim.get_output()[tag].read_data("fatigue_rainflow").values()))
 
@@ -540,6 +693,7 @@ def test_gpu_fatigue_rainflow_matches_cpu():
     # the damage-relevant tail (cumulative cycles above each amplitude) agrees
     def cum_above(df, thr):
         return df[df["Amplitude"] >= thr]["No. Cycles"].sum()
+
     for thr in (100, 200, 400, 800):
         c, g = cum_above(cdf, thr), cum_above(gdf, thr)
         assert abs(c - g) / max(c, 1.0) < 0.05, f"cycles>= {thr}: cpu={c} gpu={g}"
@@ -574,8 +728,15 @@ def test_gpu_pot_event_partition_matches_cpu_definition():
     cfg = pb.OutputConfig()
     cfg.set_event_output(write_each_event=True)  # write every event it forms
     sim = pb.Simulation(output_dir=ROOT)
-    sim.add_sim(bridge=factory(), traffic=_loader(), output_config=cfg,
-                time_step=TIME_STEP, min_gvw=0, tag="cpu", engine="cpu")
+    sim.add_sim(
+        bridge=factory(),
+        traffic=_loader(),
+        output_config=cfg,
+        time_step=TIME_STEP,
+        min_gvw=0,
+        tag="cpu",
+        engine="cpu",
+    )
     sim.run(no_core=1)
     edf = next(iter(sim.get_output()["cpu"].read_data("all_events").values()))
     cpp_start = np.sort(edf["Start Time"].values)
@@ -585,6 +746,7 @@ def test_gpu_pot_event_partition_matches_cpu_definition():
     il_specs, _ = _il_specs_from_bridge(b)
     vehicles, _ = _collect_vehicles(_loader(), b, None, None, None)
     from pybtls.lib import libbtls
+
     extracted = libbtls._extract_axle_data(vehicles, b.no_lane)
     _, _, veh = prepare_axles(extracted, il_specs, b.length, TIME_STEP, 0)
     B, win_count, _, _ = potmod.build_partition(veh["t_on"], veh["t_off"])
@@ -596,11 +758,15 @@ def test_gpu_pot_event_partition_matches_cpu_definition():
 
     # every C++ event start sits on a reconstructed composition-change boundary
     j = np.searchsorted(rec_start, cpp_start).clip(1, len(rec_start) - 1)
-    nearest = np.minimum(np.abs(rec_start[j] - cpp_start),
-                         np.abs(rec_start[j - 1] - cpp_start))
+    nearest = np.minimum(
+        np.abs(rec_start[j] - cpp_start), np.abs(rec_start[j - 1] - cpp_start)
+    )
     assert np.median(nearest) < 1e-3, f"median start delta {np.median(nearest)}"
-    assert (nearest <= TIME_STEP + 1e-9).mean() > 0.97, \
+    assert (
+        nearest <= TIME_STEP + 1e-9
+    ).mean() > 0.97, (
         f"only {(nearest <= TIME_STEP).mean():.3f} of C++ starts within one ts"
+    )
     remove_folder(ROOT)
 
 
@@ -626,10 +792,19 @@ def test_gpu_stats_matches_cpu():
 
     def run(engine, tag):
         cfg = pb.OutputConfig()
-        cfg.set_stats_output(write_overall=True, write_intervals=True, interval_size=3600)
+        cfg.set_stats_output(
+            write_overall=True, write_intervals=True, interval_size=3600
+        )
         sim = pb.Simulation(output_dir=ROOT)
-        sim.add_sim(bridge=factory(), traffic=_loader(), output_config=cfg,
-                    time_step=TIME_STEP, min_gvw=0, tag=tag, engine=engine)
+        sim.add_sim(
+            bridge=factory(),
+            traffic=_loader(),
+            output_config=cfg,
+            time_step=TIME_STEP,
+            min_gvw=0,
+            tag=tag,
+            engine=engine,
+        )
         sim.run(no_core=1)
         return ROOT / tag
 
@@ -642,22 +817,32 @@ def test_gpu_stats_matches_cpu():
         c, g = cc[col].to_numpy(float), gc[col].to_numpy(float)
         assert (np.abs(g - c) / c < 0.015).all(), f"{col}: cpu={c} gpu={g}"
     # the per-event-max distribution (the EVA-relevant quantity) agrees
-    for col, tol in (("Max", 0.01), ("Mean", 0.03), ("Std Dev", 0.03),
-                     ("Variance", 0.03), ("Skewness", 0.03), ("Kurtosis", 0.03)):
+    for col, tol in (
+        ("Max", 0.01),
+        ("Mean", 0.03),
+        ("Std Dev", 0.03),
+        ("Variance", 0.03),
+        ("Skewness", 0.03),
+        ("Kurtosis", 0.03),
+    ):
         c, g = cc[col].to_numpy(float), gc[col].to_numpy(float)
         rel = np.abs(g - c) / np.maximum(np.abs(c), 1e-9)
         assert (rel < tol).all(), f"{col}: rel={rel} cpu={c} gpu={g}"
 
     # SS_S interval files: same interval grid (rows + Time), silent trailing
     # intervals filled identically, and per-interval counts within tolerance
-    ci, gi = read_E_IS(cdir / "SS_S_20_Eff_1.txt"), read_E_IS(gdir / "SS_S_20_Eff_1.txt")
+    ci, gi = read_E_IS(cdir / "SS_S_20_Eff_1.txt"), read_E_IS(
+        gdir / "SS_S_20_Eff_1.txt"
+    )
     assert len(ci) == len(gi), f"interval rows cpu={len(ci)} gpu={len(gi)}"
     assert np.array_equal(ci["Time"].to_numpy(), gi["Time"].to_numpy())
     cev, gev = ci["No. Events"].to_numpy(float), gi["No. Events"].to_numpy(float)
     # silent/busy split agrees up to a one-interval flicker at the active boundary
     assert ((cev == 0) != (gev == 0)).sum() <= 1, "silent intervals differ by >1"
     busy = (cev > 0) & (gev > 0)  # both populated -> per-interval counts within tol
-    assert (np.abs(gev[busy] - cev[busy]) / cev[busy] < 0.05).all(), "interval event counts"
+    assert (
+        np.abs(gev[busy] - cev[busy]) / cev[busy] < 0.05
+    ).all(), "interval event counts"
     remove_folder(ROOT)
 
 
@@ -670,10 +855,18 @@ def test_gpu_surface_fused_kernel_matches_torch():
     from pybtls.gpu import kernels as _kernels
 
     lane_position = [(0.5, 4.0), (4.0, 7.5), (8.5, 12.0), (12.0, 15.5)]
-    uniform = [[0.0, 0.0, 8.0, 16.0], [0.0, 0.0, 0.0, 0.0],
-               [10.0, 0.0, 5.0, 0.0], [20.0, 0.0, 0.0, 0.0]]          # X,Y uniform
-    nonuniform = [[0.0, 0.0, 2.0, 16.0], [0.0, 1.0, 0.5, 0.0],
-                  [3.0, 0.0, 5.0, 1.0], [20.0, 2.0, 0.0, 0.0]]        # X=[0,3,20] non-uniform
+    uniform = [
+        [0.0, 0.0, 8.0, 16.0],
+        [0.0, 0.0, 0.0, 0.0],
+        [10.0, 0.0, 5.0, 0.0],
+        [20.0, 0.0, 0.0, 0.0],
+    ]  # X,Y uniform
+    nonuniform = [
+        [0.0, 0.0, 2.0, 16.0],
+        [0.0, 1.0, 0.5, 0.0],
+        [3.0, 0.0, 5.0, 1.0],
+        [20.0, 2.0, 0.0, 0.0],
+    ]  # X=[0,3,20] non-uniform
 
     def bm(IS_matrix, force_torch):
         remove_folder(ROOT)
@@ -686,8 +879,14 @@ def test_gpu_surface_fused_kernel_matches_torch():
             b = pb.Bridge(length=20.0, no_lane=4)
             b.add_load_effect(inf_line_surf=surf, threshold=0.0)
             sim = pb.Simulation(output_dir=ROOT)
-            sim.add_sim(bridge=b, traffic=_loader(), time_step=TIME_STEP,
-                        min_gvw=0, tag="s", engine="cuda")
+            sim.add_sim(
+                bridge=b,
+                traffic=_loader(),
+                time_step=TIME_STEP,
+                min_gvw=0,
+                tag="s",
+                engine="cuda",
+            )
             sim.run(no_core=1)
             df = next(iter(sim.get_output()["s"].read_data("BM_summary").values()))
             return df[[c for c in df.columns if c != "Block Index"]].to_numpy()
@@ -695,12 +894,16 @@ def test_gpu_surface_fused_kernel_matches_torch():
             _kernels.triton_available = saved
             remove_folder(ROOT)
 
-    # uniform grid: fused kernel is an exact pass-through -> bit-identical to torch
-    assert np.array_equal(bm(uniform, False), bm(uniform, True)), \
-        "fused surface kernel != torch path on a uniform grid"
+    # uniform grid: fused kernel is an exact pass-through -> bit-identical to
+    # torch (equal_nan: BM_S rows are ragged — one column per event type seen
+    # in the block — so short rows read back NaN-padded)
+    assert np.array_equal(
+        bm(uniform, False), bm(uniform, True), equal_nan=True
+    ), "fused surface kernel != torch path on a uniform grid"
     # non-uniform grid: default run falls back to torch -> identical to forced torch
-    assert np.array_equal(bm(nonuniform, False), bm(nonuniform, True)), \
-        "non-uniform surface did not fall back to the torch path"
+    assert np.array_equal(
+        bm(nonuniform, False), bm(nonuniform, True), equal_nan=True
+    ), "non-uniform surface did not fall back to the torch path"
 
 
 def test_gpu_stats_streamed_equals_single_window():
@@ -717,11 +920,19 @@ def test_gpu_stats_streamed_equals_single_window():
         for i in range(1, 5):
             lfc = pb.LaneFlowComposition(lane_index=i, lane_dir=(1 if i <= 2 else 2))
             lfc.assign_lane_data(
-                hourly_truck_flow=[60] * 24, hourly_car_flow=[30] * 24,
-                hourly_speed_mean=[40 / 3.6 * 10] * 24, hourly_speed_std=[5.0] * 24,
-                hourly_truck_composition=[[25.0, 25.0, 25.0, 25.0] for _ in range(24)])
-            g.add_lane(vehicle_gen=pb.VehicleGenGarage(garage=garage, kernel=[[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]),
-                       headway_gen=pb.HeadwayGenFreeflow(), lfc=lfc)
+                hourly_truck_flow=[60] * 24,
+                hourly_car_flow=[30] * 24,
+                hourly_speed_mean=[40 / 3.6 * 10] * 24,
+                hourly_speed_std=[5.0] * 24,
+                hourly_truck_composition=[[25.0, 25.0, 25.0, 25.0] for _ in range(24)],
+            )
+            g.add_lane(
+                vehicle_gen=pb.VehicleGenGarage(
+                    garage=garage, kernel=[[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]
+                ),
+                headway_gen=pb.HeadwayGenFreeflow(),
+                lfc=lfc,
+            )
         g.set_start_time(0.0)
         return g
 
@@ -740,20 +951,40 @@ def test_gpu_stats_streamed_equals_single_window():
             cfg = pb.OutputConfig()
             cfg.set_stats_output(write_overall=True, interval_size=3600)
             sim = pb.Simulation(output_dir=ROOT)
-            sim.add_sim(bridge=bridge(), traffic=gen(), no_day=6, output_config=cfg,
-                        time_step=TIME_STEP, min_gvw=0, tag="s", engine="cuda", seed=11)
+            sim.add_sim(
+                bridge=bridge(),
+                traffic=gen(),
+                no_day=6,
+                output_config=cfg,
+                time_step=TIME_STEP,
+                min_gvw=0,
+                tag="s",
+                engine="cuda",
+                seed=11,
+            )
             sim.run(no_core=1)
             return read_E_CS(ROOT / "s" / "SS_C_20.txt")
         finally:
             _runner._window_target_vehicles = saved
             remove_folder(ROOT)
 
-    one = stats_df(10 ** 12)     # single window
-    many = stats_df(800)         # ~1-day windows over 6 days
-    for col in ("No. Events", "No. Vehicles", "No. Trucks", "Min", "Max", "Mean",
-                "Std Dev", "Variance", "Skewness", "Kurtosis"):
-        assert np.array_equal(one[col].to_numpy(), many[col].to_numpy()), \
-            f"streamed != single-window for {col}: {one[col].values} vs {many[col].values}"
+    one = stats_df(10**12)  # single window
+    many = stats_df(800)  # ~1-day windows over 6 days
+    for col in (
+        "No. Events",
+        "No. Vehicles",
+        "No. Trucks",
+        "Min",
+        "Max",
+        "Mean",
+        "Std Dev",
+        "Variance",
+        "Skewness",
+        "Kurtosis",
+    ):
+        assert np.array_equal(
+            one[col].to_numpy(), many[col].to_numpy()
+        ), f"streamed != single-window for {col}: {one[col].values} vs {many[col].values}"
 
 
 def test_gpu_flow_stats_matches_cpu():
@@ -773,8 +1004,15 @@ def test_gpu_flow_stats_matches_cpu():
         cfg = pb.OutputConfig()
         cfg.set_stats_output(write_flow_stats=True)
         sim = pb.Simulation(output_dir=ROOT)
-        sim.add_sim(bridge=factory(), traffic=_loader(), output_config=cfg,
-                    time_step=TIME_STEP, min_gvw=0, tag=tag, engine=engine)
+        sim.add_sim(
+            bridge=factory(),
+            traffic=_loader(),
+            output_config=cfg,
+            time_step=TIME_STEP,
+            min_gvw=0,
+            tag=tag,
+            engine=engine,
+        )
         sim.run(no_core=1)
         return ROOT / tag
 
@@ -782,7 +1020,9 @@ def test_gpu_flow_stats_matches_cpu():
     cdir, gdir = run("cpu", "cpu"), run("cuda", "gpu")
     cfiles = sorted(p.name for p in cdir.glob("FlowData*.txt"))
     gfiles = sorted(p.name for p in gdir.glob("FlowData*.txt"))
-    assert cfiles == gfiles and cfiles, f"FlowData file set differs: {cfiles} vs {gfiles}"
+    assert (
+        cfiles == gfiles and cfiles
+    ), f"FlowData file set differs: {cfiles} vs {gfiles}"
     for name in cfiles:
         cpu_txt = (cdir / name).read_text()
         gpu_txt = (gdir / name).read_text()
@@ -810,3 +1050,368 @@ def test_gpu_engine_op_preflight():
     finally:
         torch.searchsorted = orig
         E._OP_SUPPORT_CACHE.clear()
+
+
+def test_gpu_engine_window_seam_superposition_matches_cpu():
+    # Two trucks simultaneously on the bridge ACROSS a traffic-window seam: truck
+    # A enters 1 s before the day-1/day-2 boundary, truck B (other lane) enters
+    # 0.5 s after it, while A is still crossing. With one-day windows forced, the
+    # GPU must still superpose A+B (A is carried into window 2 as seam context)
+    # and must credit each event to the block containing its START time, into
+    # the column for its number of vehicles — all matching the CPU engine:
+    # block 1: A's solo event; block 2: the 2-truck A+B event and B's solo event.
+    from pybtls.gpu import runner as _runner
+
+    def truck(lane, t, weight=100.0):
+        v = pb.Vehicle(2)
+        v.set_time(t)
+        v.set_velocity(10.0)
+        v.set_direction(1)
+        v.set_axle_weights([weight, weight])
+        v.set_axle_spacings([4.0])
+        v.set_axle_widths([2.0, 2.0])
+        v.set_trans(1.8)
+        v.set_local_lane(lane)
+        return v
+
+    def factory():
+        il = pb.InfluenceLine(IL_type="discrete")
+        il.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 10.0, 0.0])
+        b = pb.Bridge(length=20.0, no_lane=2)
+        b.add_load_effect(inf_line_surf=il, threshold=0.0)
+        return b
+
+    # the trailing light sentinel makes the CPU engine simulate B's crossing
+    # (the last vehicle in a recorded stream is never simulated by the CPU loop)
+    vehicles = [
+        truck(1, 86399.0),
+        truck(2, 86400.5),
+        truck(1, 86500.0, weight=1.0),
+    ]
+
+    def run(engine, tag, force_tiny_windows):
+        remove_folder(ROOT)
+        saved = _runner._window_target_vehicles
+        if force_tiny_windows:
+            _runner._window_target_vehicles = lambda *a, **k: 1
+        try:
+            ld = pb.TrafficLoader(no_lane=2)
+            ld.add_traffic(traffic=vehicles)
+            cfg = pb.OutputConfig()
+            cfg.set_BM_output(write_summary=True)
+            sim = pb.Simulation(output_dir=ROOT)
+            sim.add_sim(
+                bridge=factory(),
+                traffic=ld,
+                no_day=2,
+                output_config=cfg,
+                time_step=TIME_STEP,
+                min_gvw=0,
+                tag=tag,
+                engine=engine,
+            )
+            sim.run(no_core=1)
+            return next(iter(sim.get_output()[tag].read_data("BM_summary").values()))
+        finally:
+            _runner._window_target_vehicles = saved
+            remove_folder(ROOT)
+
+    cdf = run("cpu", "cpu", False)
+    gdf = run("cuda", "gpu", True)  # one window per day -> seam between A and B
+
+    assert len(cdf) == len(gdf) == 2
+    # the 2-truck seam event exists on both engines, in block 2
+    assert "2-Truck Event" in cdf.columns and "2-Truck Event" in gdf.columns
+    for block, col in [
+        (0, "1-Truck Event"),
+        (1, "1-Truck Event"),
+        (1, "2-Truck Event"),
+    ]:
+        c, g = cdf.loc[block, col], gdf.loc[block, col]
+        assert np.isfinite(c) and np.isfinite(g), f"block {block + 1} {col}: {c} vs {g}"
+        assert abs(g - c) / abs(c) < 0.02, f"block {block + 1} {col}: cpu={c} gpu={g}"
+    # block 1 saw no 2-truck event on either engine
+    assert np.isnan(cdf.loc[0, "2-Truck Event"]) and np.isnan(
+        gdf.loc[0, "2-Truck Event"]
+    )
+
+
+def test_gpu_engine_lane_eccentricity_matches_cpu():
+    # Generated traffic draws a per-vehicle random lane eccentricity that offsets
+    # both wheel tracks on an influence SURFACE (CVehicleGenerator +
+    # BridgeLane.cpp:98). With a surface that varies strongly across the
+    # transverse direction and a large eccentricity std, dropping the
+    # eccentricity (placing every vehicle on its lane centre) shifts the maxima
+    # far outside grid tolerance — so this pins the GPU extraction carrying
+    # getLaneEccentricity() through to the transverse position.
+    def gen():
+        garage = pb.garage.read_garage_file(garage_path=GARAGE, garage_format=4)
+        g = pb.TrafficGenerator(no_lane=2)
+        for i in range(1, 3):
+            lfc = pb.LaneFlowComposition(lane_index=i, lane_dir=1)
+            lfc.assign_lane_data(
+                hourly_truck_flow=[60] * 24,
+                hourly_car_flow=[10] * 24,
+                hourly_speed_mean=[40 / 3.6 * 10] * 24,
+                hourly_speed_std=[5.0] * 24,
+                hourly_truck_composition=[[25.0, 25.0, 25.0, 25.0] for _ in range(24)],
+            )
+            g.add_lane(
+                vehicle_gen=pb.VehicleGenGarage(
+                    garage=garage,
+                    kernel=[[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]],
+                    lane_eccentricity_std=50.0,  # cm
+                ),
+                headway_gen=pb.HeadwayGenFreeflow(),
+                lfc=lfc,
+            )
+        g.set_start_time(0.0)
+        return g
+
+    # ordinates rise steeply across Y so an eccentric vehicle sees a very
+    # different surface than a lane-centred one
+    IS_matrix = [
+        [0.0, 0.0, 4.0, 8.0],
+        [0.0, 0.0, 0.0, 0.0],
+        [10.0, 4.0, 10.0, 30.0],
+        [20.0, 0.0, 0.0, 0.0],
+    ]
+    lane_position = [(0.5, 4.0), (4.0, 7.5)]
+
+    def factory():
+        surf = pb.InfluenceSurface()
+        surf.set_IS(IS_matrix, lane_position)
+        b = pb.Bridge(length=20.0, no_lane=2)
+        b.add_load_effect(inf_line_surf=surf, threshold=0.0)
+        return b
+
+    def run(engine, tag):
+        remove_folder(ROOT)
+        cfg = pb.OutputConfig()
+        cfg.set_event_output(write_time_history=True)
+        cfg.set_BM_output(write_summary=True)
+        sim = pb.Simulation(output_dir=ROOT)
+        sim.add_sim(
+            bridge=factory(),
+            traffic=gen(),
+            no_day=1,
+            output_config=cfg,
+            time_step=TIME_STEP,
+            min_gvw=0,
+            tag=tag,
+            engine=engine,
+            seed=11,
+        )
+        sim.run(no_core=1)
+        out = sim.get_output()[tag]
+        if engine == "cpu":
+            th = next(iter(out.read_data("time_history").values()))
+            peak = th["Effect 1"].abs().max()
+        else:
+            df = next(iter(out.read_data("BM_summary").values()))
+            peak = df[[c for c in df.columns if c != "Block Index"]].abs().max().max()
+        remove_folder(ROOT)
+        return peak
+
+    cpu_peak = run("cpu", "cpu")
+    gpu_peak = run("cuda", "gpu")
+    assert abs(gpu_peak - cpu_peak) / cpu_peak < 0.02, f"cpu={cpu_peak} gpu={gpu_peak}"
+
+
+def test_gpu_fatigue_residual_sidecar_splices_exactly():
+    # write_residuals (the chunk-splice mode) leaves the rainflow residual
+    # open, writing it to an FRR_* sidecar exactly like the CPU
+    # CFatigueManager. Closing the sidecar residual and adding it to the
+    # closed-cycle histogram must reproduce the histogram of an identical run
+    # that closed its residual directly — the exactness contract the chunked
+    # merge relies on.
+    import pandas as pd
+    from pybtls.output._merge import merge_rainflow
+
+    def gen():
+        garage = pb.garage.read_garage_file(garage_path=GARAGE, garage_format=4)
+        g = pb.TrafficGenerator(no_lane=2)
+        for i in range(1, 3):
+            lfc = pb.LaneFlowComposition(lane_index=i, lane_dir=i)
+            lfc.assign_lane_data(
+                hourly_truck_flow=[60] * 24,
+                hourly_car_flow=[10] * 24,
+                hourly_speed_mean=[40 / 3.6 * 10] * 24,
+                hourly_speed_std=[5.0] * 24,
+                hourly_truck_composition=[[25.0, 25.0, 25.0, 25.0] for _ in range(24)],
+            )
+            g.add_lane(
+                vehicle_gen=pb.VehicleGenGarage(
+                    garage=garage, kernel=[[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]
+                ),
+                headway_gen=pb.HeadwayGenFreeflow(),
+                lfc=lfc,
+            )
+        g.set_start_time(0.0)
+        return g
+
+    def bridge():
+        il = pb.InfluenceLine(IL_type="discrete")
+        il.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 10.0, 0.0])
+        b = pb.Bridge(length=20.0, no_lane=2)
+        b.add_load_effect(inf_line_surf=il, threshold=0.0)
+        return b
+
+    def run(tag, residuals):
+        cfg = pb.OutputConfig()
+        cfg.set_fatigue_output(
+            write_rainflow_output=True, rainflow_decimal=1, write_residuals=residuals
+        )
+        sim = pb.Simulation(output_dir=ROOT)
+        sim.add_sim(
+            bridge=bridge(),
+            traffic=gen(),
+            no_day=1,
+            output_config=cfg,
+            time_step=TIME_STEP,
+            min_gvw=0,
+            tag=tag,
+            engine="cuda",
+            seed=13,
+        )
+        sim.run(no_core=1)
+        return next(iter(sim.get_output()[tag].read_data("fatigue_rainflow").values()))
+
+    remove_folder(ROOT)
+    full = run("full", residuals=False)
+
+    closed = run("res", residuals=True)
+    frr = ROOT / "res" / "FRR_20_1.txt"
+    assert frr.is_file(), "write_residuals must produce the FRR sidecar"
+    with open(frr) as fh:
+        decimal, cutoff = fh.readline().split()
+        residual_seq = [float(line) for line in fh if line.strip()]
+    assert residual_seq, "an always-positive IL leaves a non-empty residual"
+
+    spliced = merge_rainflow([closed], [residual_seq], int(decimal), float(cutoff))
+    pd.testing.assert_frame_equal(
+        spliced.sort_values("Amplitude", ignore_index=True),
+        full.sort_values("Amplitude", ignore_index=True),
+        check_exact=False,
+        rtol=1e-9,
+        atol=1e-6,
+    )
+    remove_folder(ROOT)
+
+
+def test_gpu_pot_streamed_equals_single_window():
+    # PT_S / PT_C / PT_V are streamed to disk window by window (bounded host
+    # memory); forcing many tiny windows must produce byte-identical files to
+    # a single big window, including the PT_V member-vehicle blocks.
+    from pybtls.gpu import runner as _runner
+
+    def gen():
+        garage = pb.garage.read_garage_file(garage_path=GARAGE, garage_format=4)
+        g = pb.TrafficGenerator(no_lane=2)
+        for i in range(1, 3):
+            lfc = pb.LaneFlowComposition(lane_index=i, lane_dir=i)
+            lfc.assign_lane_data(
+                hourly_truck_flow=[60] * 24,
+                hourly_car_flow=[10] * 24,
+                hourly_speed_mean=[40 / 3.6 * 10] * 24,
+                hourly_speed_std=[5.0] * 24,
+                hourly_truck_composition=[[25.0, 25.0, 25.0, 25.0] for _ in range(24)],
+            )
+            g.add_lane(
+                vehicle_gen=pb.VehicleGenGarage(
+                    garage=garage, kernel=[[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]
+                ),
+                headway_gen=pb.HeadwayGenFreeflow(),
+                lfc=lfc,
+            )
+        g.set_start_time(0.0)
+        return g
+
+    def bridge():
+        il = pb.InfluenceLine(IL_type="discrete")
+        il.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 10.0, 0.0])
+        b = pb.Bridge(length=20.0, no_lane=2)
+        b.add_load_effect(inf_line_surf=il, threshold=500.0)
+        return b
+
+    def pot_files(target):
+        remove_folder(ROOT)
+        saved = _runner._window_target_vehicles
+        _runner._window_target_vehicles = lambda *a, **k: target
+        try:
+            cfg = pb.OutputConfig()
+            cfg.set_POT_output(
+                write_summary=True, write_counter=True, write_vehicle=True
+            )
+            sim = pb.Simulation(output_dir=ROOT)
+            sim.add_sim(
+                bridge=bridge(),
+                traffic=gen(),
+                no_day=4,
+                output_config=cfg,
+                time_step=TIME_STEP,
+                min_gvw=0,
+                tag="p",
+                engine="cuda",
+                seed=17,
+            )
+            sim.run(no_core=1)
+            return {f.name: f.read_text() for f in sorted((ROOT / "p").glob("PT_*"))}
+        finally:
+            _runner._window_target_vehicles = saved
+            remove_folder(ROOT)
+
+    one = pot_files(10**12)  # single window
+    many = pot_files(500)  # ~1-day windows over 4 days
+    assert set(one) == set(many) and one, f"file sets differ: {set(one)} {set(many)}"
+    for name in one:
+        assert one[name] == many[name], f"{name} differs between window sizes"
+
+
+def test_gpu_adaptive_tiling_exact(monkeypatch):
+    # The device tile shrinks when the pair count exceeds the free-VRAM budget
+    # (congested / long-span traffic, or a GPU shared with other processes).
+    # Splitting a block into many tiny tiles must not change any result: BM
+    # merges per block, POT merges across tiles, rainflow/TH stream
+    # sequentially. Force a tiny budget and compare every output file.
+    # (The IL is asymmetric on purpose: a symmetric crest gives two samples
+    # with exactly equal |E|, and the peak-time tie can then flip on the
+    # last-ulp scatter-order noise that different kernel launch shapes cause.)
+    from pybtls.gpu import engine as _engine
+
+    def bridge():
+        il = pb.InfluenceLine(IL_type="discrete")
+        il.set_IL(position=[0.0, 12.0, 20.0], ordinate=[0.0, 10.0, 0.0])
+        b = pb.Bridge(length=20.0, no_lane=4)
+        b.add_load_effect(inf_line_surf=il, threshold=100.0)
+        return b
+
+    def files(budget):
+        remove_folder(ROOT)
+        monkeypatch.setattr(_engine, "_tile_budget_bytes", lambda torch, dev: budget)
+        cfg = pb.OutputConfig()
+        cfg.set_BM_output(write_summary=True)
+        cfg.set_POT_output(write_summary=True, write_counter=True)
+        cfg.set_fatigue_output(write_rainflow_output=True)
+        cfg.set_stats_output(write_overall=True, write_intervals=True)
+        cfg.set_event_output(write_time_history=True)
+        sim = pb.Simulation(output_dir=ROOT)
+        sim.add_sim(
+            bridge=bridge(),
+            traffic=_loader(),
+            output_config=cfg,
+            time_step=TIME_STEP,
+            min_gvw=0,
+            tag="t",
+            engine="cuda",
+        )
+        sim.run(no_core=1)
+        out = {f.name: f.read_text() for f in sorted((ROOT / "t").glob("*.txt"))}
+        remove_folder(ROOT)
+        return out
+
+    whole = files(budget=None)  # one tile per block
+    tiled = files(budget=200_000)  # ~hundreds of sub-tiles per day
+    assert set(whole) == set(tiled) and whole
+    for name in whole:
+        assert whole[name] == tiled[name], f"{name} differs under adaptive tiling"

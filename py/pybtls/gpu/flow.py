@@ -16,10 +16,25 @@ import numpy as np
 __all__ = ["FlowStatsAccumulator"]
 
 # class-histogram bins, matching CVehClassPattern / CVehClassAxle (m_Desc per class)
-_PATTERN_BINS = ["0: Default", "1: Car", "2: Pattern 11", "3: Pattern 123",
-                 "4: Pattern 12", "5: Pattern 1233", "6: Pattern 122",
-                 "7: Pattern 112", "8: Pattern 113"]
-_AXLE_BINS = ["0: Default", "1: Car", "2: 2-axle", "3: 3-axle", "4: 4-axle", "5: 5-axle"]
+_PATTERN_BINS = [
+    "0: Default",
+    "1: Car",
+    "2: Pattern 11",
+    "3: Pattern 123",
+    "4: Pattern 12",
+    "5: Pattern 1233",
+    "6: Pattern 122",
+    "7: Pattern 112",
+    "8: Pattern 113",
+]
+_AXLE_BINS = [
+    "0: Default",
+    "1: Car",
+    "2: 2-axle",
+    "3: 3-axle",
+    "4: 4-axle",
+    "5: 5-axle",
+]
 
 
 def _header(bins):
@@ -31,10 +46,12 @@ class FlowStatsAccumulator:
     """Per (hour, global lane) vehicle / truck / car + class-histogram counts,
     streamed window by window. ``classifier_type`` is 0 (axle) or 1 (pattern);
     ``no_lane_dir1`` splits the global lanes into directions for the file names.
-    ``hour_origin`` is hour 1's start time (0 for generated traffic; for recorded,
-    floor(first-vehicle-time / 3600) * 3600, matching the C++ ``m_FirstHour``)."""
+    ``hour_origin`` is hour 1's start time — 0 for both traffic kinds, matching
+    the C++ ``m_FirstHour`` with the ``start_time=0.0`` the CPU path passes."""
 
-    def __init__(self, no_lane, classifier_type, no_lane_dir1, total_hours, hour_origin=0.0):
+    def __init__(
+        self, no_lane, classifier_type, no_lane_dir1, total_hours, hour_origin=0.0
+    ):
         self.no_lane = int(no_lane)
         self.no_lane_dir1 = int(no_lane_dir1)
         self.bins = _PATTERN_BINS if classifier_type else _AXLE_BINS
@@ -51,10 +68,16 @@ class FlowStatsAccumulator:
         """Fold one window's raw per-vehicle arrays (absolute times) into the
         hourly per-lane tallies."""
         hour = ((np.asarray(vtime) - self.hour_origin) / 3600.0).astype(np.int64)
-        lane = np.asarray(vlane).astype(np.int64) - 1          # 0-based global lane
+        lane = np.asarray(vlane).astype(np.int64) - 1  # 0-based global lane
         cls = np.asarray(viscls).astype(np.int64)
-        ok = ((hour >= 0) & (hour < self.total_hours) & (lane >= 0)
-              & (lane < self.no_lane) & (cls >= 0) & (cls < self.n_bins))
+        ok = (
+            (hour >= 0)
+            & (hour < self.total_hours)
+            & (lane >= 0)
+            & (lane < self.no_lane)
+            & (cls >= 0)
+            & (cls < self.n_bins)
+        )
         hour, lane, cls = hour[ok], lane[ok], cls[ok]
         car = np.asarray(viscar).astype(bool)[ok]
         np.add.at(self.n_veh, (hour, lane), 1)
@@ -69,7 +92,11 @@ class FlowStatsAccumulator:
             with open(sim_dir / f"FlowData_{d}_{lane + 1}.txt", "w") as fh:
                 fh.write(head)
                 for h in range(self.total_hours):
-                    row = (f"{h + 1:>12}{self.n_veh[h, lane]:>12}"
-                           f"{self.n_trk[h, lane]:>12}{self.n_car[h, lane]:>12}")
-                    row += "".join(f"{self.hist[h, lane, b]:>20}" for b in range(self.n_bins))
+                    row = (
+                        f"{h + 1:>12}{self.n_veh[h, lane]:>12}"
+                        f"{self.n_trk[h, lane]:>12}{self.n_car[h, lane]:>12}"
+                    )
+                    row += "".join(
+                        f"{self.hist[h, lane, b]:>20}" for b in range(self.n_bins)
+                    )
                     fh.write(row + "\n")

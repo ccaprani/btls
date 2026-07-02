@@ -91,6 +91,7 @@ def resample_il(spec, x_grid):
         g[(x_grid < spec["pos"][0]) | (x_grid > spec["pos"][-1])] = 0.0
         return g
     import torch
+
     return builtin_ordinate(
         torch, spec["id"], spec["length"], torch.as_tensor(x_grid, dtype=torch.float64)
     ).numpy()
@@ -111,8 +112,14 @@ def uniform_surface_grid(X, Y, Z):
     ``searchsorted`` path, which interpolates the non-uniform grid exactly.
     Resampling a non-uniform grid onto a uniform one would smear nodes that the
     uniform grid cannot land on, so we never do it."""
-    X = np.asarray(X, float); Y = np.asarray(Y, float)
+    X = np.asarray(X, float)
+    Y = np.asarray(Y, float)
     if not (_is_uniform(X) and _is_uniform(Y)):
         return None
-    return (np.asarray(Z, float), float(X[0]), float(X[1] - X[0]),
-            float(Y[0]), float(Y[1] - Y[0]))
+    return (
+        np.asarray(Z, float),
+        float(X[0]),
+        float(X[1] - X[0]),
+        float(Y[0]),
+        float(Y[1] - Y[0]),
+    )

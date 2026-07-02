@@ -55,10 +55,18 @@ def _make_traffic_generator() -> "pb.TrafficGenerator":
 def _make_output_config() -> "pb.OutputConfig":
     output_config = pb.OutputConfig()
     output_config.set_event_output(write_time_history=False, write_each_event=True)
-    output_config.set_BM_output(write_vehicle=True, write_summary=True, write_mixed=True)
-    output_config.set_POT_output(write_vehicle=True, write_summary=True, write_counter=True)
-    output_config.set_fatigue_output(write_fatigue_event=True, write_rainflow_output=True)
-    output_config.set_stats_output(write_flow_stats=True, write_overall=True, write_intervals=True)
+    output_config.set_BM_output(
+        write_vehicle=True, write_summary=True, write_mixed=True
+    )
+    output_config.set_POT_output(
+        write_vehicle=True, write_summary=True, write_counter=True
+    )
+    output_config.set_fatigue_output(
+        write_fatigue_event=True, write_rainflow_output=True
+    )
+    output_config.set_stats_output(
+        write_flow_stats=True, write_overall=True, write_intervals=True
+    )
     output_config.set_vehicle_file_output(
         write_vehicle_file=True, vehicle_file_format=4, vehicle_file_name="traffic.txt"
     )
@@ -167,23 +175,35 @@ def test_chunking_validation_errors():
 
     with pytest.raises(ValueError, match="divisible"):
         sim.add_sim(
-            bridge=bridge, traffic=traffic, no_day=5, output_config=output_config,
+            bridge=bridge,
+            traffic=traffic,
+            no_day=5,
+            output_config=output_config,
             no_chunk=2,
         )
     with pytest.raises(ValueError, match="no_day"):
         sim.add_sim(
-            bridge=bridge, traffic=traffic, output_config=output_config, no_chunk=2,
+            bridge=bridge,
+            traffic=traffic,
+            output_config=output_config,
+            no_chunk=2,
         )
     with pytest.raises(ValueError, match=">= 2"):
         sim.add_sim(
-            bridge=bridge, traffic=traffic, no_day=4, output_config=output_config,
+            bridge=bridge,
+            traffic=traffic,
+            no_day=4,
+            output_config=output_config,
             no_chunk=0,
         )
 
     loader = pb.TrafficLoader(no_lane=2)
     with pytest.raises(ValueError, match="TrafficGenerator"):
         sim.add_sim(
-            bridge=bridge, traffic=loader, no_day=4, output_config=output_config,
+            bridge=bridge,
+            traffic=loader,
+            no_day=4,
+            output_config=output_config,
             no_chunk=2,
         )
 
@@ -194,7 +214,10 @@ def test_chunking_validation_errors():
     )
     with pytest.raises(ValueError, match="block size"):
         sim.add_sim(
-            bridge=bridge, traffic=traffic, no_day=8, output_config=bad_config,
+            bridge=bridge,
+            traffic=traffic,
+            no_day=8,
+            output_config=bad_config,
             no_chunk=4,
         )
 

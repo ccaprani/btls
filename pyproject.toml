@@ -25,7 +25,7 @@ Tracker = "https://github.com/ccaprani/btls/issues"
 
 [project.optional-dependencies]
 test = ["pytest>=6.0", "pycba>=0.5"]
-# Experimental GPU load-effect engine (engine="gpu"). Needs a CUDA build of
+# Experimental GPU load-effect engine (engine="cuda"). Needs a CUDA build of
 # PyTorch; Triton (used for the fused kernel) ships with it. Install the wheel
 # matching your CUDA toolkit, e.g. `pip install pybtls[gpu]`.
 gpu = ["torch>=2.1"]

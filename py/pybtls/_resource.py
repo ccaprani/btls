@@ -16,7 +16,7 @@ def available_host_memory():
     try:
         free = os.sysconf("SC_AVPHYS_PAGES") * os.sysconf("SC_PAGE_SIZE")
     except (ValueError, OSError, AttributeError):
-        free = 8 * 1024 ** 3
+        free = 8 * 1024**3
     try:  # cgroup v2: (limit - current usage) of this process's own cgroup
         rel = ""
         with open("/proc/self/cgroup") as fh:

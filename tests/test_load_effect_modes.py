@@ -14,8 +14,9 @@ GRAVITY = 9.80665
 SPEED = 1.0  # m/s - the single-vehicle simulation drives at 1 m/s
 
 
-def _run_single_vehicle(out_dir: Path, mode: str, braking_factor: float = 0.0,
-                        acceleration: float = 0.0) -> float:
+def _run_single_vehicle(
+    out_dir: Path, mode: str, braking_factor: float = 0.0, acceleration: float = 0.0
+) -> float:
     """Run the single-vehicle simulation and return the peak of effect 1."""
     inf_line = pb.InfluenceLine(IL_type="built-in")
     inf_line.set_IL(id=1, length=20.0)
@@ -33,7 +34,11 @@ def _run_single_vehicle(out_dir: Path, mode: str, braking_factor: float = 0.0,
         vehicle.set_acceleration(acceleration)
 
     sim = pb.Simulation(output_dir=out_dir)
-    sim.add_sim(bridge=bridge, vehicle=vehicle, tag=mode + str(braking_factor) + str(acceleration))
+    sim.add_sim(
+        bridge=bridge,
+        vehicle=vehicle,
+        tag=mode + str(braking_factor) + str(acceleration),
+    )
     sim.run(no_core=1)
 
     output = next(iter(sim.get_output().values()))
@@ -53,9 +58,7 @@ def peaks():
         "braking_fallback": _run_single_vehicle(
             root / "bf", "braking", braking_factor=0.3
         ),
-        "braking_accel": _run_single_vehicle(
-            root / "ba", "braking", acceleration=-2.0
-        ),
+        "braking_accel": _run_single_vehicle(root / "ba", "braking", acceleration=-2.0),
     }
     yield values
     remove_folder(root)
@@ -63,15 +66,11 @@ def peaks():
 
 def test_centrifugal_scales_with_v_squared_over_g(peaks):
     expected = SPEED**2 / GRAVITY
-    assert peaks["centrifugal"] / peaks["vertical"] == pytest.approx(
-        expected, rel=1e-4
-    )
+    assert peaks["centrifugal"] / peaks["vertical"] == pytest.approx(expected, rel=1e-4)
 
 
 def test_braking_fallback_factor(peaks):
-    assert peaks["braking_fallback"] / peaks["vertical"] == pytest.approx(
-        0.3, rel=1e-4
-    )
+    assert peaks["braking_fallback"] / peaks["vertical"] == pytest.approx(0.3, rel=1e-4)
 
 
 def test_braking_uses_vehicle_acceleration(peaks):

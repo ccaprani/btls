@@ -48,9 +48,7 @@ class _LoadEffectModeMixin:
         """
 
         if mode not in ("vertical", "centrifugal", "braking"):
-            raise ValueError(
-                "mode must be 'vertical', 'centrifugal' or 'braking'."
-            )
+            raise ValueError("mode must be 'vertical', 'centrifugal' or 'braking'.")
         self._load_effect_mode = mode
         self._braking_factor = braking_factor
 

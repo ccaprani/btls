@@ -23,11 +23,31 @@ GPU engine pays off only when the *computation* dominates:
   produced, but — being one row per time step — it is I/O-bound, so the GPU
   speed-up is smaller for time-history-dominated runs.
 
-In that regime, on an RTX 3090 in float64, it reaches roughly **15x**
-(free-flow) to **>200x** (congested, many effects, fused Triton kernel) over a
-16-core CPU, with the working set tiled to fit GPU memory. For short-span
-bridges with a handful of effects, or any run needing the full output set, use
-``engine="cpu"``.
+Measured on an RTX 3090 against **one core** of a Ryzen 9 7950X (float64,
+``time_step=0.1``): typical free-flow configurations run **2.5-5x** faster
+(6 effects with the full BM/POT/SS/FR output set ~3x, 24 effects ~5x, an
+influence surface ~4x), and a compute-dominated case — a 100 m bridge under
+bumper-to-bumper congested traffic — reaches **~10x**. The gap grows with the
+number of load effects (CPU cost is linear in effects, GPU sublinear) and with
+the number of axles simultaneously on the deck. The device working set is
+tiled adaptively to the *currently free* VRAM, so congested / long-span
+traffic and small or shared GPUs shrink the tile (a few % slower) instead of
+running out of memory.
+
+Weigh this against CPU chunk-parallelism before reaching for the GPU: with
+``add_sim(..., no_chunk=N)`` the CPU engine scales near-linearly across cores
+for *generated* traffic, and on a 16-core machine that matches or beats the
+GPU for free-flow runs. The GPU engine's clear wins are therefore:
+
+* **recorded traffic** (``TrafficLoader``) — chunking requires a
+  ``TrafficGenerator``, so a long recorded stream otherwise runs on one core;
+* runs that must be **exactly sequential** (chunks are only statistically
+  equivalent, each with its own RNG stream);
+* **many load effects** on a congested / long-span bridge, where the GPU
+  overtakes even a fully-chunked CPU.
+
+For short-span bridges with a handful of effects, or any run needing the full
+output set, use ``engine="cpu"``.
 
 Running in parallel
 -------------------
@@ -101,10 +121,12 @@ The GPU engine is experimental and intentionally narrower than the CPU engine:
   :class:`OutputConfig` flags as the CPU engine.
 * **Not produced** (configure these and they are skipped with a warning — use
   ``engine="cpu"``): every-event output (``write_each_event``), the vehicle file
-  (``set_vehicle_file_output``), per-block-max / fatigue-event vehicle detail
-  (``set_BM_output`` ``write_vehicle`` / ``write_mixed``, ``write_fatigue_event``)
-  and rainflow residuals (``write_residuals``). These are per-event / per-vehicle
-  detail outputs — the I/O-bound ones the GPU does not accelerate anyway.
+  (``set_vehicle_file_output``) and per-block-max / fatigue-event vehicle detail
+  (``set_BM_output`` ``write_vehicle`` / ``write_mixed``, ``write_fatigue_event``).
+  These are per-event / per-vehicle detail outputs — the I/O-bound ones the GPU
+  does not accelerate anyway. Rainflow residual sidecars (``write_residuals``,
+  the exact chunk-splice mechanism) ARE produced, so chunked GPU runs merge
+  their fatigue histograms exactly.
 
 The POT and statistics paths rebuild the C++ engine's *event* partition — an
 event is a window of constant on-bridge vehicle composition — from each
@@ -114,7 +136,11 @@ composition changes that fall inside one ``time_step``, which the CPU resolves
 exactly); the peak *values/times* carry the same grid-sampling noise as the
 block maxima, and borderline events near a POT threshold may flicker in or out.
 Flow statistics (``SS_C`` / ``SS_S``) are the distribution of each event's
-governing value, so they inherit the same tolerance. To enable POT, configure it
+governing value, so they inherit the same tolerance. The very end of a run
+differs slightly by design: the CPU loop never simulates the final vehicle of a
+recorded stream and lets events that started before the end time run past it,
+while the GPU computes every vehicle's full crossing and keeps events starting
+up to (and including) the end time. To enable POT, configure it
 before adding the simulation::
 
    cfg = OutputConfig()

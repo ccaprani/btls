@@ -19,13 +19,14 @@ namespace py = pybind11;
 // in one C++ pass, so the GPU engine avoids ~6 Python->C++ getter calls per
 // vehicle. Returns numpy arrays; all the trajectory math stays vectorized in
 // Python. Output: (time, speed, dirn, gvw, global_lane, trans, length, accel,
-// axle_count[/veh], axle_weight[/axle], axle_spacing[/axle], axle_track[/axle]).
+// axle_count[/veh], axle_weight[/axle], axle_spacing[/axle], axle_track[/axle],
+// is_car, class_bin, lane_eccentricity).
 // Flat per-vehicle scalars + per-axle arrays for the GPU engine, shared by the
 // loader path (_extract_axle_data) and the fused generator (_generate_and_extract)
 // so a vehicle is unpacked exactly once, the same way, regardless of source.
 struct _AxleArrays
 {
-	std::vector<double> vtime, vspeed, vgvw, vtrans, vlen, vacc;
+	std::vector<double> vtime, vspeed, vgvw, vtrans, vlen, vacc, vecc;
 	std::vector<std::int64_t> vdir, vlane, vcount, viscar, viscls;
 	std::vector<double> aw, asp, at;
 
@@ -40,6 +41,7 @@ struct _AxleArrays
 		vtrans.push_back(v.getTrans());
 		vlen.push_back(v.getLength());
 		vacc.push_back(v.getAcceleration());
+		vecc.push_back(v.getLaneEccentricity());
 		vdir.push_back((std::int64_t)v.getDirection());
 		vlane.push_back((std::int64_t)v.getGlobalLane(no_lane));
 		viscar.push_back((std::int64_t)v.IsCar());
@@ -58,9 +60,11 @@ struct _AxleArrays
 	{
 		auto d = [](const std::vector<double>& v) { return py::array_t<double>(v.size(), v.data()); };
 		auto l = [](const std::vector<std::int64_t>& v) { return py::array_t<std::int64_t>(v.size(), v.data()); };
+		// vecc is appended last so the positional indices of the original
+		// 14 fields stay stable for existing consumers
 		return py::make_tuple(d(vtime), d(vspeed), l(vdir), d(vgvw), l(vlane),
 							  d(vtrans), d(vlen), d(vacc), l(vcount), d(aw), d(asp), d(at),
-							  l(viscar), l(viscls));
+							  l(viscar), l(viscls), d(vecc));
 	}
 };
 
@@ -744,13 +748,25 @@ PYBIND11_MODULE(libbtls, m) {
 			.def(py::pickle(
 				[](CVehicle_sp self) {  // __getstate__
 
-					return self->getPropInTuple();
+					// The property tuple does not carry m_Class, but the class
+					// drives IsCar() and the flow/statistics truck counts, so it
+					// must survive the pickle across process boundaries
+					// (multiprocessing sends TrafficLoader vehicles to workers).
+					Classification cl = self->getClass();
+					return py::make_tuple(self->getPropInTuple(), cl.m_ID, cl.m_String, cl.m_Desc);
 				},
-				[](py::tuple propTuple) {  // __setstate__
+				[](py::tuple state) {  // __setstate__
 
 					CVehicle_sp vehicle = std::make_shared<CVehicle>();
-					vehicle->setPropByTuple(propTuple);
-					
+					if (state.size() == 4 && py::isinstance<py::tuple>(state[0]))
+					{	// current format: (property tuple, class id, pattern, desc)
+						vehicle->setPropByTuple(state[0].cast<py::tuple>());
+						vehicle->setClass(Classification(state[1].cast<size_t>(),
+							state[2].cast<std::string>(), state[3].cast<std::string>()));
+					}
+					else
+						vehicle->setPropByTuple(state);  // legacy flat property tuple
+
 					return vehicle;
 				}
 			));
