@@ -148,20 +148,22 @@ def test_stats_cumulative_file_roundtrips(tmp_path):
 
 
 def test_stats_interval_file_silent_intervals(tmp_path):
-    # interval_size 1s, two events at t=0 and t=2 -> interval 2 (t in [1,2)) is silent
+    # interval_size 1s; interval i covers starts in ((i-1)·size, i·size] (the
+    # C++ strict-`>` rollover): t=0 and the exact boundary t=1.0 both belong to
+    # interval 1, t=2.5 to interval 3, leaving interval 2 silent
     acc = StatsAccumulator(
         n_eff=1, want_intervals=True, interval_size=1.0, total_intervals=3
     )
-    peak = np.array([[10.0, 50.0]])
-    wc = np.array([1, 1], dtype=np.int64)
-    wt = np.array([1, 1], dtype=np.int64)
-    B = np.array([0.0, 2.0, 5.0])  # event starts at t=0 and t=2
+    peak = np.array([[10.0, 20.0, 50.0]])
+    wc = np.array([1, 1, 1], dtype=np.int64)
+    wt = np.array([1, 1, 1], dtype=np.int64)
+    B = np.array([0.0, 1.0, 2.5, 5.0])  # event starts at t=0, 1.0, 2.5
     acc.update(peak, wc, wt, B, 0.0)
     acc.write_intervals(tmp_path, "20")
     df = read_E_IS(tmp_path / "SS_S_20_Eff_1.txt")
     assert len(df) == 3
     assert list(df["Time"]) == [1, 2, 3]
-    assert list(df["No. Events"]) == [1, 0, 1]  # middle interval silent
+    assert list(df["No. Events"]) == [2, 0, 1]  # middle interval silent
     assert df.loc[1, "Mean"] == 0.0 and df.loc[1, "Max"] == 0.0
 
 

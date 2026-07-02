@@ -894,13 +894,15 @@ def test_gpu_surface_fused_kernel_matches_torch():
             _kernels.triton_available = saved
             remove_folder(ROOT)
 
-    # uniform grid: fused kernel is an exact pass-through -> bit-identical to torch
+    # uniform grid: fused kernel is an exact pass-through -> bit-identical to
+    # torch (equal_nan: BM_S rows are ragged — one column per event type seen
+    # in the block — so short rows read back NaN-padded)
     assert np.array_equal(
-        bm(uniform, False), bm(uniform, True)
+        bm(uniform, False), bm(uniform, True), equal_nan=True
     ), "fused surface kernel != torch path on a uniform grid"
     # non-uniform grid: default run falls back to torch -> identical to forced torch
     assert np.array_equal(
-        bm(nonuniform, False), bm(nonuniform, True)
+        bm(nonuniform, False), bm(nonuniform, True), equal_nan=True
     ), "non-uniform surface did not fall back to the torch path"
 
 
@@ -1048,3 +1050,368 @@ def test_gpu_engine_op_preflight():
     finally:
         torch.searchsorted = orig
         E._OP_SUPPORT_CACHE.clear()
+
+
+def test_gpu_engine_window_seam_superposition_matches_cpu():
+    # Two trucks simultaneously on the bridge ACROSS a traffic-window seam: truck
+    # A enters 1 s before the day-1/day-2 boundary, truck B (other lane) enters
+    # 0.5 s after it, while A is still crossing. With one-day windows forced, the
+    # GPU must still superpose A+B (A is carried into window 2 as seam context)
+    # and must credit each event to the block containing its START time, into
+    # the column for its number of vehicles — all matching the CPU engine:
+    # block 1: A's solo event; block 2: the 2-truck A+B event and B's solo event.
+    from pybtls.gpu import runner as _runner
+
+    def truck(lane, t, weight=100.0):
+        v = pb.Vehicle(2)
+        v.set_time(t)
+        v.set_velocity(10.0)
+        v.set_direction(1)
+        v.set_axle_weights([weight, weight])
+        v.set_axle_spacings([4.0])
+        v.set_axle_widths([2.0, 2.0])
+        v.set_trans(1.8)
+        v.set_local_lane(lane)
+        return v
+
+    def factory():
+        il = pb.InfluenceLine(IL_type="discrete")
+        il.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 10.0, 0.0])
+        b = pb.Bridge(length=20.0, no_lane=2)
+        b.add_load_effect(inf_line_surf=il, threshold=0.0)
+        return b
+
+    # the trailing light sentinel makes the CPU engine simulate B's crossing
+    # (the last vehicle in a recorded stream is never simulated by the CPU loop)
+    vehicles = [
+        truck(1, 86399.0),
+        truck(2, 86400.5),
+        truck(1, 86500.0, weight=1.0),
+    ]
+
+    def run(engine, tag, force_tiny_windows):
+        remove_folder(ROOT)
+        saved = _runner._window_target_vehicles
+        if force_tiny_windows:
+            _runner._window_target_vehicles = lambda *a, **k: 1
+        try:
+            ld = pb.TrafficLoader(no_lane=2)
+            ld.add_traffic(traffic=vehicles)
+            cfg = pb.OutputConfig()
+            cfg.set_BM_output(write_summary=True)
+            sim = pb.Simulation(output_dir=ROOT)
+            sim.add_sim(
+                bridge=factory(),
+                traffic=ld,
+                no_day=2,
+                output_config=cfg,
+                time_step=TIME_STEP,
+                min_gvw=0,
+                tag=tag,
+                engine=engine,
+            )
+            sim.run(no_core=1)
+            return next(iter(sim.get_output()[tag].read_data("BM_summary").values()))
+        finally:
+            _runner._window_target_vehicles = saved
+            remove_folder(ROOT)
+
+    cdf = run("cpu", "cpu", False)
+    gdf = run("cuda", "gpu", True)  # one window per day -> seam between A and B
+
+    assert len(cdf) == len(gdf) == 2
+    # the 2-truck seam event exists on both engines, in block 2
+    assert "2-Truck Event" in cdf.columns and "2-Truck Event" in gdf.columns
+    for block, col in [
+        (0, "1-Truck Event"),
+        (1, "1-Truck Event"),
+        (1, "2-Truck Event"),
+    ]:
+        c, g = cdf.loc[block, col], gdf.loc[block, col]
+        assert np.isfinite(c) and np.isfinite(g), f"block {block + 1} {col}: {c} vs {g}"
+        assert abs(g - c) / abs(c) < 0.02, f"block {block + 1} {col}: cpu={c} gpu={g}"
+    # block 1 saw no 2-truck event on either engine
+    assert np.isnan(cdf.loc[0, "2-Truck Event"]) and np.isnan(
+        gdf.loc[0, "2-Truck Event"]
+    )
+
+
+def test_gpu_engine_lane_eccentricity_matches_cpu():
+    # Generated traffic draws a per-vehicle random lane eccentricity that offsets
+    # both wheel tracks on an influence SURFACE (CVehicleGenerator +
+    # BridgeLane.cpp:98). With a surface that varies strongly across the
+    # transverse direction and a large eccentricity std, dropping the
+    # eccentricity (placing every vehicle on its lane centre) shifts the maxima
+    # far outside grid tolerance — so this pins the GPU extraction carrying
+    # getLaneEccentricity() through to the transverse position.
+    def gen():
+        garage = pb.garage.read_garage_file(garage_path=GARAGE, garage_format=4)
+        g = pb.TrafficGenerator(no_lane=2)
+        for i in range(1, 3):
+            lfc = pb.LaneFlowComposition(lane_index=i, lane_dir=1)
+            lfc.assign_lane_data(
+                hourly_truck_flow=[60] * 24,
+                hourly_car_flow=[10] * 24,
+                hourly_speed_mean=[40 / 3.6 * 10] * 24,
+                hourly_speed_std=[5.0] * 24,
+                hourly_truck_composition=[[25.0, 25.0, 25.0, 25.0] for _ in range(24)],
+            )
+            g.add_lane(
+                vehicle_gen=pb.VehicleGenGarage(
+                    garage=garage,
+                    kernel=[[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]],
+                    lane_eccentricity_std=50.0,  # cm
+                ),
+                headway_gen=pb.HeadwayGenFreeflow(),
+                lfc=lfc,
+            )
+        g.set_start_time(0.0)
+        return g
+
+    # ordinates rise steeply across Y so an eccentric vehicle sees a very
+    # different surface than a lane-centred one
+    IS_matrix = [
+        [0.0, 0.0, 4.0, 8.0],
+        [0.0, 0.0, 0.0, 0.0],
+        [10.0, 4.0, 10.0, 30.0],
+        [20.0, 0.0, 0.0, 0.0],
+    ]
+    lane_position = [(0.5, 4.0), (4.0, 7.5)]
+
+    def factory():
+        surf = pb.InfluenceSurface()
+        surf.set_IS(IS_matrix, lane_position)
+        b = pb.Bridge(length=20.0, no_lane=2)
+        b.add_load_effect(inf_line_surf=surf, threshold=0.0)
+        return b
+
+    def run(engine, tag):
+        remove_folder(ROOT)
+        cfg = pb.OutputConfig()
+        cfg.set_event_output(write_time_history=True)
+        cfg.set_BM_output(write_summary=True)
+        sim = pb.Simulation(output_dir=ROOT)
+        sim.add_sim(
+            bridge=factory(),
+            traffic=gen(),
+            no_day=1,
+            output_config=cfg,
+            time_step=TIME_STEP,
+            min_gvw=0,
+            tag=tag,
+            engine=engine,
+            seed=11,
+        )
+        sim.run(no_core=1)
+        out = sim.get_output()[tag]
+        if engine == "cpu":
+            th = next(iter(out.read_data("time_history").values()))
+            peak = th["Effect 1"].abs().max()
+        else:
+            df = next(iter(out.read_data("BM_summary").values()))
+            peak = df[[c for c in df.columns if c != "Block Index"]].abs().max().max()
+        remove_folder(ROOT)
+        return peak
+
+    cpu_peak = run("cpu", "cpu")
+    gpu_peak = run("cuda", "gpu")
+    assert abs(gpu_peak - cpu_peak) / cpu_peak < 0.02, f"cpu={cpu_peak} gpu={gpu_peak}"
+
+
+def test_gpu_fatigue_residual_sidecar_splices_exactly():
+    # write_residuals (the chunk-splice mode) leaves the rainflow residual
+    # open, writing it to an FRR_* sidecar exactly like the CPU
+    # CFatigueManager. Closing the sidecar residual and adding it to the
+    # closed-cycle histogram must reproduce the histogram of an identical run
+    # that closed its residual directly — the exactness contract the chunked
+    # merge relies on.
+    import pandas as pd
+    from pybtls.output._merge import merge_rainflow
+
+    def gen():
+        garage = pb.garage.read_garage_file(garage_path=GARAGE, garage_format=4)
+        g = pb.TrafficGenerator(no_lane=2)
+        for i in range(1, 3):
+            lfc = pb.LaneFlowComposition(lane_index=i, lane_dir=i)
+            lfc.assign_lane_data(
+                hourly_truck_flow=[60] * 24,
+                hourly_car_flow=[10] * 24,
+                hourly_speed_mean=[40 / 3.6 * 10] * 24,
+                hourly_speed_std=[5.0] * 24,
+                hourly_truck_composition=[[25.0, 25.0, 25.0, 25.0] for _ in range(24)],
+            )
+            g.add_lane(
+                vehicle_gen=pb.VehicleGenGarage(
+                    garage=garage, kernel=[[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]
+                ),
+                headway_gen=pb.HeadwayGenFreeflow(),
+                lfc=lfc,
+            )
+        g.set_start_time(0.0)
+        return g
+
+    def bridge():
+        il = pb.InfluenceLine(IL_type="discrete")
+        il.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 10.0, 0.0])
+        b = pb.Bridge(length=20.0, no_lane=2)
+        b.add_load_effect(inf_line_surf=il, threshold=0.0)
+        return b
+
+    def run(tag, residuals):
+        cfg = pb.OutputConfig()
+        cfg.set_fatigue_output(
+            write_rainflow_output=True, rainflow_decimal=1, write_residuals=residuals
+        )
+        sim = pb.Simulation(output_dir=ROOT)
+        sim.add_sim(
+            bridge=bridge(),
+            traffic=gen(),
+            no_day=1,
+            output_config=cfg,
+            time_step=TIME_STEP,
+            min_gvw=0,
+            tag=tag,
+            engine="cuda",
+            seed=13,
+        )
+        sim.run(no_core=1)
+        return next(iter(sim.get_output()[tag].read_data("fatigue_rainflow").values()))
+
+    remove_folder(ROOT)
+    full = run("full", residuals=False)
+
+    closed = run("res", residuals=True)
+    frr = ROOT / "res" / "FRR_20_1.txt"
+    assert frr.is_file(), "write_residuals must produce the FRR sidecar"
+    with open(frr) as fh:
+        decimal, cutoff = fh.readline().split()
+        residual_seq = [float(line) for line in fh if line.strip()]
+    assert residual_seq, "an always-positive IL leaves a non-empty residual"
+
+    spliced = merge_rainflow([closed], [residual_seq], int(decimal), float(cutoff))
+    pd.testing.assert_frame_equal(
+        spliced.sort_values("Amplitude", ignore_index=True),
+        full.sort_values("Amplitude", ignore_index=True),
+        check_exact=False,
+        rtol=1e-9,
+        atol=1e-6,
+    )
+    remove_folder(ROOT)
+
+
+def test_gpu_pot_streamed_equals_single_window():
+    # PT_S / PT_C / PT_V are streamed to disk window by window (bounded host
+    # memory); forcing many tiny windows must produce byte-identical files to
+    # a single big window, including the PT_V member-vehicle blocks.
+    from pybtls.gpu import runner as _runner
+
+    def gen():
+        garage = pb.garage.read_garage_file(garage_path=GARAGE, garage_format=4)
+        g = pb.TrafficGenerator(no_lane=2)
+        for i in range(1, 3):
+            lfc = pb.LaneFlowComposition(lane_index=i, lane_dir=i)
+            lfc.assign_lane_data(
+                hourly_truck_flow=[60] * 24,
+                hourly_car_flow=[10] * 24,
+                hourly_speed_mean=[40 / 3.6 * 10] * 24,
+                hourly_speed_std=[5.0] * 24,
+                hourly_truck_composition=[[25.0, 25.0, 25.0, 25.0] for _ in range(24)],
+            )
+            g.add_lane(
+                vehicle_gen=pb.VehicleGenGarage(
+                    garage=garage, kernel=[[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]
+                ),
+                headway_gen=pb.HeadwayGenFreeflow(),
+                lfc=lfc,
+            )
+        g.set_start_time(0.0)
+        return g
+
+    def bridge():
+        il = pb.InfluenceLine(IL_type="discrete")
+        il.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 10.0, 0.0])
+        b = pb.Bridge(length=20.0, no_lane=2)
+        b.add_load_effect(inf_line_surf=il, threshold=500.0)
+        return b
+
+    def pot_files(target):
+        remove_folder(ROOT)
+        saved = _runner._window_target_vehicles
+        _runner._window_target_vehicles = lambda *a, **k: target
+        try:
+            cfg = pb.OutputConfig()
+            cfg.set_POT_output(
+                write_summary=True, write_counter=True, write_vehicle=True
+            )
+            sim = pb.Simulation(output_dir=ROOT)
+            sim.add_sim(
+                bridge=bridge(),
+                traffic=gen(),
+                no_day=4,
+                output_config=cfg,
+                time_step=TIME_STEP,
+                min_gvw=0,
+                tag="p",
+                engine="cuda",
+                seed=17,
+            )
+            sim.run(no_core=1)
+            return {f.name: f.read_text() for f in sorted((ROOT / "p").glob("PT_*"))}
+        finally:
+            _runner._window_target_vehicles = saved
+            remove_folder(ROOT)
+
+    one = pot_files(10**12)  # single window
+    many = pot_files(500)  # ~1-day windows over 4 days
+    assert set(one) == set(many) and one, f"file sets differ: {set(one)} {set(many)}"
+    for name in one:
+        assert one[name] == many[name], f"{name} differs between window sizes"
+
+
+def test_gpu_adaptive_tiling_exact(monkeypatch):
+    # The device tile shrinks when the pair count exceeds the free-VRAM budget
+    # (congested / long-span traffic, or a GPU shared with other processes).
+    # Splitting a block into many tiny tiles must not change any result: BM
+    # merges per block, POT merges across tiles, rainflow/TH stream
+    # sequentially. Force a tiny budget and compare every output file.
+    # (The IL is asymmetric on purpose: a symmetric crest gives two samples
+    # with exactly equal |E|, and the peak-time tie can then flip on the
+    # last-ulp scatter-order noise that different kernel launch shapes cause.)
+    from pybtls.gpu import engine as _engine
+
+    def bridge():
+        il = pb.InfluenceLine(IL_type="discrete")
+        il.set_IL(position=[0.0, 12.0, 20.0], ordinate=[0.0, 10.0, 0.0])
+        b = pb.Bridge(length=20.0, no_lane=4)
+        b.add_load_effect(inf_line_surf=il, threshold=100.0)
+        return b
+
+    def files(budget):
+        remove_folder(ROOT)
+        monkeypatch.setattr(_engine, "_tile_budget_bytes", lambda torch, dev: budget)
+        cfg = pb.OutputConfig()
+        cfg.set_BM_output(write_summary=True)
+        cfg.set_POT_output(write_summary=True, write_counter=True)
+        cfg.set_fatigue_output(write_rainflow_output=True)
+        cfg.set_stats_output(write_overall=True, write_intervals=True)
+        cfg.set_event_output(write_time_history=True)
+        sim = pb.Simulation(output_dir=ROOT)
+        sim.add_sim(
+            bridge=bridge(),
+            traffic=_loader(),
+            output_config=cfg,
+            time_step=TIME_STEP,
+            min_gvw=0,
+            tag="t",
+            engine="cuda",
+        )
+        sim.run(no_core=1)
+        out = {f.name: f.read_text() for f in sorted((ROOT / "t").glob("*.txt"))}
+        remove_folder(ROOT)
+        return out
+
+    whole = files(budget=None)  # one tile per block
+    tiled = files(budget=200_000)  # ~hundreds of sub-tiles per day
+    assert set(whole) == set(tiled) and whole
+    for name in whole:
+        assert whole[name] == tiled[name], f"{name} differs under adaptive tiling"

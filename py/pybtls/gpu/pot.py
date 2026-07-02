@@ -25,13 +25,18 @@ PT_S / PT_C / PT_V files are written by :mod:`runner`.
 import numpy as np
 
 
-def build_partition(t_on, t_off):
+def build_partition(t_on, t_off, extra_boundaries=None):
     """Build the event-window partition from per-vehicle on/off times.
 
     Parameters
     ----------
     t_on, t_off : ndarray
         Per (kept) vehicle bridge-entry / bridge-exit times, seconds.
+    extra_boundaries : ndarray, optional
+        Additional boundary times to split windows at. A streamed run passes the
+        next traffic window's first arrival here: in the C++ engine that arrival
+        ends the event straddling the window seam, so the seam window's event
+        partition matches even though the arriving vehicle is not in this window.
 
     Returns
     -------
@@ -44,7 +49,10 @@ def build_partition(t_on, t_off):
         Per vehicle, the half-open window-index range ``[k_start, k_end)`` it
         covers (used to list an event's member vehicles).
     """
-    B = np.unique(np.concatenate([t_on, t_off]))
+    parts = [t_on, t_off]
+    if extra_boundaries is not None:
+        parts.append(np.asarray(extra_boundaries, dtype=float))
+    B = np.unique(np.concatenate(parts))
     n_win = len(B) - 1
     if n_win <= 0:
         z = np.zeros(0, dtype=np.int64)

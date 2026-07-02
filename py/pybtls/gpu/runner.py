@@ -24,7 +24,7 @@ from ..traffic import TrafficGenerator, TrafficLoader
 from ..output import OutputConfig, _OutputManager
 from .._resource import available_host_memory
 from . import pot as potmod
-from .engine import compute_load_effect_maxima, compute_pot
+from .engine import compute_pot
 from .stats import StatsAccumulator
 from .flow import FlowStatsAccumulator
 
@@ -145,22 +145,83 @@ def _collect_vehicles(traffic, bridge, no_day, active_lane, seed):
     )
 
 
-def _write_bm_summary(sim_dir, length_str, block_maxima, n_eff):
-    """Write BM_summary files in the C++ engine's format (single value column,
-    read back by read_BM_S as the 1-Truck-Event column)."""
+def _new_bm_state(total_blocks, n_eff):
+    """Run-wide block-maxima accumulator: per (block, effect, event-type) the
+    governing value (event type = the event's number of vehicles, as in
+    CBlockMaxManager), plus the per-block number of event types seen."""
+    return {
+        "vals": np.zeros((total_blocks, n_eff, 4)),  # slot axis grows on demand
+        "slots": np.zeros(total_blocks, dtype=np.int64),
+    }
+
+
+def _accumulate_bm(bm_state, pot, ev_mask, block_secs, time_offset, total_blocks):
+    """Fold one window's owned events into the block-maxima accumulator,
+    replicating CBlockMaxManager::Update: each event is credited to the block
+    containing its START time (block b covers ((b-1)·size, b·size], strict-`>`
+    rollover), into the slot for its number of vehicles, replacing the stored
+    value when ``|new| >= |old|`` (ties go to the later event — windows arrive
+    in time order, so replacing on ``>=`` preserves that within and across
+    windows)."""
+    if not ev_mask.any():
+        return
+    starts = pot["B"][:-1][ev_mask] + time_offset
+    vals = pot["peak_value"][:, ev_mask]  # [n_eff, k]
+    slot = pot["win_count"][ev_mask].astype(np.int64) - 1  # 0-based event type
+    bidx = np.clip(
+        np.ceil(starts / block_secs).astype(np.int64) - 1, 0, total_blocks - 1
+    )
+
+    while bm_state["vals"].shape[2] <= slot.max():
+        bm_state["vals"] = np.concatenate(
+            [bm_state["vals"], np.zeros_like(bm_state["vals"])], axis=2
+        )
+    np.maximum.at(bm_state["slots"], bidx, slot + 1)
+
+    vals_st = bm_state["vals"]
+    n_eff = vals.shape[0]
+    key = bidx * vals_st.shape[2] + slot  # (block, slot) group id
+    for e in range(n_eff):
+        # per group keep the |max|, later-start-on-tie candidate: sort by
+        # (group, |value|, start) and take each group's last row
+        order = np.lexsort((starts, np.abs(vals[e]), key))
+        k_sorted = key[order]
+        sel = order[np.r_[k_sorted[1:] != k_sorted[:-1], True]]
+        cur = vals_st[bidx[sel], e, slot[sel]]
+        new = vals[e][sel]
+        put = np.abs(new) >= np.abs(cur)  # >= : the (later) window wins ties
+        vals_st[bidx[sel][put], e, slot[sel][put]] = new[put]
+
+
+def _write_bm_summary(sim_dir, length_str, bm_state, n_eff):
+    """Write BM_summary files in the C++ engine's format: per block one row with
+    the block number then one value column per event type seen in that block
+    (CBlockMaxManager::WriteSummaryFiles)."""
+    vals, slots = bm_state["vals"], bm_state["slots"]
     for e in range(n_eff):
         with open(sim_dir / f"BM_S_{length_str}_Eff_{e + 1}.txt", "w") as fh:
-            for b in range(block_maxima.shape[0]):
-                fh.write(f"{b + 1}\t{block_maxima[b, e]:.1f}\t\t\n")
+            for b in range(vals.shape[0]):
+                fh.write(
+                    f"{b + 1}\t"
+                    + "".join(f"{vals[b, e, s]:.1f}\t\t" for s in range(slots[b]))
+                    + "\n"
+                )
 
 
-def _write_fatigue(sim_dir, length_str, rainflows, decimal):
-    """Close each rainflow counter and write FR_*.txt (the cycle-amplitude
-    histogram) in the C++ CFatigueManager format. The streamed run carried the
-    residual across all windows, so a single final close (ASTM end-of-data rule)
-    matches a sequential run."""
+def _write_fatigue(sim_dir, length_str, rainflows, decimal, cutoff, residuals):
+    """Write FR_*.txt (the cycle-amplitude histogram) in the C++
+    CFatigueManager format. The streamed run carried the residual across all
+    windows; normally a single final close (ASTM end-of-data rule) matches a
+    sequential run. With ``residuals`` (chunk mode, WRITE_RAINFLOW_RESIDUALS)
+    the residual is instead left open and written to an FRR_* sidecar — same
+    as CFatigueManager::writeResidualFiles — so chunked runs splice exactly."""
     for e, rf in enumerate(rainflows):
-        rf.calcCycles(True)  # close the residual as half-cycles at end of data
+        rf.calcCycles(not residuals)
+        if residuals:
+            with open(sim_dir / f"FRR_{length_str}_{e + 1}.txt", "w") as fh:
+                fh.write(f"{decimal}\t{cutoff:.17g}\n")
+                for rev in rf.getResiduals():
+                    fh.write(f"{rev:.17g}\n")
         hist = rf.getRainflowOutput()  # dict: rounded range -> cycle count
         with open(sim_dir / f"FR_{length_str}_{e + 1}.txt", "w") as fh:
             fh.write(f"{'Amplitude':>15}{'No. Cycles':>15}\n")
@@ -168,14 +229,15 @@ def _write_fatigue(sim_dir, length_str, rainflows, decimal):
                 fh.write(f"{rng:>15.{decimal}f}{hist[rng]:>10.1f}\n")
 
 
-def _pot_events_per_effect(pot, thresholds):
+def _pot_events_per_effect(pot, thresholds, ev_mask):
     """Per effect, the window indices of above-threshold events, in time order.
-    An event needs >=1 vehicle, at least one grid sample, and a signed peak
-    above the threshold (matching CPOTManager::Update's ``getValue() > thr``)."""
-    pv, pix, win_count = pot["peak_value"], pot["peak_index"], pot["win_count"]
+    ``ev_mask`` is the runner's event mask (>=1 vehicle, >=1 grid sample, owned
+    by this window); on top of it an event needs a signed peak above the
+    threshold (matching CPOTManager::Update's ``getValue() > thr``)."""
+    pv = pot["peak_value"]
     out = []
     for e in range(pv.shape[0]):
-        mask = (win_count >= 1) & (pix[e] >= 0) & (pv[e] > thresholds[e])
+        mask = ev_mask & (pv[e] > thresholds[e])
         out.append(np.nonzero(mask)[0])  # ascending window index == time order
     return out
 
@@ -192,111 +254,137 @@ def _lead_dist(members, t, veh, bridge_length):
     return float(sgn * sp * (t - datum0))
 
 
-def _accumulate_pot(
-    accum,
-    pot,
-    thresholds,
-    time_step,
-    time_offset,
-    vehicles,
-    out,
-    file_format,
-    counter_secs,
-    n_counter_blocks,
-):
-    """Fold one window's above-threshold events into the run-wide accumulator,
-    converting window-local times to absolute. PT_V member-vehicle lines are
-    serialized now, while the window's vehicles are still in memory."""
-    events = _pot_events_per_effect(pot, thresholds)
-    pv, pix, win_count, B = (
-        pot["peak_value"],
-        pot["peak_index"],
-        pot["win_count"],
-        pot["B"],
-    )
-    n_eff = pv.shape[0]
-    write_v = out.POT.WRITE_POT_VEHICLES
-    if write_v:
-        veh, L = pot["veh"], pot["_bridge_length"]
-        kept_idx, t_on = veh["kept_idx"], veh["t_on"]
-        indptr, members = potmod.window_members_csr(
-            pot["k_start"], pot["k_end"], len(B) - 1
+class _PotStream:
+    """Streams the POT outputs in the C++ POTManager format, window by window:
+    PT_S / PT_V rows are appended to their open files as each window's events
+    are folded in (events arrive in time order, so appending preserves the
+    sequential layout), and PT_C is a bounded (n_counter_blocks x n_eff) tally
+    written on close — host memory for POT stays bounded by one window
+    regardless of the simulated length."""
+
+    def __init__(self, sim_dir, length_str, out, n_eff, counter_secs, n_counter_blocks):
+        self.n_eff = n_eff
+        self.counter_secs = counter_secs
+        self.n_counter_blocks = n_counter_blocks
+        self.n_events = [0] * n_eff  # per-effect event counter (row numbering)
+        self.counts = (
+            np.zeros((n_counter_blocks, n_eff), dtype=np.int64)
+            if out.POT.WRITE_POT_COUNTER
+            else None
         )
-    for e in range(n_eff):
-        for w in events[e]:
-            rec = {
-                "time": float(pix[e, w] * time_step + time_offset),
-                "value": float(pv[e, w]),
-                "no_trucks": int(win_count[w]),
-            }
-            if write_v:
-                mem = members[indptr[w] : indptr[w + 1]]
-                mem = mem[np.argsort(t_on[mem], kind="stable")]  # by arrival time
-                # dist uses window-LOCAL time (veh windows are local); the printed
-                # time is absolute (local + offset)
-                rec["all_val"] = [float(pv[k, w]) for k in range(n_eff)]
-                rec["all_time"] = [
-                    (
-                        float(pix[k, w] * time_step + time_offset)
-                        if pix[k, w] >= 0
-                        else 0.0
-                    )
-                    for k in range(n_eff)
-                ]
-                rec["all_dist"] = [
-                    _lead_dist(
-                        mem,
-                        float(pix[k, w] * time_step) if pix[k, w] >= 0 else 0.0,
-                        veh,
-                        L,
-                    )
-                    for k in range(n_eff)
-                ]
-                rec["veh_lines"] = [
-                    vehicles[int(kept_idx[m])].write(file_format) for m in mem
-                ]
-            accum["events"][e].append(rec)
-        if accum["counts"] is not None:
-            for w in events[e]:
-                cb = int((B[w] + time_offset) // counter_secs)
-                if 0 <= cb < n_counter_blocks:
-                    accum["counts"][cb, e] += 1
+        self.s_files = (
+            [
+                open(sim_dir / f"PT_S_{length_str}_Eff_{e + 1}.txt", "w")
+                for e in range(n_eff)
+            ]
+            if out.POT.WRITE_POT_SUMMARY
+            else None
+        )
+        self.v_files = (
+            [
+                open(sim_dir / f"PT_V_{length_str}_{e + 1}.txt", "w")
+                for e in range(n_eff)
+            ]
+            if out.POT.WRITE_POT_VEHICLES
+            else None
+        )
+        self._pt_c_path = sim_dir / f"PT_C_{length_str}.txt"
 
-
-def _write_pot_files(sim_dir, length_str, accum, out, n_eff):
-    """Write the accumulated PT_S / PT_C / PT_V in the C++ POTManager format."""
-    events = accum["events"]
-    if out.POT.WRITE_POT_SUMMARY:
+    def update(
+        self,
+        pot,
+        thresholds,
+        ev_mask,
+        time_step,
+        time_offset,
+        vehicles,
+        file_format,
+        bridge_length,
+    ):
+        """Fold one window's owned above-threshold events in, converting
+        window-local times to absolute. PT_V member-vehicle lines are
+        serialized now, while the window's vehicles are still in memory."""
+        events = _pot_events_per_effect(pot, thresholds, ev_mask)
+        pv, pix, win_count, B = (
+            pot["peak_value"],
+            pot["peak_index"],
+            pot["win_count"],
+            pot["B"],
+        )
+        n_eff = self.n_eff
+        if self.v_files is not None:
+            veh, L = pot["veh"], bridge_length
+            kept_idx, t_on = veh["kept_idx"], veh["t_on"]
+            indptr, members = potmod.window_members_csr(
+                pot["k_start"], pot["k_end"], len(B) - 1
+            )
         for e in range(n_eff):
-            with open(sim_dir / f"PT_S_{length_str}_Eff_{e + 1}.txt", "w") as fh:
-                for i, rec in enumerate(events[e]):
-                    fh.write(
-                        f"{i + 1:>6}{rec['time']:>15.1f}{rec['no_trucks']:>4}{rec['value']:>10.1f}\n"
+            for w in events[e]:
+                self.n_events[e] += 1
+                i = self.n_events[e]
+                time_abs = float(pix[e, w] * time_step + time_offset)
+                value = float(pv[e, w])
+                no_trucks = int(win_count[w])
+                if self.s_files is not None:
+                    self.s_files[e].write(
+                        f"{i:>6}{time_abs:>15.1f}{no_trucks:>4}{value:>10.1f}\n"
                     )
+                if self.v_files is not None:
+                    mem = members[indptr[w] : indptr[w + 1]]
+                    mem = mem[np.argsort(t_on[mem], kind="stable")]  # by arrival
+                    veh_lines = [
+                        vehicles[int(kept_idx[m])].write(file_format) for m in mem
+                    ]
+                    fh = self.v_files[e]
+                    fh.write(f"{i}\n")
+                    for k in range(n_eff):  # C++ writes a block for ALL effects
+                        # dist uses window-LOCAL time (veh windows are local);
+                        # the printed time is absolute (local + offset)
+                        t_k = (
+                            float(pix[k, w] * time_step + time_offset)
+                            if pix[k, w] >= 0
+                            else 0.0
+                        )
+                        d_k = _lead_dist(
+                            mem,
+                            float(pix[k, w] * time_step) if pix[k, w] >= 0 else 0.0,
+                            veh,
+                            L,
+                        )
+                        fh.write(
+                            f"{k + 1:>2}{float(pv[k, w]):>10.1f}{t_k:>15.1f}"
+                            f"{d_k:>10.2f}{no_trucks:>4}\n"
+                        )
+                        for line in veh_lines:
+                            fh.write(line + "\n")
+            if self.counts is not None:
+                for w in events[e]:
+                    # counter block b covers ((b-1)·size, b·size] by event start
+                    # (CPOTManager::Update's strict-`>` rollover), so bin by ceil
+                    cb = int(np.ceil((B[w] + time_offset) / self.counter_secs)) - 1
+                    if cb < 0:
+                        cb = 0
+                    if cb < self.n_counter_blocks:
+                        self.counts[cb, e] += 1
 
-    if out.POT.WRITE_POT_COUNTER and accum["counts"] is not None:
-        counts = accum["counts"]
-        with open(sim_dir / f"PT_C_{length_str}.txt", "w") as fh:
-            fh.write("Block\t" + "".join(f"LE {e + 1}\t" for e in range(n_eff)) + "\n")
-            for b in range(counts.shape[0]):
+    def close(self):
+        for files in (self.s_files, self.v_files):
+            if files is not None:
+                for fh in files:
+                    fh.close()
+        if self.counts is not None:
+            with open(self._pt_c_path, "w") as fh:
                 fh.write(
-                    f"{b + 1}\t"
-                    + "".join(f"{counts[b, e]}\t" for e in range(n_eff))
+                    "Block\t"
+                    + "".join(f"LE {e + 1}\t" for e in range(self.n_eff))
                     + "\n"
                 )
-
-    if out.POT.WRITE_POT_VEHICLES:
-        for e in range(n_eff):
-            with open(sim_dir / f"PT_V_{length_str}_{e + 1}.txt", "w") as fh:
-                for i, rec in enumerate(events[e]):
-                    fh.write(f"{i + 1}\n")
-                    for k in range(n_eff):  # C++ writes a block for ALL effects
-                        fh.write(
-                            f"{k + 1:>2}{rec['all_val'][k]:>10.1f}{rec['all_time'][k]:>15.1f}"
-                            f"{rec['all_dist'][k]:>10.2f}{rec['no_trucks']:>4}\n"
-                        )
-                        for line in rec["veh_lines"]:
-                            fh.write(line + "\n")
+                for b in range(self.counts.shape[0]):
+                    fh.write(
+                        f"{b + 1}\t"
+                        + "".join(f"{self.counts[b, e]}\t" for e in range(self.n_eff))
+                        + "\n"
+                    )
 
 
 def _free_device_bytes(device):
@@ -322,10 +410,6 @@ _UNSUPPORTED_OUTPUTS = (
     ("BlockMax.WRITE_BM_VEHICLES", "block-max vehicles (set_BM_output write_vehicle)"),
     ("BlockMax.WRITE_BM_MIXED", "block-max mixed (set_BM_output write_mixed)"),
     ("WRITE_FATIGUE_EVENT", "fatigue events (set_fatigue_output write_fatigue_event)"),
-    (
-        "Fatigue.WRITE_RAINFLOW_RESIDUALS",
-        "rainflow residuals (set_fatigue_output write_residuals)",
-    ),
 )
 
 
@@ -378,7 +462,9 @@ def _vehicle_stream(traffic, bridge, active_lane, seed, end_time):
         if active_lane is not None:
             lanes = [lanes[i - 1] for i in active_lane]
         for v in heapq.merge(*lanes, key=lambda x: x.get_time()):
-            if v.get_time() >= end_time:
+            # the CPU loop (`while current_time <= end_time`) still processes a
+            # vehicle arriving at exactly end_time, so use a strict `>` cut-off
+            if v.get_time() > end_time:
                 break
             yield v
     elif isinstance(traffic, TrafficGenerator):
@@ -407,9 +493,9 @@ def _vehicle_stream(traffic, bridge, active_lane, seed, end_time):
         )
 
 
-def _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target, align_days):
-    """Yield (vehicles, day_offset, window_days): contiguous, block-aligned day
-    windows each holding about ``target`` vehicles (a vehicle goes to the window
+def _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target):
+    """Yield (vehicles, day_offset, window_days): contiguous whole-day windows
+    each holding about ``target`` vehicles (a vehicle goes to the window
     containing its arrival day). Bounds host memory to one window for generated
     traffic, independent of ``n_days``."""
     end_time = n_days * SECONDS_PER_DAY
@@ -418,7 +504,7 @@ def _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target, align_d
     carry = None
     exhausted = False
     while day0 < n_days and not exhausted:
-        win_end_day = min(day0 + align_days, n_days)
+        win_end_day = min(day0 + 1, n_days)
         vehicles = []
         if carry is not None:
             vehicles.append(carry)
@@ -428,11 +514,11 @@ def _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target, align_d
             if vday < win_end_day:
                 vehicles.append(v)
                 continue
-            # vehicle is past the current window end: grow the window (block-aligned)
-            # while still under the vehicle budget, else carry it to the next window
+            # vehicle is past the current window end: grow the window in whole
+            # days while still under the vehicle budget, else carry it over
             if len(vehicles) < target and win_end_day < n_days:
                 while win_end_day < n_days and vday >= win_end_day:
-                    win_end_day = min(win_end_day + align_days, n_days)
+                    win_end_day = min(win_end_day + 1, n_days)
                 if vday < win_end_day:
                     vehicles.append(v)
                     continue
@@ -444,9 +530,7 @@ def _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target, align_d
         day0 = win_end_day
 
 
-def _array_windows(
-    traffic, bridge, n_days, active_lane, seed, target, align_days, classifier
-):
+def _array_windows(traffic, bridge, n_days, active_lane, seed, target, classifier):
     """Fast generated-traffic path: fuse generate+extract per day (no Python
     Vehicle objects) and accumulate whole days into a window of about ``target``
     vehicles. Yields (extracted, day_offset, window_days) where ``extracted`` is
@@ -464,10 +548,10 @@ def _array_windows(
     no_lane = bridge.no_lane
     day0 = 0
     while day0 < n_days:
-        win_end_day = min(day0 + align_days, n_days)
+        win_end_day = min(day0 + 1, n_days)
         chunks = []
         count = 0
-        while True:  # grow the window in block-aligned day steps up to ~target
+        while True:  # grow the window in whole-day steps up to ~target
             chunk = libbtls._generate_and_extract(
                 lanes, win_end_day * SECONDS_PER_DAY, no_lane, classifier
             )
@@ -475,7 +559,7 @@ def _array_windows(
             count += len(chunk[0])
             if count >= target or win_end_day >= n_days:
                 break
-            win_end_day = min(win_end_day + align_days, n_days)
+            win_end_day = min(win_end_day + 1, n_days)
         extracted = (
             chunks[0]
             if len(chunks) == 1
@@ -487,14 +571,49 @@ def _array_windows(
         day0 = win_end_day
 
 
-def _flow_hour_origin(traffic):
-    """Start time of flow-stats hour 1: 0 for generated traffic; for recorded, the
-    C++ ``m_FirstHour`` boundary floor(first-vehicle-time / 3600) * 3600. The hour
-    grid then spans the whole simulated length (n_days*24 hours)."""
-    if isinstance(traffic, TrafficGenerator):
-        return 0.0
-    firsts = [lane[0].get_time() for lane in traffic._lanes_vehicles if lane]
-    return float(int(min(firsts) // 3600) * 3600) if firsts else 0.0
+_PER_AXLE_IDX = (9, 10, 11)  # aw, asp, at in the extraction tuple
+
+
+def _subset_extracted(extracted, vmask):
+    """Row-subset an extraction tuple by a per-vehicle mask (per-axle arrays
+    are masked via each vehicle's axle count)."""
+    amask = np.repeat(vmask, extracted[8])
+    return tuple(
+        arr[amask] if i in _PER_AXLE_IDX else arr[vmask]
+        for i, arr in enumerate(extracted)
+    )
+
+
+def _concat_extracted(a, b):
+    return tuple(np.concatenate([x, y]) for x, y in zip(a, b))
+
+
+def _seam_context(raw_windows, first_time, carry_of, concat, count):
+    """Attach window-seam context to a raw (data, day0, win_days) window stream.
+
+    Yields (data, day0, win_days, n_carried, next_arrival) where ``data`` gains
+    the previous window's tail vehicles that are still crossing at the seam
+    (``n_carried`` of them, prepended — load context only, their events belong
+    to the previous window) and ``next_arrival`` is the following window's first
+    arrival time (absolute; inf for the last window), the boundary that ends the
+    event straddling the seam. Windows whose first arrival is still unknown
+    (empty successors) are held back until one arrives."""
+    pending = []
+    carry = None
+    for data, day0, win_days in raw_windows:
+        t0 = first_time(data)
+        if t0 is not None:
+            for p in pending:
+                yield (*p, t0)
+            pending = []
+        n_carried = 0
+        if carry is not None and count(carry):
+            n_carried = count(carry)
+            data = concat(carry, data)
+        carry = carry_of(data, (day0 + win_days) * SECONDS_PER_DAY)
+        pending.append((data, day0, win_days, n_carried))
+    for p in pending:
+        yield (*p, np.inf)
 
 
 def _traffic_windows(
@@ -504,32 +623,49 @@ def _traffic_windows(
     active_lane,
     seed,
     target,
-    align_days,
     want_vehicles,
     classifier=None,
 ):
-    """Yield (extracted, vehicles, day_offset, window_days) day-windows.
-    ``extracted`` (the per-window vehicle/axle array tuple) is always present;
-    ``vehicles`` is the Vehicle list — kept only when a per-vehicle output (PT_V)
-    needs it, else ``None``. Generated traffic without such an output takes the
-    fused generate+extract fast path (no Python Vehicle objects). ``classifier``
-    (when flow statistics are wanted) makes the extraction also return each
-    vehicle's class bin."""
+    """Yield (extracted, vehicles, day_offset, window_days, n_carried,
+    next_arrival) day-windows. ``extracted`` (the per-window vehicle/axle array
+    tuple) is always present; ``vehicles`` is the Vehicle list — kept only when
+    a per-vehicle output (PT_V) needs it, else ``None``. Generated traffic
+    without such an output takes the fused generate+extract fast path (no Python
+    Vehicle objects). ``classifier`` (when flow statistics are wanted) makes the
+    extraction also return each vehicle's class bin. ``n_carried`` /
+    ``next_arrival`` are the seam context (see :func:`_seam_context`) so load
+    effects and events at window seams match a continuous run."""
     no_lane = bridge.no_lane
+    L = bridge.length
     if isinstance(traffic, TrafficGenerator) and not want_vehicles:
-        for extracted, day0, win_days in _array_windows(
-            traffic, bridge, n_days, active_lane, seed, target, align_days, classifier
+        raw = _array_windows(
+            traffic, bridge, n_days, active_lane, seed, target, classifier
+        )
+        for extracted, day0, win_days, n_carried, next_arrival in _seam_context(
+            raw,
+            first_time=lambda ex: float(ex[0][0]) if len(ex[0]) else None,
+            carry_of=lambda ex, seam: _subset_extracted(
+                ex, ex[0] + (L + ex[6]) / ex[1] > seam
+            ),
+            concat=_concat_extracted,
+            count=lambda ex: len(ex[0]),
         ):
-            yield extracted, None, day0, win_days
+            yield extracted, None, day0, win_days, n_carried, next_arrival
     else:
         from ..lib import libbtls
 
-        for vehicles, day0, win_days in _vehicle_windows(
-            traffic, bridge, n_days, active_lane, seed, target, align_days
+        raw = _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target)
+        t_off = lambda v: v.get_time() + (L + v.get_length()) / v.get_velocity()
+        for vehicles, day0, win_days, n_carried, next_arrival in _seam_context(
+            raw,
+            first_time=lambda vs: vs[0].get_time() if vs else None,
+            carry_of=lambda vs, seam: [v for v in vs if t_off(v) > seam],
+            concat=lambda ca, vs: ca + vs,
+            count=len,
         ):
             yield libbtls._extract_axle_data(
                 vehicles, no_lane, classifier
-            ), vehicles, day0, win_days
+            ), vehicles, day0, win_days, n_carried, next_arrival
 
 
 def run(
@@ -608,15 +744,13 @@ def run(
     bm_block_days = (
         out.BlockMax.BLOCK_SIZE_DAYS + out.BlockMax.BLOCK_SIZE_SECS / SECONDS_PER_DAY
     ) or 1
-    align_days = max(1, int(round(bm_block_days)))  # windows never split a block
+    bm_block_secs = bm_block_days * SECONDS_PER_DAY
 
     total_blocks = max(0, int(np.ceil(n_days / bm_block_days)))
-    global_bm = np.zeros((total_blocks, n_eff))
+    bm_state = _new_bm_state(total_blocks, n_eff)
 
     thresholds = list(bridge._threshold_list) if want_pot else None
-    counter_secs = 0.0
-    n_counter_blocks = 0
-    accum = None
+    pot_stream = None
     if want_pot:
         counter_secs = (
             out.POT.POT_COUNT_SIZE_DAYS * SECONDS_PER_DAY + out.POT.POT_COUNT_SIZE_SECS
@@ -624,14 +758,9 @@ def run(
         if counter_secs <= 0:
             counter_secs = SECONDS_PER_DAY
         n_counter_blocks = max(1, int(np.ceil(n_days * SECONDS_PER_DAY / counter_secs)))
-        accum = {
-            "events": [[] for _ in range(n_eff)],
-            "counts": (
-                np.zeros((n_counter_blocks, n_eff), dtype=np.int64)
-                if out.POT.WRITE_POT_COUNTER
-                else None
-            ),
-        }
+        pot_stream = _PotStream(
+            sim_dir, length_str, out, n_eff, counter_secs, n_counter_blocks
+        )
 
     rainflows = None
     if want_fatigue:
@@ -673,12 +802,14 @@ def run(
         classifier = (
             libbtls._VehClassAxle() if ctype == 0 else libbtls._VehClassPattern()
         )
+        # hour 1 starts at t=0 for both traffic kinds: the CPU engine constructs
+        # its _VehicleBuffer with start_time=0.0 (simulation.py), so recorded
+        # traffic starting later gets leading zero rows, not a shifted grid
         flow = FlowStatsAccumulator(
             bridge.no_lane,
             ctype,
             traffic._no_lane_dir_1,
             n_days * 24,
-            _flow_hour_origin(traffic),
         )
 
     target = _window_target_vehicles(n_eff, device, want_pot)
@@ -689,81 +820,95 @@ def run(
 
     show_progress = n_days > 730  # multi-year streamed runs: report window progress
     t_start = time.perf_counter()
-    for extracted, vehicles, day0, win_days in _traffic_windows(
+    for (
+        extracted,
+        vehicles,
+        day0,
+        win_days,
+        n_carried,
+        next_arrival,
+    ) in _traffic_windows(
         traffic,
         bridge,
         n_days,
         active_lane,
         seed,
         target,
-        align_days,
         want_vehicles,
         classifier,
     ):
         time_offset = day0 * SECONDS_PER_DAY
-        if want_flow:  # raw per-vehicle counts (time, global lane, is-car, class bin)
-            flow.update(extracted[0], extracted[4], extracted[12], extracted[13])
-        if want_pot or want_stats:  # both need the per-event partition + peak_value
-            pot = compute_pot(
-                extracted,
-                il_specs=il_specs,
-                weights=weights,
-                bridge_length=bridge.length,
-                time_step=time_step,
-                min_gvw=min_gvw,
-                block_size_days=bm_block_days,
-                device=device,
-                time_offset=time_offset,
-                rainflows=rainflows,
-                th_file=th_file,
+        if want_flow:  # raw per-vehicle counts (time, global lane, is-car, class
+            # bin), excluding the carried seam-context rows the previous window
+            # already counted
+            flow.update(
+                extracted[0][n_carried:],
+                extracted[4][n_carried:],
+                extracted[12][n_carried:],
+                extracted[13][n_carried:],
             )
-            if pot is None:  # empty window (no vehicle above min_gvw)
-                continue
-            if want_pot:
-                pot["_bridge_length"] = bridge.length
-                _accumulate_pot(
-                    accum,
-                    pot,
-                    thresholds,
-                    time_step,
-                    time_offset,
-                    vehicles,
-                    out,
-                    file_format,
-                    counter_secs,
-                    n_counter_blocks,
-                )
-            if want_stats:
-                n_win = len(pot["B"]) - 1
-                wtrk = potmod.truck_occupancy(
-                    pot["k_start"], pot["k_end"], n_win, ~pot["veh"]["is_car"]
-                )
-                stats.update(
-                    pot["peak_value"], pot["win_count"], wtrk, pot["B"], time_offset
-                )
-            win_bm = pot["block_maxima"]
-        else:
-            result = compute_load_effect_maxima(
-                extracted,
-                il_specs=il_specs,
-                weights=weights,
-                bridge_length=bridge.length,
-                time_step=time_step,
-                n_days=win_days,
-                min_gvw=min_gvw,
-                block_size_days=bm_block_days,
-                device=device,
-                time_offset=time_offset,
-                rainflows=rainflows,
-                th_file=th_file,
-            )
-            win_bm = result["block_maxima"]
+        is_last = not np.isfinite(next_arrival)
+        win_secs = win_days * SECONDS_PER_DAY
+        # BM / POT / stats are all reductions over the C++ event partition,
+        # rebuilt here per window (rainflow / TH ride along on the same pass)
+        pot = compute_pot(
+            extracted,
+            il_specs=il_specs,
+            weights=weights,
+            bridge_length=bridge.length,
+            time_step=time_step,
+            min_gvw=min_gvw,
+            device=device,
+            time_offset=time_offset,
+            rainflows=rainflows,
+            th_file=th_file,
+            next_arrival=None if is_last else next_arrival - time_offset,
+            own_samples=None if is_last else int(round(win_secs / time_step)),
+        )
+        if pot is None:  # empty window (no vehicle above min_gvw)
+            continue
 
-        if want_bm and len(win_bm):  # place this window's day-blocks (drop spillover)
-            start = int(round(day0 / bm_block_days))
-            expected = max(1, int(round(win_days / bm_block_days)))
-            wb = win_bm[:expected]
-            global_bm[start : start + len(wb)] = wb
+        # this window owns the events STARTING in it: carried seam-context
+        # vehicles produce (negative-start) events owned by the previous
+        # window, and post-seam events reappear in the next window with the
+        # full vehicle set. The last window keeps the event at exactly
+        # end_time (the CPU's strict-`>` block rollover includes it).
+        starts = pot["B"][:-1]
+        owned = (starts >= 0.0) & (
+            (starts <= win_secs) if is_last else (starts < win_secs)
+        )
+        # >=1 vehicle and >=1 grid sample (sub-time-step composition windows
+        # merge into their neighbours — the documented grid tolerance)
+        ev_mask = owned & (pot["win_count"] >= 1) & (pot["peak_index"][0] >= 0)
+
+        if want_bm:
+            _accumulate_bm(
+                bm_state, pot, ev_mask, bm_block_secs, time_offset, total_blocks
+            )
+        if want_pot:
+            pot_stream.update(
+                pot,
+                thresholds,
+                ev_mask,
+                time_step,
+                time_offset,
+                vehicles,
+                file_format,
+                bridge.length,
+            )
+        if want_stats:
+            n_win = len(pot["B"]) - 1
+            wtrk = potmod.truck_occupancy(
+                pot["k_start"], pot["k_end"], n_win, ~pot["veh"]["is_car"]
+            )
+            stats.update(
+                pot["peak_value"],
+                pot["win_count"],
+                wtrk,
+                pot["B"],
+                time_offset,
+                ev_mask,
+            )
 
         if show_progress:
             done = day0 + win_days
@@ -777,12 +922,17 @@ def run(
             )
 
     if want_bm:
-        _write_bm_summary(sim_dir, length_str, global_bm, n_eff)
+        _write_bm_summary(sim_dir, length_str, bm_state, n_eff)
     if want_pot:
-        _write_pot_files(sim_dir, length_str, accum, out, n_eff)
+        pot_stream.close()
     if want_fatigue:
         _write_fatigue(
-            sim_dir, length_str, rainflows, int(out.Fatigue.RAINFLOW_DECIMAL)
+            sim_dir,
+            length_str,
+            rainflows,
+            int(out.Fatigue.RAINFLOW_DECIMAL),
+            float(out.Fatigue.RAINFLOW_CUTOFF),
+            bool(out.Fatigue.WRITE_RAINFLOW_RESIDUALS),
         )
     if want_stats:
         if out.Stats.WRITE_SS_CUMULATIVE:

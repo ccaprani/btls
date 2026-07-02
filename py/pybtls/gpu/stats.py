@@ -53,8 +53,9 @@ class StatsAccumulator:
 
     ``interval_size`` and ``total_intervals`` are only used when
     ``want_intervals`` is set (SS_S). Interval ``i`` (1-based) covers events with
-    start time in ``[(i-1)·size, i·size)``; ``sim_start`` is the time origin
-    (0 for generated traffic; the first-vehicle time for recorded traffic)."""
+    start time in ``((i-1)·size, i·size]``, matching CStatsManager::Update's
+    strict-`>` interval rollover; ``sim_start`` is the time origin (0, as the
+    CPU path anchors both traffic kinds at t=0)."""
 
     def __init__(
         self,
@@ -89,14 +90,19 @@ class StatsAccumulator:
             self.ivmin = np.full((n_eff, ni), np.inf)
             self.ivmax = np.full((n_eff, ni), -np.inf)
 
-    def update(self, peak_value, win_count, win_truck_count, B, time_offset):
+    def update(
+        self, peak_value, win_count, win_truck_count, B, time_offset, ev_mask=None
+    ):
         """Fold one traffic window's events into the accumulators.
 
         ``peak_value`` is ``[n_eff, n_win]`` (the per-event governing value),
         ``win_count`` / ``win_truck_count`` are ``[n_win]``, and ``B`` is the
         ``[n_win+1]`` window-boundary times (window-local; ``time_offset`` shifts
-        them back to absolute time for interval binning)."""
-        ev = win_count >= 1  # a window is an event iff a vehicle covers it
+        them back to absolute time for interval binning). ``ev_mask`` (optional)
+        overrides the default event mask — a streamed runner passes ownership +
+        has-a-grid-sample there so seam duplicates and never-sampled windows
+        (whose ``peak_value`` is the 0.0 initializer, not a real value) stay out."""
+        ev = win_count >= 1 if ev_mask is None else ev_mask
         if not ev.any():
             return
         vals = peak_value[:, ev]  # [n_eff, n_ev]
@@ -116,7 +122,11 @@ class StatsAccumulator:
         if not self.want_intervals:
             return
         starts = B[:-1][ev] + time_offset - self.sim_start
-        idx = np.clip((starts / self.interval_size).astype(np.int64), 0, self.ni - 1)
+        # interval i (1-based) covers event starts in ((i-1)·size, i·size] —
+        # CStatsManager::Update advances on strict `>` — so bin by ceil
+        idx = np.clip(
+            np.ceil(starts / self.interval_size).astype(np.int64) - 1, 0, self.ni - 1
+        )
         np.add.at(self.iN, idx, 1)
         np.add.at(self.inveh, idx, wc)
         np.add.at(self.intrk, idx, wt)
