@@ -3,12 +3,7 @@
  * @brief Interface for the CAxleWeight23 class — axle-weight distributions for 2- and 3-axle trucks.
  */
 
-#if !defined(AFX_AXLEWEIGHT23_H__C9129144_60EA_46A6_B604_55DE6A7803BB__INCLUDED_)
-#define AFX_AXLEWEIGHT23_H__C9129144_60EA_46A6_B604_55DE6A7803BB__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include "MultiModalNormal.h"
 
@@ -51,4 +46,3 @@ private:
 	std::vector<CMultiModalNormal> m_v3AxleData;  ///< Axle-weight distributions for 3-axle trucks.
 };
 
-#endif // !defined(AFX_AXLEWEIGHT23_H__C9129144_60EA_46A6_B604_55DE6A7803BB__INCLUDED_)

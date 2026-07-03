@@ -3,12 +3,7 @@
  * @brief Interface for the CLane class — abstract base for a single traffic lane.
  */
 
-#if !defined(AFX_LANE_H__7ED6AACE_9B6B_4619_98A7_E7EA4F38FFD1__INCLUDED_)
-#define AFX_LANE_H__7ED6AACE_9B6B_4619_98A7_E7EA4F38FFD1__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include <string>
 #include <vector>
@@ -68,4 +63,3 @@ protected:
 };
 typedef std::shared_ptr<CLane> CLane_sp;  ///< Shared-pointer alias for CLane.
 
-#endif // !defined(AFX_LANE_H__7ED6AACE_9B6B_4619_98A7_E7EA4F38FFD1__INCLUDED_)
