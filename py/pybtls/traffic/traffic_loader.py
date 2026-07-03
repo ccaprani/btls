@@ -11,6 +11,7 @@ from ..lib.BTLS import (
 )
 from typing import Literal, Union
 from pathlib import Path
+import warnings
 
 from .._resource import warn_if_file_too_large
 
@@ -164,7 +165,7 @@ class TrafficLoader:
             if traffic_loader.getNoVehicles() > 0:
                 traffic_loader.setFirstArrivalTime()
             else:
-                raise Warning(f"No vehicle in lane {i+1}.")
+                warnings.warn(f"No vehicle in lane {i+1}.")
 
             loader_list[i] = traffic_loader
 

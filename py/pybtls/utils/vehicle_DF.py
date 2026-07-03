@@ -29,9 +29,9 @@ def vehicle_list_to_df(vehicle_list: list[Vehicle]) -> pd.DataFrame:
     data_list = [vehicle._get_all_properties() for vehicle in vehicle_list]
     column_names = [
         "Head",  # vehicle id
-        "Year",
-        "Month",
         "Day",
+        "Month",
+        "Year",
         "Hour",
         "Min",
         "Sec",  # the only float value related to time

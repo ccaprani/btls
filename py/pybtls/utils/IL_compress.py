@@ -29,6 +29,14 @@ def compress_discrete_IL(x: list[float], y: list[float], e: float) -> tuple[list
     k1 = 0  # Index of the starting point
 
     for k in range(1, n):
+        if x[k] == x[k1]:
+            # Discontinuity (repeated x-position): keep both points instead
+            # of computing an undefined slope.
+            xs.append(x[k])
+            ys.append(y[k])
+            k1 = k
+            continue
+
         m = (y[k] - y[k1]) / (
             x[k] - x[k1]
         )  # Slope of line from start point to trial point

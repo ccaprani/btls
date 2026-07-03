@@ -23,21 +23,26 @@ def read_AE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     Returns
     -------
     pd.DataFrame\n
-        The all events data.
+        The all events data. "No. Vehicles" is the total number of
+        vehicles in the event, including cars.
     """
 
     # Read data
-    return_data = pd.read_csv(
-        file_path,
-        sep=r"\s+",
-        header=None,
-        skiprows=max(0, start_line - 1),
-        nrows=no_lines,
-    )
+    try:
+        return_data = pd.read_csv(
+            file_path,
+            sep=r"\s+",
+            header=None,
+            skiprows=max(0, start_line - 1),
+            nrows=no_lines,
+        )
+    except pd.errors.EmptyDataError:
+        return pd.DataFrame(columns=["Start Time", "No. Vehicles"])
+
     no_effects = len(return_data.columns) - 2
 
     # Set column ids
-    column_ids = ["Start Time", "No. Trucks"] + [
+    column_ids = ["Start Time", "No. Vehicles"] + [
         f"Effect {i + 1}" for i in range(no_effects)
     ]
     return_data.columns = column_ids

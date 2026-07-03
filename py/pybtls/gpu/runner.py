@@ -300,10 +300,14 @@ class _PotStream:
         vehicles,
         file_format,
         bridge_length,
+        grid_phase=0.0,
     ):
         """Fold one window's owned above-threshold events in, converting
         window-local times to absolute. PT_V member-vehicle lines are
-        serialized now, while the window's vehicles are still in memory."""
+        serialized now, while the window's vehicles are still in memory.
+        ``grid_phase`` is the window's sample-grid phase (see
+        :func:`engine.compute_from_axles`): a peak at sample index ``k`` is at
+        absolute time ``k*ts + grid_phase + time_offset``."""
         events = _pot_events_per_effect(pot, thresholds, ev_mask)
         pv, pix, win_count, B = (
             pot["peak_value"],
@@ -322,7 +326,7 @@ class _PotStream:
             for w in events[e]:
                 self.n_events[e] += 1
                 i = self.n_events[e]
-                time_abs = float(pix[e, w] * time_step + time_offset)
+                time_abs = float(pix[e, w] * time_step + grid_phase + time_offset)
                 value = float(pv[e, w])
                 no_trucks = int(win_count[w])
                 if self.s_files is not None:
@@ -341,13 +345,17 @@ class _PotStream:
                         # dist uses window-LOCAL time (veh windows are local);
                         # the printed time is absolute (local + offset)
                         t_k = (
-                            float(pix[k, w] * time_step + time_offset)
+                            float(pix[k, w] * time_step + grid_phase + time_offset)
                             if pix[k, w] >= 0
                             else 0.0
                         )
                         d_k = _lead_dist(
                             mem,
-                            float(pix[k, w] * time_step) if pix[k, w] >= 0 else 0.0,
+                            (
+                                float(pix[k, w] * time_step + grid_phase)
+                                if pix[k, w] >= 0
+                                else 0.0
+                            ),
                             veh,
                             L,
                         )
@@ -838,6 +846,14 @@ def run(
         classifier,
     ):
         time_offset = day0 * SECONDS_PER_DAY
+        # keep every window's sample grid on the global k*ts lattice: shift the
+        # window-local grid by the phase that lands its first sample on a global
+        # lattice point. 0 when time_offset is a multiple of ts (the default
+        # ts | 86400); otherwise a memory-driven window split would phase-shift
+        # later windows' grids and make results depend on the split.
+        grid_phase = (-time_offset) % time_step
+        if grid_phase < 1e-6 or grid_phase > time_step - 1e-6:
+            grid_phase = 0.0
         if want_flow:  # raw per-vehicle counts (time, global lane, is-car, class
             # bin), excluding the carried seam-context rows the previous window
             # already counted
@@ -863,7 +879,12 @@ def run(
             rainflows=rainflows,
             th_file=th_file,
             next_arrival=None if is_last else next_arrival - time_offset,
-            own_samples=None if is_last else int(round(win_secs / time_step)),
+            own_samples=(
+                None
+                if is_last
+                else int(np.ceil((win_secs - grid_phase) / time_step - 1e-9))
+            ),
+            grid_phase=grid_phase,
         )
         if pot is None:  # empty window (no vehicle above min_gvw)
             continue
@@ -871,12 +892,25 @@ def run(
         # this window owns the events STARTING in it: carried seam-context
         # vehicles produce (negative-start) events owned by the previous
         # window, and post-seam events reappear in the next window with the
-        # full vehicle set. The last window keeps the event at exactly
-        # end_time (the CPU's strict-`>` block rollover includes it).
+        # full vehicle set.
         starts = pot["B"][:-1]
-        owned = (starts >= 0.0) & (
-            (starts <= win_secs) if is_last else (starts < win_secs)
-        )
+        if not is_last:
+            owned = (starts >= 0.0) & (starts < win_secs)
+        elif isinstance(traffic, TrafficLoader):
+            # loader end-of-run: the CPU read-and-sim loop advances on EVERY
+            # vehicle read (regardless of GVW) and breaks on the end-of-stream
+            # vehicle *before* processing the tail (simulation.py:687-690), so
+            # only events at/after the LAST READ arrival are lost. Match it:
+            # own events starting before the full stream's last arrival (not
+            # the min_gvw-filtered one — trailing light vehicles still advance
+            # the CPU loop past earlier trucks' crossings).
+            last_arrival = float(extracted[0].max()) - time_offset
+            owned = (starts >= 0.0) & (starts < last_arrival)
+        else:
+            # generated end-of-run: the CPU `while current_time <= end_time`
+            # loop still processes the event starting at exactly end_time (its
+            # strict-`>` block rollover includes it).
+            owned = (starts >= 0.0) & (starts <= win_secs)
         # >=1 vehicle and >=1 grid sample (sub-time-step composition windows
         # merge into their neighbours — the documented grid tolerance)
         ev_mask = owned & (pot["win_count"] >= 1) & (pot["peak_index"][0] >= 0)
@@ -895,6 +929,7 @@ def run(
                 vehicles,
                 file_format,
                 bridge.length,
+                grid_phase,
             )
         if want_stats:
             n_win = len(pot["B"]) - 1

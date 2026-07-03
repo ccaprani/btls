@@ -31,25 +31,7 @@ def read_E_IS(
     # Read data
     data_rows = []
 
-    with open(file_path, "r") as file:
-        for _ in range(max(1, start_line)):
-            next(file)  # Skip the header and the specified number of lines
-        i = 0
-        for line in file:
-            split_line = line.strip().split()  # Split by spaces or tabs
-            data_rows.append(split_line)
-            i += 1
-            if no_lines is not None and i >= no_lines:
-                break
-
-    # Convert to DataFrame
-    return_data = pd.DataFrame(data_rows)
-    return_data = return_data.drop(
-        return_data.columns[12:], axis=1
-    )  # Remove the useless truck presence counts
-    # Column names must match CEventStatistics::outputString order:
-    # N, vehicles, trucks, min, max, mean, stddev, variance, skewness, kurtosis
-    return_data.columns = [
+    column_ids = [
         "Index",
         "Time",
         "No. Events",
@@ -63,6 +45,29 @@ def read_E_IS(
         "Skewness",
         "Kurtosis",
     ]
+
+    with open(file_path, "r") as file:
+        for _ in range(max(1, start_line)):
+            next(file, None)  # Skip the header and the specified number of lines
+        i = 0
+        for line in file:
+            split_line = line.strip().split()  # Split by spaces or tabs
+            data_rows.append(split_line)
+            i += 1
+            if no_lines is not None and i >= no_lines:
+                break
+
+    if not data_rows:
+        return pd.DataFrame(columns=column_ids)
+
+    # Convert to DataFrame
+    return_data = pd.DataFrame(data_rows)
+    return_data = return_data.drop(
+        return_data.columns[12:], axis=1
+    )  # Remove the useless truck presence counts
+    # Column names must match CEventStatistics::outputString order:
+    # N, vehicles, trucks, min, max, mean, stddev, variance, skewness, kurtosis
+    return_data.columns = column_ids
 
     # Convert data types
     return_data["Index"] = return_data["Index"].astype(int)

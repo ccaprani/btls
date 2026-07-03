@@ -23,11 +23,13 @@ def read_FE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     Returns
     -------
     pd.DataFrame\n
-        The fatigue events data.
+        The fatigue events data. "No. Vehicles" is the total number of
+        vehicles in the event, including cars.
     """
 
     # Read data
     data_rows = []
+    no_effects = 0
 
     with open(file_path, "r") as file:
         for _ in range(max(0, 2 * (start_line - 1))):
@@ -40,12 +42,23 @@ def read_FE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
 
             no_effects = int((len(split_line_1) - 1) / 2)
 
-            ordered_line = [split_line_1[0], split_line_2[0]]  # Event Time, No. Trucks
+            # The two lines hold the (max, min) pair for each effect in
+            # chronological order (whichever occurs first is written
+            # first), not max-first: compare the amplitudes to tell which
+            # is which.
+            ordered_line = [
+                split_line_1[0],
+                split_line_2[0],
+            ]  # Event Time, No. Vehicles
             for j in range(no_effects):
-                ordered_line.append(split_line_1[2 * j + 1])  # Time Max
-                ordered_line.append(split_line_1[2 * j + 2])  # Max
-                ordered_line.append(split_line_2[2 * j + 1])  # Time Min
-                ordered_line.append(split_line_2[2 * j + 2])  # Min
+                time_1 = split_line_1[2 * j + 1]
+                value_1 = split_line_1[2 * j + 2]
+                time_2 = split_line_2[2 * j + 1]
+                value_2 = split_line_2[2 * j + 2]
+                if float(value_1) >= float(value_2):
+                    ordered_line.extend([time_1, value_1, time_2, value_2])
+                else:
+                    ordered_line.extend([time_2, value_2, time_1, value_1])
 
             data_rows.append(ordered_line)
 
@@ -53,21 +66,23 @@ def read_FE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
             if no_lines is not None and i >= no_lines:
                 break
 
-    # Convert to DataFrame
-    return_data = pd.DataFrame(data_rows)
-
     # Set column ids
-    column_ids = ["Start Time", "No. Trucks"]
+    column_ids = ["Start Time", "No. Vehicles"]
     for i in range(no_effects):
         time_max_id = f"Effect {i + 1} Max Time"
         max_id = f"Effect {i + 1} Max Amplitude"
         time_min_id = f"Effect {i + 1} Min Time"
         min_id = f"Effect {i + 1} Min Amplitude"
         column_ids.extend([time_max_id, max_id, time_min_id, min_id])
-    return_data.columns = column_ids
+
+    if not data_rows:
+        return pd.DataFrame(columns=column_ids)
+
+    # Convert to DataFrame
+    return_data = pd.DataFrame(data_rows, columns=column_ids)
 
     # Convert data types
     return_data = return_data.astype(float)
-    return_data["No. Trucks"] = return_data["No. Trucks"].astype(int)
+    return_data["No. Vehicles"] = return_data["No. Vehicles"].astype(int)
 
     return return_data

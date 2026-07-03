@@ -20,20 +20,7 @@ def read_E_CS(file_path: Path) -> pd.DataFrame:
         The effect cumulative statistics data.
     """
 
-    # Read data
-    return_data = pd.read_csv(
-        file_path,
-        delimiter="\s+",
-        header=None,
-        skiprows=1,
-    )
-
-    # Remove the truck presence counts (it could mislead user to a wrong number of trucks presence since a truck could be involved in multiple events).
-    return_data = return_data.drop(return_data.columns[11:], axis=1)
-
-    # Set the column names (must match CEventStatistics::outputString order:
-    # N, vehicles, trucks, min, max, mean, stddev, variance, skewness, kurtosis)
-    return_data.columns = [
+    column_ids = [
         "Effect",
         "No. Events",
         "No. Vehicles",
@@ -46,6 +33,24 @@ def read_E_CS(file_path: Path) -> pd.DataFrame:
         "Skewness",
         "Kurtosis",
     ]
+
+    # Read data
+    try:
+        return_data = pd.read_csv(
+            file_path,
+            delimiter="\s+",
+            header=None,
+            skiprows=1,
+        )
+    except pd.errors.EmptyDataError:
+        return pd.DataFrame(columns=column_ids)
+
+    # Remove the truck presence counts (it could mislead user to a wrong number of trucks presence since a truck could be involved in multiple events).
+    return_data = return_data.drop(return_data.columns[11:], axis=1)
+
+    # Set the column names (must match CEventStatistics::outputString order:
+    # N, vehicles, trucks, min, max, mean, stddev, variance, skewness, kurtosis)
+    return_data.columns = column_ids
 
     return return_data
 
