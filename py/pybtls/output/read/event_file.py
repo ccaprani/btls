@@ -21,6 +21,16 @@ def read_event_file(file_path: Path) -> pd.DataFrame:
         The effect interval statistics data.
     """
 
+    column_ids = [
+        "Index",
+        "Effect",
+        "Value",
+        "Time",
+        "Position on Bridge",
+        "No. Vehicles",  # total no. of vehicles in the event, including cars
+        "Trucks",
+    ]  # The "Position on Bridge" means the distance of the first axle of the first truck on the bridge relative to the bridge datum, at the time of the crossing event maximum effect being reached.
+
     # Read data
     data_rows = []
 
@@ -40,17 +50,12 @@ def read_event_file(file_path: Path) -> pd.DataFrame:
                 vehicle._create(line, 1)
                 data_rows[-1][-1].append(vehicle)
 
+    if not data_rows:
+        return pd.DataFrame(columns=column_ids)
+
     # Convert to DataFrame
     return_data = pd.DataFrame(data_rows)
-    return_data.columns = [
-        "Index",
-        "Effect",
-        "Value",
-        "Time",
-        "Position on Bridge",
-        "No. Trucks",
-        "Trucks",
-    ]  # The "Position on Bridge" means the distance of the first axle of the first truck on the bridge relative to the bridge datum, at the time of the crossing event maximum effect being reached.
+    return_data.columns = column_ids
 
     # Convert data types
     return_data["Index"] = return_data["Index"].astype(int)
@@ -58,7 +63,7 @@ def read_event_file(file_path: Path) -> pd.DataFrame:
     return_data["Value"] = return_data["Value"].astype(float)
     return_data["Time"] = return_data["Time"].astype(float)
     return_data["Position on Bridge"] = return_data["Position on Bridge"].astype(float)
-    return_data["No. Trucks"] = return_data["No. Trucks"].astype(int)
+    return_data["No. Vehicles"] = return_data["No. Vehicles"].astype(int)
     # return_data["Trucks"] keeps unchanged
 
     return return_data

@@ -29,13 +29,17 @@ def read_POT_C(
     """
 
     # Read data
-    return_data = pd.read_csv(
-        file_path,
-        sep=r"\s+",
-        header=None,
-        skiprows=max(1, start_line),
-        nrows=no_lines,
-    )
+    try:
+        return_data = pd.read_csv(
+            file_path,
+            sep=r"\s+",
+            header=None,
+            skiprows=max(1, start_line),
+            nrows=no_lines,
+        )
+    except pd.errors.EmptyDataError:
+        return pd.DataFrame(columns=["Block"])
+
     no_effects = len(return_data.columns) - 1
 
     # Set column ids

@@ -279,7 +279,7 @@ class VehicleGenGarage:
         self._tag = "Garage"
         self._config = _ConfigData()
 
-        if len(kernel) != 3 and not all(len(sublist) == 2 for sublist in kernel):
+        if len(kernel) != 3 or not all(len(sublist) == 2 for sublist in kernel):
             raise ValueError("Invalid kernel data for garage vehicle generator.")
 
         if isinstance(garage, (Path, str)):

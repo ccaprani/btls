@@ -45,12 +45,9 @@ def write_garage_file(
         pattern (Default): Categorise vehicle by pattern. \n
     """
 
+    out_path = Path(out_path)
     file_name = out_path.name
-    absolute_out_dir = (
-        Path(out_path).resolve().parent
-        if not isinstance(out_path, Path)
-        else out_path.resolve().parent
-    )
+    absolute_out_dir = out_path.resolve().parent
 
     os.makedirs(absolute_out_dir, exist_ok=True)
 

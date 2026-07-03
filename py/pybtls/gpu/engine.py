@@ -288,11 +288,17 @@ def prepare_axles(
     return axles, n_total, veh
 
 
-def _occupancy(veh, n_total, time_step):
-    """Per-sample on-bridge vehicle count (the TH 'No. Trucks' column): a
-    +1/-1 difference array over each vehicle's [t_on, t_off) sample range."""
-    nlo = np.clip(np.ceil(veh["t_on"] / time_step).astype(np.int64), 0, n_total)
-    nhi = np.clip(np.ceil(veh["t_off"] / time_step).astype(np.int64), 0, n_total)
+def _occupancy(veh, n_total, time_step, grid_phase=0.0):
+    """Per-sample on-bridge vehicle count (the TH 'No. Vehicles' column): a
+    +1/-1 difference array over each vehicle's [t_on, t_off) sample range.
+    ``grid_phase`` offsets the sample grid onto the global k*ts lattice (see
+    :func:`compute_from_axles`) so occupancy is split-invariant."""
+    nlo = np.clip(
+        np.ceil((veh["t_on"] - grid_phase) / time_step).astype(np.int64), 0, n_total
+    )
+    nhi = np.clip(
+        np.ceil((veh["t_off"] - grid_phase) / time_step).astype(np.int64), 0, n_total
+    )
     diff = np.zeros(n_total + 1, dtype=np.int64)
     np.add.at(diff, nlo, 1)
     np.add.at(diff, nhi, -1)
@@ -314,10 +320,17 @@ def compute_from_axles(
     th=None,
     occupancy=None,
     own_samples=None,
+    grid_phase=0.0,
 ):
     """Device-specific step: move per-axle arrays to the device, expand them into
     per-time-sample pairs ON the device (no host pair materialization), and
     compute per-effect block maxima.
+
+    ``grid_phase`` (in [0, time_step)) shifts every window-local sample from
+    ``k*ts`` to ``k*ts + grid_phase`` so the absolute sample times stay on the
+    global ``k*ts`` lattice regardless of where a streamed run split its windows
+    (otherwise a window whose ``time_offset`` is not a multiple of ``ts`` samples
+    a phase-shifted grid, making results depend on the memory-driven split).
 
     If ``pot_boundaries`` (the POT event-window boundary times) is given, the
     same per-block E(t) is also reduced per event window: the result gains
@@ -363,8 +376,10 @@ def compute_from_axles(
     # congested/long-span traffic and shared GPUs alike.
     tlo = torch.where(sign > 0, datum, datum - L / speed)
     thi = torch.where(sign > 0, datum + L / speed, datum)
-    nlo = torch.clamp(torch.ceil(tlo / ts).long(), 0, n_total - 1)
-    nhi = torch.clamp(torch.floor(thi / ts).long(), 0, n_total - 1)
+    # sample k has time k*ts + grid_phase, so its on-bridge index range solves
+    # tlo <= k*ts + grid_phase <= thi
+    nlo = torch.clamp(torch.ceil((tlo - grid_phase) / ts).long(), 0, n_total - 1)
+    nhi = torch.clamp(torch.floor((thi - grid_phase) / ts).long(), 0, n_total - 1)
     if need_transverse:
         lane_ax = torch.as_tensor(axles["lane"], device=dev)
         trans_ax = torch.as_tensor(axles["trans"], dtype=dt, device=dev)
@@ -527,7 +542,7 @@ def compute_from_axles(
         pp = (
             torch.repeat_interleave(sign, cnt)
             * torch.repeat_interleave(speed, cnt)
-            * (gsidx.to(dt) * ts - torch.repeat_interleave(datum, cnt))
+            * (gsidx.to(dt) * ts + grid_phase - torch.repeat_interleave(datum, cnt))
         )
         ww = torch.repeat_interleave(weight, cnt)
         if need_transverse:
@@ -622,17 +637,24 @@ def compute_from_axles(
             # signed largest-|E| sample per window (merging across blocks for the
             # rare event that straddles a block boundary)
             gidx = torch.arange(a, z, device=dev)
-            win_s = (torch.searchsorted(Bt, gidx.to(dt) * ts, right=True) - 1).clamp_(
+            t_samp = gidx.to(dt) * ts + grid_phase
+            # only samples inside the event partition [Bt[0], Bt[-1]) belong to a
+            # window; samples before the first arrival or at/after the last exit
+            # lie on the empty bridge (E == 0) and must NOT be clamped into the
+            # first/last window (that would create phantom peak_value=0 events)
+            valid = (t_samp >= Bt[0]) & (t_samp < Bt[-1])
+            gv = gidx[valid]
+            win_s = (torch.searchsorted(Bt, t_samp[valid], right=True) - 1).clamp_(
                 0, n_win - 1
             )
             zeros_win = torch.zeros(n_win, dtype=dt, device=dev)
             for e in range(n_eff):
-                mag = E[e].abs()
+                mag = E[e][valid].abs()
                 bmag = torch.full((n_win,), -1.0, dtype=dt, device=dev)
                 bmag.scatter_reduce_(0, win_s, mag, reduce="amax", include_self=True)
                 # latest sample (max global index) achieving the window's |peak|
                 is_pk = mag == bmag.gather(0, win_s)
-                cand = torch.where(is_pk, gidx, torch.full_like(gidx, -1))
+                cand = torch.where(is_pk, gv, torch.full_like(gv, -1))
                 bidx = torch.full((n_win,), -1, dtype=torch.long, device=dev)
                 bidx.scatter_reduce_(0, win_s, cand, reduce="amax", include_self=True)
                 bval = torch.where(
@@ -716,12 +738,15 @@ def compute_load_effect_maxima(
     time_offset=0.0,
     rainflows=None,
     th_file=None,
+    grid_phase=0.0,
 ):
     """Per-effect block maxima and global maxima via superposition.
 
     Returns dict with "block_maxima" (n_blocks x n_eff) and "global_maxima" (n_eff,).
     ``extracted`` is the pre-extracted vehicle/axle array tuple.
     ``time_offset`` shifts vehicle times to a window-local origin (streamed runs).
+    ``grid_phase`` keeps the sample grid on the global lattice (see
+    :func:`compute_from_axles`).
     ``rainflows`` (one ``_Rainflow`` per effect) accumulates fatigue cycles;
     ``th_file`` (an open file) receives the per-sample time history.
     """
@@ -732,7 +757,7 @@ def compute_load_effect_maxima(
     if axles is None:
         return {"block_maxima": np.zeros((0, n_eff)), "global_maxima": np.zeros(n_eff)}
     occupancy = (
-        _occupancy(veh, n_total, time_step)
+        _occupancy(veh, n_total, time_step, grid_phase)
         if (rainflows is not None or th_file is not None)
         else None
     )
@@ -747,8 +772,9 @@ def compute_load_effect_maxima(
         device,
         dtype,
         rainflows=rainflows,
-        th=(th_file, time_offset) if th_file is not None else None,
+        th=(th_file, time_offset + grid_phase) if th_file is not None else None,
         occupancy=occupancy,
+        grid_phase=grid_phase,
     )
 
 
@@ -767,6 +793,7 @@ def compute_pot(
     th_file=None,
     next_arrival=None,
     own_samples=None,
+    grid_phase=0.0,
 ):
     """Peaks-over-threshold event reduction (shares one E(t) pass with BM).
 
@@ -797,7 +824,7 @@ def compute_pot(
         extra_boundaries=None if next_arrival is None else [float(next_arrival)],
     )
     occupancy = (
-        _occupancy(veh, n_total, time_step)
+        _occupancy(veh, n_total, time_step, grid_phase)
         if (rainflows is not None or th_file is not None)
         else None
     )
@@ -813,9 +840,10 @@ def compute_pot(
         dtype,
         pot_boundaries=B,
         rainflows=rainflows,
-        th=(th_file, time_offset) if th_file is not None else None,
+        th=(th_file, time_offset + grid_phase) if th_file is not None else None,
         occupancy=occupancy,
         own_samples=own_samples,
+        grid_phase=grid_phase,
     )
     return {
         "peak_value": out["pot_peak_value"],  # [n_eff, n_window], signed

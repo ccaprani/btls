@@ -29,16 +29,18 @@ def read_TS(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     # Check the what vehicle classifier was used
     with open(file_path, "r") as file:
         headline = file.readline().strip()
-    if "Axles" in headline:
+    if "-axle" in headline.lower():
         column_names = [
             "Hour",
             "No. Vehicles",
             "No. Trucks",
             "No. Cars",
-            "2-Axles",
-            "3-Axles",
-            "4-Axles",
-            "5-Axles",
+            "0: Default",
+            "1: Car",
+            "2: 2-axle",
+            "3: 3-axle",
+            "4: 4-axle",
+            "5: 5-axle",
         ]
     else:
         column_names = [
@@ -58,12 +60,15 @@ def read_TS(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
         ]
 
     # Read data
-    return_data = pd.read_csv(
-        file_path,
-        delimiter="\s+",
-        names=column_names,
-        skiprows=max(1, start_line),
-        nrows=no_lines,
-    )
+    try:
+        return_data = pd.read_csv(
+            file_path,
+            delimiter="\s+",
+            names=column_names,
+            skiprows=max(1, start_line),
+            nrows=no_lines,
+        )
+    except pd.errors.EmptyDataError:
+        return_data = pd.DataFrame(columns=column_names)
 
     return return_data

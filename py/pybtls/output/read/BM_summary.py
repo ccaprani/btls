@@ -33,7 +33,7 @@ def read_BM_S(
 
     with open(file_path, "r") as file:
         for _ in range(max(0, start_line - 1)):
-            next(file)  # Skip the specified number of lines
+            next(file, None)  # Skip the specified number of lines
         i = 0
 
         for line in file:
@@ -43,6 +43,11 @@ def read_BM_S(
             i += 1
             if no_lines is not None and i >= no_lines:
                 break
+
+    if not data_rows:
+        # The number of truck-count buckets cannot be inferred without any
+        # data; return the one column that is always known.
+        return pd.DataFrame(columns=["Block Index"])
 
     # Convert to DataFrame
     return_data = pd.DataFrame(data_rows)

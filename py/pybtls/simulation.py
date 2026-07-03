@@ -678,6 +678,14 @@ class Simulation:
                 )
             lane_for_calc = [lane_list[i - 1] for i in active_lane]
 
+        if isinstance(traffic, TrafficLoader):
+            # An initially-empty lane keeps CLane's default next-arrival time
+            # (0.0), so it would sort first and end the merge loop on the
+            # first iteration — exclude empty lanes from the calculation.
+            lane_for_calc = [lane for lane in lane_for_calc if lane.getNoVehicles() > 0]
+            if not lane_for_calc:
+                raise ValueError("No vehicles in any simulated lane.")
+
         while current_time <= end_time:
             lane_for_calc = sorted(lane_for_calc, key=lambda t: t.getNextArrivalTime())
 

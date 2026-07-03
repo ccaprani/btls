@@ -21,12 +21,15 @@ def read_FR(file_path: Path) -> pd.DataFrame:
     """
 
     # Read data
-    return_data = pd.read_csv(
-        file_path,
-        delimiter="\s+",
-        names=["Amplitude", "No. Cycles"],
-        skiprows=1,
-    )
+    try:
+        return_data = pd.read_csv(
+            file_path,
+            delimiter="\s+",
+            names=["Amplitude", "No. Cycles"],
+            skiprows=1,
+        )
+    except pd.errors.EmptyDataError:
+        return pd.DataFrame(columns=["Amplitude", "No. Cycles"])
 
     # Sort the DataFrame by 'Amplitude'
     return_data.sort_values(by="Amplitude", inplace=True)

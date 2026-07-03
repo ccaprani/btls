@@ -422,7 +422,7 @@ def test_gpu_engine_matches_cpu_multi_vehicle_event():
         )
     )
     two_peak = th["Effect 1"].abs().max()
-    peak_trucks = th.loc[th["Effect 1"].abs().idxmax(), "No. Trucks"]
+    peak_trucks = th.loc[th["Effect 1"].abs().idxmax(), "No. Vehicles"]
 
     gbm = next(
         iter(
@@ -435,7 +435,7 @@ def test_gpu_engine_matches_cpu_multi_vehicle_event():
     remove_folder(ROOT)
 
     # the governing sample genuinely carries both trucks ...
-    assert peak_trucks == 2, f"peak is not a 2-truck event (No. Trucks={peak_trucks})"
+    assert peak_trucks == 2, f"peak is not a 2-truck event (No. Vehicles={peak_trucks})"
     # ... their loads superimpose to twice one truck's peak ...
     assert two_peak == pytest.approx(
         2.0 * one_peak, rel=0.02
@@ -548,7 +548,7 @@ def test_gpu_pot_vehicle_output_structure():
         summary
     ), f"PT_V events={veh['Index'].nunique()} PT_S rows={len(summary)}"
     assert (
-        veh["No. Trucks"] == veh["Trucks"].apply(len)
+        veh["No. Vehicles"] == veh["Trucks"].apply(len)
     ).all(), "PT_V no.-trucks column disagrees with the listed member vehicles"
     remove_folder(ROOT)
 
