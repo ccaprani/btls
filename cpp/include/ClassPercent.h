@@ -3,12 +3,7 @@
  * @brief Interface for the CClassPercent class — per-lane per-class vehicle percentages.
  */
 
-#if !defined(AFX_CLASSPERCENT_H__8B0D33B8_B1E1_47EB_9BAC_3A2586719A60__INCLUDED_)
-#define AFX_CLASSPERCENT_H__8B0D33B8_B1E1_47EB_9BAC_3A2586719A60__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include <vector>
 
@@ -62,4 +57,3 @@ private:
 	std::vector<CP> m_vCP;  ///< Per-lane composition rows.
 };
 
-#endif // !defined(AFX_CLASSPERCENT_H__8B0D33B8_B1E1_47EB_9BAC_3A2586719A60__INCLUDED_)

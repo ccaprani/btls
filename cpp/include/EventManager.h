@@ -3,12 +3,7 @@
  * @brief Interface for the CEventManager class — records load-effect events for one bridge.
  */
 
-#if !defined(AFX_EVENTMANAGER_H__3ED9F26C_A94D_4EA8_A87C_4DB2819160E5__INCLUDED_)
-#define AFX_EVENTMANAGER_H__3ED9F26C_A94D_4EA8_A87C_4DB2819160E5__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include <vector>
 #include <string>
@@ -187,4 +182,3 @@ private:
 	template <typename T> std::string to_string(T const& value, int nDigits);
 };
 
-#endif // !defined(AFX_EVENTMANAGER_H__3ED9F26C_A94D_4EA8_A87C_4DB2819160E5__INCLUDED_)
