@@ -64,6 +64,20 @@ class FlowStatsAccumulator:
         self.n_trk = np.zeros((H, L), dtype=np.int64)
         self.hist = np.zeros((H, L, self.n_bins), dtype=np.int64)
 
+    def extend_hours(self, total_hours):
+        """Grow the hourly tables to ``total_hours`` rows (no-op if not larger).
+        Used for the beyond-end vehicle the CPU flow buffer counts after the
+        last in-run hour (CVehicleBuffer::updateFlowData opens the hour row
+        containing it)."""
+        add = int(total_hours) - self.total_hours
+        if add <= 0:
+            return
+        for name in ("n_veh", "n_car", "n_trk", "hist"):
+            arr = getattr(self, name)
+            pad = np.zeros((add,) + arr.shape[1:], dtype=arr.dtype)
+            setattr(self, name, np.concatenate([arr, pad]))
+        self.total_hours = int(total_hours)
+
     def update(self, vtime, vlane, viscar, viscls):
         """Fold one window's raw per-vehicle arrays (absolute times) into the
         hourly per-lane tallies."""
