@@ -10,7 +10,7 @@ import pybtls.simulation as simulation
 import pybtls.garage as garage
 import pybtls.utils as utils
 
-# import pybtls.post_processing as post_processing
+import pybtls.post_processing as post_processing
 
 from .lib import (
     Vehicle,
