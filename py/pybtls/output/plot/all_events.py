@@ -9,10 +9,20 @@ def plot_AE(data: pd.DataFrame, save_to: Path = None) -> None:
     """
     Plot the all events data from pybtls results.
 
+    One subplot per load effect column, each showing vertical lines from
+    0 to the effect's maximum value against the event start time.
+
     Parameters
     ----------
     data : pd.DataFrame\n
-        The loaded all events from read_AE.
+        The loaded all events from read_AE. Must have columns
+        "Start Time", "No. Vehicles", and one or more "Effect N" columns
+        (N = 1, 2, ...); a subplot is drawn for every column after the
+        first two, so a DataFrame with fewer than 3 columns raises an
+        error from ``plt.subplots``. The x-axis is labelled "Start Time
+        (s)" assuming "Start Time" is in seconds (per read_AE); the
+        y-axis unit of each "Effect N" column (kN or kN·m) is not known
+        to this function and is not labelled.
 
     save_to : Path, optional\n
         The path to save the plot to. \n

@@ -27,6 +27,12 @@ moment_merge
 vehicles_concat
     Recorded vehicle files (Vehicle objects with embedded timestamps).
     Implemented in Phase 1/2.
+rainflow_splice
+    Fatigue rainflow histograms (FR_*): closed-cycle bins are summed like
+    ``bin_sum``, and each chunk's unclosed residual reversal sequence
+    (FRR_* sidecar) is concatenated in chunk order and closed with the
+    same C++ rainflow algorithm, falling back to plain bin summing when
+    no sidecars exist. See ``merge_rainflow``.
 """
 
 from dataclasses import dataclass, field
@@ -56,7 +62,7 @@ _DAYS_PER_YR = _DAYS_PER_MT * _MTS_PER_YR
 class MergeSpec:
     """Declares how one output type merges across chunks."""
 
-    category: str  # "concat" | "bin_sum" | "moment_merge" | "vehicles_concat"
+    category: str  # "concat" | "bin_sum" | "moment_merge" | "vehicles_concat" | "rainflow_splice"
     time_cols: tuple = ()  # fnmatch patterns; shifted by chunk offset (s)
     offset_index_cols: tuple = ()  # continuing counters; shifted by prior max
     renumber_index_cols: tuple = ()  # re-sequenced 1..N after concat

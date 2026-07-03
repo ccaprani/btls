@@ -145,6 +145,7 @@ class Simulation:
               the right choice for essentially all runs.
             - "cuda" / "mps" / "xpu": the experimental GPU engine (PyTorch +
               Triton). The engine name IS the torch device:
+
                 * "cuda" -> **NVIDIA**, and **AMD** via ROCm (both use torch's
                   cuda device); float64.
                 * "mps"  -> **Apple Silicon** (Metal); runs in float32 (MPS has
@@ -153,6 +154,7 @@ class Simulation:
                   clear error; set ``PYTORCH_ENABLE_MPS_FALLBACK=1`` to run those
                   ops on the CPU (slower).
                 * "xpu"  -> **Intel** GPU; float64.
+
               Only "cuda" is currently tested; "mps"/"xpu" are wired but
               unverified (the engine probes each backend for the ops it needs
               and errors clearly if one is missing). Needs ``pybtls[gpu]`` (a build of torch for that

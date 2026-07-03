@@ -37,7 +37,7 @@ class _LoadEffectModeMixin:
             superelevation factor k_e and 1/R) into the influence
             ordinates so the convolved effect comes out in kN.
 
-            "braking": F_axle = AxleWeight * |a| / g, using each vehicle's
+            "braking": F_axle = AxleWeight * ``|a|`` / g, using each vehicle's
             longitudinal acceleration (``Vehicle.set_acceleration``); when
             a vehicle's acceleration is zero, ``braking_factor`` is used
             instead.

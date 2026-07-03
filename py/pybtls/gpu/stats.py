@@ -2,7 +2,7 @@
 
 The C++ engine accumulates, per load effect, the distribution of *per-event
 governing values* — ``CEventStatistics`` updates with
-``Event.getMaxEffect(iLE).getValue()`` (the signed largest-|E| over the event,
+``Event.getMaxEffect(iLE).getValue()`` (the signed largest-``|E|`` over the event,
 cpp/src/EventManager.cpp:105) for every event with at least one vehicle on the
 bridge. That governing value is exactly the GPU engine's POT ``peak_value`` for
 the event window, so the statistics reuse the existing per-window reduction —

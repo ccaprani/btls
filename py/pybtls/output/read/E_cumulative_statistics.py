@@ -17,7 +17,20 @@ def read_E_CS(file_path: Path) -> pd.DataFrame:
     Returns
     -------
     pd.DataFrame\n
-        The effect cumulative statistics data.
+        One row per load effect, with columns:\n
+        - "Effect" : int, the 1-based load effect number.\n
+        - "No. Events" : int, the number of events counted.\n
+        - "No. Vehicles" : int, the total number of vehicles across all
+          events, including cars.\n
+        - "No. Trucks" : int, the total number of trucks across all
+          events, excluding cars (unlike the "No. Vehicles"/"No. Trucks"
+          columns in the event-file family, which both count all
+          vehicles).\n
+        - "Min", "Max", "Mean", "Std Dev" : float, in the effect's native
+          unit (kN or kN·m).\n
+        - "Variance", "Skewness", "Kurtosis" : float, dimensionless.\n
+        Returns an empty DataFrame with this schema if the file has no
+        data rows.
     """
 
     column_ids = [

@@ -23,8 +23,19 @@ def read_FE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     Returns
     -------
     pd.DataFrame\n
-        The fatigue events data. "No. Vehicles" is the total number of
-        vehicles in the event, including cars.
+        One row per fatigue event, with columns:\n
+        - "Start Time" : float, seconds.\n
+        - "No. Vehicles" : int, the total number of vehicles in the
+          event, including cars.\n
+        - "Effect N Max Time", "Effect N Max Amplitude", "Effect N Min
+          Time", "Effect N Min Amplitude" (for each recorded effect N):
+          float. Time in seconds, amplitude in the effect's native unit
+          (kN or kN·m). Each event is written as two lines (one extreme
+          per line); the two are re-ordered here by comparing amplitudes
+          so "Max" is always the larger value, regardless of which one
+          occurred first in the file.\n
+        The number of effects is inferred from the file. Returns an
+        empty DataFrame with this schema if the file has no data rows.
     """
 
     # Read data
