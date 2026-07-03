@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 
+from ._empty import read_csv_or_empty
+
 __all__ = ["read_FR"]
 
 
@@ -29,15 +31,13 @@ def read_FR(file_path: Path) -> pd.DataFrame:
     """
 
     # Read data
-    try:
-        return_data = pd.read_csv(
-            file_path,
-            delimiter="\s+",
-            names=["Amplitude", "No. Cycles"],
-            skiprows=1,
-        )
-    except pd.errors.EmptyDataError:
-        return pd.DataFrame(columns=["Amplitude", "No. Cycles"])
+    return_data = read_csv_or_empty(
+        file_path,
+        ["Amplitude", "No. Cycles"],
+        delimiter="\s+",
+        names=["Amplitude", "No. Cycles"],
+        skiprows=1,
+    )
 
     # Sort the DataFrame by 'Amplitude'
     return_data.sort_values(by="Amplitude", inplace=True)

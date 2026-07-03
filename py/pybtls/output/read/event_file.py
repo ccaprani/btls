@@ -1,6 +1,7 @@
 import pandas as pd
 from pathlib import Path
 from ...lib.BTLS import Vehicle
+from ._empty import empty_frame
 
 __all__ = ["read_event_file"]
 
@@ -70,7 +71,7 @@ def read_event_file(file_path: Path) -> pd.DataFrame:
                 data_rows[-1][-1].append(vehicle)
 
     if not data_rows:
-        return pd.DataFrame(columns=column_ids)
+        return empty_frame(column_ids)
 
     # Convert to DataFrame
     return_data = pd.DataFrame(data_rows)

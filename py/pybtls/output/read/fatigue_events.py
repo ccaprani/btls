@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 
+from ._empty import empty_frame
+
 __all__ = ["read_FE"]
 
 
@@ -87,7 +89,7 @@ def read_FE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
         column_ids.extend([time_max_id, max_id, time_min_id, min_id])
 
     if not data_rows:
-        return pd.DataFrame(columns=column_ids)
+        return empty_frame(column_ids)
 
     # Convert to DataFrame
     return_data = pd.DataFrame(data_rows, columns=column_ids)

@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 
+from ._empty import read_csv_or_empty
+
 __all__ = ["read_POT_S"]
 
 
@@ -41,16 +43,14 @@ def read_POT_S(
 
     # Read data
     column_names = ["Peak Index", "Time", "No. Vehicles", "Peak Value"]
-    try:
-        return_data = pd.read_csv(
-            file_path,
-            delimiter="\s+",
-            names=column_names,
-            skiprows=max(0, start_line - 1),
-            nrows=no_lines,
-        )
-    except pd.errors.EmptyDataError:
-        return pd.DataFrame(columns=column_names)
+    return_data = read_csv_or_empty(
+        file_path,
+        column_names,
+        delimiter="\s+",
+        names=column_names,
+        skiprows=max(0, start_line - 1),
+        nrows=no_lines,
+    )
 
     # Renumber Peak Index to reflect each row's actual position in the file.
     return_data["Peak Index"] = range(start_line, start_line + len(return_data))

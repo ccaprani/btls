@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 
+from ._empty import read_csv_or_empty
+
 __all__ = ["read_AE"]
 
 
@@ -36,16 +38,14 @@ def read_AE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     """
 
     # Read data
-    try:
-        return_data = pd.read_csv(
-            file_path,
-            sep=r"\s+",
-            header=None,
-            skiprows=max(0, start_line - 1),
-            nrows=no_lines,
-        )
-    except pd.errors.EmptyDataError:
-        return pd.DataFrame(columns=["Start Time", "No. Vehicles"])
+    return_data = read_csv_or_empty(
+        file_path,
+        ["Start Time", "No. Vehicles"],
+        sep=r"\s+",
+        header=None,
+        skiprows=max(0, start_line - 1),
+        nrows=no_lines,
+    )
 
     no_effects = len(return_data.columns) - 2
 

@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 
+from ._empty import read_csv_or_empty
+
 __all__ = ["read_TS"]
 
 
@@ -78,15 +80,13 @@ def read_TS(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
         ]
 
     # Read data
-    try:
-        return_data = pd.read_csv(
-            file_path,
-            delimiter="\s+",
-            names=column_names,
-            skiprows=max(1, start_line),
-            nrows=no_lines,
-        )
-    except pd.errors.EmptyDataError:
-        return_data = pd.DataFrame(columns=column_names)
+    return_data = read_csv_or_empty(
+        file_path,
+        column_names,
+        delimiter="\s+",
+        names=column_names,
+        skiprows=max(1, start_line),
+        nrows=no_lines,
+    )
 
     return return_data
