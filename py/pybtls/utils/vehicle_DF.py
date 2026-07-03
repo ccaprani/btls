@@ -20,7 +20,23 @@ def vehicle_list_to_df(vehicle_list: list[Vehicle]) -> pd.DataFrame:
     Returns
     -------
     pd.DataFrame\n
-        A DataFrame containing all the vehicle properties.
+        A DataFrame containing all the vehicle properties, with columns:\n
+        - "Head" : vehicle id.\n
+        - "Day", "Month", "Year", "Hour", "Min" : int, calendar/clock
+          fields.\n
+        - "Sec" : float, the only time field with sub-second precision.\n
+        - "NoAxles", "NoAxleGroups" : int.\n
+        - "GVW" : float, gross vehicle weight in kN.\n
+        - "Velocity" : float, in m/s.\n
+        - "Length" : float, in m.\n
+        - "Lane" : int, 1-based local lane number.\n
+        - "Dir" : int, 1 or 2.\n
+        - "Trns" : float, transverse position on lane, in metres.\n
+        - "AxleWeights" : list[float], all in kN.\n
+        - "AxleSpacings" : list[float], all in m.\n
+        - "AxleWidths" : list[float], all in m, 1.98 m by default.\n
+        - "Acceleration" : float, in m/s^2, negative = braking, 0.0 by
+          default.
     """
 
     if not all(isinstance(vehicle, Vehicle) for vehicle in vehicle_list):
@@ -28,25 +44,25 @@ def vehicle_list_to_df(vehicle_list: list[Vehicle]) -> pd.DataFrame:
 
     data_list = [vehicle._get_all_properties() for vehicle in vehicle_list]
     column_names = [
-        "Head",  # vehicle id
+        "Head",
         "Day",
         "Month",
         "Year",
         "Hour",
         "Min",
-        "Sec",  # the only float value related to time
+        "Sec",
         "NoAxles",
         "NoAxleGroups",
-        "GVW",  # in kN
-        "Velocity",  # in m/s
-        "Length",  # in m
-        "Lane",  # 1-based local lane number
-        "Dir",  # 1 or 2
-        "Trns",  # in meters, transverse position on lane
-        "AxleWeights",  # list, all in kN
-        "AxleSpacings",  # list, all in m
-        "AxleWidths",  # list, all in m, 1.98m by default
-        "Acceleration",  # in m/s^2, negative = braking, 0.0 by default
+        "GVW",
+        "Velocity",
+        "Length",
+        "Lane",
+        "Dir",
+        "Trns",
+        "AxleWeights",
+        "AxleSpacings",
+        "AxleWidths",
+        "Acceleration",
     ]
 
     return pd.DataFrame(data_list, columns=column_names)

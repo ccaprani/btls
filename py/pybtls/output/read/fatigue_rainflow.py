@@ -17,7 +17,15 @@ def read_FR(file_path: Path) -> pd.DataFrame:
     Returns
     -------
     pd.DataFrame\n
-        The fatigue rainflow data.
+        One row per distinct amplitude bin, with columns:\n
+        - "Amplitude" : float, in the load effect's native unit (kN or
+          kN·m).\n
+        - "No. Cycles" : float, the cycle count for that bin. Can be 0.5
+          for ASTM rainflow half-cycles (Rainflow.cpp).\n
+        Rows are sorted by "Amplitude", and any duplicate amplitude
+        values in the file are merged by summing "No. Cycles"
+        (``groupby("Amplitude").sum()``). Returns an empty DataFrame with
+        this schema if the file has no data rows.
     """
 
     # Read data

@@ -100,7 +100,11 @@ class OutputConfig(_ConfigDataCore):
             The block size in days. The default is 1.
 
         block_size_secs : int, optional\n
-            The block size in seconds. The default is 0.
+            The block size in seconds. The default is 0.\n
+            ``block_size_days`` and ``block_size_secs`` add together
+            rather than being alternatives: the effective block size is
+            ``3600 * 24 * block_size_days + block_size_secs``
+            (BlockMaxManager.cpp).
 
         buffer_size : int, optional\n
             The buffer size for writing data to HDD. The default is 10000.
@@ -141,7 +145,10 @@ class OutputConfig(_ConfigDataCore):
             The POT size in days. The default is 1.
 
         POT_size_secs : int, optional\n
-            The POT size in seconds. The default is 0.
+            The POT size in seconds. The default is 0.\n
+            ``POT_size_days`` and ``POT_size_secs`` add together rather
+            than being alternatives: the effective POT counting period is
+            ``3600 * 24 * POT_size_days + POT_size_secs`` (POTManager.cpp).
 
         buffer_size : int, optional\n
             The buffer size for writing data to HDD. The default is 10000.
@@ -218,7 +225,11 @@ class OutputConfig(_ConfigDataCore):
             The cut off value of rainflow count. The default is 0.0.
 
         buffer_size : int, optional\n
-            The buffer size for writing data to HDD. The default is 10000.
+            The buffer size for writing data to HDD. The default is 10000.\n
+            This also overwrites ``WRITE_EVENT_BUFFER_SIZE``, which is
+            shared with ``set_event_output``'s ``buffer_size`` - calling
+            ``set_fatigue_output`` after ``set_event_output`` silently
+            replaces the event buffer size (and vice versa).
 
         write_residuals : bool, optional\n
             Chunk mode: at the end of the simulation, write the unclosed

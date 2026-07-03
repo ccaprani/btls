@@ -28,7 +28,10 @@ def read_traffic(
     Returns
     -------
     pd.DataFrame\n
-        The traffic data.
+        One row per vehicle. See ``vehicle_list_to_df`` for the full
+        column schema and units (GVW in kN, Velocity in m/s, Length in
+        m, AxleWeights in kN, AxleSpacings in m, AxleWidths in m,
+        Acceleration in m/s^2, etc.).
     """
 
     # Read data

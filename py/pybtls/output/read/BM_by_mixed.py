@@ -19,7 +19,10 @@ def read_BM_All(file_path: Path) -> pd.DataFrame:
     Returns
     -------
     pd.DataFrame\n
-        The BM by mixed no. trucks data.
+        One row per (block, load effect) combination. See
+        ``read_event_file`` for the full column schema (Index, Effect,
+        Value [native unit, kN or kN·m], Time [s], Position on Bridge
+        [m], No. Vehicles [incl. cars], Trucks).
     """
 
     return read_event_file(file_path)

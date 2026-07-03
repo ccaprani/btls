@@ -62,6 +62,17 @@ risking OOM if the default ``no_core`` (cpu_count − 2) is applied. The engine
 warns when GPU tasks are queued with ``no_core > 1``. Let the GPU parallelise
 internally on one process instead.
 
+Other backends (untested)
+--------------------------
+
+The engine name passed as ``engine=`` is the torch device: besides ``"cuda"``
+(NVIDIA, and AMD via ROCm; float64), ``engine="mps"`` (Apple Silicon, via
+Metal; runs in float32 since MPS has no float64) and ``engine="xpu"`` (Intel
+GPU; float64) are wired up but **untested** — the engine probes each backend
+for the ops it needs and raises a clear error if one is missing. The MPS
+backend may lack ``searchsorted``/``scatter_reduce``; set
+``PYTORCH_ENABLE_MPS_FALLBACK=1`` to run those ops on the CPU instead (slower).
+
 Installation
 ------------
 

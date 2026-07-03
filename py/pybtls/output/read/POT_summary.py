@@ -25,7 +25,18 @@ def read_POT_S(
     Returns
     -------
     pd.DataFrame\n
-        The POT summary data.
+        One row per peak, with columns:\n
+        - "Peak Index" : int, the peak's 1-based position among the rows
+          actually read (i.e. relative to ``start_line``). This is
+          renumbered on read and does not preserve the original file's
+          block-local peak index.\n
+        - "Time" : float, seconds.\n
+        - "No. Vehicles" : int, the total number of vehicles in the
+          event, including cars.\n
+        - "Peak Value" : float, in the effect's native unit (kN or
+          kN·m).\n
+        Returns an empty DataFrame with this schema if the file has no
+        data rows.
     """
 
     # Read data

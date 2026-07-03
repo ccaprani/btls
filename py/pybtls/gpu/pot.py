@@ -3,7 +3,7 @@ Host-side peaks-over-threshold (POT) event reconstruction for the GPU engine.
 
 The C++ engine forms an *event* every time the set of vehicles on the bridge
 changes: an event window is bounded by vehicle on/off transitions, and its
-"peak" is the largest |E| over that window (recorded if it exceeds the
+"peak" is the largest ``|E|`` over that window (recorded if it exceeds the
 threshold). See cpp/src/Bridge.cpp (event loop) and cpp/src/POTManager.cpp.
 
 Because the GPU engine reconstructs each vehicle's on-bridge interval
@@ -72,8 +72,9 @@ def build_partition(t_on, t_off, extra_boundaries=None):
 
 
 def truck_occupancy(k_start, k_end, n_win, is_truck):
-    """Per-window count of non-car (truck) vehicles covering it — the stats
-    ``No. Trucks`` column. Same +1/-1 difference array as ``build_partition``'s
+    """Per-window count of non-car (truck) vehicles covering each window.
+
+    This is the stats ``No. Trucks`` column. Same +1/-1 difference array as ``build_partition``'s
     ``win_count`` but restricted to the truck members (``is_truck`` masks the
     per-vehicle ``k_start`` / ``k_end`` spans)."""
     diff = np.zeros(n_win + 1, dtype=np.int64)

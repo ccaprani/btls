@@ -26,7 +26,16 @@ def read_TH(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     Returns
     -------
     pd.DataFrame\n
-        The time history data.
+        One row per recorded time step, with columns:\n
+        - "Time" : float, seconds.\n
+        - "No. Vehicles" : int, the total number of vehicles on the
+          bridge at that time, including cars.\n
+        - "Effect 1", "Effect 2", ... : float, the load effect value at
+          that time, in the effect's native unit (kN or kN·m depending
+          on the influence line). The number of effect columns is
+          inferred from the file.\n
+        Returns an empty DataFrame with columns ["Time", "No. Vehicles"]
+        if the file has no data rows.
     """
 
     # Read data

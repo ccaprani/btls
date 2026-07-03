@@ -31,6 +31,13 @@ lossy preprocessing conversion step.
    :align: center
    :figwidth: 90%
 
+Column semantics
+----------------
+Event-based outputs' "No. Vehicles" column counts **all** vehicles present in
+the event, including cars, while statistics outputs' "No. Trucks" column
+counts trucks only. Times are in seconds; load-effect values are in the
+influence line's native unit (kN or kN·m).
+
 Rainflow residual sidecar (FRR_*.txt)
 -------------------------------------
 Written only by chunked simulations (or when

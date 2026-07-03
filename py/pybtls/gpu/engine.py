@@ -8,7 +8,8 @@ load-effect time history E[t, e] with a tiled (VRAM-adaptive), per-effect scatte
 so neither the full E(t) nor a [pairs x effects] intermediate is materialized.
 Returns per-block block maxima and global maxima per load effect.
 
-Each load effect is described by an ``il_spec`` dict:
+Each load effect is described by an ``il_spec`` dict::
+
   {"kind": "discrete", "pos": ndarray, "ord": ndarray}
   {"kind": "builtin",  "id": int, "length": float}
   {"kind": "surface",  "X": ndarray, "Y": ndarray, "ISords": ndarray[nx, ny],
@@ -335,7 +336,7 @@ def compute_from_axles(
     If ``pot_boundaries`` (the POT event-window boundary times) is given, the
     same per-block E(t) is also reduced per event window: the result gains
     ``pot_peak_value`` / ``pot_peak_index`` arrays ([n_eff, n_window]) holding,
-    per window, the signed largest-|E| peak and the global sample index at which
+    per window, the signed largest-``|E|`` peak and the global sample index at which
     it occurs (-1 if the window contains no sample).
 
     If ``rainflows`` (a list of one ``libbtls._Rainflow`` per effect) is given,

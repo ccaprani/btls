@@ -25,7 +25,23 @@ def read_E_IS(
     Returns
     -------
     pd.DataFrame\n
-        The effect interval statistics data.
+        One row per interval (the file covers a single load effect), with
+        columns:\n
+        - "Index" : int, the 1-based interval index.\n
+        - "Time" : int, the interval end time in seconds.\n
+        - "No. Events" : int, the number of events counted in the
+          interval.\n
+        - "No. Vehicles" : int, the total number of vehicles in the
+          interval, including cars.\n
+        - "No. Trucks" : int, the total number of trucks in the
+          interval, excluding cars (unlike the "No. Vehicles"/
+          "No. Trucks" columns in the event-file family, which both
+          count all vehicles).\n
+        - "Min", "Max", "Mean", "Std Dev" : float, in the effect's native
+          unit (kN or kN·m).\n
+        - "Variance", "Skewness", "Kurtosis" : float, dimensionless.\n
+        Returns an empty DataFrame with this schema if the file has no
+        data rows.
     """
 
     # Read data

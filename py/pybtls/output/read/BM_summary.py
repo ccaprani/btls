@@ -25,7 +25,18 @@ def read_BM_S(
     Returns
     -------
     pd.DataFrame\n
-        The BM summary data.
+        One row per block, with columns:\n
+        - "Block Index" : int, 1-based block number.\n
+        - "1-Truck Event", "2-Truck Event", ... : float, the maximum load
+          effect value recorded for that truck-count bucket in the
+          block (BlockMaxManager.cpp getMaxEffect().getValue()), in the
+          effect's native unit (kN or kN·m). Despite the column name,
+          this is a load effect value, not an event count. NaN where a
+          bucket had no qualifying event.\n
+        The number of bucket columns is inferred from the file. Returns
+        a DataFrame with only the "Block Index" column (no rows) if the
+        file has no data rows, since the number of buckets cannot be
+        inferred without any data.
     """
 
     # Read data
