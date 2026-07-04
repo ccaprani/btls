@@ -40,7 +40,8 @@ def build_traffic():
         hourly_car_flow=[0] * 24,
         hourly_speed_mean=[80 / 3.6 * 10] * 24,  # dm/s
         hourly_speed_std=[10 / 3.6 * 10] * 24,  # dm/s
-        hourly_truck_composition=[[23, 2.8, 31.7, 42.5]] * 24,  # VehicleGenGrave needs this
+        hourly_truck_composition=[[23, 2.8, 31.7, 42.5]]
+        * 24,  # VehicleGenGrave needs this
     )
     traffic_gen = pb.TrafficGenerator(no_lane=1)
     traffic_gen.add_lane(
