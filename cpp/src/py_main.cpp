@@ -436,7 +436,7 @@ PYBIND11_MODULE(libbtls, m) {
 				 "For centrifugal, the per-axle force becomes AxleWeight * Speed^2 / g (per-vehicle v^2); "
 				 "the caller bakes the bridge geometric constants (k_e and 1 / R) into the IL ordinates "
 				 "so that the convolved bearing reaction is in kN. For braking, the per-axle force "
-				 "becomes AxleWeight * |Acceleration| / g (per-vehicle deceleration), with a scalar "
+				 "becomes AxleWeight * ``|Acceleration|`` / g (per-vehicle deceleration), with a scalar "
 				 "fallback set via setBrakingFactor.")
 			.def("setBrakingFactor", &CInfluenceLine::setBrakingFactor, py::arg("braking_factor"),
 				 "Set braking-mode dimensionless fallback factor (deceleration / g). Used when the "
@@ -493,7 +493,7 @@ PYBIND11_MODULE(libbtls, m) {
 
 				Used by the braking mode of CInfluenceLine: each axle's per-time
 				deceleration is propagated into the load-effect convolution as
-				F_axle = AxleWeight * |a| / g. Default zero (constant-velocity
+				F_axle = AxleWeight * ``|a|`` / g. Default zero (constant-velocity
 				motion).
 
 				Parameters
@@ -658,7 +658,7 @@ PYBIND11_MODULE(libbtls, m) {
 					The axle width.
 				)",
 				py::arg("index"), py::arg("width"))
-			.def("get_length", &CVehicle::getLength, "Get the vehicle length.")
+			.def("get_length", &CVehicle::getLength, "Get the vehicle length, in metres.")
 			.def("write",
 				[](CVehicle_sp self, size_t file_format) { return self->Write(file_format); },
 				R"(
@@ -670,7 +670,7 @@ PYBIND11_MODULE(libbtls, m) {
 					The traffic file format (1=CASTOR, 2=BEDIT, 3=DITIS, 4=MON).
 				)",
 				py::arg("file_format"))
-			.def("get_velocity", &CVehicle::getVelocity, "Get the vehicle velocity.")
+			.def("get_velocity", &CVehicle::getVelocity, "Get the vehicle velocity, in m/s.")
 			.def("get_acceleration", &CVehicle::getAcceleration,
 				 "Get the vehicle longitudinal acceleration in m/s^2 (negative = braking).")
 			.def("get_gvw", &CVehicle::getGVW, "Get the gross vehicle weight of the vehicle.")
@@ -732,8 +732,8 @@ PYBIND11_MODULE(libbtls, m) {
 					The 0-based index of the axle.
 				)", 
 				py::arg("index"))
-			.def("get_time", &CVehicle::getTime, "Get the show-up time of the vehicle.")
-			.def("get_trans", &CVehicle::getTrans, "Get the vehicle transverse position on its lane.")
+			.def("get_time", &CVehicle::getTime, "Get the show-up time of the vehicle, in seconds.")
+			.def("get_trans", &CVehicle::getTrans, "Get the vehicle transverse position on its lane, in metres.")
 			.def("get_direction", &CVehicle::getDirection, "Get the vehicle direction (1 or 2).")
 			.def("_getGlobalLane", &CVehicle::getGlobalLane, "Get the 1-based global lane index of the vehicle.", py::arg("no_lanes"))
 			.def("get_local_lane", &CVehicle::getLocalLane, "Get the 1-based local lane index of the vehicle.")
@@ -861,30 +861,89 @@ PYBIND11_MODULE(libbtls, m) {
 			.def("flushBuffer", py::overload_cast<double>(&CVehicleBuffer::FlushBuffer), py::arg("sim_end_time"), "Flush, filling silent trailing FlowData hours up to the simulated end time.");
 
 
-	py::class_<CMultiModalNormal> cmultimodalnormal(m, "_MultiModalNormal");
+	py::class_<CMultiModalNormal> cmultimodalnormal(m, "_MultiModalNormal",
+		"A mixture of one or more normal modes, each with its own weight, mean and "
+		"standard deviation. Build it with add_mode(), then sample it via "
+		"Distribution.gen_multimodalnormal.");
 		cmultimodalnormal.def(py::init<>())
-			.def("add_mode", &CMultiModalNormal::AddMode, py::arg("w"), py::arg("m"), py::arg("s"))
-			.def("get_no_modes", &CMultiModalNormal::getNoModes);
-	py::class_<CDistribution> cdistribution(m, "_Distribution");
+			.def("add_mode", &CMultiModalNormal::AddMode,
+				R"(
+				Append one normal mode to the mixture.
+
+				Parameters
+				----------
+				w : float
+					Mode weight. Weights should sum to 1 across all modes; a mode
+					is drawn with probability proportional to its weight.
+				m : float
+					Mode mean, in the sampled quantity's native unit.
+				s : float
+					Mode standard deviation, in the sampled quantity's native unit.
+				)",
+				py::arg("w"), py::arg("m"), py::arg("s"))
+			.def("get_no_modes", &CMultiModalNormal::getNoModes,
+				"Get the number of modes currently in the mixture.");
+	py::class_<CDistribution> cdistribution(m, "_Distribution",
+		"A family of random-variate generators sharing configurable location, scale "
+		"and shape parameters and the process-wide RNG. Each gen_* method draws one "
+		"sample from the corresponding distribution using the currently set "
+		"parameters (or explicit arguments where provided). Values are in the sampled "
+		"quantity's native unit.");
 		cdistribution.def(py::init<>())
-			.def(py::init<double, double, double>(), py::arg("loc"), py::arg("scale"), py::arg("shape"))
-			.def("set_shape", &CDistribution::setShape, py::arg("shape"))
-			.def("set_scale", &CDistribution::setScale, py::arg("scale"))
-			.def("set_location", &CDistribution::setLocation, py::arg("loc"))
-			.def("get_shape", &CDistribution::getShape)
-			.def("get_scale", &CDistribution::getScale)
-			.def("get_location", &CDistribution::getLocation)
-			.def("gen_uniform", &CDistribution::GenerateUniform)
-			.def("gen_normal", py::overload_cast<>(&CDistribution::GenerateNormal))
-			.def("gen_normal", py::overload_cast<double,double>(&CDistribution::GenerateNormal), py::arg("mean"), py::arg("stdev"))
-			.def("gen_multimodalnormal", &CDistribution::GenerateMultiModalNormal, py::arg("mmn"))
-			.def("gen_exponential", &CDistribution::GenerateExponential)
-			.def("gen_lognormal", &CDistribution::GenerateLogNormal)
-			.def("gen_gamma", &CDistribution::GenerateGamma)
-			.def("gen_gumbel", &CDistribution::GenerateGumbel)
-			.def("gen_poisson", &CDistribution::GeneratePoisson)
-			.def("gen_gev", &CDistribution::GenerateGEV)
-			.def("gen_triangular", py::overload_cast<>(&CDistribution::GenerateTriangular))
-			.def("gen_triangular", py::overload_cast<double,double>(&CDistribution::GenerateTriangular), py::arg("loc"), py::arg("w"));
+			.def(py::init<double, double, double>(),
+				"Construct with explicit location (loc), scale (scale) and shape "
+				"(shape) parameters. shape is only used by gen_gev.",
+				py::arg("loc"), py::arg("scale"), py::arg("shape"))
+			.def("set_shape", &CDistribution::setShape,
+				"Set the shape parameter (used by gen_gev).", py::arg("shape"))
+			.def("set_scale", &CDistribution::setScale,
+				"Set the scale parameter.", py::arg("scale"))
+			.def("set_location", &CDistribution::setLocation,
+				"Set the location parameter.", py::arg("loc"))
+			.def("get_shape", &CDistribution::getShape, "Get the shape parameter.")
+			.def("get_scale", &CDistribution::getScale, "Get the scale parameter.")
+			.def("get_location", &CDistribution::getLocation, "Get the location parameter.")
+			.def("gen_uniform", &CDistribution::GenerateUniform,
+				"Draw one uniform sample from [0, 1). Ignores location/scale/shape.")
+			.def("gen_normal", py::overload_cast<>(&CDistribution::GenerateNormal),
+				"Draw one normal sample with mean = location and standard deviation = scale.")
+			.def("gen_normal", py::overload_cast<double,double>(&CDistribution::GenerateNormal),
+				"Draw one normal sample with the given mean (mean) and standard "
+				"deviation (stdev).",
+				py::arg("mean"), py::arg("stdev"))
+			.def("gen_multimodalnormal", &CDistribution::GenerateMultiModalNormal,
+				R"(
+				Draw one sample from a multi-modal normal mixture: pick a mode
+				weighted by its weight, then draw from that mode's normal. Uses the
+				mixture's own parameters, not this object's location/scale/shape.
+
+				Parameters
+				----------
+				mmn : MultiModalNormal
+					The mixture to sample from.
+				)",
+				py::arg("mmn"))
+			.def("gen_exponential", &CDistribution::GenerateExponential,
+				"Draw one exponential sample shifted by location, with scale = scale "
+				"(the mean of the exponential part equals scale).")
+			.def("gen_lognormal", &CDistribution::GenerateLogNormal,
+				"Draw one lognormal sample whose underlying normal (in log space) has "
+				"mean = location and standard deviation = scale.")
+			.def("gen_gamma", &CDistribution::GenerateGamma,
+				"Draw one gamma sample parameterised by location and scale.")
+			.def("gen_gumbel", &CDistribution::GenerateGumbel,
+				"Draw one Gumbel (extreme-value type I) sample with mode = location "
+				"and dispersion controlled by scale.")
+			.def("gen_poisson", &CDistribution::GeneratePoisson,
+				"Draw one (normal-approximated) Poisson sample with mean = location "
+				"and variance = scale.")
+			.def("gen_gev", &CDistribution::GenerateGEV,
+				"Draw one Generalised Extreme Value sample using location, scale and shape.")
+			.def("gen_triangular", py::overload_cast<>(&CDistribution::GenerateTriangular),
+				"Draw one symmetric triangular sample centred at location with "
+				"half-width = scale.")
+			.def("gen_triangular", py::overload_cast<double,double>(&CDistribution::GenerateTriangular),
+				"Draw one symmetric triangular sample centred at loc with half-width w.",
+				py::arg("loc"), py::arg("w"));
 };
 
