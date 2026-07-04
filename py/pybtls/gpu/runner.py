@@ -372,8 +372,16 @@ class _PotStream:
                     cb = int(np.ceil((B[w] + time_offset) / self.counter_secs)) - 1
                     if cb < 0:
                         cb = 0
-                    if cb < self.n_counter_blocks:
-                        self.counts[cb, e] += 1
+                    if cb >= self.counts.shape[0]:
+                        # an event starting beyond the run end (before the A2
+                        # boundary) opens a new counter block, exactly as
+                        # CPOTManager::Update's silent-block fill does
+                        grow = np.zeros(
+                            (cb + 1 - self.counts.shape[0], self.n_eff),
+                            dtype=np.int64,
+                        )
+                        self.counts = np.vstack([self.counts, grow])
+                    self.counts[cb, e] += 1
 
     def close(self):
         for files in (self.s_files, self.v_files):
@@ -460,11 +468,29 @@ def _window_target_vehicles(n_eff, device, want_pot):
     return max(100_000, min(targets))
 
 
-def _vehicle_stream(traffic, bridge, active_lane, seed, end_time):
+def _pull_beyond_end(lanes, end_time):
+    """Pull generated vehicles until the first arrival STRICTLY after
+    ``end_time`` (the CPU loop's final ``while current_time <= end_time``
+    iteration fetches exactly that vehicle) and return it. The earliest lane is
+    pulled first each step; ``min()`` resolves ties to the lowest lane, like the
+    CPU's stable sort and the C++ ``_earliest_lane``. An arrival exactly at
+    ``end_time`` (in-sim on the CPU; measure-zero for continuous headways) is
+    consumed but not simulated."""
+    while True:
+        v = min(lanes, key=lambda t: t.getNextArrivalTime()).getNextVehicle()
+        if v.get_time() > end_time:
+            return v
+
+
+def _vehicle_stream(traffic, bridge, active_lane, seed, end_time, tail=None):
     """Yield vehicles in arrival-time order, lazily, up to ``end_time`` — for both
     recorded (merge the pre-loaded per-lane lists) and generated (pull the
     generator one vehicle at a time) traffic. Generated traffic is never fully
-    materialized: the caller holds only the window being processed."""
+    materialized: the caller holds only the window being processed.
+
+    For generated traffic, ``tail`` (optional dict) receives, once the stream is
+    exhausted, the first vehicle arriving after ``end_time`` (``tail["vehicle"]``)
+    — the CPU end-of-run boundary A2 (see :func:`_pull_beyond_end`)."""
     if isinstance(traffic, TrafficLoader):
         lanes = traffic._lanes_vehicles
         if active_lane is not None:
@@ -495,19 +521,22 @@ def _vehicle_stream(traffic, bridge, active_lane, seed, end_time):
             for v in libbtls._generate_traffic_stream(lanes, chunk_end):
                 yield v
             chunk = chunk_end
+        if tail is not None and lanes:
+            tail["vehicle"] = _pull_beyond_end(lanes, end_time)
     else:
         raise NotImplementedError(
             "engine='cuda' supports TrafficLoader or TrafficGenerator traffic."
         )
 
 
-def _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target):
+def _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target, tail=None):
     """Yield (vehicles, day_offset, window_days): contiguous whole-day windows
     each holding about ``target`` vehicles (a vehicle goes to the window
     containing its arrival day). Bounds host memory to one window for generated
-    traffic, independent of ``n_days``."""
+    traffic, independent of ``n_days``. ``tail`` is passed through to
+    :func:`_vehicle_stream` (generated end-of-run boundary)."""
     end_time = n_days * SECONDS_PER_DAY
-    stream = _vehicle_stream(traffic, bridge, active_lane, seed, end_time)
+    stream = _vehicle_stream(traffic, bridge, active_lane, seed, end_time, tail)
     day0 = 0
     carry = None
     exhausted = False
@@ -538,13 +567,20 @@ def _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target):
         day0 = win_end_day
 
 
-def _array_windows(traffic, bridge, n_days, active_lane, seed, target, classifier):
+def _array_windows(
+    traffic, bridge, n_days, active_lane, seed, target, classifier, tail=None
+):
     """Fast generated-traffic path: fuse generate+extract per day (no Python
     Vehicle objects) and accumulate whole days into a window of about ``target``
     vehicles. Yields (extracted, day_offset, window_days) where ``extracted`` is
     the per-window vehicle/axle array tuple. Day boundaries match
     :func:`_vehicle_windows` (a vehicle goes to the window containing its arrival
-    day), so the result is identical to the per-vehicle path."""
+    day), so the result is identical to the per-vehicle path.
+
+    ``tail`` (optional dict) receives, after the last window, the first arrival
+    beyond the run end — the CPU end-of-run boundary A2 — as ``tail["arrival"]``
+    (absolute time) and ``tail["extracted"]`` (its single-vehicle extraction
+    tuple, for the flow-statistics count)."""
     from ..lib import libbtls
 
     if seed is not None:
@@ -577,6 +613,10 @@ def _array_windows(traffic, bridge, n_days, active_lane, seed, target, classifie
         )
         yield extracted, day0, win_end_day - day0
         day0 = win_end_day
+    if tail is not None and lanes:
+        v = _pull_beyond_end(lanes, n_days * SECONDS_PER_DAY)
+        tail["arrival"] = float(v.get_time())
+        tail["extracted"] = libbtls._extract_axle_data([v], no_lane, classifier)
 
 
 _PER_AXLE_IDX = (9, 10, 11)  # aw, asp, at in the extraction tuple
@@ -596,23 +636,29 @@ def _concat_extracted(a, b):
     return tuple(np.concatenate([x, y]) for x, y in zip(a, b))
 
 
-def _seam_context(raw_windows, first_time, carry_of, concat, count):
+def _seam_context(raw_windows, first_time, carry_of, concat, count, end_arrival=None):
     """Attach window-seam context to a raw (data, day0, win_days) window stream.
 
-    Yields (data, day0, win_days, n_carried, next_arrival) where ``data`` gains
-    the previous window's tail vehicles that are still crossing at the seam
-    (``n_carried`` of them, prepended — load context only, their events belong
-    to the previous window) and ``next_arrival`` is the following window's first
-    arrival time (absolute; inf for the last window), the boundary that ends the
-    event straddling the seam. Windows whose first arrival is still unknown
-    (empty successors) are held back until one arrives."""
+    Yields (data, day0, win_days, n_carried, next_arrival, is_last) where
+    ``data`` gains the previous window's tail vehicles that are still crossing
+    at the seam (``n_carried`` of them, prepended — load context only, their
+    events belong to the previous window) and ``next_arrival`` is the following
+    window's first arrival time (absolute), the boundary that ends the event
+    straddling the seam. Windows whose first arrival is still unknown (empty
+    successors) are held back until one arrives. ``is_last`` marks the run's
+    final window.
+
+    ``end_arrival`` (optional callable, evaluated once the raw stream is
+    exhausted) supplies the first arrival beyond the run end — the generated
+    traffic's A2 boundary — used as the trailing windows' ``next_arrival``;
+    without it (or when it returns None) the trailing windows get ``inf``."""
     pending = []
     carry = None
     for data, day0, win_days in raw_windows:
         t0 = first_time(data)
         if t0 is not None:
             for p in pending:
-                yield (*p, t0)
+                yield (*p, t0, False)
             pending = []
         n_carried = 0
         if carry is not None and count(carry):
@@ -620,8 +666,11 @@ def _seam_context(raw_windows, first_time, carry_of, concat, count):
             data = concat(carry, data)
         carry = carry_of(data, (day0 + win_days) * SECONDS_PER_DAY)
         pending.append((data, day0, win_days, n_carried))
-    for p in pending:
-        yield (*p, np.inf)
+    t_end = end_arrival() if end_arrival is not None else None
+    if t_end is None:
+        t_end = np.inf
+    for i, p in enumerate(pending):
+        yield (*p, t_end, i == len(pending) - 1)
 
 
 def _traffic_windows(
@@ -633,23 +682,38 @@ def _traffic_windows(
     target,
     want_vehicles,
     classifier=None,
+    end_tail=None,
 ):
     """Yield (extracted, vehicles, day_offset, window_days, n_carried,
-    next_arrival) day-windows. ``extracted`` (the per-window vehicle/axle array
-    tuple) is always present; ``vehicles`` is the Vehicle list — kept only when
-    a per-vehicle output (PT_V) needs it, else ``None``. Generated traffic
-    without such an output takes the fused generate+extract fast path (no Python
-    Vehicle objects). ``classifier`` (when flow statistics are wanted) makes the
-    extraction also return each vehicle's class bin. ``n_carried`` /
-    ``next_arrival`` are the seam context (see :func:`_seam_context`) so load
-    effects and events at window seams match a continuous run."""
+    next_arrival, is_last) day-windows. ``extracted`` (the per-window
+    vehicle/axle array tuple) is always present; ``vehicles`` is the Vehicle
+    list — kept only when a per-vehicle output (PT_V) needs it, else ``None``.
+    Generated traffic without such an output takes the fused generate+extract
+    fast path (no Python Vehicle objects). ``classifier`` (when flow statistics
+    are wanted) makes the extraction also return each vehicle's class bin.
+    ``n_carried`` / ``next_arrival`` / ``is_last`` are the seam context (see
+    :func:`_seam_context`) so load effects and events at window seams match a
+    continuous run.
+
+    For generated traffic, ``end_tail`` (optional dict) receives the first
+    arrival beyond the run end — the CPU end-of-run boundary A2 — as
+    ``end_tail["arrival"]`` / ``end_tail["extracted"]``; that arrival is also
+    threaded to the trailing windows as their ``next_arrival``."""
     no_lane = bridge.no_lane
     L = bridge.length
+    tail = end_tail if isinstance(traffic, TrafficGenerator) else None
     if isinstance(traffic, TrafficGenerator) and not want_vehicles:
         raw = _array_windows(
-            traffic, bridge, n_days, active_lane, seed, target, classifier
+            traffic, bridge, n_days, active_lane, seed, target, classifier, tail
         )
-        for extracted, day0, win_days, n_carried, next_arrival in _seam_context(
+        for (
+            extracted,
+            day0,
+            win_days,
+            n_carried,
+            next_arrival,
+            is_last,
+        ) in _seam_context(
             raw,
             first_time=lambda ex: float(ex[0][0]) if len(ex[0]) else None,
             carry_of=lambda ex, seam: _subset_extracted(
@@ -657,23 +721,36 @@ def _traffic_windows(
             ),
             concat=_concat_extracted,
             count=lambda ex: len(ex[0]),
+            end_arrival=(None if tail is None else (lambda: tail.get("arrival"))),
         ):
-            yield extracted, None, day0, win_days, n_carried, next_arrival
+            yield extracted, None, day0, win_days, n_carried, next_arrival, is_last
     else:
         from ..lib import libbtls
 
-        raw = _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target)
+        raw = _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target, tail)
+
+        def _end_arrival():
+            # A2 was stashed by _vehicle_stream when the stream ran out; extract
+            # its flow-count row here (same normalized form as _array_windows)
+            v = None if tail is None else tail.get("vehicle")
+            if v is None:
+                return None
+            tail["arrival"] = float(v.get_time())
+            tail["extracted"] = libbtls._extract_axle_data([v], no_lane, classifier)
+            return tail["arrival"]
+
         t_off = lambda v: v.get_time() + (L + v.get_length()) / v.get_velocity()
-        for vehicles, day0, win_days, n_carried, next_arrival in _seam_context(
+        for vehicles, day0, win_days, n_carried, next_arrival, is_last in _seam_context(
             raw,
             first_time=lambda vs: vs[0].get_time() if vs else None,
             carry_of=lambda vs, seam: [v for v in vs if t_off(v) > seam],
             concat=lambda ca, vs: ca + vs,
             count=len,
+            end_arrival=None if tail is None else _end_arrival,
         ):
             yield libbtls._extract_axle_data(
                 vehicles, no_lane, classifier
-            ), vehicles, day0, win_days, n_carried, next_arrival
+            ), vehicles, day0, win_days, n_carried, next_arrival, is_last
 
 
 def run(
@@ -826,6 +903,11 @@ def run(
     # otherwise generated traffic takes the fused generate+extract fast path.
     want_vehicles = bool(want_pot and out.POT.WRITE_POT_VEHICLES)
 
+    # generated traffic: receives the first arrival beyond end_time (A2), the
+    # CPU loop's end-of-run boundary — its arrival ends the last owned event
+    # and it is counted in the flow statistics (but never simulated)
+    end_tail = {} if isinstance(traffic, TrafficGenerator) else None
+
     show_progress = n_days > 730  # multi-year streamed runs: report window progress
     t_start = time.perf_counter()
     for (
@@ -835,6 +917,7 @@ def run(
         win_days,
         n_carried,
         next_arrival,
+        is_last,
     ) in _traffic_windows(
         traffic,
         bridge,
@@ -844,6 +927,7 @@ def run(
         target,
         want_vehicles,
         classifier,
+        end_tail,
     ):
         time_offset = day0 * SECONDS_PER_DAY
         # keep every window's sample grid on the global k*ts lattice: shift the
@@ -863,8 +947,17 @@ def run(
                 extracted[12][n_carried:],
                 extracted[13][n_carried:],
             )
-        is_last = not np.isfinite(next_arrival)
+        has_next = np.isfinite(next_arrival)
         win_secs = win_days * SECONDS_PER_DAY
+        # sample/event ownership ends at the seam for interior windows; for the
+        # last generated window it ends at A2 (the first beyond-end arrival,
+        # threaded in as next_arrival) — the CPU records through A2; the loader
+        # last window keeps its full sample tail (no boundary to feed)
+        own_end = (
+            win_secs
+            if not is_last
+            else (next_arrival - time_offset if has_next else None)
+        )
         # BM / POT / stats are all reductions over the C++ event partition,
         # rebuilt here per window (rainflow / TH ride along on the same pass)
         pot = compute_pot(
@@ -878,11 +971,11 @@ def run(
             time_offset=time_offset,
             rainflows=rainflows,
             th_file=th_file,
-            next_arrival=None if is_last else next_arrival - time_offset,
+            next_arrival=next_arrival - time_offset if has_next else None,
             own_samples=(
                 None
-                if is_last
-                else int(np.ceil((win_secs - grid_phase) / time_step - 1e-9))
+                if own_end is None
+                else int(np.ceil((own_end - grid_phase) / time_step - 1e-9))
             ),
             grid_phase=grid_phase,
         )
@@ -906,10 +999,18 @@ def run(
             # the CPU loop past earlier trucks' crossings).
             last_arrival = float(extracted[0].max()) - time_offset
             owned = (starts >= 0.0) & (starts < last_arrival)
+        elif has_next:
+            # generated end-of-run: the CPU's final `while current_time <=
+            # end_time` iteration pulls the first arrival strictly after
+            # end_time (A2) and its update() records every composition event
+            # starting BEFORE A2 — including events past end_time
+            # (simulation.py:691-708, Bridge.cpp::Update). A2 arrives here as
+            # this last window's next_arrival (see _seam_context end_arrival),
+            # so it is already a partition boundary ending the straddling event.
+            owned = (starts >= 0.0) & (starts < next_arrival - time_offset)
         else:
-            # generated end-of-run: the CPU `while current_time <= end_time`
-            # loop still processes the event starting at exactly end_time (its
-            # strict-`>` block rollover includes it).
+            # generated without a beyond-end arrival (no active lane): keep the
+            # cut at end_time (the strict-`>` block rollover includes it)
             owned = (starts >= 0.0) & (starts <= win_secs)
         # >=1 vehicle and >=1 grid sample (sub-time-step composition windows
         # merge into their neighbours — the documented grid tolerance)
@@ -975,6 +1076,14 @@ def run(
         if out.Stats.WRITE_SS_INTERVALS:
             stats.write_intervals(sim_dir, length_str)
     if want_flow:
+        if end_tail and "extracted" in end_tail:
+            # the CPU flow buffer also counts the beyond-end vehicle A2 (its
+            # AddVehicle happens on the loop's final iteration, before the
+            # break), opening the hour row containing it
+            # (CVehicleBuffer::updateFlowData's silent-hour fill)
+            ex2 = end_tail["extracted"]
+            flow.extend_hours(int(ex2[0][0] // 3600.0) + 1)
+            flow.update(ex2[0], ex2[4], ex2[12], ex2[13])
         flow.write(sim_dir)
     if th_file is not None:
         th_file.close()

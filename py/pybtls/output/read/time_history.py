@@ -2,6 +2,8 @@ import pandas as pd
 from pathlib import Path
 from collections import defaultdict
 
+from ._empty import read_csv_or_empty
+
 __all__ = ["read_TH"]
 
 
@@ -39,16 +41,14 @@ def read_TH(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     """
 
     # Read data
-    try:
-        return_data = pd.read_csv(
-            file_path,
-            sep=r"\s+",
-            header=None,
-            skiprows=max(1, start_line),
-            nrows=no_lines,
-        )
-    except pd.errors.EmptyDataError:
-        return pd.DataFrame(columns=["Time", "No. Vehicles"])
+    return_data = read_csv_or_empty(
+        file_path,
+        ["Time", "No. Vehicles"],
+        sep=r"\s+",
+        header=None,
+        skiprows=max(1, start_line),
+        nrows=no_lines,
+    )
 
     no_effects = len(return_data.columns) - 2
 

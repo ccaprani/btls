@@ -10,7 +10,9 @@ Covered:
   * Fix 1 — POT sample->window clamp no longer leaks out-of-partition samples
     into the first/last event window as phantom peak_value=0 events.
   * Fix 2 — loader end-of-run drops the tail after the last arrival, matching
-    the CPU read-and-sim loop.
+    the CPU read-and-sim loop; generated end-of-run owns events through A2 (the
+    first arrival strictly after end_time) and counts A2 in the flow statistics,
+    matching the CPU `while current_time <= end_time` loop's final iteration.
   * Fix 3 — a streamed run keeps every window's sample grid on the global k*ts
     lattice, so results are independent of the (memory-driven) window split even
     when time_step does not divide a day (e.g. ts=0.07).
@@ -273,57 +275,160 @@ def test_fix2_loader_tail_matches_cpu():
     assert gpu_n == cpu_n, f"loader end-of-run mismatch: cpu={cpu_n} gpu={gpu_n}"
 
 
-@pytest.mark.xfail(
-    reason="Fix 2 generated-traffic end-of-run parity is deferred. The CPU loop "
-    "processes events through the first arrival strictly after end_time (A2) and "
-    "counts A2 in FlowData; the GPU generator stream stops before end_time. "
-    "Matching it needs A2 threaded as the last window's next_arrival + one flow "
-    "count, which is invasive to the shared streaming/seam layer (see "
-    "dev_log/audit_20260704/fixes_gpu.md). The residual is a few boundary events, "
-    "within the engine's documented grid-sampling tolerance.",
-    strict=False,
-)
+# Deterministic constant-headway scenario engineered so the last composition
+# event STARTS after end_time (86400 s) but before A2 (the first arrival past
+# end_time) — exactly the events the CPU records on its final
+# `while current_time <= end_time` iteration and the old GPU cut dropped:
+#   lane 1: arrivals k*GAP1 -> last in-run arrival 86398.2 s, off at 86400.6 s
+#   lane 2: arrivals k*GAP2 -> last in-run arrival 86399.0 s, off at 86401.4 s
+#   A2 = 73*GAP2 = 87598.99 s (lane 2's next arrival)
+# Events near the end: [86398.2, 86399.0), [86399.0, 86400.6) and
+# [86400.6, 86401.4) — the last one starts AFTER end_time (its counter block is
+# 2), and A2 lands in FlowData hour row 25. Constant speed 10 m/s and identical
+# 4 m trucks keep every composition window >= 0.2 s (>= 2 sample steps), so no
+# sub-time-step grid flicker: counts must match the CPU exactly.
+GAP1 = 86398.2 / 71
+GAP2 = 86399.0 / 72
+
+
+def _const_truck():
+    v = pb.Vehicle(2)
+    v.set_time(0.0)
+    v.set_velocity(10.0)
+    v.set_direction(1)
+    v.set_axle_weights([100.0, 100.0])
+    v.set_axle_spacings([4.0])
+    v.set_axle_widths([2.0, 2.0])
+    v.set_trans(0.0)
+    v.set_local_lane(1)
+    return v
+
+
+def _const_traffic():
+    g = pb.TrafficGenerator(no_lane=2)
+    for i, gap in ((1, GAP1), (2, GAP2)):
+        lfc = pb.LaneFlowComposition(lane_index=i, lane_dir=1)
+        lfc.assign_lane_data(
+            hourly_truck_flow=[100] * 24,
+            hourly_car_flow=[0] * 24,
+            hourly_speed_mean=[100] * 24,
+            hourly_speed_std=[0] * 24,
+            hourly_truck_composition=[[25.0, 25.0, 25.0, 25.0] for _ in range(24)],
+        )
+        g.add_lane(
+            vehicle_gen=pb.VehicleGenGarage(
+                garage=[_const_truck()], kernel=[[1.0, 0.0], [1.0, 0.0], [1.0, 0.0]]
+            ),
+            headway_gen=pb.HeadwayGenConstant(constant_speed=36.0, constant_gap=gap),
+            lfc=lfc,
+        )
+    g.set_start_time(0.0)
+    return g
+
+
+def _const_bridge():
+    il = pb.InfluenceLine(IL_type="discrete")
+    il.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 10.0, 0.0])
+    b = pb.Bridge(length=20.0, no_lane=2)
+    b.add_load_effect(inf_line_surf=il, threshold=0.0)
+    return b
+
+
+def _end_cfg():
+    cfg = pb.OutputConfig()
+    cfg.set_stats_output(write_flow_stats=True, write_overall=True)
+    cfg.set_POT_output(write_summary=True, write_counter=True)
+    return cfg
+
+
+def _parse_table(path):
+    """Whitespace-split data rows (header skipped) of a fixed-width output file."""
+    return [ln.split() for ln in Path(path).read_text().splitlines()[1:]]
+
+
 def test_fix2_generated_end_matches_cpu():
-    # Documents the remaining generated end-of-run discrepancy: CPU and GPU event
-    # counts differ by a bounded amount at the run end (plus grid-tolerance
-    # flicker). This xfails until the generated A2-boundary handling lands.
     from pybtls.output.read.E_cumulative_statistics import read_E_CS
 
     _clean()
-    cfg = pb.OutputConfig()
-    cfg.set_stats_output(write_overall=True)
-    sim = pb.Simulation(output_dir=ROOT)
-    sim.add_sim(
-        bridge=_gen_bridge(),
-        traffic=_gen_traffic(),
-        no_day=1,
-        output_config=cfg,
-        time_step=0.1,
-        min_gvw=0,
-        tag="cpu",
-        engine="cpu",
-        seed=7,
-    )
-    sim.run(no_core=1)
-    cpu = read_E_CS(ROOT / "cpu" / "SS_C_20.txt")
+    try:
+        sim = pb.Simulation(output_dir=ROOT)
+        sim.add_sim(
+            bridge=_const_bridge(),
+            traffic=_const_traffic(),
+            no_day=1,
+            output_config=_end_cfg(),
+            time_step=0.1,
+            min_gvw=0,
+            tag="cpu",
+            engine="cpu",
+            seed=1,
+        )
+        sim.run(no_core=1)
+        gpu_runner.run(
+            _const_bridge(),
+            _const_traffic(),
+            1,
+            0.1,
+            0,
+            None,
+            "gpu",
+            0.0,
+            ROOT,
+            1,
+            device="cpu",
+            output_config=_end_cfg(),
+        )
 
-    cfg2 = pb.OutputConfig()
-    cfg2.set_stats_output(write_overall=True)
-    gpu_runner.run(
-        _gen_bridge(),
-        _gen_traffic(),
-        1,
-        0.1,
-        0,
-        None,
-        "gpu",
-        0.0,
-        ROOT,
-        7,
-        device="cpu",
-        output_config=cfg2,
+        # SS_C: event / vehicle counts (the beyond-end event included)
+        cpu = read_E_CS(ROOT / "cpu" / "SS_C_20.txt")
+        gpu = read_E_CS(ROOT / "gpu" / "SS_C_20.txt")
+        for col in ("No. Events", "No. Vehicles", "No. Trucks"):
+            c, g = int(cpu[col].iloc[0]), int(gpu[col].iloc[0])
+            assert c == g, f"SS_C {col}: cpu={c} gpu={g}"
+
+        # PT counts: per-effect summary rows and the counter table; the block-2
+        # row is the witness that an event starting after end_time was recorded
+        n_cpu = sum(1 for _ in open(ROOT / "cpu" / "PT_S_20_Eff_1.txt"))
+        n_gpu = sum(1 for _ in open(ROOT / "gpu" / "PT_S_20_Eff_1.txt"))
+        assert n_cpu == n_gpu, f"PT_S rows: cpu={n_cpu} gpu={n_gpu}"
+        ptc_cpu = _parse_table(ROOT / "cpu" / "PT_C_20.txt")
+        ptc_gpu = _parse_table(ROOT / "gpu" / "PT_C_20.txt")
+        assert ptc_cpu == ptc_gpu, f"PT_C: cpu={ptc_cpu} gpu={ptc_gpu}"
+        assert ["2", "1"] in ptc_cpu, f"scenario lost its beyond-end event: {ptc_cpu}"
+
+        # FlowData: full tables equal, incl. the hour-25 row counting A2
+        for lane in (1, 2):
+            fc = _parse_table(ROOT / "cpu" / f"FlowData_1_{lane}.txt")
+            fg = _parse_table(ROOT / "gpu" / f"FlowData_1_{lane}.txt")
+            assert fc == fg, f"FlowData lane {lane} differs"
+        assert len(fc) == 25 and fc[-1][1] == "1", f"A2 flow row missing: {fc[-1]}"
+    finally:
+        _clean()
+
+
+def test_fix2_vehicle_path_threads_end_arrival():
+    # The per-vehicle streaming path (used when PT_V needs Vehicle objects) must
+    # thread the same A2 boundary: the run's last window gets A2 as its
+    # next_arrival, and end_tail carries A2's arrival + single-vehicle
+    # extraction row for the flow count.
+    tail = {}
+    wins = list(
+        gpu_runner._traffic_windows(
+            _const_traffic(),
+            _const_bridge(),
+            1,
+            None,
+            1,
+            10**9,
+            True,  # want_vehicles -> per-vehicle path
+            None,
+            tail,
+        )
     )
-    gpu = read_E_CS(ROOT / "gpu" / "SS_C_20.txt")
-    c, g = int(cpu["No. Events"].iloc[0]), int(gpu["No. Events"].iloc[0])
-    _clean()
-    assert c == g, f"generated end-of-run: cpu={c} gpu={g}"
+    assert [w[6] for w in wins] == [False] * (len(wins) - 1) + [True]
+    next_arrival = wins[-1][5]
+    a2 = 73 * GAP2  # lane 2's first arrival past end_time
+    assert next_arrival == pytest.approx(a2) and next_arrival > 86400.0
+    assert tail["arrival"] == next_arrival
+    assert len(tail["extracted"][0]) == 1  # exactly one flow row (A2 itself)
+    assert float(tail["extracted"][0][0]) == next_arrival

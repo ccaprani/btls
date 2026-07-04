@@ -649,8 +649,9 @@ def compute_from_axles(
                 0, n_win - 1
             )
             zeros_win = torch.zeros(n_win, dtype=dt, device=dev)
+            Ev = E[:, valid]  # gather the valid samples once for all effects
             for e in range(n_eff):
-                mag = E[e][valid].abs()
+                mag = Ev[e].abs()
                 bmag = torch.full((n_win,), -1.0, dtype=dt, device=dev)
                 bmag.scatter_reduce_(0, win_s, mag, reduce="amax", include_self=True)
                 # latest sample (max global index) achieving the window's |peak|

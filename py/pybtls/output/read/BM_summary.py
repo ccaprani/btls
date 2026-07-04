@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 
+from ._empty import empty_frame
+
 __all__ = ["read_BM_S"]
 
 
@@ -58,7 +60,7 @@ def read_BM_S(
     if not data_rows:
         # The number of truck-count buckets cannot be inferred without any
         # data; return the one column that is always known.
-        return pd.DataFrame(columns=["Block Index"])
+        return empty_frame(["Block Index"])
 
     # Convert to DataFrame
     return_data = pd.DataFrame(data_rows)

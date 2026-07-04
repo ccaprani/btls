@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 
+from ._empty import read_csv_or_empty
+
 __all__ = ["read_POT_C"]
 
 
@@ -38,16 +40,14 @@ def read_POT_C(
     """
 
     # Read data
-    try:
-        return_data = pd.read_csv(
-            file_path,
-            sep=r"\s+",
-            header=None,
-            skiprows=max(1, start_line),
-            nrows=no_lines,
-        )
-    except pd.errors.EmptyDataError:
-        return pd.DataFrame(columns=["Block"])
+    return_data = read_csv_or_empty(
+        file_path,
+        ["Block"],
+        sep=r"\s+",
+        header=None,
+        skiprows=max(1, start_line),
+        nrows=no_lines,
+    )
 
     no_effects = len(return_data.columns) - 1
 

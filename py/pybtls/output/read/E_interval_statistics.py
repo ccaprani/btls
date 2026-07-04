@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 
+from ._empty import empty_frame
+
 __all__ = ["read_E_IS"]
 
 
@@ -74,7 +76,7 @@ def read_E_IS(
                 break
 
     if not data_rows:
-        return pd.DataFrame(columns=column_ids)
+        return empty_frame(column_ids)
 
     # Convert to DataFrame
     return_data = pd.DataFrame(data_rows)
