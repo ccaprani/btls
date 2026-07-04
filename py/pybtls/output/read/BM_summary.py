@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 
+from ._empty import empty_frame
+
 __all__ = ["read_BM_S"]
 
 
@@ -25,7 +27,18 @@ def read_BM_S(
     Returns
     -------
     pd.DataFrame\n
-        The BM summary data.
+        One row per block, with columns:\n
+        - "Block Index" : int, 1-based block number.\n
+        - "1-Truck Event", "2-Truck Event", ... : float, the maximum load
+          effect value recorded for that truck-count bucket in the
+          block (BlockMaxManager.cpp getMaxEffect().getValue()), in the
+          effect's native unit (kN or kN·m). Despite the column name,
+          this is a load effect value, not an event count. NaN where a
+          bucket had no qualifying event.\n
+        The number of bucket columns is inferred from the file. Returns
+        a DataFrame with only the "Block Index" column (no rows) if the
+        file has no data rows, since the number of buckets cannot be
+        inferred without any data.
     """
 
     # Read data
@@ -33,7 +46,7 @@ def read_BM_S(
 
     with open(file_path, "r") as file:
         for _ in range(max(0, start_line - 1)):
-            next(file)  # Skip the specified number of lines
+            next(file, None)  # Skip the specified number of lines
         i = 0
 
         for line in file:
@@ -43,6 +56,11 @@ def read_BM_S(
             i += 1
             if no_lines is not None and i >= no_lines:
                 break
+
+    if not data_rows:
+        # The number of truck-count buckets cannot be inferred without any
+        # data; return the one column that is always known.
+        return empty_frame(["Block Index"])
 
     # Convert to DataFrame
     return_data = pd.DataFrame(data_rows)

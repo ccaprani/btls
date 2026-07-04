@@ -85,9 +85,7 @@ def save_output(
         isinstance(obj, (_OutputManager, _ChunkedOutputManager))
         for obj in output.values()
     ):
-        raise ValueError(
-            "All values in the output dictionary must be output managers."
-        )
+        raise ValueError("All values in the output dictionary must be output managers.")
     file_path = Path(file_path) if not isinstance(file_path, Path) else file_path
     file_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -148,8 +146,7 @@ def load_output(
         raise RuntimeError(f"{file_path} is not a pybtls output manifest.")
 
     output = {
-        tag: _record_to_manager(record)
-        for tag, record in manifest["outputs"].items()
+        tag: _record_to_manager(record) for tag, record in manifest["outputs"].items()
     }
     print(f"Outputs have been successfully loaded from {file_path}!")
     return output

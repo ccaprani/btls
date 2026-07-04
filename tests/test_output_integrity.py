@@ -47,24 +47,38 @@ def _make_traffic(trucks_per_hour: list[int]) -> "pb.TrafficGenerator":
     return traffic_gen
 
 
-def _run(traffic, out_dir: Path, tag: str, interval_size: int = 3600,
-         pot_secs: int = 0):
+def _run(
+    traffic, out_dir: Path, tag: str, interval_size: int = 3600, pot_secs: int = 0
+):
     output_config = pb.OutputConfig()
     output_config.set_event_output(write_each_event=True)
-    output_config.set_BM_output(write_vehicle=False, write_summary=True, write_mixed=False)
+    output_config.set_BM_output(
+        write_vehicle=False, write_summary=True, write_mixed=False
+    )
     output_config.set_POT_output(
-        write_vehicle=False, write_summary=False, write_counter=True,
-        POT_size_days=0 if pot_secs else 1, POT_size_secs=pot_secs,
+        write_vehicle=False,
+        write_summary=False,
+        write_counter=True,
+        POT_size_days=0 if pot_secs else 1,
+        POT_size_secs=pot_secs,
     )
     output_config.set_stats_output(
-        write_flow_stats=False, write_overall=True, write_intervals=True,
+        write_flow_stats=False,
+        write_overall=True,
+        write_intervals=True,
         interval_size=interval_size,
     )
 
     sim = pb.Simulation(output_dir=out_dir)
     sim.add_sim(
-        bridge=_make_bridge(), traffic=traffic, no_day=NO_DAY,
-        output_config=output_config, time_step=0.1, min_gvw=35, tag=tag, seed=99,
+        bridge=_make_bridge(),
+        traffic=traffic,
+        no_day=NO_DAY,
+        output_config=output_config,
+        time_step=0.1,
+        min_gvw=35,
+        tag=tag,
+        seed=99,
     )
     sim.run(no_core=1)
     return sim.get_output()[tag]

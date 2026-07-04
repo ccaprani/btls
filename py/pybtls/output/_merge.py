@@ -27,6 +27,12 @@ moment_merge
 vehicles_concat
     Recorded vehicle files (Vehicle objects with embedded timestamps).
     Implemented in Phase 1/2.
+rainflow_splice
+    Fatigue rainflow histograms (FR_*): closed-cycle bins are summed like
+    ``bin_sum``, and each chunk's unclosed residual reversal sequence
+    (FRR_* sidecar) is concatenated in chunk order and closed with the
+    same C++ rainflow algorithm, falling back to plain bin summing when
+    no sidecars exist. See ``merge_rainflow``.
 """
 
 from dataclasses import dataclass, field
@@ -56,7 +62,7 @@ _DAYS_PER_YR = _DAYS_PER_MT * _MTS_PER_YR
 class MergeSpec:
     """Declares how one output type merges across chunks."""
 
-    category: str  # "concat" | "bin_sum" | "moment_merge" | "vehicles_concat"
+    category: str  # "concat" | "bin_sum" | "moment_merge" | "vehicles_concat" | "rainflow_splice"
     time_cols: tuple = ()  # fnmatch patterns; shifted by chunk offset (s)
     offset_index_cols: tuple = ()  # continuing counters; shifted by prior max
     renumber_index_cols: tuple = ()  # re-sequenced 1..N after concat
@@ -97,9 +103,7 @@ MERGE_REGISTRY: dict[str, MergeSpec] = {
     "E_interval_statistics": MergeSpec(
         "concat", time_cols=("Time",), offset_index_cols=("Index",)
     ),
-    "fatigue_events": MergeSpec(
-        "concat", time_cols=("Start Time", "Effect * Time")
-    ),
+    "fatigue_events": MergeSpec("concat", time_cols=("Start Time", "Effect * Time")),
     # Closed-cycle histograms add bin-wise; the unclosed residual reversal
     # sequences (FRR_* sidecars, written in chunk mode) are concatenated and
     # closed with the same C++ algorithm — exact residue splicing. Falls
@@ -149,9 +153,10 @@ def merge_concat(
         for col in _match_cols(df, spec.time_cols):
             new_col = df[col] + offset
             # Keep integer time columns integer (e.g. SS_S "Time").
-            if pd.api.types.is_integer_dtype(df[col].dtype) and float(
-                offset
-            ).is_integer():
+            if (
+                pd.api.types.is_integer_dtype(df[col].dtype)
+                and float(offset).is_integer()
+            ):
                 new_col = new_col.astype(df[col].dtype)
             df[col] = new_col
         for col in spec.offset_index_cols:

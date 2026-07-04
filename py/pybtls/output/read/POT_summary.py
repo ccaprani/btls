@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 
+from ._empty import read_csv_or_empty
+
 __all__ = ["read_POT_S"]
 
 
@@ -25,19 +27,32 @@ def read_POT_S(
     Returns
     -------
     pd.DataFrame\n
-        The POT summary data.
+        One row per peak, with columns:\n
+        - "Peak Index" : int, the peak's 1-based position among the rows
+          actually read (i.e. relative to ``start_line``). This is
+          renumbered on read and does not preserve the original file's
+          block-local peak index.\n
+        - "Time" : float, seconds.\n
+        - "No. Vehicles" : int, the total number of vehicles in the
+          event, including cars.\n
+        - "Peak Value" : float, in the effect's native unit (kN or
+          kN·m).\n
+        Returns an empty DataFrame with this schema if the file has no
+        data rows.
     """
 
     # Read data
-    return_data = pd.read_csv(
+    column_names = ["Peak Index", "Time", "No. Vehicles", "Peak Value"]
+    return_data = read_csv_or_empty(
         file_path,
+        column_names,
         delimiter="\s+",
-        names=["Peak Index", "Time", "No. Trucks", "Peak Value"],
+        names=column_names,
         skiprows=max(0, start_line - 1),
         nrows=no_lines,
     )
 
-    # Override Peak Index to match the number of rows (1..N)
-    return_data["Peak Index"] = range(1, len(return_data) + 1)
+    # Renumber Peak Index to reflect each row's actual position in the file.
+    return_data["Peak Index"] = range(start_line, start_line + len(return_data))
 
     return return_data

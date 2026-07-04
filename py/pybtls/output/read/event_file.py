@@ -1,6 +1,7 @@
 import pandas as pd
 from pathlib import Path
 from ...lib.BTLS import Vehicle
+from ._empty import empty_frame
 
 __all__ = ["read_event_file"]
 
@@ -8,18 +9,47 @@ __all__ = ["read_event_file"]
 def read_event_file(file_path: Path) -> pd.DataFrame:
     """
     A standard read-in function for BM_by_no_trucks, BM_by_mixed and POT_vehicle files.\n
-    These files do not have headers.
+    These files do not have headers. Each event is one summary line
+    (Index, Effect, Value, Time, Position on Bridge, No. Vehicles)
+    followed by zero or more vehicle lines describing the vehicles
+    present in that event; the summary line is repeated once per load
+    effect recorded for the event.
 
     Parameters
     ----------
     file_path : Path\n
-        The path to the effect interval statistics data file.
+        The path to the BM/POT event-and-vehicle data file.
 
     Returns
     -------
     pd.DataFrame\n
-        The effect interval statistics data.
+        One row per (event, load effect) combination, with columns:\n
+        - "Index" : int, the block/event index.\n
+        - "Effect" : int, the 1-based load effect number.\n
+        - "Value" : float, the load effect value at the event maximum, in
+          the effect's native unit (kN or kN·m depending on the influence
+          line).\n
+        - "Time" : float, the time of the event maximum, in seconds.\n
+        - "Position on Bridge" : float, in metres. The distance of the
+          first axle of the first truck on the bridge relative to the
+          bridge datum, at the time the crossing event maximum effect is
+          reached.\n
+        - "No. Vehicles" : int, the total number of vehicles in the
+          event, including cars.\n
+        - "Trucks" : list[Vehicle], the vehicles present in the event.\n
+        Returns an empty DataFrame with this schema if the file has no
+        data rows.
     """
+
+    column_ids = [
+        "Index",
+        "Effect",
+        "Value",
+        "Time",
+        "Position on Bridge",
+        "No. Vehicles",  # total no. of vehicles in the event, including cars
+        "Trucks",
+    ]  # The "Position on Bridge" means the distance of the first axle of the first truck on the bridge relative to the bridge datum, at the time of the crossing event maximum effect being reached.
 
     # Read data
     data_rows = []
@@ -40,17 +70,12 @@ def read_event_file(file_path: Path) -> pd.DataFrame:
                 vehicle._create(line, 1)
                 data_rows[-1][-1].append(vehicle)
 
+    if not data_rows:
+        return empty_frame(column_ids)
+
     # Convert to DataFrame
     return_data = pd.DataFrame(data_rows)
-    return_data.columns = [
-        "Index",
-        "Effect",
-        "Value",
-        "Time",
-        "Position on Bridge",
-        "No. Trucks",
-        "Trucks",
-    ]  # The "Position on Bridge" means the distance of the first axle of the first truck on the bridge relative to the bridge datum, at the time of the crossing event maximum effect being reached.
+    return_data.columns = column_ids
 
     # Convert data types
     return_data["Index"] = return_data["Index"].astype(int)
@@ -58,7 +83,7 @@ def read_event_file(file_path: Path) -> pd.DataFrame:
     return_data["Value"] = return_data["Value"].astype(float)
     return_data["Time"] = return_data["Time"].astype(float)
     return_data["Position on Bridge"] = return_data["Position on Bridge"].astype(float)
-    return_data["No. Trucks"] = return_data["No. Trucks"].astype(int)
+    return_data["No. Vehicles"] = return_data["No. Vehicles"].astype(int)
     # return_data["Trucks"] keeps unchanged
 
     return return_data

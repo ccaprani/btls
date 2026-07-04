@@ -232,7 +232,6 @@ void CVehModelDataGrave::ReadFile_AW23()
 	if( !m_CSV.OpenFile(file.string(), ",") )
 	{
 		std::cerr << "***ERROR: " << std::filesystem::weakly_canonical(file) << " file could not be opened" << std::endl;
-		system("PAUSE");
 		exit( 1 );
 	}
 
@@ -273,7 +272,6 @@ void CVehModelDataGrave::ReadFile_AW45()
 	if( !m_CSV.OpenFile(file.string(), ",") )
 	{
 		std::cerr << "***ERROR: " << std::filesystem::weakly_canonical(file) << " file could not be opened" << std::endl;
-		system("PAUSE");
 		exit( 1 );
 	}
 
@@ -304,7 +302,6 @@ void CVehModelDataGrave::ReadFile_AS()
 	if( !m_CSV.OpenFile(file.string(), ",") )
 	{
 		std::cerr << "***ERROR: " << std::filesystem::weakly_canonical(file) << " file could not be opened" << std::endl;
-		system("PAUSE");
 		exit( 1 );
 	}
 
@@ -419,7 +416,6 @@ void CVehModelDataGrave::ReadFile_GVW()
 	if( !m_CSV.OpenFile(file.string(), ",") )
 	{
 		std::cerr << "***ERROR: " << std::filesystem::weakly_canonical(file) << " file could not be opened" << std::endl;
-		system("PAUSE");
 		exit( 1 );
 	}
 

@@ -2,6 +2,7 @@
 .DS_Store
 bin
 build
+build_pylib
 pybtls.egg*
 __pycache__
 *.so
@@ -163,3 +164,12 @@ dmypy.json
 
 # AI guidance
 CLAUDE.md
+
+# Local scratch / profiling IO (kept on /home, not committed)
+tmp/
+
+# Local dev notes, working proposal, and stray generated outputs (local only)
+dev_log/
+refactor_convolution_proposal.md
+sim_version_info.txt
+gpu_demo_out/

@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 
+from ._empty import read_csv_or_empty
+
 __all__ = ["read_TS"]
 
 
@@ -23,22 +25,42 @@ def read_TS(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     Returns
     -------
     pd.DataFrame\n
-        The traffic statistics data.
+        One row per reporting interval (despite the name, "Hour" is a
+        1-based interval index, not necessarily one hour - it matches
+        whatever interval size the simulation was configured with).
+        Columns:\n
+        - "Hour" : int, 1-based interval index.\n
+        - "No. Vehicles" : int, total vehicles in the interval, including
+          cars.\n
+        - "No. Trucks" : int, trucks in the interval, excluding cars.\n
+        - "No. Cars" : int.\n
+        - "0: Default", "1: Car", ... : int, per-class vehicle counts.
+          The schema is chosen dynamically by sniffing the file's header
+          line: if it contains "-axle" (case-insensitive), the remaining
+          columns are the axle-count classifier ("2: 2-axle" ...
+          "5: 5-axle"); otherwise they are the vehicle-pattern classifier
+          ("2: Pattern 11" ... "8: Pattern 113"). The two schemas have
+          different column counts and names.\n
+        Returns an empty DataFrame with the schema inferred from the
+        header line if the file has no data rows (the header line, and
+        therefore the schema choice, is still required to exist).
     """
 
     # Check the what vehicle classifier was used
     with open(file_path, "r") as file:
         headline = file.readline().strip()
-    if "Axles" in headline:
+    if "-axle" in headline.lower():
         column_names = [
             "Hour",
             "No. Vehicles",
             "No. Trucks",
             "No. Cars",
-            "2-Axles",
-            "3-Axles",
-            "4-Axles",
-            "5-Axles",
+            "0: Default",
+            "1: Car",
+            "2: 2-axle",
+            "3: 3-axle",
+            "4: 4-axle",
+            "5: 5-axle",
         ]
     else:
         column_names = [
@@ -58,8 +80,9 @@ def read_TS(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
         ]
 
     # Read data
-    return_data = pd.read_csv(
+    return_data = read_csv_or_empty(
         file_path,
+        column_names,
         delimiter="\s+",
         names=column_names,
         skiprows=max(1, start_line),

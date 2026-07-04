@@ -84,34 +84,34 @@ class Bridge:
             if not all([inf_line._data_assigned for inf_line in inf_line_surf]):
                 raise ValueError("All influence lines should have their data assigned.")
 
-            self._no_load_effect += 1
-            self._inf_file_dict[str(self._no_load_effect)]["inf_line"] = inf_line_surf
-
         elif isinstance(inf_line_surf, (InfluenceLine, InfluenceSurface)):
             if not inf_line_surf._data_assigned:
                 raise ValueError(
                     "The influence line or surface should have its data assigned."
                 )
-            self._no_load_effect += 1
-            self._inf_file_dict[str(self._no_load_effect)]["inf_line"] = [
-                inf_line_surf
-            ] * self._no_lane
 
         else:
             raise TypeError(
                 "The influence line or surface must be InfluenceLine or InfluenceSurface object(s)."
             )
 
-        if inf_weight is None:
-            self._inf_file_dict[str(self._no_load_effect)]["weight"] = [
-                1.0
-            ] * self._no_lane
+        if inf_weight is not None and len(inf_weight) != self._no_lane:
+            raise ValueError(
+                "The length of inf_weight should be equal to the number of lanes."
+            )
+
+        self._no_load_effect += 1
+
+        if isinstance(inf_line_surf, list):
+            self._inf_file_dict[str(self._no_load_effect)]["inf_line"] = inf_line_surf
         else:
-            if len(inf_weight) != self._no_lane:
-                raise ValueError(
-                    "The length of inf_weight should be equal to the number of lanes."
-                )
-            self._inf_file_dict[str(self._no_load_effect)]["weight"] = inf_weight
+            self._inf_file_dict[str(self._no_load_effect)]["inf_line"] = [
+                inf_line_surf
+            ] * self._no_lane
+
+        self._inf_file_dict[str(self._no_load_effect)]["weight"] = (
+            [1.0] * self._no_lane if inf_weight is None else inf_weight
+        )
 
         self._threshold_list.append(threshold)
 

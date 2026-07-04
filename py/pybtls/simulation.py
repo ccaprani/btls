@@ -134,6 +134,65 @@ class Simulation:
 
         track_progress : bool, optional\n
             Whether to track the simulation progress. A single-vehicle simulation will ignore this argument. The default is False.
+
+        engine : str, optional\n
+            Load-effect engine for traffic simulation. Default "cpu".
+
+            Each value names the device the engine runs on:
+
+            - "cpu": the C++ time-stepping engine, on the **CPU**. Full-featured
+              (time history, block maxima, POT, statistics, fatigue/rainflow) and
+              the right choice for essentially all runs.
+            - "cuda" / "mps" / "xpu": the experimental GPU engine (PyTorch +
+              Triton). The engine name IS the torch device:
+
+                * "cuda" -> **NVIDIA**, and **AMD** via ROCm (both use torch's
+                  cuda device); float64.
+                * "mps"  -> **Apple Silicon** (Metal); runs in float32 (MPS has
+                  no float64). The MPS backend may lack ``searchsorted`` /
+                  ``scatter_reduce`` — the engine probes for this and raises a
+                  clear error; set ``PYTORCH_ENABLE_MPS_FALLBACK=1`` to run those
+                  ops on the CPU (slower).
+                * "xpu"  -> **Intel** GPU; float64.
+
+              Only "cuda" is currently tested; "mps"/"xpu" are wired but
+              unverified (the engine probes each backend for the ops it needs
+              and errors clearly if one is missing). Needs ``pybtls[gpu]`` (a build of torch for that
+              device). It computes per-effect block-maxima (BM),
+              peaks-over-threshold (POT: PT_S/PT_C/PT_V), fatigue rainflow
+              (FR), load-effect statistics (SS_C/SS_S), vehicle flow statistics
+              (FlowData) and time history (TH) via
+              per-vehicle superposition, honouring the matching OutputConfig
+              flags. POT/SS rebuild the "cpu" event
+              partition, so event / vehicle / truck counts track "cpu" to ~1%
+              (uniform sampling merges composition changes inside one time step);
+              peak values/times, statistics and fatigue cycle amplitudes carry
+              uniform-grid sampling noise. Scope: recorded or generated traffic;
+              discrete, built-in or surface influence lines, including a distinct
+              IL/weight per lane; vertical / centrifugal / braking modes. It does
+              NOT produce the per-event / per-vehicle detail outputs
+              (write_each_event, the vehicle file, BM-vehicle / mixed,
+              write_fatigue_event); those are skipped with a
+              warning — use engine="cpu" for them.
+
+            When is the GPU engine worth it? Only when the load-effect *computation*
+            dominates the run — which it usually does NOT. Profiling shows the
+            per-step load summation is typically ~15-20% of wall-clock; the
+            bottleneck is the output writers (time history, POT, fatigue) plus
+            per-event overhead, none of which the GPU engine accelerates.
+            Measured against ONE CPU core (RTX 3090 vs Ryzen 9 7950X, float64):
+            ~2.5-5x for typical free-flow runs, ~10x for a compute-dominated
+            case (long-span congested bridge; the gap grows with the number of
+            load effects and of axles simultaneously on the deck). Note that
+            for generated traffic, CPU chunk-parallelism (``no_chunk``) scales
+            near-linearly across cores and often matches or beats the GPU — the
+            GPU engine's clear wins are recorded traffic (which cannot chunk),
+            runs needing exact sequential equivalence, and many-effect
+            congested/long-span cases. The device working set is tiled
+            adaptively to the free VRAM, so small or shared GPUs shrink the
+            tile instead of running out of memory. For ordinary short-span
+            bridges with a handful of effects, or any run needing the full
+            output set, use "cpu".
         """
 
         self._sim_count += 1
@@ -144,6 +203,9 @@ class Simulation:
 
         overlap_avoid_distance = kwargs.get("min_chase_distance", 100.0)
         track_progress = kwargs.get("track_progress", False)
+        engine = kwargs.get("engine", "cpu")
+        if engine not in ("cpu", "cuda", "mps", "xpu"):
+            raise ValueError('engine must be "cpu", "cuda", "mps" or "xpu".')
 
         if no_chunk is None or no_chunk == 1:
             self._sim_argument.append(
@@ -161,12 +223,17 @@ class Simulation:
                     track_progress,
                     self._output_root,
                     seed,
+                    engine,
                 )
             )
             return
 
-        chunk_days = self._validate_chunking(traffic, vehicle, no_day, no_chunk, output_config)
-        master_seed = seed if seed is not None else random.SystemRandom().randrange(1, 2**31)
+        chunk_days = self._validate_chunking(
+            traffic, vehicle, no_day, no_chunk, output_config
+        )
+        master_seed = (
+            seed if seed is not None else random.SystemRandom().randrange(1, 2**31)
+        )
 
         # Chunk runs keep their rainflow residuals open (written to FRR_*
         # sidecars) so the merged histogram can be spliced exactly. Copy the
@@ -194,6 +261,7 @@ class Simulation:
                     track_progress,
                     self._output_root,
                     master_seed + i,
+                    engine,
                 )
             )
 
@@ -231,8 +299,14 @@ class Simulation:
         chunk_secs = chunk_days * 86400
 
         out = output_config._Output
-        if out.BlockMax.WRITE_BM_VEHICLES or out.BlockMax.WRITE_BM_MIXED or out.BlockMax.WRITE_BM_SUMMARY:
-            block_secs = out.BlockMax.BLOCK_SIZE_DAYS * 86400 + out.BlockMax.BLOCK_SIZE_SECS
+        if (
+            out.BlockMax.WRITE_BM_VEHICLES
+            or out.BlockMax.WRITE_BM_MIXED
+            or out.BlockMax.WRITE_BM_SUMMARY
+        ):
+            block_secs = (
+                out.BlockMax.BLOCK_SIZE_DAYS * 86400 + out.BlockMax.BLOCK_SIZE_SECS
+            )
             if block_secs == 0 or chunk_secs % block_secs != 0:
                 raise ValueError(
                     f"Chunk length ({chunk_days} days) must be a multiple of "
@@ -281,6 +355,26 @@ class Simulation:
         None
         """
 
+        # GPU engines share one device: running tasks concurrently serialises the
+        # device compute (no speed-up) while each worker process replicates its
+        # window in host RAM + VRAM, so multi-core only multiplies memory and can
+        # OOM. Warn so the default no_core (cpu_count-2) isn't applied to GPU runs.
+        effective_cores = (
+            no_core if no_core is not None else multiprocessing.cpu_count() - 2
+        )
+        gpu_tasks = sum(
+            1 for a in self._sim_argument if a[13] in ("cuda", "mps", "xpu")
+        )
+        if gpu_tasks and effective_cores > 1:
+            print(
+                f"Warning: {gpu_tasks} GPU task(s) queued with no_core="
+                f"{effective_cores}. GPU tasks share one device — concurrency gives "
+                "no speed-up, but each process replicates its window in host RAM + "
+                "VRAM (risking OOM). Use no_core=1 for GPU runs.",
+                file=sys.stderr,
+                flush=True,
+            )
+
         total = len(self._sim_argument)
         start = time.perf_counter()
         done = 0
@@ -304,15 +398,21 @@ class Simulation:
                 self._sim_output[sim_arg[8]] = self._single_sim(sim_arg)
                 report(i)
         else:
-            no_processes = (
-                no_core if no_core is not None else multiprocessing.cpu_count() - 2
-            )
-            with multiprocessing.Pool(processes=no_processes) as pool:
+            # An explicit spawn context, not the (mutable) global default: fork
+            # workers would break CUDA re-initialisation, and set_start_method
+            # in __init__ is silently ignored if another library set the
+            # method first.
+            ctx = multiprocessing.get_context("spawn")
+            results = {}
+            with ctx.Pool(processes=effective_cores) as pool:
                 for i, result in pool.imap_unordered(
                     self._single_sim_indexed, list(enumerate(self._sim_argument))
                 ):
-                    self._sim_output[self._sim_argument[i][8]] = result
+                    results[i] = result
                     report(i)
+            # insert in add_sim order so get_output() keys are deterministic
+            for i, sim_arg in enumerate(self._sim_argument):
+                self._sim_output[sim_arg[8]] = results[i]
 
         self._reduce_chunk_groups()
 
@@ -378,8 +478,26 @@ class Simulation:
             track_progress,
             output_root,
             seed,
+            engine,
         ) = args
 
+        if traffic is not None and engine in ("cuda", "mps", "xpu"):
+            from .gpu import run as gpu_run
+
+            return gpu_run(
+                bridge,
+                traffic,
+                no_day,
+                time_step,
+                min_gvw,
+                active_lane,
+                sim_tag,
+                overlap_avoid_distance,
+                output_root,
+                seed,
+                device=engine,
+                output_config=output_config,
+            )
         if traffic is not None:
             return self._single_traffic_sim(
                 bridge,
@@ -487,6 +605,7 @@ class Simulation:
     ) -> _OutputManager:
         if seed is not None:
             from .lib import libbtls
+
             libbtls.seed(seed)
 
         sim_dir = output_root / str(sim_tag)
@@ -560,6 +679,14 @@ class Simulation:
                     "The maximum lane index in active_lane is larger than the number of lanes on the bridge."
                 )
             lane_for_calc = [lane_list[i - 1] for i in active_lane]
+
+        if isinstance(traffic, TrafficLoader):
+            # An initially-empty lane keeps CLane's default next-arrival time
+            # (0.0), so it would sort first and end the merge loop on the
+            # first iteration — exclude empty lanes from the calculation.
+            lane_for_calc = [lane for lane in lane_for_calc if lane.getNoVehicles() > 0]
+            if not lane_for_calc:
+                raise ValueError("No vehicles in any simulated lane.")
 
         while current_time <= end_time:
             lane_for_calc = sorted(lane_for_calc, key=lambda t: t.getNextArrivalTime())

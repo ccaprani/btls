@@ -67,8 +67,13 @@ _docs_dir = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), ".."))
 _doxy_xml = _os.path.join(_docs_dir, "doxygen", "xml")
 
 try:
-    _sp.run(["doxygen", "Doxyfile"], cwd=_docs_dir, check=True,
-            stdout=_sp.PIPE, stderr=_sp.PIPE)
+    _sp.run(
+        ["doxygen", "Doxyfile"],
+        cwd=_docs_dir,
+        check=True,
+        stdout=_sp.PIPE,
+        stderr=_sp.PIPE,
+    )
     print("[conf.py] Doxygen XML regenerated at", _doxy_xml)
 except FileNotFoundError:
     print("[conf.py] doxygen not found on PATH; skipping C++ API regeneration.")

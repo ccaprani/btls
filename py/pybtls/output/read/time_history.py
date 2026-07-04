@@ -2,6 +2,8 @@ import pandas as pd
 from pathlib import Path
 from collections import defaultdict
 
+from ._empty import read_csv_or_empty
+
 __all__ = ["read_TH"]
 
 
@@ -26,21 +28,34 @@ def read_TH(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     Returns
     -------
     pd.DataFrame\n
-        The time history data.
+        One row per recorded time step, with columns:\n
+        - "Time" : float, seconds.\n
+        - "No. Vehicles" : int, the total number of vehicles on the
+          bridge at that time, including cars.\n
+        - "Effect 1", "Effect 2", ... : float, the load effect value at
+          that time, in the effect's native unit (kN or kN·m depending
+          on the influence line). The number of effect columns is
+          inferred from the file.\n
+        Returns an empty DataFrame with columns ["Time", "No. Vehicles"]
+        if the file has no data rows.
     """
 
     # Read data
-    return_data = pd.read_csv(
+    return_data = read_csv_or_empty(
         file_path,
+        ["Time", "No. Vehicles"],
         sep=r"\s+",
         header=None,
         skiprows=max(1, start_line),
         nrows=no_lines,
     )
+
     no_effects = len(return_data.columns) - 2
 
     # Set column ids
-    column_ids = ["Time", "No. Trucks"] + [f"Effect {i + 1}" for i in range(no_effects)]
+    column_ids = ["Time", "No. Vehicles"] + [
+        f"Effect {i + 1}" for i in range(no_effects)
+    ]
     return_data.columns = column_ids
 
     # # Fill the data (if use, remove the corresponding part in plot/time_history.py)

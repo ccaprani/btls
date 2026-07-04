@@ -5,6 +5,7 @@ The methods and classes that are not defined in Python are defined in C++ py_mai
 from ..lib.BTLS import _InfluenceLine, _InfluenceSurface
 from ..utils.IL_compress import compress_discrete_IL
 import numpy as np
+import warnings
 from typing import Union, Literal
 
 __all__ = ["InfluenceLine", "InfluenceSurface"]
@@ -36,7 +37,7 @@ class _LoadEffectModeMixin:
             superelevation factor k_e and 1/R) into the influence
             ordinates so the convolved effect comes out in kN.
 
-            "braking": F_axle = AxleWeight * |a| / g, using each vehicle's
+            "braking": F_axle = AxleWeight * ``|a|`` / g, using each vehicle's
             longitudinal acceleration (``Vehicle.set_acceleration``); when
             a vehicle's acceleration is zero, ``braking_factor`` is used
             instead.
@@ -48,9 +49,7 @@ class _LoadEffectModeMixin:
         """
 
         if mode not in ("vertical", "centrifugal", "braking"):
-            raise ValueError(
-                "mode must be 'vertical', 'centrifugal' or 'braking'."
-            )
+            raise ValueError("mode must be 'vertical', 'centrifugal' or 'braking'.")
         self._load_effect_mode = mode
         self._braking_factor = braking_factor
 
@@ -147,7 +146,7 @@ class InfluenceLine(_LoadEffectModeMixin):
 
         if compress_tolerance is not None:
             if compress_tolerance > 0.1:
-                raise Warning(
+                warnings.warn(
                     "The compress_tolerance is too large, which may cause the corresponding load effect significantly inaccurate."
                 )
             position, ordinate = compress_discrete_IL(

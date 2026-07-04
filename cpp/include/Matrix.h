@@ -3,20 +3,9 @@
  * @brief Interface for the CMatrix template class — simple 3D array.
  */
 
-#if !defined(AFX_MATRIX_H__E6397425_F122_44A4_A3A8_53CD4D2523E7__INCLUDED_)
-#define AFX_MATRIX_H__E6397425_F122_44A4_A3A8_53CD4D2523E7__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
-
-#pragma warning(disable: 4786)	// Disable warning about long names
 
 #include <vector>
-
-#ifdef WIN_DEBUG
-#define allocator A
-#endif
 
 /**
  * @brief Simple 3-dimensional dynamic array with zero-based indexing.
@@ -200,4 +189,3 @@ CMatrix<T>::checkBounds(int a, int b, int c)
 }
 
 
-#endif // !defined(AFX_MATRIX_H__E6397425_F122_44A4_A3A8_53CD4D2523E7__INCLUDED_)

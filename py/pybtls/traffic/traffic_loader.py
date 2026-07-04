@@ -11,6 +11,9 @@ from ..lib.BTLS import (
 )
 from typing import Literal, Union
 from pathlib import Path
+import warnings
+
+from .._resource import warn_if_file_too_large
 
 __all__ = ["TrafficLoader"]
 
@@ -112,6 +115,7 @@ class TrafficLoader:
             if traffic_format is None:
                 raise ValueError("Argument traffic_format is not specified.")
             traffic = Path(traffic) if not isinstance(traffic, Path) else traffic
+            warn_if_file_too_large(traffic, "recorded traffic file")
             traffic_data.read(
                 traffic, traffic_format
             )  # The simulation requires traffic information before _get_traffic_loader is called.
@@ -161,7 +165,7 @@ class TrafficLoader:
             if traffic_loader.getNoVehicles() > 0:
                 traffic_loader.setFirstArrivalTime()
             else:
-                raise Warning(f"No vehicle in lane {i+1}.")
+                warnings.warn(f"No vehicle in lane {i+1}.")
 
             loader_list[i] = traffic_loader
 

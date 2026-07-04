@@ -20,3 +20,4 @@ Package modules
     pybtls.simulation
     pybtls.garage
     pybtls.utils
+    pybtls.gpu

@@ -18,7 +18,7 @@ from .read import (
 
 # from .Plot import plot_TH, plot_AE, plot_BM_S
 from pathlib import Path
-from typing import Literal, Union
+from typing import Literal, Optional, Union
 import pandas as pd
 import glob
 
@@ -26,7 +26,9 @@ __all__ = ["_OutputManager"]
 
 
 class _OutputManager:
-    def __init__(self, output_root: Path, sim_tag: str, output_config: OutputConfig):
+    def __init__(
+        self, output_root: Path, sim_tag: str, output_config: Optional[OutputConfig]
+    ):
         """
         The OutputManager class records the results' paths and provides methods to read these data. \n
         Its instance should not be created by the user.
@@ -37,8 +39,12 @@ class _OutputManager:
             The root directory of all the output folders.\n
         sim_tag : str\n
             The tag of the simulation, which is same as the output folder name.\n
-        output_config : OutputConfig\n
-            The output configuration for the corresponding simulation.
+        output_config : Optional[OutputConfig]\n
+            The output configuration for the corresponding simulation.\n
+            May be None: single-vehicle simulations (simulation.py) pass
+            None, in which case only "time_history" and "all_events" are
+            discovered, read from the "dir1"/"dir2" subfolders instead of
+            the config-driven file patterns (see ``_fetch_summary``).
         """
 
         self._output_root = output_root
@@ -133,7 +139,19 @@ class _OutputManager:
         Returns
         -------
         dict[str, pd.DataFrame]\n
-            The data. The key is the file name without .txt.
+            The data. The key is the file name without .txt, unless
+            ``output_config`` is None (single-vehicle simulation), in
+            which case the key is the parent directory name ("dir1" or
+            "dir2") instead.
+
+        Raises
+        ------
+        ValueError\n
+            If ``key`` refers to an output that was not written (its
+            summary entry is None), e.g. the corresponding
+            ``set_*_output`` was never enabled.
+        KeyError\n
+            If ``key`` is not one of the recognized output types.
         """
 
         if self._summary[key] is None:

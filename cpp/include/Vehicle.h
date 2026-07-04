@@ -3,12 +3,7 @@
  * @brief Interface for the CVehicle class — a single vehicle with axle geometry and kinematics.
  */
 
-#if !defined(AFX_VEHICLE_H__028A909A_9588_4305_9A3E_D255BD8D332A__INCLUDED_)
-#define AFX_VEHICLE_H__028A909A_9588_4305_9A3E_D255BD8D332A__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include <vector>
 #include <sstream>
@@ -334,4 +329,3 @@ typedef std::unique_ptr<CVehicle> CVehicle_up;   ///< Unique-pointer alias for C
 typedef std::weak_ptr<CVehicle> CVehicle_wp;     ///< Weak-pointer alias for CVehicle.
 typedef std::shared_ptr<CVehicle> CVehicle_sp;   ///< Shared-pointer alias for CVehicle.
 
-#endif // !defined(AFX_VEHICLE_H__028A909A_9588_4305_9A3E_D255BD8D332A__INCLUDED_)
