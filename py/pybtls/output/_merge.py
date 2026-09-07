@@ -14,7 +14,9 @@ concat
     Rows from consecutive chunks are concatenated. ``time_cols`` (fnmatch
     patterns) are shifted by each chunk's start offset in seconds;
     ``offset_index_cols`` are continuing counters (block / interval
-    indices) shifted by the previous chunks' running maximum;
+    indices) shifted by the number of index units the previous chunks
+    covered (``index_spans``), falling back to their running maximum
+    where the counter has no geometric span;
     ``hour_index_cols`` are indices on the fixed 3600 s grid, shifted by
     the chunk's start hour and summed where chunks overlap;
     ``renumber_index_cols`` are re-sequenced 1..N after concatenation.
@@ -78,7 +80,10 @@ MERGE_REGISTRY: dict[str, MergeSpec] = {
     "time_history": MergeSpec("concat", time_cols=("Time",)),
     "all_events": MergeSpec("concat", time_cols=("Start Time",)),
     "traffic": MergeSpec("vehicles_concat"),
-    # BM "Index" is the block index — a continuing counter.
+    # BM "Index" is the block index — a continuing counter. BM_V_*_<n>
+    # only carries the blocks that held an n-vehicle event, so its chunk
+    # offset has to come from the chunk geometry (merge_concat's
+    # index_spans), not from the largest index the chunk happened to write.
     "BM_by_no_trucks": MergeSpec(
         "concat", time_cols=("Time",), offset_index_cols=("Index",)
     ),
@@ -127,7 +132,10 @@ def _match_cols(df: pd.DataFrame, patterns: tuple) -> list[str]:
 
 
 def merge_concat(
-    chunk_dfs: list[pd.DataFrame], spec: MergeSpec, time_offsets: list[float]
+    chunk_dfs: list[pd.DataFrame],
+    spec: MergeSpec,
+    time_offsets: list[float],
+    index_spans: list[int] = None,
 ) -> pd.DataFrame:
     """
     Concatenate per-chunk frames in chunk order.
@@ -141,6 +149,14 @@ def merge_concat(
     time_offsets : list[float]\n
         Start time of each chunk in seconds, relative to the merged timeline
         (chunk 0 is usually 0.0).
+    index_spans : list[int], optional\n
+        The number of index units (block-maximum blocks, POT counter
+        blocks, statistics intervals) each chunk covers, from the chunk
+        geometry. When given, ``offset_index_cols`` are shifted by the
+        preceding chunks' spans; without it the shift is the largest index
+        seen so far, which under-shifts every later chunk for an output
+        that only writes the blocks that had an event (BM_V_*_<n>) and
+        does not advance at all across a chunk with no rows.
 
     Returns
     -------
@@ -150,11 +166,21 @@ def merge_concat(
 
     if len(chunk_dfs) != len(time_offsets):
         raise ValueError("chunk_dfs and time_offsets must have equal length.")
+    if index_spans is not None and len(index_spans) != len(chunk_dfs):
+        raise ValueError("chunk_dfs and index_spans must have equal length.")
 
     shifted = []
     index_base = {col: 0 for col in spec.offset_index_cols}
+    # Cumulative index offset of each chunk, from its geometry. Independent
+    # of what the chunk actually wrote, so silent blocks and rowless chunks
+    # still take up their share of the index axis.
+    geom_bases = None
+    if index_spans is not None:
+        geom_bases = [0]
+        for span in index_spans[:-1]:
+            geom_bases.append(geom_bases[-1] + int(span))
 
-    for df, offset in zip(chunk_dfs, time_offsets):
+    for i, (df, offset) in enumerate(zip(chunk_dfs, time_offsets)):
         if df.empty:
             continue
         df = df.copy()
@@ -169,9 +195,11 @@ def merge_concat(
             df[col] = new_col
         for col in spec.offset_index_cols:
             if col in df.columns:
-                base = index_base[col]
-                df[col] = df[col] + base
-                index_base[col] = int(df[col].max())
+                if geom_bases is None:
+                    df[col] = df[col] + index_base[col]
+                    index_base[col] = int(df[col].max())
+                else:
+                    df[col] = df[col] + geom_bases[i]
         for col in spec.hour_index_cols:
             if col in df.columns:
                 df[col] = df[col] + int(offset // 3600)

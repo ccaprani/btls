@@ -81,14 +81,20 @@ static py::tuple _extract_axle_data(const std::vector<CVehicle_sp>& vehs, std::s
 
 // Pull the globally-earliest-arriving lane until end_time, in the same order the
 // per-vehicle Python loop did (identical RNG draw order -> identical stream).
-static int _earliest_lane(const std::vector<CLaneGenTraffic_sp>& lanes, double end_time)
+// The bound is exclusive by default: an arrival exactly on an intra-run day
+// boundary belongs to the next chunk, which is what the caller's day-window
+// assignment (time // 86400) expects. Pass inclusive=true for the final chunk of
+// a run, where the CPU loop (while current_time <= end_time) does simulate an
+// arrival landing exactly on end_time.
+static int _earliest_lane(const std::vector<CLaneGenTraffic_sp>& lanes, double end_time, bool inclusive)
 {
 	int earliest = -1;
-	double best = end_time;
+	double best = 0.0;
 	for (std::size_t i = 0; i < lanes.size(); i++)
 	{
 		double t = lanes[i]->GetNextArrivalTime();
-		if (t < best) { best = t; earliest = (int)i; }
+		bool in_range = inclusive ? (t <= end_time) : (t < end_time);
+		if (in_range && (earliest < 0 || t < best)) { best = t; earliest = (int)i; }
 	}
 	return earliest;
 }
@@ -97,11 +103,11 @@ static int _earliest_lane(const std::vector<CLaneGenTraffic_sp>& lanes, double e
 // Generate the next slice of generated traffic up to end_time, returning the
 // vehicle objects (used when per-vehicle output, e.g. PT_V, is needed).
 static std::vector<CVehicle_sp> _generate_traffic_stream(
-		std::vector<CLaneGenTraffic_sp> lanes, double end_time)
+		std::vector<CLaneGenTraffic_sp> lanes, double end_time, bool inclusive = false)
 {
 	std::vector<CVehicle_sp> out;
 	int earliest;
-	while ((earliest = _earliest_lane(lanes, end_time)) >= 0)
+	while ((earliest = _earliest_lane(lanes, end_time, inclusive)) >= 0)
 		out.push_back(lanes[earliest]->GetNextVehicle());
 	return out;
 }
@@ -113,11 +119,11 @@ static std::vector<CVehicle_sp> _generate_traffic_stream(
 // is byte-identical to _generate_traffic_stream + _extract_axle_data.
 static py::tuple _generate_and_extract(
 		std::vector<CLaneGenTraffic_sp> lanes, double end_time, std::size_t no_lane,
-		CVehicleClassification_sp classifier = nullptr)
+		CVehicleClassification_sp classifier = nullptr, bool inclusive = false)
 {
 	_AxleArrays a;
 	int earliest;
-	while ((earliest = _earliest_lane(lanes, end_time)) >= 0)
+	while ((earliest = _earliest_lane(lanes, end_time, inclusive)) >= 0)
 	{
 		CVehicle_sp v = lanes[earliest]->GetNextVehicle();
 		a.add(*v, no_lane, classifier.get());
@@ -147,14 +153,18 @@ PYBIND11_MODULE(libbtls, m) {
 		"(used by the GPU engine to avoid per-vehicle Python getter calls). With a "
 		"classifier, also returns each vehicle's flow-statistics class bin.");
 	m.def("_generate_traffic_stream", &_generate_traffic_stream, py::arg("lanes"), py::arg("end_time"),
+		py::arg("inclusive") = false,
 		"Generate generated-traffic vehicles up to end_time in one C++ pass, pulling the "
 		"globally-earliest lane each step (identical interleaving/RNG order to the per-vehicle "
-		"loop). Lets the GPU engine stream generation without per-vehicle Python calls.");
+		"loop). Lets the GPU engine stream generation without per-vehicle Python calls. "
+		"end_time is exclusive unless inclusive=True, which is what the last chunk of a run "
+		"needs to match the CPU loop's `while current_time <= end_time`.");
 	m.def("_generate_and_extract", &_generate_and_extract, py::arg("lanes"), py::arg("end_time"), py::arg("no_lane"),
-		py::arg("classifier") = nullptr,
+		py::arg("classifier") = nullptr, py::arg("inclusive") = false,
 		"Fused generate + extract: generate up to end_time and return the same flat arrays as "
 		"_extract_axle_data, without materializing Python Vehicle objects (the GPU generated-"
-		"traffic hot path). Byte-identical to _generate_traffic_stream + _extract_axle_data.");
+		"traffic hot path). Byte-identical to _generate_traffic_stream + _extract_axle_data. "
+		"end_time is exclusive unless inclusive=True (see _generate_traffic_stream).");
 	m.def("seed", &CRNGWrapper::seed,
 		R"(
 		Seed the process-wide random number generator.
@@ -662,8 +672,9 @@ PYBIND11_MODULE(libbtls, m) {
 				py::arg("index"), py::arg("width"))
 			.def("get_length", &CVehicle::getLength, "Get the vehicle length, in metres.")
 			.def("write",
-				// Write() normalises a near-zero transverse position in place, so
-				// serialise a copy to leave the caller's vehicle untouched
+				// the fixed-width writers truncate the axle count in place when
+				// the vehicle has more axles than the format holds, so serialise
+				// a copy to leave the caller's vehicle untouched
 				[](CVehicle_sp self, size_t file_format) { CVehicle veh(*self); return veh.Write(file_format); },
 				R"(
 				Serialise the vehicle to one line in the given traffic-file format.

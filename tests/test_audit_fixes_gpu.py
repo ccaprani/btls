@@ -395,15 +395,22 @@ def test_fix2_generated_end_matches_cpu():
             c, g = int(cpu[col].iloc[0]), int(gpu[col].iloc[0])
             assert c == g, f"SS_C {col}: cpu={c} gpu={g}"
 
-        # PT counts: per-effect summary rows and the counter table; the block-2
-        # row is the witness that an event starting after end_time was recorded
+        # PT counts: PT_S holds one row per peak, so the counter table must
+        # account for every one of them -- that is the witness that the event
+        # starting after end_time was recorded. It no longer gets a block of
+        # its own: CPOTManager::FinishAt folds a block opened past the end of
+        # the simulated window back into the final block, so this one-day run
+        # emits exactly one counter row rather than a spurious second one.
         n_cpu = sum(1 for _ in open(ROOT / "cpu" / "PT_S_20_Eff_1.txt"))
         n_gpu = sum(1 for _ in open(ROOT / "gpu" / "PT_S_20_Eff_1.txt"))
         assert n_cpu == n_gpu, f"PT_S rows: cpu={n_cpu} gpu={n_gpu}"
         ptc_cpu = _parse_table(ROOT / "cpu" / "PT_C_20.txt")
         ptc_gpu = _parse_table(ROOT / "gpu" / "PT_C_20.txt")
         assert ptc_cpu == ptc_gpu, f"PT_C: cpu={ptc_cpu} gpu={ptc_gpu}"
-        assert ["2", "1"] in ptc_cpu, f"scenario lost its beyond-end event: {ptc_cpu}"
+        assert [row[0] for row in ptc_cpu] == ["1"], f"unexpected blocks: {ptc_cpu}"
+        assert sum(int(row[1]) for row in ptc_cpu) == n_cpu, (
+            f"scenario lost its beyond-end event: PT_C={ptc_cpu}, PT_S rows={n_cpu}"
+        )
 
         # FlowData: full tables equal, incl. the hour-25 row counting A2
         for lane in (1, 2):

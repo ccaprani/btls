@@ -245,10 +245,12 @@ private:
 	void createDITISVehicle(const std::string data);
 	void createMONVehicle(const std::string data);
 
-	std::string	writeBEDITData();
-	std::string	writeCASTORData();
-	std::string writeDITISData();
-	std::string writeMONData();
+	// trns is the effective transverse position to write (see Write()); the
+	// member is left untouched so serialising cannot move the vehicle
+	std::string	writeBEDITData(double trns);
+	std::string	writeCASTORData(double trns);
+	std::string writeDITISData(double trns);
+	std::string writeMONData(double trns);
 
 	Classification m_Class;    ///< Vehicle classification (ID plus label).
 

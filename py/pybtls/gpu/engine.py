@@ -478,8 +478,9 @@ def compute_from_axles(
             prepared.append(("torch_builtin", spec))
 
     # per-effect force mode: vertical (default), centrifugal (x v^2/g), braking
-    # (x |a|/g, or braking_factor when a==0). The factor scales each axle's weight
-    # before the influence-ordinate multiply (cpp/src/InfluenceLine.cpp).
+    # (x |a|/g, or braking_factor when a==0, signed by the travel direction).
+    # The factor scales each axle's weight before the influence-ordinate
+    # multiply (cpp/src/InfluenceLine.cpp).
     modes = [
         (s.get("mode", "vertical"), float(s.get("braking_factor", 0.0)))
         for s in il_specs
@@ -554,9 +555,10 @@ def compute_from_axles(
         si, pp, ww = si[m].contiguous(), pp[m].contiguous(), ww[m].contiguous()
         if need_transverse:
             lane_b, trans_b, track_b = lane_b[m], trans_b[m], track_b[m]
-        if any_mode:  # per-pair speed / acceleration for the force-mode coefficient
+        if any_mode:  # per-pair speed / acceleration / direction for the mode
             speed_b = torch.repeat_interleave(speed, cnt)[m].contiguous()
             accel_b = torch.repeat_interleave(accel, cnt)[m].contiguous()
+            sign_b = torch.repeat_interleave(sign, cnt)[m].contiguous()
         E = torch.zeros((n_eff, z - a), dtype=dt, device=dev)  # effect-major rows
         for e, (method, data) in enumerate(prepared):
             mode, bf = modes[e]
@@ -565,10 +567,20 @@ def compute_from_axles(
             elif mode == "centrifugal":
                 ww_e = ww * (speed_b * speed_b / GRAVITY)
             else:  # braking: |a|/g per axle, falling back to braking_factor if a==0
-                ww_e = ww * torch.where(
-                    accel_b != 0.0,
-                    accel_b.abs() / GRAVITY,
-                    torch.full_like(accel_b, bf),
+                # signed by the travel direction (+ for direction 1, - for
+                # direction 2): a longitudinal force acts along the direction of
+                # travel, so opposing-direction traffic partially cancels
+                # (cpp/src/InfluenceLine.cpp::getAxleLoadEffect). Centrifugal
+                # stays unsigned - it points to the outside of the curve for
+                # both directions.
+                ww_e = (
+                    ww
+                    * torch.where(
+                        accel_b != 0.0,
+                        accel_b.abs() / GRAVITY,
+                        torch.full_like(accel_b, bf),
+                    )
+                    * sign_b
                 )
             if method == "triton1d":
                 grid, dx = data

@@ -70,6 +70,11 @@ private:
 	/// @brief Fold one value into the accumulator for load effect @p i.
 	void accumulateLE(unsigned int i, double x);
 
+	/// @brief Fold an interval that was opened past the end of the simulated
+	///        window back into the last completed interval (which must be
+	///        buffered).
+	void FoldBackInterval();
+
 	std::vector<CEventStatistics> m_vIntervalStats;                  ///< Per-LE interval accumulators.
 	std::vector<CEventStatistics> m_vCumulativeStats;                ///< Per-LE cumulative accumulators.
 	std::vector< std::vector<CEventStatistics> > m_vIntStatsBuffer;  ///< Buffered interval rows.

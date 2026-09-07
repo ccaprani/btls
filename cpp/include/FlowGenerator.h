@@ -105,7 +105,8 @@ protected:
 	/// @brief Refresh block-dependent parameters at a block transition.
 	virtual void updateProperties();
 
-	/// @brief Sample from an exponential distribution with the current truck-flow rate.
+	/// @brief Sample from an exponential distribution with the current arrival rate
+	///        (the truck flow for a truck-only model, otherwise the total flow).
 	double genExponential();
 
 	CFlowModelData_sp m_pFlowModelData;  ///< Flow model parameters (by block and lane).
@@ -191,6 +192,7 @@ private:
 	CFlowModelDataHeDS_sp m_pFMD;  ///< HeDS model data.
 	matrix m_vHeDS;                ///< Per-flow-rate headway cumulative distribution table.
 	Normal m_Speed;                ///< Normal distribution from which speeds are drawn.
+	bool m_bFlowRangeWarned;       ///< True once the above-range flow warning has been issued.
 };
 typedef std::shared_ptr<CFlowGenHeDS> CFlowGenHeDS_sp;  ///< Shared-pointer alias for CFlowGenHeDS.
 
@@ -229,7 +231,7 @@ typedef std::shared_ptr<CFlowGenCongested> CFlowGenCongested_sp;  ///< Shared-po
  *
  * Models free-flow traffic as a Poisson process: inter-vehicle gaps
  * are drawn from an exponential distribution whose rate is set by the
- * current truck-flow rate. Speeds come from a normal distribution.
+ * current total flow rate. Speeds come from a normal distribution.
  * This is the classical assumption for light traffic.
  *
  * @see CFlowGenerator

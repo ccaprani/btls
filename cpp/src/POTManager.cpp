@@ -79,12 +79,29 @@ void CPOTManager::FinishAt(double simEndTime)
 	// fill any silent trailing counter blocks up to the simulated end time
 	while( m_BlockSize > 0 && simEndTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
 		UpdateCounter();
+
+	// an event can start after the end of the simulated window (the bridge is
+	// run on until it empties), which has already opened a counter block past
+	// the last block of the window; fold its counts back into that block so
+	// that the window still produces exactly one row per block
+	while( m_BlockSize > 0 && m_CurBlockNo > 1 && !m_vCounter.empty()
+		&& simEndTime - m_SimStartTime <= (double)(m_CurBlockNo-1)*m_BlockSize )
+	{
+		if(m_vCounter.size() > 1)	// else the block is already written out
+			for (size_t i = 0; i < m_NoLoadEffects; i++)
+				m_vCounter.at(m_vCounter.size()-2).at(i) += m_vCounter.back().at(i);
+		m_vCounter.pop_back();
+		m_CurBlockNo--;
+	}
+
 	Finish();
 }
 
 void CPOTManager::CheckBuffer(bool bForceOutput)
 {
 	// finish allows for block max buffers greater than the simulation length
+
+	bool bFinal = bForceOutput;	// only Finish() forces the flush from outside
 
 	size_t i = 0;
 	while(bForceOutput == false && i < m_NoLoadEffects)
@@ -100,10 +117,10 @@ void CPOTManager::CheckBuffer(bool bForceOutput)
 		// clear data
 		for (size_t i = 0; i < m_NoLoadEffects; i++)
 			m_vEvents.at(i).clear();
-		
-		m_vCounter.clear();
-		UpdateCounter();
-		m_CurBlockNo--; // remove the increment just done in UpdateCounter()
+
+		// counter blocks are retired per block, not per event-buffer flush,
+		// so that each block appears once with its full count
+		WriteCounter(bFinal);
 	}
 }
 
@@ -112,14 +129,6 @@ void CPOTManager::UpdateCounter()
 	m_CurBlockNo++;
 	std::vector<unsigned int> temp(m_NoLoadEffects,0);
 	m_vCounter.push_back(temp);
-}
-
-void CPOTManager::WriteBuffer()
-{
-	COutputManagerBase::WriteBuffer(); // call base class first
-
-	if(WRITE_POT_COUNTER)
-		WriteCounter();
 }
 
 void CPOTManager::OpenVehicleFiles()
@@ -143,20 +152,32 @@ void CPOTManager::OpenCounterFile()
 	outFile.close();
 }
 
-void CPOTManager::WriteCounter()
+void CPOTManager::WriteCounter(bool bFinal)
 {
-	std::ofstream outFile( m_CounterFile.c_str(), std::ios::app ); 
-
+	// the last row is the block still being counted: hold it back until the
+	// end of the simulation, otherwise its count is split over several rows
 	size_t nBlocks = m_vCounter.size();
-	size_t index = m_CurBlockNo - nBlocks + 1;
-	for (size_t iBlock = 0; iBlock < nBlocks; iBlock++)
+	if(!bFinal && nBlocks > 0)
+		nBlocks--;
+	if(nBlocks == 0)
+		return;
+
+	if(WRITE_POT_COUNTER)
 	{
-		outFile << index + iBlock << '\t';
-		for (size_t iLE = 0; iLE < m_NoLoadEffects; iLE++)
-			outFile << m_vCounter.at(iBlock).at(iLE) << '\t';
-		outFile << std::endl;
+		std::ofstream outFile( m_CounterFile.c_str(), std::ios::app ); 
+
+		size_t index = m_CurBlockNo - m_vCounter.size() + 1;
+		for (size_t iBlock = 0; iBlock < nBlocks; iBlock++)
+		{
+			outFile << index + iBlock << '\t';
+			for (size_t iLE = 0; iLE < m_NoLoadEffects; iLE++)
+				outFile << m_vCounter.at(iBlock).at(iLE) << '\t';
+			outFile << std::endl;
+		}
+		outFile.close();
 	}
-	outFile.close();
+
+	m_vCounter.erase(m_vCounter.begin(), m_vCounter.begin() + nBlocks);
 }
 
 void CPOTManager::WriteVehicleFiles()

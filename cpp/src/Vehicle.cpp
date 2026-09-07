@@ -418,19 +418,21 @@ std::string CVehicle::Write(size_t file_type)
 {
 	TrafficFileFormatSpec spec = requireTrafficFileWriteFormat(file_type);
 
-	if(m_Trns < 0.01)	// generated vehicles have 0.0 trans but eccentricity
-		m_Trns = 1.80 + m_LaneEccentricity;
+	// generated vehicles have 0.0 trans but eccentricity: normalise for the file
+	// only, as serialising a vehicle must not move it on its lane (m_Trns feeds
+	// CAxle::m_TransPos and hence the influence surface ordinate lookup)
+	double trns = m_Trns < 0.01 ? 1.80 + m_LaneEccentricity : m_Trns;
 
 	switch(spec.Format)
 	{
 	case ETrafficFileFormat::Castor:
-		return writeCASTORData();
+		return writeCASTORData(trns);
 	case ETrafficFileFormat::Bedit:
-		return writeBEDITData();
+		return writeBEDITData(trns);
 	case ETrafficFileFormat::Ditis:
-		return writeDITISData();
+		return writeDITISData(trns);
 	case ETrafficFileFormat::Mon:
-		return writeMONData();
+		return writeMONData(trns);
 	default:
 		throw std::invalid_argument(std::string("Traffic file format ") + spec.Name + " does not support vehicle serialisation");
 	}
@@ -438,7 +440,7 @@ std::string CVehicle::Write(size_t file_type)
 
 	/** Prepares a vehicle for printing to a CASTOR file */
 
-std::string CVehicle::writeCASTORData()
+std::string CVehicle::writeCASTORData(double trns)
 {
 	// Length = length*10 for meters to decimeters
 	// Vel = vel * 10 for metres/second to decimetres/second
@@ -454,7 +456,7 @@ std::string CVehicle::writeCASTORData()
 	int velocity	= Round(m_Velocity*10);
 	int grossWeight = Round(m_GVW/KG100_TO_KN);
 	int length		= Round(m_Length*10);
-	int transPos	= Round(m_Trns*10);
+	int transPos	= Round(trns*10);
 	int sec			= Round(floor(Round(m_Sec*100.0)/100.0)); // round to hndt first
 	int hndt		= Round((m_Sec - sec) * 100);
 
@@ -506,7 +508,7 @@ std::string CVehicle::writeCASTORData()
 
 	/** Prepares a vehicle for printing to a BeDIT file	 */
 
-std::string CVehicle::writeBEDITData()
+std::string CVehicle::writeBEDITData(double trns)
 {
 	// Length = length*10 for meters to decimeters
 	// Vel = vel * 10 for metres/second to decimetres/second
@@ -522,7 +524,7 @@ std::string CVehicle::writeBEDITData()
 	int velocity	= Round(m_Velocity*10);
 	int grossWeight = Round(m_GVW/KG100_TO_KN);
 	int length		= Round(m_Length*10);
-	int transPos	= Round(m_Trns*10);
+	int transPos	= Round(trns*10);
 	int sec			= Round(floor(Round(m_Sec*100.0)/100.0)); // round to hndt first
 	int hndt		= Round((m_Sec - sec) * 100.0);
 
@@ -566,7 +568,7 @@ std::string CVehicle::writeBEDITData()
 
 	/** Prepares a vehicle for printing to a DITIS file	 */
 
-std::string CVehicle::writeDITISData()
+std::string CVehicle::writeDITISData(double trns)
 {
 	// Length = length*10 for meters to decimeters
 	// Vel = vel * 10 for metres/second to decimetres/second
@@ -583,7 +585,7 @@ std::string CVehicle::writeDITISData()
 	int grossWeight = Round(m_GVW/KG100_TO_KN);
 	int length		= Round(m_Length*10);
 	//int trackwidth	= Round(m_TrackWidth*100); // m to cm
-	int transPos	= Round(m_Trns*100);	// m to cm
+	int transPos	= Round(trns*100);	// m to cm
 	int sec			= Round(floor(Round(m_Sec*100.0)/100.0)); // round to hndt first
 	int hndt		= Round((m_Sec - sec) * 100);
 
@@ -630,7 +632,7 @@ std::string CVehicle::writeDITISData()
 
 /** Prepares a vehicle for printing to a MON file	 */
 
-std::string CVehicle::writeMONData()
+std::string CVehicle::writeMONData(double trns)
 {
 	// Reinstate time to min 2010
 	// Vel = vel * 3.6 for metres/second to km/h
@@ -642,7 +644,7 @@ std::string CVehicle::writeMONData()
 	size_t velocity = Round(m_Velocity * 3.6);
 	size_t grossWeight = Round(m_GVW * 100 / KG100_TO_KN);
 	size_t length = Round(m_Length * 1000);
-	size_t transPos = Round(m_Trns * 1000);
+	size_t transPos = Round(trns * 1000);
 
 	std::ostringstream oFile;
 
