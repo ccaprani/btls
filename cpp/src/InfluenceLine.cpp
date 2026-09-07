@@ -68,7 +68,8 @@ double CInfluenceLine::getAxleLoadEffect(CAxle& axle)
 	//   Centrifugal (1): F_axle = AxleWeight * Speed^2 / g                (per-vehicle v^2).
 	//                    Caller bakes k_e / R into the IL ordinates so that
 	//                    the convolved bearing reaction is in kN.
-	//   Braking     (2): F_axle = AxleWeight * |Acceleration| / g         (per-vehicle deceleration);
+	//   Braking     (2): F_axle = AxleWeight * |Acceleration| / g         (per-vehicle deceleration,
+	//                    signed by the travel direction: + for direction 1, - for direction 2);
 	//                    falls back to AxleWeight * |brakingFactor| if Acceleration is zero, where
 	//                    brakingFactor is dimensionless (deceleration / g) configured via
 	//                    @ref setBrakingFactor for code-prescribed constant-deceleration cases.
@@ -89,7 +90,14 @@ double CInfluenceLine::getAxleLoadEffect(CAxle& axle)
 		double a_over_g = (axle.m_Acceleration != 0.0)
 			? std::abs(axle.m_Acceleration) / GRAVITY_MS2_FOR_LE
 			: m_BrakingFactor;
-		force_coeff = axle.m_AxleWeight * a_over_g;
+		// A braking force acts along the direction of travel, so it carries the
+		// travel-direction sign; both directions are mapped onto the same bridge
+		// x-axis by CBridgeLane::setAxleVector, so without the sign two vehicles
+		// braking in opposite directions would add instead of partially cancelling.
+		// Deliberately NOT applied to centrifugal mode above: the centrifugal force
+		// points to the outside of the curve, which is the same physical direction
+		// for both travel directions, so it must stay unsigned.
+		force_coeff = axle.m_AxleWeight * a_over_g * (axle.m_Dirn == 1 ? 1.0 : -1.0);
 	}
 
 	if(m_Type == 3)	// Influence surface

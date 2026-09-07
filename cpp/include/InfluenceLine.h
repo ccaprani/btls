@@ -161,9 +161,13 @@ public:
 	 *   speed m_Speed (per-vehicle, set by the upstream traffic generator).
 	 *   The caller is expected to supply an IL whose ordinates carry the
 	 *   k_e / R factor so that the convolution yields a force in the same
-	 *   units as the vertical reaction.
+	 *   units as the vertical reaction. Unsigned by design: the centrifugal
+	 *   force points to the outside of the curve for both travel directions.
 	 * - Braking: F_axle = AxleWeight * |Acceleration| / g, taking the per-axle
-	 *   m_Acceleration (per-vehicle / per-time, set by the upstream solver).
+	 *   m_Acceleration (per-vehicle / per-time, set by the upstream solver),
+	 *   signed by the travel direction (+ for direction 1, - for direction 2)
+	 *   because a longitudinal force acts along the direction of travel, so
+	 *   opposing-direction traffic partially cancels instead of adding.
 	 *   If m_Acceleration is exactly zero, falls back to AxleWeight times the
 	 *   scalar @ref setBrakingFactor (= a_design / g) for code-prescribed
 	 *   constant-deceleration cases.
@@ -190,7 +194,8 @@ public:
 	 * per-vehicle deceleration). The per-axle braking force becomes
 	 *   F_B = AxleWeight * brakingFactor
 	 * with @p brakingFactor interpreted as a dimensionless deceleration ratio
-	 * (a / g) for a code-prescribed constant-deceleration design rule.
+	 * (a / g) for a code-prescribed constant-deceleration design rule. The
+	 * travel-direction sign is applied to F_B as well (see @ref LoadEffectMode).
 	 *
 	 * @param[in] brakingFactor Dimensionless braking ratio (deceleration / g).
 	 */

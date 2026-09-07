@@ -193,7 +193,11 @@ def _accumulate_bm(bm_state, pot, ev_mask, block_secs, time_offset, total_blocks
     rollover), into the slot for its number of vehicles, replacing the stored
     value when ``|new| >= |old|`` (ties go to the later event — windows arrive
     in time order, so replacing on ``>=`` preserves that within and across
-    windows)."""
+    windows). An event starting past the run end (before the A2 boundary) rolls
+    the C++ counter into an extra block, which CBlockMaxManager::FinishAt then
+    folds back into the last block of the window by ``|value|``: clipping the
+    block index here is that same fold, so both engines write exactly
+    ``total_blocks`` rows."""
     if not ev_mask.any():
         return
     starts = pot["B"][:-1][ev_mask] + time_offset
@@ -401,17 +405,11 @@ class _PotStream:
                     # counter block b covers ((b-1)·size, b·size] by event start
                     # (CPOTManager::Update's strict-`>` rollover), so bin by ceil
                     cb = int(np.ceil((B[w] + time_offset) / self.counter_secs)) - 1
-                    if cb < 0:
-                        cb = 0
-                    if cb >= self.counts.shape[0]:
-                        # an event starting beyond the run end (before the A2
-                        # boundary) opens a new counter block, exactly as
-                        # CPOTManager::Update's silent-block fill does
-                        grow = np.zeros(
-                            (cb + 1 - self.counts.shape[0], self.n_eff),
-                            dtype=np.int64,
-                        )
-                        self.counts = np.vstack([self.counts, grow])
+                    # an event starting beyond the run end (before the A2
+                    # boundary) opens a counter block past the window, which
+                    # CPOTManager::FinishAt folds back into the last block of
+                    # the window: clamp here for the same one-row-per-block file
+                    cb = min(max(cb, 0), self.n_counter_blocks - 1)
                     self.counts[cb, e] += 1
 
     def close(self):
@@ -509,8 +507,8 @@ def _pull_beyond_end(lanes, end_time):
     iteration fetches exactly that vehicle) and return it. The earliest lane is
     pulled first each step; ``min()`` resolves ties to the lowest lane, like the
     CPU's stable sort and the C++ ``_earliest_lane``. An arrival exactly at
-    ``end_time`` (in-sim on the CPU; measure-zero for continuous headways) is
-    consumed but not simulated."""
+    ``end_time`` is in-sim on the CPU, so the caller's last generation pass
+    consumes it (``inclusive=True``) before this one is called."""
     while True:
         v = min(lanes, key=lambda t: t.getNextArrivalTime()).getNextVehicle()
         if v.get_time() > end_time:
@@ -550,10 +548,15 @@ def _vehicle_stream(traffic, bridge, active_lane, seed, end_time, tail=None):
         # generate in day-sized bulk passes: the C++ pulls the globally-earliest
         # lane each step, so the stream (and RNG draw order) is identical to a
         # per-vehicle Python loop, but without the per-vehicle Python<->C++ cost.
+        # The day boundary is exclusive (an arrival exactly on it belongs to the
+        # next pass), the run end inclusive: the CPU loop's `while current_time
+        # <= end_time` does simulate an arrival landing exactly on end_time.
         chunk = 0.0
         while chunk < end_time:
             chunk_end = min(chunk + SECONDS_PER_DAY, end_time)
-            for v in libbtls._generate_traffic_stream(lanes, chunk_end):
+            for v in libbtls._generate_traffic_stream(
+                lanes, chunk_end, inclusive=chunk_end >= end_time
+            ):
                 yield v
             chunk = chunk_end
         if tail is not None and lanes:
@@ -582,7 +585,10 @@ def _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target, tail=No
             vehicles.append(carry)
             carry = None
         for v in stream:
-            vday = int(v.get_time() // SECONDS_PER_DAY)
+            # an arrival exactly on end_time is in-sim on the CPU and belongs to
+            # the last day window (it would otherwise fall in day n_days, past
+            # every window, and be dropped with the stream still undrained)
+            vday = min(int(v.get_time() // SECONDS_PER_DAY), n_days - 1)
             if vday < win_end_day:
                 vehicles.append(v)
                 continue
@@ -631,8 +637,14 @@ def _array_windows(
         chunks = []
         count = 0
         while True:  # grow the window in whole-day steps up to ~target
+            # day boundaries are exclusive, the run end inclusive (as in
+            # _vehicle_stream)
             chunk = libbtls._generate_and_extract(
-                lanes, win_end_day * SECONDS_PER_DAY, no_lane, classifier
+                lanes,
+                win_end_day * SECONDS_PER_DAY,
+                no_lane,
+                classifier,
+                inclusive=win_end_day >= n_days,
             )
             chunks.append(chunk)
             count += len(chunk[0])

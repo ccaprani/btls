@@ -120,7 +120,13 @@ void CFlowGenerator::updateExponential()
 {
 	// update anything relevant to gap generation as hours changes
 
-	double mean = 3600.0 / m_TotalFlow;
+	// A model without cars (HeDS) emits trucks only, so its arrival rate is the
+	// truck flow; a model with cars arrives at the total (truck + car) flow.
+	double flow = m_TotalFlow;
+	if (m_pFlowModelData != nullptr && !m_pFlowModelData->getModelHasCars())
+		flow = m_TruckFlow;
+
+	double mean = 3600.0 / flow;
 
 	m_RNG.setScale(mean);
 	m_RNG.setLocation(0.0);	// for exponential deviates
@@ -172,6 +178,7 @@ void CFlowGenerator::setMinGap()
 //////////// CFlowGenHeDS ///////////////
 
 CFlowGenHeDS::CFlowGenHeDS(CFlowModelDataHeDS_sp pFMD) : CFlowGenerator(pFMD, eFM_HeDS)
+	, m_bFlowRangeWarned(false)
 {
 	m_pFMD = std::dynamic_pointer_cast<CFlowModelDataHeDS>(m_pFlowModelData);
 
@@ -201,6 +208,16 @@ double CFlowGenHeDS::GenerateGap()
 	int i = 3;
 	while (i < 3 + noIntervals && Q > m_vHeDS[i][0])
 		i++;
+	if (i >= 3 + noIntervals) // flow above the top band: use the highest tabulated interval
+	{
+		i = 3 + noIntervals - 1;
+		if (!m_bFlowRangeWarned)
+		{
+			std::cout << "***Warning: truck flow " << Q << " /h is above the highest HeDS flow interval ("
+				<< m_vHeDS[i][0] << " /h), whose headway distribution is used instead" << std::endl;
+			m_bFlowRangeWarned = true;
+		}
+	}
 	curInterval = i; // not i+1 because it's a zero-based array
 
 	double u1s = quad(m_vHeDS[1][1], m_vHeDS[1][2], m_vHeDS[1][3], 1.0);

@@ -71,14 +71,19 @@ private:
 	/// @brief Open the per-load-effect vehicle output files.
 	virtual void	OpenVehicleFiles();
 
-	/// @brief Flush the current buffer contents to disk.
-	virtual void	WriteBuffer();
-
 	/// @brief Open the optional block counter file.
 	void OpenCounterFile();
 
-	/// @brief Write the accumulated per-block counts to the counter file.
-	void WriteCounter();
+	/**
+	 * @brief Retire the closed counter blocks, writing them to the counter
+	 *        file if it is enabled.
+	 *
+	 * The block still being counted is held back so that it is written once,
+	 * with its full count, rather than split across event-buffer flushes.
+	 *
+	 * @param[in] bFinal End of simulation: retire the current block too.
+	 */
+	void WriteCounter(bool bFinal);
 
 	/// @brief Increment the counter for the current block.
 	void UpdateCounter();

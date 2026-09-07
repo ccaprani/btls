@@ -90,24 +90,6 @@ class StatsAccumulator:
             self.ivmin = np.full((n_eff, ni), np.inf)
             self.ivmax = np.full((n_eff, ni), -np.inf)
 
-    def _grow_intervals(self, ni):
-        """Extend the interval axis to ``ni`` intervals. An event starting beyond
-        the run end (before the A2 boundary) opens a new interval, exactly as
-        CStatsManager::Update's unbounded rollover does, so the SS_S file gets
-        the same trailing row the C++ engine writes."""
-        add = ni - self.ni
-        self.iN = np.concatenate([self.iN, np.zeros(add, dtype=np.int64)])
-        self.inveh = np.concatenate([self.inveh, np.zeros(add, dtype=np.int64)])
-        self.intrk = np.concatenate([self.intrk, np.zeros(add, dtype=np.int64)])
-        pad = np.zeros((self.n_eff, add))
-        self.iS1 = np.hstack([self.iS1, pad])
-        self.iS2 = np.hstack([self.iS2, pad])
-        self.iS3 = np.hstack([self.iS3, pad])
-        self.iS4 = np.hstack([self.iS4, pad])
-        self.ivmin = np.hstack([self.ivmin, np.full((self.n_eff, add), np.inf)])
-        self.ivmax = np.hstack([self.ivmax, np.full((self.n_eff, add), -np.inf)])
-        self.ni = ni
-
     def update(
         self, peak_value, win_count, win_truck_count, B, time_offset, ev_mask=None
     ):
@@ -141,12 +123,14 @@ class StatsAccumulator:
             return
         starts = B[:-1][ev] + time_offset - self.sim_start
         # interval i (1-based) covers event starts in ((i-1)·size, i·size] —
-        # CStatsManager::Update advances on strict `>` — so bin by ceil
+        # CStatsManager::Update advances on strict `>` — so bin by ceil. An event
+        # starting past the run end (before the A2 boundary) rolls the C++
+        # counter into an extra interval, which CStatsManager::FinishAt then
+        # folds back into the last interval of the window: clipping here is that
+        # same fold, so both engines write exactly one row per interval.
         idx = np.clip(
-            np.ceil(starts / self.interval_size).astype(np.int64) - 1, 0, None
+            np.ceil(starts / self.interval_size).astype(np.int64) - 1, 0, self.ni - 1
         )
-        if idx.max() >= self.ni:
-            self._grow_intervals(int(idx.max()) + 1)
         np.add.at(self.iN, idx, 1)
         np.add.at(self.inveh, idx, wc)
         np.add.at(self.intrk, idx, wt)

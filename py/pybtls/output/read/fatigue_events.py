@@ -33,13 +33,14 @@ def read_FE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
           Time", "Effect N Min Amplitude" (for each recorded effect N):
           float. Time in seconds, amplitude in the effect's native unit
           (kN or kN·m). Each event is written as two lines (one extreme
-          per line); the two are re-ordered here by comparing amplitudes
-          so "Max" is always the larger value, regardless of which one
-          occurred first in the file. The comparison is on the signed
-          value, whereas the engine picks its event extremes by absolute
-          magnitude, so for an effect with negative ordinates (e.g. a
-          hogging influence line) "Max" is the algebraically larger of
-          the pair, not the largest-magnitude one.\n
+          per line) in chronological order; the two are re-ordered here
+          by absolute magnitude, which is the engine's own convention
+          (CEventManager::UpdateEffects keeps the largest-magnitude
+          sample as the event maximum and the smallest-magnitude one as
+          its minimum). "Max" is therefore the peak of the event and
+          "Min" the value nearest zero, so for an effect with negative
+          ordinates (e.g. a hogging influence line) both are negative
+          and "Max" is the algebraically smaller of the pair.\n
         The number of effects is inferred from the file. Returns an
         empty DataFrame with this schema if the file has no data rows.
     """
@@ -65,8 +66,8 @@ def read_FE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
 
             # The two lines hold the (max, min) pair for each effect in
             # chronological order (whichever occurs first is written
-            # first), not max-first: compare the amplitudes to tell which
-            # is which.
+            # first), not max-first: compare the magnitudes to tell which
+            # is which, as the engine selects both extremes by fabs().
             ordered_line = [
                 split_line_1[0],
                 split_line_2[0],
@@ -76,7 +77,7 @@ def read_FE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
                 value_1 = split_line_1[2 * j + 2]
                 time_2 = split_line_2[2 * j + 1]
                 value_2 = split_line_2[2 * j + 2]
-                if float(value_1) >= float(value_2):
+                if abs(float(value_1)) >= abs(float(value_2)):
                     ordered_line.extend([time_1, value_1, time_2, value_2])
                 else:
                     ordered_line.extend([time_2, value_2, time_1, value_1])

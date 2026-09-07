@@ -79,6 +79,13 @@ private:
 	/// @brief Grow the vehicle-count bucket list to accommodate larger events.
 	void	AddExtraEvents();
 
+	/**
+	 * @brief Fold a block that was opened past the end of the simulated window
+	 *        back into the last completed block.
+	 * @return False if that block has already been flushed to disk.
+	 */
+	bool	FoldBackBlock();
+
 	/// @brief Update the mixed-events stream with @p Ev.
 	void	UpdateMixedEvents(CEvent& Ev);
 

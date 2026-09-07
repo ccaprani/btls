@@ -138,7 +138,54 @@ void CBlockMaxManager::FinishAt(double simEndTime)
 	// fill any silent trailing blocks up to the simulated end time
 	while (m_BlockSize > 0 && simEndTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
 		CheckBuffer(false);
+
+	// an event can start after the end of the simulated window (the bridge is
+	// run on until it empties), which has already rolled the block counter past
+	// the last block of the window; fold that block back so that the window
+	// still produces exactly one row per block
+	while (m_BlockSize > 0 && m_CurBlockNo > 1
+		&& simEndTime - m_SimStartTime <= (double)(m_CurBlockNo-1)*m_BlockSize )
+	{
+		if(!FoldBackBlock())
+			return;	// nothing buffered to fold into, and nothing left to write
+	}
+
 	Finish();
+}
+
+// merge the maxima of one event into another, keeping the larger magnitude
+static void MergeMaxEffects(CEvent& Dest, CEvent& Src, size_t nLE)
+{
+	for(unsigned int k = 0; k < nLE; k++)
+	{
+		if(fabs(Src.getMaxEffect(k).getValue()) >= fabs(Dest.getMaxEffect(k).getValue()))
+			Dest.setMaxEffect(Src.m_vMaxEffects[k],k);
+	}
+}
+
+bool CBlockMaxManager::FoldBackBlock()
+{
+	// take the last completed block back out of the write buffer and merge the
+	// over-run block into it, so Finish() writes it as the last block; the
+	// result is what the block would have held had it never been rolled
+	if(m_vBMEventsBuffer.empty())
+		return false;	// already flushed to disk - drop the over-run block
+
+	CBlockMaxEvent lastBlock = m_vBMEventsBuffer.back();
+	CEvent lastMixed = m_vMixedEvents.back();
+	m_vBMEventsBuffer.pop_back();
+	m_vMixedEvents.pop_back();
+
+	if(m_BlockMaxEvent.getSize() > lastBlock.getSize())
+		lastBlock.AddExtraEvents(m_BlockMaxEvent.getSize());
+	for(size_t iEv = 0; iEv < m_BlockMaxEvent.getSize(); iEv++)
+		MergeMaxEffects(lastBlock.getEvent(iEv), m_BlockMaxEvent.getEvent(iEv), m_NoLoadEffects);
+	MergeMaxEffects(lastMixed, m_BMMixedEvent, m_NoLoadEffects);
+
+	m_BlockMaxEvent = lastBlock;
+	m_BMMixedEvent = lastMixed;
+	m_CurBlockNo--;
+	return true;
 }
 
 void CBlockMaxManager::CheckBuffer(bool bForceOutput)

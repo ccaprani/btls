@@ -104,6 +104,7 @@ class _ChunkedOutputManager:
         """
 
         spec = MERGE_REGISTRY[key]
+        index_spans = self._index_spans(key)
         per_chunk = [chunk.read_data(key) for chunk in self._chunks]
 
         # A chunk only writes the files its own traffic produced - the
@@ -119,7 +120,9 @@ class _ChunkedOutputManager:
         for stem in sorted(stems):
             frames = [chunk_data.get(stem, pd.DataFrame()) for chunk_data in per_chunk]
             if spec.category == "concat":
-                merged[stem] = merge_concat(frames, spec, self._sec_offsets)
+                merged[stem] = merge_concat(
+                    frames, spec, self._sec_offsets, index_spans
+                )
             elif spec.category == "bin_sum":
                 merged[stem] = merge_bin_sum(frames, spec)
             elif spec.category == "moment_merge":
@@ -133,6 +136,38 @@ class _ChunkedOutputManager:
                     f"No merge implementation for category '{spec.category}'."
                 )
         return merged
+
+    def _index_spans(self, key: str) -> Union[list[int], None]:
+        """The number of index units each chunk covers, from the run
+        geometry: block-maximum blocks, POT counter blocks or statistics
+        intervals. ``merge_concat`` needs it because a chunk's largest
+        written index is not its block count - BM_V_*_<n> only carries the
+        blocks that held an n-vehicle event, and a chunk may write no rows
+        at all. Returns None for the counters with no geometric span
+        (POT_vehicle's per-flush ordinal), leaving merge_concat on its
+        observed-maximum fallback."""
+
+        config = self._chunks[0]._output_config
+        if config is None:
+            return None
+        out = config._Output
+
+        if key in ("BM_by_no_trucks", "BM_by_mixed", "BM_summary"):
+            unit = out.BlockMax.BLOCK_SIZE_DAYS * 86400 + out.BlockMax.BLOCK_SIZE_SECS
+        elif key == "POT_counter":
+            unit = out.POT.POT_COUNT_SIZE_DAYS * 86400 + out.POT.POT_COUNT_SIZE_SECS
+        elif key == "E_interval_statistics":
+            unit = out.Stats.WRITE_SS_INTERVAL_SIZE
+        else:
+            return None
+
+        chunk_secs = [int(days) * 86400 for days in self._chunk_days]
+        if unit <= 0 or any(secs % int(unit) for secs in chunk_secs):
+            # Simulation._validate_chunking rejects this, but a hand-built
+            # manager is not validated: a chunk that is not a whole number
+            # of units has no index span, so keep the fallback.
+            return None
+        return [secs // int(unit) for secs in chunk_secs]
 
     def _merge_rainflow_stem(
         self, stem: str, frames: list[pd.DataFrame], spec
