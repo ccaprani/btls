@@ -100,7 +100,7 @@ CFlowModelDataCongested::CFlowModelDataCongested(CConfigDataCore& config, CLaneF
 	: CFlowModelData(config, eFM_Congested, lfc, true) // Model has cars
 {
 	m_GapMean = m_Config.Traffic.CONGESTED_GAP;
-	m_GapStd = m_Config.Traffic.CONGESTED_GAP_COEF_VAR;
+	m_GapStd = m_GapMean * m_Config.Traffic.CONGESTED_GAP_COEF_VAR;
 	m_Speed = m_Config.Traffic.CONGESTED_SPEED;
 }
 

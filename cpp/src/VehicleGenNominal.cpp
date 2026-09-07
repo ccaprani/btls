@@ -37,7 +37,7 @@ void CVehicleGenNominal::randomize(CVehicle_sp pVeh)
 {
 	double val = 0.0;
 	KernelParams kAW, kAS;
-	m_pVMD->getKernels(kAW, kAS);
+	m_pVMD->getKernels(kAS, kAW);
 	size_t nAxles = pVeh->getNoAxles();
 
 	// Axle Spacings

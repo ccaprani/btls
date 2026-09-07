@@ -66,7 +66,7 @@ public:
 		double TRUCK_TRACK_WIDTH;      ///< Default truck track width in mm (input unit, not metres).
 		double LANE_ECCENTRICITY_STD;  ///< Standard deviation of lane-eccentricity random perturbation.
 		int KERNEL_TYPE;               ///< Kernel type for garage/nominal models (EKernelType enum).
-		double NO_OVERLAP_LENGTH;      ///< Reference length for multi-vehicle no-overlap reasoning.
+		double NO_OVERLAP_LENGTH;      ///< No-overlap length in metres (see CFlowGenerator::m_MaxBridgeLength); PrepareBridges() raises it to the longest bridge.
 	} Gen = {"../Traffic/Auxerre/", false, 1, 190.0, 0.0, 0, 100.0};
 
 	/// @brief Traffic-reading settings (replay mode only).

@@ -54,7 +54,7 @@
 Welcome to PyBTLS's documentation!
 ==================================
 
-:Date: June 2026
+:Date: September 2026
 :Authors: The PyBTLS Developers (Colin Caprani, Ziyi Zhou, Akbar Rizqiansyah)
 :Repo link: http://github.com/ccaprani/btls
 :Copyright: This document has been placed in the public domain.
@@ -82,6 +82,7 @@ PyBTLS is a Python wrapper for the C++ based Bridge Traffic Load Simulation (BTL
    theory
    references
    developer
+   changelog
 
 Indices and tables
 ==================

@@ -21,7 +21,11 @@ std::vector<CBridge_sp> PrepareBridges()
 		readIL.getInfLines(CConfigData::get().Sim.INFSURF_FILE,1));	// Influence Surfaces
 
 	std::vector<CBridge_sp> vpBridges = BridgeFile.getBridges();
-	CConfigData::get().Gen.NO_OVERLAP_LENGTH = BridgeFile.getMaxBridgeLength();
+	// The no-overlap length must cover the longest bridge. With no bridges at
+	// all, getMaxBridgeLength() is 0 m, which would disable the overlap check;
+	// keep the configured default instead.
+	if (!vpBridges.empty())
+		CConfigData::get().Gen.NO_OVERLAP_LENGTH = BridgeFile.getMaxBridgeLength();
 
 	for(unsigned int i = 0; i < vpBridges.size(); i++)
 		vpBridges.at(i)->setCalcTimeStep( CConfigData::get().Sim.CALC_TIME_STEP );

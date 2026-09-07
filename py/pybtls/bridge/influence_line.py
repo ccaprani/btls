@@ -7,6 +7,7 @@ from ..utils.IL_compress import compress_discrete_IL
 import numpy as np
 import warnings
 from typing import Union, Literal
+from .._kwargs import reject_unknown_kwargs
 
 __all__ = ["InfluenceLine", "InfluenceSurface"]
 
@@ -125,6 +126,14 @@ class InfluenceLine(_LoadEffectModeMixin):
         -------
         None.
         """
+
+        allowed_kwargs = {
+            "discrete": ("position", "ordinate", "compress_tolerance"),
+            "built-in": ("id", "length"),
+            "surface": ("inf_surf",),
+        }
+        if self._IL_type in allowed_kwargs:
+            reject_unknown_kwargs("set_IL", kwargs, allowed_kwargs[self._IL_type])
 
         if self._IL_type == "discrete":
             self._set_IL_discrete(**kwargs)
