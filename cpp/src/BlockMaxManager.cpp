@@ -67,7 +67,8 @@ void CBlockMaxManager::Update(CEvent& curEvent)
 {
 	double curTime = curEvent.getStartTime();
 	
-	while (curTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
+	// a zero block size would make the rollover test permanently true
+	while (m_BlockSize > 0 && curTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
 		CheckBuffer(false);	// at the end of a block; while, not if: fill in any silent blocks
 
 	m_CurEventNoVehicles = curEvent.getNoVehicles();
@@ -135,7 +136,7 @@ void CBlockMaxManager::OpenVehicleFiles()
 void CBlockMaxManager::FinishAt(double simEndTime)
 {
 	// fill any silent trailing blocks up to the simulated end time
-	while (simEndTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
+	while (m_BlockSize > 0 && simEndTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
 		CheckBuffer(false);
 	Finish();
 }

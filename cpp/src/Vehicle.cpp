@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include <fstream>
+#include <stdexcept>
 #include "Vehicle.h"
 #include "TrafficFileFormat.h"
 #include "ConfigData.h"
@@ -813,6 +814,15 @@ void CVehicle::setHead(int head)
 
 void CVehicle::setBridgeTimes(double BridgeLength)
 {
+	// A non-positive velocity makes m_TimeOffBridge infinite, so IsOnBridge()
+	// never turns false: the vehicle is never removed from the lane and every
+	// later vehicle joins the same never-ending event. The fixed-width readers
+	// produce it from a blank speed field (atoi("") == 0), so reject it here
+	// rather than hang the simulation.
+	if(m_Velocity <= 0.0)
+		throw std::invalid_argument("Vehicle " + std::to_string(m_Head)
+			+ " has a non-positive velocity; it would never leave the bridge.");
+
 	setTimeOnBridge();
 	m_TimeOffBridge = m_TimeOnBridge + (BridgeLength + m_Length)/(m_Velocity);
 }

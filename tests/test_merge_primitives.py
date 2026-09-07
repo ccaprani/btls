@@ -12,6 +12,7 @@ from pybtls.output._merge import (
     MergeSpec,
     merge_bin_sum,
     merge_concat,
+    merge_vehicle_traffic,
 )
 
 
@@ -155,3 +156,43 @@ def test_bin_sum_single_chunk_is_identity():
     # Sorted by key, values preserved.
     assert merged["Amplitude"].tolist() == [1.0, 2.0]
     assert merged["No. Cycles"].tolist() == [10.0, 5.0]
+
+
+def test_vehicle_traffic_shifts_calendar_across_month_and_year():
+    # The simulation calendar has 25-day months and 10-month years; Year is
+    # 0-based while Month/Day are 1-based (CVehicle::getTime/setTime).
+    chunk_0 = pd.DataFrame(
+        {"Head": [1, 2], "Year": [0, 0], "Month": [1, 1], "Day": [1, 25]}
+    )
+    chunk_1 = pd.DataFrame(
+        {"Head": [1, 2], "Year": [0, 0], "Month": [1, 1], "Day": [1, 2]}
+    )
+    chunk_2 = pd.DataFrame({"Head": [1], "Year": [0], "Month": [1], "Day": [2]})
+
+    merged = merge_vehicle_traffic([chunk_0, chunk_1, chunk_2], [0, 25, 249])
+
+    # Chunk 1 starts on absolute day 25 (month boundary), chunk 2 on day 249
+    # so its second day is the first day of the next year.
+    assert merged["Year"].tolist() == [0, 0, 0, 0, 1]
+    assert merged["Month"].tolist() == [1, 1, 2, 2, 1]
+    assert merged["Day"].tolist() == [1, 25, 1, 2, 1]
+
+
+def test_vehicle_traffic_preserves_head_verbatim():
+    # "Head" is the record identifier of the source data row
+    # (CVehicle::m_Head), not a running vehicle counter: recorded traffic
+    # takes it from the file row number, and every generated vehicle gets
+    # the constant 1001 (CVehicleGenerator::GenerateVehicle). Chunking only
+    # accepts generated traffic, so offsetting it by the previous chunk's
+    # maximum would turn 1001 into 2002, 3003, ... and overflow the 4-digit
+    # Head field of the CASTOR/BeDIT/DITIS writers. It must pass through.
+    chunk_0 = pd.DataFrame(
+        {"Head": [1001, 1001], "Year": [0, 0], "Month": [1, 1], "Day": [1, 1]}
+    )
+    chunk_1 = pd.DataFrame(
+        {"Head": [1001, 1001], "Year": [0, 0], "Month": [1, 1], "Day": [1, 1]}
+    )
+
+    merged = merge_vehicle_traffic([chunk_0, chunk_1], [0, 1])
+
+    assert merged["Head"].tolist() == [1001, 1001, 1001, 1001]

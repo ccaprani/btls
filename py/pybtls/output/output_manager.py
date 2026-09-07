@@ -149,7 +149,8 @@ class _OutputManager:
         ValueError\n
             If ``key`` refers to an output that was not written (its
             summary entry is None), e.g. the corresponding
-            ``set_*_output`` was never enabled.
+            ``set_*_output`` was never enabled, or it was enabled but
+            the engine wrote no such file.
         KeyError\n
             If ``key`` is not one of the recognized output types.
         """
@@ -179,16 +180,22 @@ class _OutputManager:
                 )
         elif key == "BM_by_no_trucks":
             for path in self._summary[key]:
-                return_dict[create_file_key(path)] = read_BM_V(path)
+                return_dict[create_file_key(path)] = read_BM_V(
+                    path, self._output_config._Output.VehicleFile.FILE_FORMAT
+                )
         elif key == "BM_by_mixed":
             for path in self._summary[key]:
-                return_dict[create_file_key(path)] = read_BM_All(path)
+                return_dict[create_file_key(path)] = read_BM_All(
+                    path, self._output_config._Output.VehicleFile.FILE_FORMAT
+                )
         elif key == "BM_summary":
             for path in self._summary[key]:
                 return_dict[create_file_key(path)] = read_BM_S(path)
         elif key == "POT_vehicle":
             for path in self._summary[key]:
-                return_dict[create_file_key(path)] = read_POT_V(path)
+                return_dict[create_file_key(path)] = read_POT_V(
+                    path, self._output_config._Output.VehicleFile.FILE_FORMAT
+                )
         elif key == "POT_summary":
             for path in self._summary[key]:
                 return_dict[create_file_key(path)] = read_POT_S(path)
@@ -333,6 +340,11 @@ class _OutputManager:
                 if self._output_config._Output.Fatigue.DO_FATIGUE_RAINFLOW
                 else None
             )
+
+        # An output whose files are absent (e.g. skipped by the GPU engine)
+        # must not be reported as available by get_summary(); read_data()
+        # then raises instead of returning an empty dict.
+        self._summary = {k: (v or None) for k, v in self._summary.items()}
 
     def _search_file(
         self, directory: str, pattern: str, exclude: str = None

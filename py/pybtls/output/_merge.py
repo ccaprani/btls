@@ -13,8 +13,10 @@ Categories
 concat
     Rows from consecutive chunks are concatenated. ``time_cols`` (fnmatch
     patterns) are shifted by each chunk's start offset in seconds;
-    ``offset_index_cols`` are continuing counters (block / interval / hour
+    ``offset_index_cols`` are continuing counters (block / interval
     indices) shifted by the previous chunks' running maximum;
+    ``hour_index_cols`` are indices on the fixed 3600 s grid, shifted by
+    the chunk's start hour and summed where chunks overlap;
     ``renumber_index_cols`` are re-sequenced 1..N after concatenation.
     Exact, provided chunk boundaries align with the relevant block /
     interval size (validated at chunking time).
@@ -65,6 +67,7 @@ class MergeSpec:
     category: str  # "concat" | "bin_sum" | "moment_merge" | "vehicles_concat" | "rainflow_splice"
     time_cols: tuple = ()  # fnmatch patterns; shifted by chunk offset (s)
     offset_index_cols: tuple = ()  # continuing counters; shifted by prior max
+    hour_index_cols: tuple = ()  # 1-h grid indices; shifted by chunk start hour
     renumber_index_cols: tuple = ()  # re-sequenced 1..N after concat
     sum_key_cols: tuple = ()  # bin_sum: group-by keys
     sum_value_cols: tuple = ()  # bin_sum: summed values
@@ -83,9 +86,11 @@ MERGE_REGISTRY: dict[str, MergeSpec] = {
         "concat", time_cols=("Time",), offset_index_cols=("Index",)
     ),
     "BM_summary": MergeSpec("concat", offset_index_cols=("Block Index",)),
-    # POT_vehicle "Index" is a continuing event counter, repeated on one row
-    # per load effect within each event — offsetting by the prior chunk's
-    # maximum keeps the repeats intact.
+    # POT_vehicle "Index" is the event's ordinal within its output buffer
+    # flush (CPOTManager::WriteVehicleFiles restarts it at 1 after every
+    # flush), repeated on one row per load effect within each event —
+    # offsetting by the prior chunk's maximum keeps the repeats intact and
+    # keeps chunks from colliding.
     "POT_vehicle": MergeSpec(
         "concat", time_cols=("Time",), offset_index_cols=("Index",)
     ),
@@ -93,8 +98,11 @@ MERGE_REGISTRY: dict[str, MergeSpec] = {
         "concat", time_cols=("Time",), renumber_index_cols=("Peak Index",)
     ),
     "POT_counter": MergeSpec("concat", offset_index_cols=("Block",)),
-    # FlowData "Hour" increments monotonically over the whole run.
-    "traffic_statistics": MergeSpec("concat", offset_index_cols=("Hour",)),
+    # FlowData "Hour" indexes a fixed 1-hour grid from the run start. A
+    # chunk also opens a partial hour for the first vehicle generated past
+    # its end time, so consecutive chunks overlap on that hour: rebase to
+    # absolute hours and sum the counts of coincident rows.
+    "traffic_statistics": MergeSpec("concat", hour_index_cols=("Hour",)),
     # Whole-run cumulative moments: needs Welford/Chan combination (Phase 2).
     "E_cumulative_statistics": MergeSpec("moment_merge"),
     # Interval stats are self-contained per interval; SS_S "Time" equals
@@ -164,12 +172,20 @@ def merge_concat(
                 base = index_base[col]
                 df[col] = df[col] + base
                 index_base[col] = int(df[col].max())
+        for col in spec.hour_index_cols:
+            if col in df.columns:
+                df[col] = df[col] + int(offset // 3600)
         shifted.append(df)
 
     if not shifted:
         return chunk_dfs[0].copy() if chunk_dfs else pd.DataFrame()
 
     merged = pd.concat(shifted, ignore_index=True)
+
+    grid_cols = [col for col in spec.hour_index_cols if col in merged.columns]
+    if grid_cols:
+        # Chunks overlap on the boundary hour - add their counts together.
+        merged = merged.groupby(grid_cols, as_index=False).sum()
 
     for col in spec.renumber_index_cols:
         if col in merged.columns:
@@ -244,8 +260,8 @@ def merge_cumulative_stats(chunk_dfs: list[pd.DataFrame]) -> pd.DataFrame:
     n = base["No. Events"].to_numpy(dtype=float)
     mean = base["Mean"].to_numpy(dtype=float)
     m2, m3, m4 = _invert_moments(base, n)
-    lo = base["Min"].to_numpy(dtype=float)
-    hi = base["Max"].to_numpy(dtype=float)
+    lo = np.where(n > 0, base["Min"].to_numpy(dtype=float), np.inf)
+    hi = np.where(n > 0, base["Max"].to_numpy(dtype=float), -np.inf)
     vehs = base["No. Vehicles"].to_numpy(dtype=np.int64)
     trks = base["No. Trucks"].to_numpy(dtype=np.int64)
 
@@ -283,6 +299,10 @@ def merge_cumulative_stats(chunk_dfs: list[pd.DataFrame]) -> pd.DataFrame:
         hi = np.where(nb > 0, np.maximum(hi, other["Max"].to_numpy(dtype=float)), hi)
         vehs = vehs + other["No. Vehicles"].to_numpy(dtype=np.int64)
         trks = trks + other["No. Trucks"].to_numpy(dtype=np.int64)
+
+    # A zero-event effect reports 0.0 extremes, as CEventStatistics does.
+    lo = np.where(n > 0, lo, 0.0)
+    hi = np.where(n > 0, hi, 0.0)
 
     # Finalize exactly like CEventStatistics::finalize().
     ok = (n >= 2) & (m2 > 0.0)
@@ -405,15 +425,15 @@ def merge_vehicle_traffic(
     Returns
     -------
     pd.DataFrame\n
-        The merged vehicle frame with continuous calendar fields and
-        unique vehicle IDs ("Head").
+        The merged vehicle frame with continuous calendar fields. The
+        vehicle id ("Head") is a source-record identifier and is left
+        exactly as each chunk wrote it.
     """
 
     if len(chunk_dfs) != len(day_offsets):
         raise ValueError("chunk_dfs and day_offsets must have equal length.")
 
     shifted = []
-    head_base = 0
     for df, offset in zip(chunk_dfs, day_offsets):
         if df.empty:
             continue
@@ -427,8 +447,6 @@ def merge_vehicle_traffic(
         df["Year"] = abs_day // _DAYS_PER_YR
         df["Month"] = (abs_day % _DAYS_PER_YR) // _DAYS_PER_MT + 1
         df["Day"] = abs_day % _DAYS_PER_MT + 1
-        df["Head"] = df["Head"] + head_base
-        head_base = int(df["Head"].max())
         shifted.append(df)
 
     if not shifted:

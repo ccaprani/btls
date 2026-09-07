@@ -21,7 +21,7 @@ class _LoadEffectModeMixin:
     def set_mode(
         self,
         mode: Literal["vertical", "centrifugal", "braking"],
-        braking_factor: float = 0.0,
+        braking_factor: float = None,
     ) -> None:
         """
         Select the per-axle force formula used with this influence line/surface.
@@ -43,16 +43,29 @@ class _LoadEffectModeMixin:
             a vehicle's acceleration is zero, ``braking_factor`` is used
             instead.
 
-        braking_factor : float, optional
+        braking_factor : float
 
             Dimensionless fallback deceleration ratio (a_design / g) for
-            braking mode with constant-velocity traffic. The default is 0.0.
+            braking mode with constant-velocity traffic. It is required for
+            braking mode: generated traffic and traffic read from a file
+            carry no per-vehicle acceleration, so a braking_factor of 0.0
+            makes the whole load effect zero. Pass 0.0 explicitly only when
+            every vehicle carries a non-zero acceleration.
         """
 
         if mode not in ("vertical", "centrifugal", "braking"):
             raise ValueError("mode must be 'vertical', 'centrifugal' or 'braking'.")
+
+        if mode == "braking" and braking_factor is None:
+            raise ValueError(
+                "braking mode requires braking_factor (= a_design / g). "
+                "Pass 0.0 explicitly only if every vehicle carries a non-zero "
+                "acceleration; generated traffic and traffic read from a file "
+                "do not, which would make the load effect zero everywhere."
+            )
+
         self._load_effect_mode = mode
-        self._braking_factor = braking_factor
+        self._braking_factor = 0.0 if braking_factor is None else braking_factor
 
 
 class InfluenceLine(_LoadEffectModeMixin):

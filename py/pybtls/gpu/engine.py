@@ -578,6 +578,9 @@ def compute_from_axles(
                 y_centre = lc[lane_b] + trans_b - lw[lane_b] / 2.0
                 yl = (y_centre - track_b / 2.0).contiguous()
                 yr = (y_centre + track_b / 2.0).contiguous()
+                # an influence surface ignores the per-lane inf_weight: the C++
+                # CInfluenceLine::getAxleLoadEffect applies m_Weight only on the
+                # non-surface branch (through getOrdinate), so pass 1.0
                 scatter_interp_2d(
                     si,
                     pp,
@@ -591,7 +594,7 @@ def compute_from_axles(
                     dxs,
                     y0s,
                     dys,
-                    float(wts[e]),
+                    1.0,
                     E[e],
                 )
             elif method == "surface":
@@ -603,7 +606,8 @@ def compute_from_axles(
                 orr = _surface_ordinate(
                     torch, X, Y, ISords, pp, y_centre + track_b / 2.0
                 )
-                E[e].index_add_(0, si, ww_e * 0.5 * (ol + orr) * wts[e])
+                # no inf_weight here either (see the surface_triton branch)
+                E[e].index_add_(0, si, ww_e * 0.5 * (ol + orr))
             elif method == "torch_discrete":
                 xp, fp = data
                 E[e].index_add_(0, si, ww_e * _interp(torch, xp, fp, pp) * wts[e])

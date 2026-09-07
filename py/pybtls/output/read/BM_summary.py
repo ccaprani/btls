@@ -30,11 +30,16 @@ def read_BM_S(
         One row per block, with columns:\n
         - "Block Index" : int, 1-based block number.\n
         - "1-Truck Event", "2-Truck Event", ... : float, the maximum load
-          effect value recorded for that truck-count bucket in the
-          block (BlockMaxManager.cpp getMaxEffect().getValue()), in the
+          effect value recorded for that bucket in the block
+          (BlockMaxManager.cpp getMaxEffect().getValue()), in the
           effect's native unit (kN or kN·m). Despite the column name,
-          this is a load effect value, not an event count. NaN where a
-          bucket had no qualifying event.\n
+          this is a load effect value, not an event count, and the
+          bucket index is the number of vehicles on the bridge
+          (BlockMaxManager.cpp getNoVehicles()), which equals the number
+          of trucks only when cars are kept out of the load calculation
+          (no car flow, or ``min_gvw`` above the car GVW). A bucket the
+          block never filled holds 0.0; NaN only appears where pandas
+          pads a block that has fewer buckets than a later one.\n
         The number of bucket columns is inferred from the file. Returns
         a DataFrame with only the "Block Index" column (no rows) if the
         file has no data rows, since the number of buckets cannot be
@@ -58,8 +63,8 @@ def read_BM_S(
                 break
 
     if not data_rows:
-        # The number of truck-count buckets cannot be inferred without any
-        # data; return the one column that is always known.
+        # The number of vehicle-count buckets cannot be inferred without
+        # any data; return the one column that is always known.
         return empty_frame(["Block Index"])
 
     # Convert to DataFrame

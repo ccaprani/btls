@@ -48,7 +48,8 @@ void CPOTManager::Update(CEvent& curEvent)
 {
 	double curTime = curEvent.getStartTime();
 	
-	while( curTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )	// while, not if: fill in any silent blocks
+	// a zero block size would make the rollover test permanently true
+	while( m_BlockSize > 0 && curTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )	// while, not if: fill in any silent blocks
 		UpdateCounter();
 
 	size_t nEventVehs = curEvent.getNoVehicles();
@@ -76,7 +77,7 @@ void CPOTManager::Update(CEvent& curEvent)
 void CPOTManager::FinishAt(double simEndTime)
 {
 	// fill any silent trailing counter blocks up to the simulated end time
-	while( simEndTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
+	while( m_BlockSize > 0 && simEndTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
 		UpdateCounter();
 	Finish();
 }

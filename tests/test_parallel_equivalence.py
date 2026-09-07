@@ -14,10 +14,12 @@ text-formatting precision. This validates the merge layer against the real
 C++ accumulator semantics, sidestepping the fact that seeded chunks are
 different random realisations.
 
-Known exceptions (exact handling lands in Phase 2):
-* fatigue_rainflow — residual reversals are closed at each chunk end, so the
-  merged histogram may differ slightly near the boundary (lenient check).
-* E_cumulative_statistics — whole-run moments need Welford/Chan combination.
+Two keys need more than a plain concatenation; both are merged exactly:
+* fatigue_rainflow — the chunk replays keep their residual reversals open
+  (FRR_ sidecars) and the merge splices the residues before closing them.
+* E_cumulative_statistics — whole-run moments are recombined with the Chan
+  parallel formula; only the 0.01 text quantisation of the per-chunk
+  statistics survives, hence the looser tolerance below.
 """
 
 import pandas as pd
@@ -228,6 +230,8 @@ def test_merged_chunks_equal_full_run(replayed_outputs, key):
     merged = _frames(chunked.read_data(key))
 
     assert set(full) == set(merged), f"file sets differ for {key}"
+    # Guard against a vacuous pass: two empty frames compare equal.
+    assert sum(len(df) for df in full.values()) > 0, f"{key}: no rows to compare"
 
     for stem in full:
         pd.testing.assert_frame_equal(

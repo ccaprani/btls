@@ -7,14 +7,16 @@ reads back the resulting block-maximum (i.e. worst value of the day)
 load effect.
 
 Output is written to an "output" subfolder next to this script, the
-same convention as case1.py-case4.py (the folder is not deleted
-automatically).
+same convention as case1.py-case4.py. Re-running the script deletes its
+own "Quickstart" subfolder first, since pybtls refuses to reuse an
+existing tag folder.
 
 **Notice**: Due to Python multiprocessing, it is essential to define
 the simulation in a function.
 """
 
 import pybtls as pb
+import shutil
 from pathlib import Path
 
 
@@ -52,7 +54,10 @@ def main():
     output_config = pb.OutputConfig()
     output_config.set_BM_output(write_summary=True)
 
-    sim_task = pb.Simulation(Path(__file__).parent / "output")
+    # (remove any previous Quickstart output, since pybtls refuses to reuse the dir)
+    output_root = Path(__file__).parent / "output"
+    shutil.rmtree(output_root / "Quickstart", ignore_errors=True)
+    sim_task = pb.Simulation(output_root)
     sim_task.add_sim(
         bridge=bridge,
         traffic=traffic_gen,
@@ -67,8 +72,11 @@ def main():
     df = next(iter(bm_summary.values()))
     print(df)
 
+    # The block maximum is the largest over the per-vehicle-count buckets
+    # ("1-Truck Event", "2-Truck Event", ...), not the first of them.
     value_cols = [c for c in df.columns if c != "Block Index"]
-    print(f"Day-1 block maximum load effect: {df[value_cols].iloc[0, 0]:.2f}")
+    block_max = df[value_cols].abs().max(axis=1).iloc[0]
+    print(f"Day-1 block maximum load effect: {block_max:.2f}")
 
 
 if __name__ == "__main__":

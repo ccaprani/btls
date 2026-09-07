@@ -1,12 +1,15 @@
 import pandas as pd
 from pathlib import Path
+from typing import Literal
 from ...lib.BTLS import Vehicle
 from ._empty import empty_frame
 
 __all__ = ["read_event_file"]
 
 
-def read_event_file(file_path: Path) -> pd.DataFrame:
+def read_event_file(
+    file_path: Path, file_format: Literal[1, 2, 3, 4] = 1
+) -> pd.DataFrame:
     """
     A standard read-in function for BM_by_no_trucks, BM_by_mixed and POT_vehicle files.\n
     These files do not have headers. Each event is one summary line
@@ -18,7 +21,15 @@ def read_event_file(file_path: Path) -> pd.DataFrame:
     Parameters
     ----------
     file_path : Path\n
-        The path to the BM/POT event-and-vehicle data file.
+        The path to the BM/POT event-and-vehicle data file.\n
+    file_format : Literal[1,2,3,4], optional\n
+        Default is 1 (CASTOR format), as written by legacy files.\n
+        The format the vehicle lines were written in, i.e. the
+        ``vehicle_file_format`` the simulation was run with.\n
+        1: CASTOR format.\n
+        2: BEDIT format.\n
+        3: DITIS format.\n
+        4: MON format.
 
     Returns
     -------
@@ -67,7 +78,9 @@ def read_event_file(file_path: Path) -> pd.DataFrame:
 
             else:
                 vehicle = Vehicle(0)  # 0 does not matter, just to get the class
-                vehicle._create(line, 1)
+                # Strip the newline: the MON reader infers how many axles
+                # the line holds from its length.
+                vehicle._create(line.rstrip("\n"), file_format)
                 data_rows[-1][-1].append(vehicle)
 
     if not data_rows:

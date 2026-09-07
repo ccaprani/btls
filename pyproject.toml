@@ -24,7 +24,10 @@ Source = "https://github.com/ccaprani/btls"
 Tracker = "https://github.com/ccaprani/btls/issues"
 
 [project.optional-dependencies]
-test = ["pytest>=6.0", "pycba>=0.5"]
+# torch is a test dependency, not just a GPU extra: without it the whole
+# GPU test suite skips, so CI goes green while the GPU engine is untested.
+# A CPU-only wheel is enough for the parity cases (device="cpu").
+test = ["pytest>=6.0", "pycba>=0.5", "torch>=2.1"]
 # Experimental GPU load-effect engine (engine="cuda"). Needs a CUDA build of
 # PyTorch; Triton (used for the fused kernel) ships with it. Install the wheel
 # matching your CUDA toolkit, e.g. `pip install pybtls[gpu]`.

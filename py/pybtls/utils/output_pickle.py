@@ -57,6 +57,15 @@ def _record_to_manager(record: dict):
     if record["config"] is not None:
         config = OutputConfig.__new__(OutputConfig)
         config.__setstate__(record["config"])
+    output_dir = Path(record["output_root"]) / record["sim_tag"]
+    if not output_dir.is_dir():
+        # the manifest stores the directory, not the file list, so a missing
+        # tree would otherwise load as an empty but "available" result set
+        warnings.warn(
+            f"Output directory {output_dir} does not exist; the loaded output "
+            "manager will report no results. Use its relocate() method to point "
+            "it at the moved output root."
+        )
     return _OutputManager(Path(record["output_root"]), record["sim_tag"], config)
 
 
@@ -67,10 +76,11 @@ def save_output(
     """
     Save the output managers to a JSON manifest file.
 
-    The manifest records the output file locations and configurations
-    (the simulation data itself stays in the output text files), so it
-    remains readable across pybtls versions. Use ``load_output`` to
-    restore.
+    The manifest records the output directory and configuration of each
+    manager (the simulation data itself stays in the output text files), so
+    it remains readable across pybtls versions. The output files themselves
+    are re-discovered on loading, so the output tree must still be in place.
+    Use ``load_output`` to restore.
 
     Parameters
     ----------

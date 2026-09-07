@@ -13,14 +13,16 @@ If no CUDA GPU / PyTorch install is available, the script prints a
 message and skips the GPU run (exit code stays 0).
 
 Output is written to an "output" subfolder next to this script, the
-same convention as case1.py-case4.py (the folder is not deleted
-automatically).
+same convention as case1.py-case4.py. Re-running the script deletes its
+own tag subfolders first, since pybtls refuses to reuse an existing tag
+folder.
 
 **Notice**: Due to Python multiprocessing, it is essential to define
 the simulation in a function.
 """
 
 import pybtls as pb
+import shutil
 from pybtls.gpu import is_available
 from pathlib import Path
 
@@ -56,6 +58,8 @@ def run_engine(engine, tag, out_dir):
     output_config = pb.OutputConfig()
     output_config.set_BM_output(write_summary=True)
 
+    # (remove any previous output for this tag, since pybtls refuses to reuse the dir)
+    shutil.rmtree(out_dir / tag, ignore_errors=True)
     sim_task = pb.Simulation(out_dir)
     sim_task.add_sim(
         bridge=build_bridge(),

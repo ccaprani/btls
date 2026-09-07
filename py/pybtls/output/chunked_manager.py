@@ -44,7 +44,7 @@ class _ChunkedOutputManager:
         sim_tag : str\n
             The tag of the parent (chunked) simulation.\n
         master_seed : int, optional\n
-            The master RNG seed (chunk i ran with master_seed + i).
+            The master RNG seed the chunk seeds were derived from.
         """
 
         if len(chunk_managers) != len(chunk_days):
@@ -106,17 +106,18 @@ class _ChunkedOutputManager:
         spec = MERGE_REGISTRY[key]
         per_chunk = [chunk.read_data(key) for chunk in self._chunks]
 
-        stems = set(per_chunk[0])
-        for chunk_data in per_chunk[1:]:
-            if set(chunk_data) != stems:
-                raise RuntimeError(
-                    f"Chunks produced different '{key}' file sets: "
-                    f"{sorted(stems)} vs {sorted(chunk_data)}."
-                )
+        # A chunk only writes the files its own traffic produced - the
+        # BM_V_*_<n> per-truck-count files, for one, stop at the largest event
+        # size that chunk saw - so merge over the union of the stems and stand
+        # an empty frame in where a chunk has none (the merge primitives skip
+        # empty frames).
+        stems = set()
+        for chunk_data in per_chunk:
+            stems.update(chunk_data)
 
         merged: dict[str, pd.DataFrame] = {}
         for stem in sorted(stems):
-            frames = [chunk_data[stem] for chunk_data in per_chunk]
+            frames = [chunk_data.get(stem, pd.DataFrame()) for chunk_data in per_chunk]
             if spec.category == "concat":
                 merged[stem] = merge_concat(frames, spec, self._sec_offsets)
             elif spec.category == "bin_sum":
