@@ -22,8 +22,9 @@ docs/source/notebooks/parallel_sim_example.ipynb for the notebook this
 script mirrors.
 
 Output is written to an "output" subfolder next to this script, the
-same convention as case1.py-case4.py (the folder is not deleted
-automatically).
+same convention as case1.py-case4.py. Re-running the script deletes its
+own "Case6-Parallel" subfolder first, since pybtls refuses to reuse an
+existing tag folder.
 
 **Notice**: Due to Python multiprocessing, it is essential to define
 the simulation in a function.
@@ -59,7 +60,9 @@ def main():
     output_config = pb.OutputConfig()
     output_config.set_BM_output(write_summary=True)
 
-    sim_task = pb.Simulation(Path(__file__).parent / "output")
+    # (remove any previous Case6 output, since pybtls refuses to reuse the dir)
+    output_root = Path(__file__).parent / "output"
+    sim_task = pb.Simulation(output_root, overwrite=True)
     sim_task.add_sim(
         bridge=bridge,
         traffic=traffic_gen,

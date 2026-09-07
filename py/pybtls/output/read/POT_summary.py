@@ -28,10 +28,10 @@ def read_POT_S(
     -------
     pd.DataFrame\n
         One row per peak, with columns:\n
-        - "Peak Index" : int, the peak's 1-based position among the rows
-          actually read (i.e. relative to ``start_line``). This is
-          renumbered on read and does not preserve the original file's
-          block-local peak index.\n
+        - "Peak Index" : int, the row's 1-based line number in the file
+          (``start_line``, clamped to 1, for the first row read). This
+          is renumbered on read and does not preserve the original
+          file's block-local peak index.\n
         - "Time" : float, seconds.\n
         - "No. Vehicles" : int, the total number of vehicles in the
           event, including cars.\n
@@ -53,6 +53,7 @@ def read_POT_S(
     )
 
     # Renumber Peak Index to reflect each row's actual position in the file.
-    return_data["Peak Index"] = range(start_line, start_line + len(return_data))
+    first_index = max(1, start_line)
+    return_data["Peak Index"] = range(first_index, first_index + len(return_data))
 
     return return_data

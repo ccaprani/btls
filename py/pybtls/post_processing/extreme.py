@@ -28,6 +28,7 @@ one year is taken as ``DAYS_PER_YEAR = 250`` simulated days when converting
 between blocks and years.
 """
 
+import warnings
 from dataclasses import dataclass
 from typing import Optional, Union
 
@@ -50,6 +51,24 @@ def _as_clean_array(data: Union[pd.Series, np.ndarray], name: str) -> np.ndarray
     return arr
 
 
+def _check_fit(shape: float, scale: float, n: int, name: str) -> None:
+    """Reject a degenerate fit and warn about an implausible shape."""
+    if not np.isfinite(shape) or not np.isfinite(scale) or scale <= 0.0:
+        raise ValueError(
+            f"The {name} fit did not converge to a valid distribution "
+            f"(xi = {shape}, sigma = {scale}) from {n} values."
+        )
+    if not -0.5 <= shape <= 1.0:
+        warnings.warn(
+            f"The {name} fit returned xi = {shape:.3f} from {n} values. The "
+            "maximum likelihood estimate is unreliable outside "
+            "-0.5 <= xi <= 1, so any return level extrapolated from this fit "
+            "should be treated as unverified.",
+            RuntimeWarning,
+            stacklevel=3,
+        )
+
+
 @dataclass
 class GEVFit:
     """
@@ -67,22 +86,37 @@ class GEVFit:
         Scale parameter ``sigma``, in the load effect's native unit
         (kN or kN·m).\n
     block_size_days : float\n
-        The block size in simulated days used to collect the maxima.
+        The block size in simulated days used to collect the maxima, i.e.
+        ``block_size_days + block_size_secs / 86400`` of
+        ``OutputConfig.set_BM_output``.\n
+    n_blocks_used : int\n
+        The number of blocks with a qualifying event, i.e. the sample size
+        of the fit. 0 if not recorded.\n
+    n_blocks_total : int\n
+        The number of blocks supplied, including those that ran without a
+        qualifying event (written as 0.0 by the engine). Entries that are
+        NaN are treated as absent data rather than empty blocks and are
+        excluded. 0 if not recorded, in which case ``return_level`` assumes
+        every block was populated.
     """
 
     shape: float
     loc: float
     scale: float
     block_size_days: float
+    n_blocks_used: int = 0
+    n_blocks_total: int = 0
 
     def return_level(self, return_period_years: float) -> float:
         """
         Compute the return level (characteristic value) for a return period.
 
-        The return level ``z`` is the quantile of the fitted block-maximum
-        distribution with exceedance probability ``1/m`` per block, where
-        ``m = return_period_years * DAYS_PER_YEAR / block_size_days`` is the
-        return period expressed in blocks:
+        The fit describes the blocks that contained a qualifying event, so
+        the return period is counted in populated blocks:
+        ``m = return_period_years * DAYS_PER_YEAR / block_size_days *
+        (n_blocks_used / n_blocks_total)``. The return level ``z`` is the
+        quantile of the fitted block-maximum distribution with exceedance
+        probability ``1/m``:
 
         ``z = mu + (sigma / xi) * (y**(-xi) - 1)`` with
         ``y = -log(1 - 1/m)``, or ``z = mu - sigma * log(y)`` for
@@ -100,10 +134,15 @@ class GEVFit:
             The return level, in the load effect's native unit (kN or kN·m).
         """
         m = float(return_period_years) * DAYS_PER_YEAR / self.block_size_days
+        if self.n_blocks_total:
+            # Blocks without a qualifying event were left out of the fit, so
+            # the fitted distribution is conditional on a block being
+            # populated and only populated blocks may be counted here.
+            m *= self.n_blocks_used / self.n_blocks_total
         if m <= 1.0:
             raise ValueError(
-                "return_period_years must exceed one block "
-                f"({self.block_size_days / DAYS_PER_YEAR} years)."
+                "Fewer than one block with a qualifying event is expected "
+                "within the return period; increase return_period_years."
             )
         y = -np.log(1.0 - 1.0 / m)
         if np.isclose(self.shape, 0.0):
@@ -185,19 +224,28 @@ def fit_gev(
 
     This reproduces the BM tutorial notebook workflow: the maxima are fitted
     with :func:`scipy.stats.genextreme.fit` and the SciPy shape ``c`` is
-    negated to the standard convention ``xi = -c``. Non-finite values (e.g.
-    NaN entries in a ``read_BM_S`` column for blocks without a qualifying
-    event) are dropped before fitting.
+    negated to the standard convention ``xi = -c``.
+
+    Blocks without a qualifying event are dropped before fitting. In a
+    ``read_BM_S`` column they take two forms: NaN, where the truck-count
+    bucket is missing from that block's row, and a literal 0.0, where the
+    engine created the bucket (because the block held a larger event) but
+    never filled it. Neither is a block maximum, so both are excluded and
+    counted as empty blocks; ``GEVFit.return_level`` then scales the return
+    period by the populated fraction, since the fit describes the populated
+    blocks only.
 
     Parameters
     ----------
     block_maxima : pd.Series or np.ndarray\n
         1-D block maxima in the load effect's native unit (kN or kN·m),
         e.g. one truck-count column of a ``read_data("BM_summary")``
-        DataFrame.\n
+        DataFrame. Pass the whole column, empty blocks included: its length
+        is taken as the number of blocks simulated.\n
     block_size_days : float\n
-        The block size in simulated days (the ``block_size_days`` used in
-        ``OutputConfig.set_BM_output``). One year is ``DAYS_PER_YEAR`` (250)
+        The block size in simulated days, i.e. ``block_size_days +
+        block_size_secs / 86400`` of ``OutputConfig.set_BM_output``
+        (``1 / 24`` for hourly blocks). One year is ``DAYS_PER_YEAR`` (250)
         simulated days.
 
     Returns
@@ -211,14 +259,40 @@ def fit_gev(
     >>> fit = fit_gev(bm, block_size_days=250)
     >>> fit.return_level(100)  # 100-year characteristic value
     """
-    data = _as_clean_array(block_maxima, "block_maxima")
+    if block_size_days <= 0.0:
+        raise ValueError(
+            "block_size_days must be positive; for blocks configured with "
+            "block_size_secs, pass block_size_days + block_size_secs / 86400 "
+            "(1 / 24 for hourly blocks)."
+        )
+    blocks = np.asarray(block_maxima, dtype=float).ravel()
+    # 0.0 marks a block that ran but held no qualifying event: the engine
+    # writes one value per bucket from a default-constructed CEffect
+    # (CBlockMaxManager::WriteSummaryFiles). Such a block still counts
+    # towards the exceedance rate, so it is excluded from the fit but kept
+    # in n_blocks_total. NaN is absent data instead of an observed empty
+    # block -- pandas pads it in where a block row carries fewer buckets
+    # than a later one -- so it is dropped from both counts.
+    finite = blocks[np.isfinite(blocks)]
+    data = finite[finite != 0.0]
+    if data.size < 4:
+        raise ValueError(
+            "block_maxima must contain at least 4 blocks with a qualifying "
+            f"event to identify the three GEV parameters; got {data.size}."
+        )
     # Gumbel moment estimates as starting values; SciPy's default starting
     # point makes the MLE optimization unreliable for GEV data.
     scale0 = np.std(data) * np.sqrt(6.0) / np.pi
     loc0 = np.mean(data) - 0.5772156649 * scale0
     c, loc, scale = genextreme.fit(data, 0.1, loc=loc0, scale=scale0)
+    _check_fit(-c, scale, data.size, "GEV")
     return GEVFit(
-        shape=-c, loc=loc, scale=scale, block_size_days=float(block_size_days)
+        shape=-c,
+        loc=loc,
+        scale=scale,
+        block_size_days=float(block_size_days),
+        n_blocks_used=int(data.size),
+        n_blocks_total=int(finite.size),
     )
 
 
@@ -267,9 +341,13 @@ def fit_gpd(
     """
     data = _as_clean_array(peaks, "peaks")
     excess = data[data > threshold] - threshold
-    if excess.size < 2:
-        raise ValueError("peaks must contain at least 2 values above the threshold.")
+    if excess.size < 3:
+        raise ValueError(
+            "peaks must contain at least 3 values above the threshold to "
+            f"identify the two GPD parameters; got {excess.size}."
+        )
     c, _, scale = genpareto.fit(excess, floc=0.0)
+    _check_fit(c, scale, excess.size, "GPD")
     return GPDFit(
         shape=c,
         scale=scale,

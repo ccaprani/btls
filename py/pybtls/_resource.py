@@ -9,14 +9,15 @@ import sys
 
 
 def available_host_memory():
-    """Free host RAM available now, in bytes. Respects a cgroup v2 memory limit
-    if one is set (so it does not read the host's free memory inside a
-    container), falling back to the physical free pages, then to a conservative
-    default if the OS will not report it."""
+    """Free host RAM available now, in bytes, or None when the platform will not
+    report it (``os.sysconf`` is Unix-only and macOS has no SC_AVPHYS_PAGES).
+    Respects a cgroup v2 memory limit if one is set (so it does not read the
+    host's free memory inside a container), falling back to the physical free
+    pages. Callers must handle None rather than be handed an invented figure."""
     try:
         free = os.sysconf("SC_AVPHYS_PAGES") * os.sysconf("SC_PAGE_SIZE")
     except (ValueError, OSError, AttributeError):
-        free = 8 * 1024**3
+        return None
     try:  # cgroup v2: (limit - current usage) of this process's own cgroup
         rel = ""
         with open("/proc/self/cgroup") as fh:
@@ -64,6 +65,8 @@ def warn_if_file_too_large(file_path, what="traffic file"):
     except OSError:
         return
     avail = available_host_memory()
+    if avail is None:  # no free-memory figure to compare against, so no warning
+        return
     estimate = file_bytes * _MEM_PER_FILE_BYTE
     if estimate > 0.8 * avail:
         print(

@@ -18,6 +18,7 @@ Covered:
     when time_step does not divide a day (e.g. ts=0.07).
 """
 
+import os
 import shutil
 from pathlib import Path
 
@@ -35,6 +36,14 @@ try:
     HAS_TORCH = True
 except ImportError:  # pragma: no cover
     HAS_TORCH = False
+
+# These cases need no CUDA, so a CI leg with a CPU PyTorch wheel sets
+# PYBTLS_REQUIRE_TORCH=1 and a missing torch fails there instead of skipping.
+if os.environ.get("PYBTLS_REQUIRE_TORCH") == "1" and not HAS_TORCH:
+    raise RuntimeError(
+        "PYBTLS_REQUIRE_TORCH=1 but PyTorch is not installed: the torch-CPU "
+        "GPU-engine regression tests would be skipped."
+    )
 
 pytestmark = pytest.mark.skipif(
     not HAS_TORCH, reason="requires PyTorch (uses the torch-CPU backend)"

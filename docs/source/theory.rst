@@ -35,8 +35,11 @@ to a horizontal-force mode via ``InfluenceLine.set_mode()``:
 - **Centrifugal**: :math:`F = W_{axle} \, v^2 / g`, with each vehicle's
   own speed :math:`v`. The bridge geometry constants — the superelevation
   factor :math:`k_e` and the curve radius :math:`1/R` — are *not* applied
-  in the kernel; bake them into the influence line ordinates (or the
-  influence weight) so the convolved effect is a force in kN.
+  in the kernel; bake them into the influence ordinates so the convolved
+  effect is a force in kN. For an influence line the per-effect
+  ``inf_weight`` may carry them instead; an influence surface ignores
+  ``inf_weight``, so there the constants must go into the surface
+  ordinates themselves.
 - **Braking**: :math:`F = W_{axle} \, |a| / g`, with each vehicle's
   longitudinal deceleration :math:`a` (``Vehicle.set_acceleration``, in
   m/s², negative for braking). For constant-velocity traffic where no

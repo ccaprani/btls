@@ -59,6 +59,8 @@ class Bridge:
 
         inf_weight : list[float], optional \n
             Influence weight (0.0 to 1.0). \n
+            It does not apply to an influence surface: for a lane whose \n
+            influence is a surface, only 1.0 is accepted. \n
             The default is 1.0 for all lanes.
 
         threshold : float, optional \n
@@ -100,14 +102,38 @@ class Bridge:
                 "The length of inf_weight should be equal to the number of lanes."
             )
 
+        lane_inf_lines = (
+            inf_line_surf
+            if isinstance(inf_line_surf, list)
+            else [inf_line_surf] * self._no_lane
+        )
+
+        for i, lane_inf_line in enumerate(lane_inf_lines):
+            inf_surf = (
+                lane_inf_line
+                if isinstance(lane_inf_line, InfluenceSurface)
+                else lane_inf_line._data_dict["inf_surf"]
+            )
+            if inf_surf is None:  # this lane is an influence line, not a surface
+                continue
+
+            if inf_weight is not None and inf_weight[i] != 1.0:
+                raise ValueError(
+                    "The influence weight is not applied to an influence surface, "
+                    f"but lane {i+1} is given inf_weight {inf_weight[i]}. "
+                    "Bake the factor into the influence surface ordinates instead."
+                )
+
+            if len(inf_surf._data_dict["lane_position"]) < self._no_lane:
+                raise ValueError(
+                    f"The influence surface for lane {i+1} defines "
+                    f"{len(inf_surf._data_dict['lane_position'])} lanes, "
+                    f"fewer than the bridge's {self._no_lane} lanes."
+                )
+
         self._no_load_effect += 1
 
-        if isinstance(inf_line_surf, list):
-            self._inf_file_dict[str(self._no_load_effect)]["inf_line"] = inf_line_surf
-        else:
-            self._inf_file_dict[str(self._no_load_effect)]["inf_line"] = [
-                inf_line_surf
-            ] * self._no_lane
+        self._inf_file_dict[str(self._no_load_effect)]["inf_line"] = lane_inf_lines
 
         self._inf_file_dict[str(self._no_load_effect)]["weight"] = (
             [1.0] * self._no_lane if inf_weight is None else inf_weight

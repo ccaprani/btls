@@ -45,7 +45,8 @@ void CStatsManager::Update(CEvent& curEvent)
 {
 	m_CurTime = curEvent.getStartTime();
 	
-	while( m_CurTime - m_SimStartTime > (double)(m_CurIntervalNo)*WRITE_SS_INTERVAL_SIZE && WRITE_SS_INTERVALS )
+	// a zero interval size would make the rollover test permanently true
+	while( WRITE_SS_INTERVAL_SIZE > 0 && m_CurTime - m_SimStartTime > (double)(m_CurIntervalNo)*WRITE_SS_INTERVAL_SIZE && WRITE_SS_INTERVALS )
 		CheckBuffer(false);	// at the end of a block; while, not if: fill in any silent intervals
 
 	if(curEvent.getNoVehicles() > 0)
@@ -65,7 +66,7 @@ void CStatsManager::Update(CEvent& curEvent)
 void CStatsManager::FinishAt(double simEndTime)
 {
 	// fill any silent trailing intervals up to the simulated end time
-	while( simEndTime - m_SimStartTime > (double)(m_CurIntervalNo)*WRITE_SS_INTERVAL_SIZE && WRITE_SS_INTERVALS )
+	while( WRITE_SS_INTERVAL_SIZE > 0 && simEndTime - m_SimStartTime > (double)(m_CurIntervalNo)*WRITE_SS_INTERVAL_SIZE && WRITE_SS_INTERVALS )
 		CheckBuffer(false);
 	Finish();
 }

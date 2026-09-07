@@ -21,7 +21,6 @@ tutorial notebooks, which use 100 years with yearly blocks).
 """
 
 import pybtls as pb
-import shutil
 from pathlib import Path
 
 # The threshold above which the simulation records POT peak events, in kNm.
@@ -78,8 +77,7 @@ def main():
     # set and run a 2-day simulation
     # (remove any previous Case7 output, since pybtls refuses to reuse the dir)
     output_root = Path(__file__).parent / "output"
-    shutil.rmtree(output_root / "Case7", ignore_errors=True)
-    sim_task = pb.Simulation(output_root)
+    sim_task = pb.Simulation(output_root, overwrite=True)
     sim_task.add_sim(
         bridge=bridge,
         traffic=traffic_gen,

@@ -10,11 +10,14 @@ from .output import OutputConfig, _OutputManager
 from .output.chunked_manager import _ChunkedOutputManager
 from typing import Union
 from pathlib import Path
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import importlib.metadata as package_metadata
 import multiprocessing
+import numpy as np
 import os
 import pickle
 import random
+import shutil
 import sys
 import time
 import platform
@@ -32,10 +35,41 @@ def _fmt_duration(seconds: float) -> str:
     return f"{seconds:.0f}s"
 
 
+def _make_sim_dir(sim_dir: Path, output_root: Path, overwrite: bool) -> None:
+    """
+    Create one simulation's output directory.
+
+    With ``overwrite=False`` an existing directory is an error: reusing a tag
+    would leave the previous run's files in place for ``_OutputManager`` to glob
+    back as this run's. With ``overwrite=True`` the directory is replaced.
+    """
+
+    if overwrite and sim_dir.is_dir():
+        # Only ever delete a directory strictly inside the output root, so a
+        # stray tag (an absolute path, or one containing "..") cannot turn
+        # overwrite=True into a recursive delete somewhere else.
+        if output_root.resolve() not in sim_dir.resolve().parents:
+            raise ValueError(
+                f"Refusing to overwrite {sim_dir}: it is not inside the "
+                f"simulation output directory {output_root}."
+            )
+        shutil.rmtree(sim_dir)
+
+    os.makedirs(sim_dir, exist_ok=False)
+
+
+def _derive_chunk_seed(master_seed: int, index: int) -> int:
+    """Mix (master_seed, index) into a chunk seed, so that runs with nearby
+    master seeds do not replay each other's traffic streams."""
+
+    seq = np.random.SeedSequence([master_seed, index])
+    return int(seq.generate_state(1, dtype=np.uint32)[0])
+
+
 class Simulation:
     """Assembles bridges, traffic, and output settings into runnable simulations, optionally parallelised across cores."""
 
-    def __init__(self, output_dir: Path = Path("./")):
+    def __init__(self, output_dir: Path = Path("./"), overwrite: bool = False):
         """
         This is the class for setting and running simulations.
 
@@ -43,17 +77,26 @@ class Simulation:
         ----------
         output_dir : Path, optional\n
             The output directory for the simulation results. The default is "./".
+
+        overwrite : bool, optional\n
+            Whether to replace a simulation's output directory if one already
+            exists for that tag. The default is False, which raises
+            ``FileExistsError``: reusing a tag would otherwise leave the previous
+            run's files in place, and they would be read back as this run's
+            results. Pass True to re-run a script over its own output, as a
+            demo or notebook typically wants to.
         """
 
         try:
             multiprocessing.set_start_method("spawn")
-        except:
-            pass
+        except RuntimeError:
+            pass  # already set, by an earlier Simulation or another library
 
         self._sim_count = 0
         self._sim_argument = []
         self._sim_output = {}
         self._chunk_groups = {}
+        self._overwrite = bool(overwrite)
         self._output_root = (
             Path(output_dir).resolve()
             if not isinstance(output_dir, Path)
@@ -100,7 +143,9 @@ class Simulation:
             The minimum gross vehicle weight (in kN) to be considered in the load effect calculation for traffic simulation. A single-vehicle simulation will ignore this argument.
 
         vehicle : Vehicle, optional\n
-            The vehicle for a single-vehicle simulation.
+            The vehicle for a single-vehicle simulation. It drives at its own
+            velocity (1 m/s if the velocity was never set), which matters for
+            the speed-dependent "centrifugal" load effect mode.
 
         active_lane : list[int], optional\n
             The active bridge lanes during the simulation. The default is None, which means all lanes are active. [1-based global index].
@@ -115,7 +160,9 @@ class Simulation:
             If None (default), the RNG keeps its current state
             (non-reproducible, same as the pre-seed-API behaviour).
             For a chunked simulation (``no_chunk > 1``) this acts as
-            the master seed: chunk i runs with ``seed + i``.
+            the master seed: each chunk's seed is derived from it by
+            mixing ``(seed, chunk index)``, so that runs whose master
+            seeds are close do not share traffic streams.
 
         no_chunk : int, optional\n
             Split this simulation into ``no_chunk`` independent
@@ -127,6 +174,9 @@ class Simulation:
             traffic and ``no_day`` divisible by ``no_chunk``; the
             chunk length must also align with the configured BM / POT
             block sizes and statistics intervals (validated here).
+            The chunks run in spawned processes, so the calling
+            script must guard its entry point with
+            ``if __name__ == "__main__":``.
             Default is None (no chunking).
 
         Keyword Arguments
@@ -259,9 +309,11 @@ class Simulation:
             output_config._Output.Fatigue.WRITE_RAINFLOW_RESIDUALS = True
 
         chunk_tags = []
+        chunk_seeds = []
         for i in range(no_chunk):
             chunk_tag = f"{sim_tag}/chunk_{i:03d}"
             chunk_tags.append(chunk_tag)
+            chunk_seeds.append(_derive_chunk_seed(master_seed, i))
             self._sim_argument.append(
                 (
                     bridge,
@@ -276,7 +328,7 @@ class Simulation:
                     overlap_avoid_distance,
                     track_progress,
                     self._output_root,
-                    master_seed + i,
+                    chunk_seeds[i],
                     engine,
                 )
             )
@@ -285,6 +337,7 @@ class Simulation:
             "chunk_tags": chunk_tags,
             "chunk_days": [chunk_days] * no_chunk,
             "master_seed": master_seed,
+            "chunk_seeds": chunk_seeds,
         }
 
     def _validate_chunking(
@@ -298,6 +351,12 @@ class Simulation:
             raise ValueError(
                 "no_chunk requires a TrafficGenerator traffic: recorded "
                 "traffic (TrafficLoader) cannot be re-seeded per chunk."
+            )
+        if any(lane is not None and lane.start_time != 0.0 for lane in traffic._lanes):
+            raise ValueError(
+                "no_chunk requires a zero lane start time: every chunk starts "
+                "its traffic that late, so the merged result would have a gap "
+                "of that length at each chunk boundary."
             )
         if not isinstance(no_chunk, int) or no_chunk < 2:
             raise ValueError("no_chunk must be an integer >= 2.")
@@ -358,7 +417,8 @@ class Simulation:
             The number of cores to be used for multi-core running. \n
             If no_core is one or there is only one added simulation, the running will be single-core. \n
             Otherwise, the running will be multi-core. \n
-            By default, (no_cpu_logic_core - 2) processes will be used for multi-core running.
+            By default, max(1, no_cpu_logic_core - 2) processes will be used for multi-core running. \n
+            Multi-core running spawns worker processes, so the calling script must guard its entry point with ``if __name__ == "__main__":``.
 
         show_progress : bool, optional\n
             Print one line as each simulation (or chunk) completes, with
@@ -371,12 +431,15 @@ class Simulation:
         None
         """
 
+        if no_core is not None and no_core < 1:
+            raise ValueError("no_core must be >= 1.")
+
         # GPU engines share one device: running tasks concurrently serialises the
         # device compute (no speed-up) while each worker process replicates its
         # window in host RAM + VRAM, so multi-core only multiplies memory and can
         # OOM. Warn so the default no_core (cpu_count-2) isn't applied to GPU runs.
         effective_cores = (
-            no_core if no_core is not None else multiprocessing.cpu_count() - 2
+            no_core if no_core is not None else max(1, multiprocessing.cpu_count() - 2)
         )
         gpu_tasks = sum(
             1 for a in self._sim_argument if a[13] in ("cuda", "mps", "xpu")
@@ -417,26 +480,27 @@ class Simulation:
             # An explicit spawn context, not the (mutable) global default: fork
             # workers would break CUDA re-initialisation, and set_start_method
             # in __init__ is silently ignored if another library set the
-            # method first.
+            # method first. ProcessPoolExecutor rather than multiprocessing.Pool
+            # because a worker that dies (segfault, OOM kill, a C++ exit()) then
+            # raises BrokenProcessPool instead of blocking run() forever.
             ctx = multiprocessing.get_context("spawn")
             results = {}
-            with ctx.Pool(processes=effective_cores) as pool:
-                for i, result in pool.imap_unordered(
-                    self._single_sim_indexed, list(enumerate(self._sim_argument))
-                ):
-                    results[i] = result
+            with ProcessPoolExecutor(
+                max_workers=effective_cores, mp_context=ctx
+            ) as executor:
+                futures = {
+                    executor.submit(self._single_sim, sim_arg): i
+                    for i, sim_arg in enumerate(self._sim_argument)
+                }
+                for future in as_completed(futures):
+                    i = futures[future]
+                    results[i] = future.result()
                     report(i)
             # insert in add_sim order so get_output() keys are deterministic
             for i, sim_arg in enumerate(self._sim_argument):
                 self._sim_output[sim_arg[8]] = results[i]
 
         self._reduce_chunk_groups()
-
-    def _single_sim_indexed(self, indexed_arg: tuple):
-        """Run one simulation, carrying its queue index through the pool."""
-
-        index, sim_arg = indexed_arg
-        return index, self._single_sim(sim_arg)
 
     def _reduce_chunk_groups(self) -> None:
         """Replace per-chunk outputs with one merged view per chunked sim."""
@@ -513,6 +577,7 @@ class Simulation:
                 seed,
                 device=engine,
                 output_config=output_config,
+                overwrite=self._overwrite,
             )
         if traffic is not None:
             return self._single_traffic_sim(
@@ -539,7 +604,7 @@ class Simulation:
     def _single_vehicle_sim(
         self, bridge, vehicle, active_lane, sim_tag, output_root
     ) -> _OutputManager:
-        os.makedirs(output_root / str(sim_tag), exist_ok=False)
+        _make_sim_dir(output_root / str(sim_tag), output_root, self._overwrite)
 
         if not isinstance(bridge, Bridge):
             raise TypeError("Argument bridge needs to be Bridge type.")
@@ -560,9 +625,20 @@ class Simulation:
 
         no_dir = 2
         bridge_length = bridge.length
-        vehicle_time_gap = 2 * (bridge_length + vehicle.get_length()) / 1.0  # in s
 
-        vehicle.set_velocity(1.0)  # 1 m/s
+        # The run sets the vehicle's velocity, time, direction and lane, so
+        # work on a copy and leave the caller's object as it was.
+        vehicle = pickle.loads(pickle.dumps(vehicle))
+
+        # Drive at the vehicle's own speed: the "centrifugal" load effect mode
+        # scales with v^2. A vehicle whose velocity was never set keeps the
+        # historical 1 m/s (a zero velocity would give infinite axle times).
+        velocity = vehicle.get_velocity()
+        if velocity <= 0.0:
+            velocity = 1.0
+            vehicle.set_velocity(velocity)
+
+        vehicle_time_gap = 2 * (bridge_length + vehicle.get_length()) / velocity  # in s
 
         no_lane_dir_1 = [bridge.no_lane, 0]
         no_lane_dir_2 = [0, bridge.no_lane]
@@ -587,7 +663,7 @@ class Simulation:
             )  # vehicle drive from one dirn then another
 
             load_calc.initializeDataMgr(current_time)
-            load_calc.setCalcTimeStep(0.01)
+            load_calc.setCalcTimeStep(0.01 / velocity)  # 1 cm of travel per step
 
             for j, lane_index in enumerate(lane_for_calc):
                 next_arrival_time = (j + 1) * vehicle_time_gap
@@ -625,7 +701,7 @@ class Simulation:
             libbtls.seed(seed)
 
         sim_dir = output_root / str(sim_tag)
-        os.makedirs(sim_dir, exist_ok=False)
+        _make_sim_dir(sim_dir, output_root, self._overwrite)
 
         if isinstance(traffic, TrafficGenerator) and no_day is None:
             raise ValueError("Argument no_day is not given.")

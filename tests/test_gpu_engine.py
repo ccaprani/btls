@@ -10,12 +10,22 @@ Covers discrete ILs, all built-in IL ids, and influence surfaces.
 Skipped when torch/CUDA is unavailable.
 """
 
+import os
+
 import numpy as np
 import pybtls as pb
 import pytest
 from pathlib import Path
 from utils import remove_folder
 from pybtls.gpu import is_available
+
+# A CI leg with a CUDA runner sets PYBTLS_REQUIRE_GPU=1; there a missing GPU
+# stack is a hard failure instead of a whole suite of silent skips.
+if os.environ.get("PYBTLS_REQUIRE_GPU") == "1" and not is_available():
+    raise RuntimeError(
+        "PYBTLS_REQUIRE_GPU=1 but pybtls.gpu.is_available() is False: "
+        "PyTorch and/or CUDA are missing, so the GPU suite would be skipped."
+    )
 
 pytestmark = pytest.mark.skipif(not is_available(), reason="requires PyTorch + CUDA")
 

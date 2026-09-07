@@ -72,6 +72,25 @@ def _il_to_spec(il):
     )
 
 
+def _check_il_length(spec, bridge_length, lane, load_case):
+    """Reject an influence line whose own span is not the bridge length — the
+    same centimetre-level check the CPU path makes in Bridge._get_bridge. The
+    GPU path never builds the C++ bridge, so without it a mismatched influence
+    line is silently resampled onto the bridge grid (zero-filled or truncated)
+    instead of being refused."""
+    if spec["kind"] == "discrete":
+        il_length = float(spec["pos"][-1])
+    elif spec["kind"] == "surface":
+        il_length = float(spec["X"][-1] - spec["X"][0])
+    else:
+        il_length = float(spec["length"])
+    if not np.isclose(il_length, bridge_length, atol=1e-2):
+        raise RuntimeError(
+            f"Influence line or surface for lane {lane} load case {load_case} "
+            "is shorter or longer than the bridge."
+        )
+
+
 def _il_specs_from_bridge(bridge):
     """Extract one il_spec + weight per load effect. Effects whose influence line
     or weight differs across lanes become a per-lane spec (matching the C++
@@ -82,7 +101,9 @@ def _il_specs_from_bridge(bridge):
         wts = [float(w) for w in bridge._inf_file_dict[key]["weight"]]
         uniform = all(il is ils[0] for il in ils) and all(w == wts[0] for w in wts)
         if uniform:
-            il_specs.append(_il_to_spec(ils[0]))
+            spec = _il_to_spec(ils[0])
+            _check_il_length(spec, bridge.length, 1, key)
+            il_specs.append(spec)
             weights.append(wts[0])
         else:
             lane_specs = [_il_to_spec(il) for il in ils]
@@ -90,6 +111,16 @@ def _il_specs_from_bridge(bridge):
                 raise NotImplementedError(
                     "engine='cuda' (experimental) does not support per-lane influence "
                     "surfaces (a single surface already spans all lanes)."
+                )
+            for i, s in enumerate(lane_specs):
+                _check_il_length(s, bridge.length, i + 1, key)
+            if len({(s["mode"], s["braking_factor"]) for s in lane_specs}) > 1:
+                # the device applies one force coefficient per load effect, so a
+                # mixed-mode per-lane effect would silently use lane 1's mode
+                raise NotImplementedError(
+                    "engine='cuda' (experimental) does not support per-lane "
+                    "load-effect modes: every lane's influence line for one load "
+                    "effect must use the same mode and braking_factor."
                 )
             il_specs.append(
                 {
@@ -454,18 +485,22 @@ def _window_target_vehicles(n_eff, device, want_pot):
     each a fraction of *free* memory (so it adapts to the machine and to whatever
     else is running). Biased toward safety: an over-large window OOMs (fatal),
     an over-small one only costs a little speed, so the fraction is well under 1
-    and the per-vehicle estimates are generous."""
+    and the per-vehicle estimates are generous. A budget whose free memory the
+    platform will not report is left out; with neither, the floor applies."""
     FRACTION = 0.5
     HOST_BYTES = 2500  # Python vehicle + numpy axle arrays / veh
     VRAM_BYTES = 400 + (
         60 * n_eff if want_pot else 0
     )  # device axle arrays + POT accumulators / veh
 
-    targets = [int(FRACTION * available_host_memory()) // HOST_BYTES]
+    targets = []
+    free_host = available_host_memory()  # None where the OS will not report it
+    if free_host is not None:
+        targets.append(int(FRACTION * free_host) // HOST_BYTES)
     free_vram = _free_device_bytes(device)
     if free_vram is not None:
         targets.append(int(FRACTION * free_vram) // VRAM_BYTES)
-    return max(100_000, min(targets))
+    return max(100_000, min(targets)) if targets else 100_000
 
 
 def _pull_beyond_end(lanes, end_time):
@@ -766,10 +801,13 @@ def run(
     seed,
     device="cuda",
     output_config=None,
+    overwrite=False,
 ):
     """Run the GPU load-effect engine and return an _OutputManager.
 
     ``device`` is the torch device name (``"cuda"`` covers NVIDIA and AMD-ROCm).
+``overwrite`` replaces an existing output directory for ``sim_tag`` instead of
+raising, matching ``Simulation(overwrite=...)``.
     Honors ``output_config``: block-maxima summaries (BM_S), peaks-over-threshold
     (PT_S / PT_C / PT_V), fatigue rainflow (FR), flow statistics (SS_C / SS_S) and
     time history (TH). When ``output_config`` is None, defaults to BM_summary
@@ -795,9 +833,18 @@ def run(
         raise NotImplementedError(
             "engine='cuda' supports TrafficLoader or TrafficGenerator traffic."
         )
+    if bridge.no_lane != traffic.no_lane:  # as the CPU path checks in simulation.py
+        raise RuntimeError(
+            "The number of lanes in the bridge and traffic generator are not equal."
+        )
 
-    os.makedirs(output_root / str(sim_tag), exist_ok=True)
+    # Same rule as the CPU path: reusing a tag would leave the previous run's
+    # files in place for _OutputManager to glob back as this run's, so an
+    # existing directory is an error unless the caller asked to overwrite.
+    from ..simulation import _make_sim_dir
+
     sim_dir = output_root / str(sim_tag)
+    _make_sim_dir(sim_dir, output_root, overwrite)
     length_str = f"{bridge.length:g}"
 
     il_specs, weights = _il_specs_from_bridge(bridge)
@@ -952,12 +999,18 @@ def run(
         # sample/event ownership ends at the seam for interior windows; for the
         # last generated window it ends at A2 (the first beyond-end arrival,
         # threaded in as next_arrival) — the CPU records through A2; the loader
-        # last window keeps its full sample tail (no boundary to feed)
-        own_end = (
-            win_secs
-            if not is_last
-            else (next_arrival - time_offset if has_next else None)
-        )
+        # last window ends at its last read arrival (the CPU read-and-sim loop
+        # breaks on the end-of-stream vehicle before simulating past it)
+        if not is_last:
+            own_end = win_secs
+        elif isinstance(traffic, TrafficLoader):
+            own_end = (
+                float(extracted[0].max()) - time_offset if len(extracted[0]) else None
+            )
+        elif has_next:
+            own_end = next_arrival - time_offset
+        else:
+            own_end = None
         # BM / POT / stats are all reductions over the C++ event partition,
         # rebuilt here per window (rainflow / TH ride along on the same pass)
         pot = compute_pot(
@@ -996,9 +1049,10 @@ def run(
             # only events at/after the LAST READ arrival are lost. Match it:
             # own events starting before the full stream's last arrival (not
             # the min_gvw-filtered one — trailing light vehicles still advance
-            # the CPU loop past earlier trucks' crossings).
-            last_arrival = float(extracted[0].max()) - time_offset
-            owned = (starts >= 0.0) & (starts < last_arrival)
+            # the CPU loop past earlier trucks' crossings). ``own_end`` is that
+            # last arrival, so the rainflow / TH streams are cut at the same
+            # point.
+            owned = (starts >= 0.0) & (starts < own_end)
         elif has_next:
             # generated end-of-run: the CPU's final `while current_time <=
             # end_time` iteration pulls the first arrival strictly after

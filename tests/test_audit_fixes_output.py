@@ -8,8 +8,11 @@ import matplotlib
 matplotlib.use("Agg")
 
 import pandas as pd
+import pybtls as pb
 import pytest
+from pathlib import Path
 
+from pybtls.output.output_manager import _OutputManager
 from pybtls.output.plot import plot_TH
 from pybtls.output.read import (
     read_AE,
@@ -27,6 +30,8 @@ from pybtls.output.read import (
     read_TS,
 )
 from pybtls.output.read.event_file import read_event_file
+
+GARAGE = Path(__file__).parent / "test_data/garage.txt"
 
 
 # --- FIX 1: read_TS header sniff / axle-classifier columns ------------------
@@ -320,3 +325,64 @@ def test_plot_TH_single_row_does_not_crash(tmp_path):
     plot_TH(data, save_to=save_to)
 
     assert save_to.exists()
+
+
+# --- FIX 8: event vehicles are written in the configured format -------------
+
+
+def _event_file_text(vehicles: list) -> str:
+    """One event with a single load effect, as CEvent::writeToFile() writes
+    it: the event id on its own line, the 5-field effect summary line, then
+    one line per vehicle in the configured traffic-file format."""
+
+    lines = ["1", f"        1     500.0          100.0     10.00{len(vehicles):4d}"]
+    lines += [vehicle.write(4) for vehicle in vehicles]
+    return "\n".join(lines) + "\n"
+
+
+def test_read_event_file_parses_vehicles_in_the_written_format(tmp_path):
+    # The C++ event writers serialise the event vehicles with
+    # Output.VehicleFile.FILE_FORMAT (default 4 = MON), so parsing them as
+    # CASTOR silently mis-reads every axle count and weight.
+    vehicles = pb.garage.read_garage_file(garage_path=GARAGE, garage_format=4)[:2]
+    path = tmp_path / "BM_V_20.0_1.txt"
+    path.write_text(_event_file_text(vehicles))
+
+    df = read_event_file(path, file_format=4)
+
+    trucks = df["Trucks"].iloc[0]
+    assert [t.get_no_axles() for t in trucks] == [v.get_no_axles() for v in vehicles]
+    # MON stores weights as integer kg, so the round trip is exact to 0.01 kN.
+    assert [t.get_gvw() for t in trucks] == pytest.approx(
+        [v.get_gvw() for v in vehicles], abs=0.01
+    )
+
+
+@pytest.mark.parametrize(
+    "key, file_name",
+    [
+        ("BM_by_no_trucks", "BM_V_20.0_1.txt"),
+        ("BM_by_mixed", "BM_V_20.0_All.txt"),
+        ("POT_vehicle", "PT_V_20.0_1.txt"),
+    ],
+)
+def test_read_data_parses_event_vehicles_in_the_configured_format(
+    tmp_path, key, file_name
+):
+    vehicles = pb.garage.read_garage_file(garage_path=GARAGE, garage_format=4)[:2]
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    (run_dir / file_name).write_text(_event_file_text(vehicles))
+
+    output_config = pb.OutputConfig()
+    output_config.set_vehicle_file_output(vehicle_file_format=4)
+    output_config.set_BM_output(write_vehicle=True, write_mixed=True)
+    output_config.set_POT_output(write_vehicle=True)
+
+    data = _OutputManager(tmp_path, "run", output_config).read_data(key)
+
+    trucks = data[Path(file_name).stem]["Trucks"].iloc[0]
+    assert [t.get_no_axles() for t in trucks] == [v.get_no_axles() for v in vehicles]
+    assert [t.get_gvw() for t in trucks] == pytest.approx(
+        [v.get_gvw() for v in vehicles], abs=0.01
+    )

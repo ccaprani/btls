@@ -2,6 +2,7 @@
 #include <algorithm>
 
 #include <cmath>
+#include <stdexcept>
 
 
 // Acceleration due to gravity used in centrifugal- and braking-mode
@@ -57,9 +58,11 @@ double CInfluenceLine::getAxleLoadEffect(CAxle& axle)
 	// Per-axle force coefficient: depends on the load-effect mode.
 	// Bridge-geometry constants (radius R, superelevation factor k_e for
 	// centrifugal; lever-arm or design constants for braking) are baked
-	// into the influence-line ordinates by the caller (typically via
-	// setWeight() or by direct ordinate pre-multiplication at IL
-	// construction time). The C++ side computes only the per-axle
+	// into the influence-line ordinates by the caller at IL construction
+	// time. For type-1 and type-2 influence lines they may instead be
+	// applied through setWeight(); the weight is deliberately NOT applied
+	// to a type-3 influence surface (see the type-3 branch below), so it
+	// cannot carry them there. The C++ side computes only the per-axle
 	// kinematic force proxy.
 	//   Vertical    (0): F_axle = AxleWeight                              (default).
 	//   Centrifugal (1): F_axle = AxleWeight * Speed^2 / g                (per-vehicle v^2).
@@ -93,6 +96,8 @@ double CInfluenceLine::getAxleLoadEffect(CAxle& axle)
 	{
 		double ord1 = m_IS.giveOrdinate(axle.m_Position,axle.m_Eccentricity-axle.m_TrackWidth/2,axle.m_Lane);
 		double ord2 = m_IS.giveOrdinate(axle.m_Position,axle.m_Eccentricity+axle.m_TrackWidth/2,axle.m_Lane);
+		// m_Weight is intentionally not applied here: an influence surface is
+		// not scaled by the per-lane influence weight.
 		effVal = 0.5*force_coeff*(ord1+ord2); // assumes half axle force on each wheel
 	}
 	else
@@ -165,9 +170,10 @@ void CInfluenceLine::setWeight(double weight)
 
 void CInfluenceLine::setLoadEffectMode(size_t mode)
 {
-	// 0 = vertical (default), 1 = centrifugal, 2 = braking. Values
-	// outside this range are clamped to 0 (vertical) for safety.
-	m_LoadEffectMode = (mode <= 2) ? mode : 0;
+	// 0 = vertical (default), 1 = centrifugal, 2 = braking.
+	if(mode > LE_Braking)
+		throw std::invalid_argument("Load effect mode must be 0 (vertical), 1 (centrifugal) or 2 (braking).");
+	m_LoadEffectMode = mode;
 }
 
 void CInfluenceLine::setBrakingFactor(double brakingFactor)

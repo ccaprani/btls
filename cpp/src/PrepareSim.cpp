@@ -159,10 +159,10 @@ void doSimulation(CVehicleClassification_sp pVC, std::vector<CBridge_sp> vBridge
 	if(CConfigData::get().Sim.CALC_LOAD_EFFECTS)
 	{
 		for(unsigned int i = 0; i < vBridges.size(); i++)
-			vBridges[i]->Finish();
+			vBridges[i]->Finish(SimEndTime);
 	}
 
-	VehBuff.FlushBuffer();
+	VehBuff.FlushBuffer(SimEndTime);
 }
 
 int run(std::string inFile)

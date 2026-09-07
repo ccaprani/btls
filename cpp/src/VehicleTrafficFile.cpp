@@ -11,11 +11,18 @@
 namespace
 {
 
-	double parseDouble(const std::string& value, double defaultValue = 0.0)
+	bool isMissing(const std::string& value)
 	{
 		std::string s = value;
 		s.erase(std::remove_if(s.begin(), s.end(), ::isspace), s.end());
-		if (s.empty() || s == "-" || s == "nan" || s == "NaN") return defaultValue;
+		return s.empty() || s == "-" || s == "nan" || s == "NaN";
+	}
+
+	double parseDouble(const std::string& value, double defaultValue = 0.0)
+	{
+		if (isMissing(value)) return defaultValue;
+		std::string s = value;
+		s.erase(std::remove_if(s.begin(), s.end(), ::isspace), s.end());
 		std::replace(s.begin(), s.end(), ',', '.');
 		return std::stod(s);
 	}
@@ -34,6 +41,18 @@ namespace
 		auto it = header.find(name);
 		if (it == header.end() || it->second >= fields.size()) return defaultValue;
 		return fields[it->second];
+	}
+
+	double requireDouble(
+		const std::vector<std::string>& fields,
+		const std::unordered_map<std::string, size_t>& header,
+		const std::string& name,
+		size_t rowNo)
+	{
+		std::string value = getField(fields, header, name);
+		if (isMissing(value))
+			throw std::invalid_argument("SiWIM row " + std::to_string(rowNo) + " has no value in mandatory column " + name);
+		return parseDouble(value);
 	}
 
 	void parseSiwimTimestamp(const std::string& timestamp, size_t& year, size_t& month, size_t& day, size_t& hour, size_t& min, double& sec)
@@ -111,7 +130,8 @@ namespace
 				throw std::runtime_error("Input SiWIM file could not be opened: " + file.string());
 
 			std::string line;
-			if (m_CSV.getline(line) == 0)
+			m_Eof = (m_CSV.getline(line) == 0);
+			if (line.empty())
 				throw std::runtime_error("Input SiWIM file has no header: " + file.string());
 
 			for (size_t i = 0; i < m_CSV.getnfield(); ++i)
@@ -120,9 +140,10 @@ namespace
 
 		CVehicle_sp nextVehicle() override
 		{
-			std::string line;
-			while (m_CSV.getline(line) != 0)
+			while (!m_Eof)
 			{
+				std::string line;
+				m_Eof = (m_CSV.getline(line) == 0);
 				if (line.empty()) continue;
 				std::vector<std::string> fields;
 				fields.reserve(m_CSV.getnfield());
@@ -146,21 +167,32 @@ namespace
 			if (noAxles < 1)
 				throw std::invalid_argument("SiWIM row has invalid axle count");
 
+			double velocity = requireDouble(fields, m_Header, "wim.v", m_RowNo);
+			if (velocity <= 0.0)
+				throw std::invalid_argument("SiWIM row " + std::to_string(m_RowNo) + " has a non-positive velocity in column wim.v");
+
+			size_t lane = parseSizeT(getField(fields, m_Header, "wim.lane"), 1);
+			if (lane > 1 && !m_MultiLaneWarned)
+			{
+				std::cout << "*** WARNING: SiWIM file uses more than one lane; all vehicles are assigned direction 1" << std::endl;
+				m_MultiLaneWarned = true;
+			}
+
 			CVehicle_sp pVeh = std::make_shared<CVehicle>();
 			pVeh->setNoAxles(noAxles);
 			pVeh->setHead(static_cast<int>(m_RowNo));
 			pVeh->setDateTime(year, month, day, hour, min, sec);
-			pVeh->setLocalLane(parseSizeT(getField(fields, m_Header, "wim.lane"), 1));
+			pVeh->setLocalLane(lane);
 			pVeh->setDirection(1);
-			pVeh->setVelocity(parseDouble(getField(fields, m_Header, "wim.v")));
-			pVeh->setGVW(parseDouble(getField(fields, m_Header, "wim.gvw")));
-			pVeh->setLength(parseDouble(getField(fields, m_Header, "wim.whlbse")));
+			pVeh->setVelocity(velocity);
+			pVeh->setGVW(requireDouble(fields, m_Header, "wim.gvw", m_RowNo));
+			pVeh->setLength(requireDouble(fields, m_Header, "wim.whlbse", m_RowNo));
 			pVeh->setNoAxleGroups(siwimAxleGroupCount(fields, m_Header, noAxles));
 			pVeh->setTrans(0.0);
 
 			for (size_t i = 0; i < noAxles; ++i)
 			{
-				pVeh->setAW(i, parseDouble(getField(fields, m_Header, "wim.acws.w." + std::to_string(i))));
+				pVeh->setAW(i, requireDouble(fields, m_Header, "wim.acws.w." + std::to_string(i), m_RowNo));
 				double spacing = (i + 1 < noAxles) ? parseDouble(getField(fields, m_Header, "wim.ads.d." + std::to_string(i))) : 0.0;
 				pVeh->setAS(i, spacing);
 			}
@@ -171,6 +203,8 @@ namespace
 		CCSVParse m_CSV;
 		std::unordered_map<std::string, size_t> m_Header;
 		size_t m_RowNo = 0;
+		bool m_Eof = false;
+		bool m_MultiLaneWarned = false;
 	};
 
 	std::unique_ptr<CVehicleFileParser> createVehicleFileParser(std::filesystem::path file, int filetype)
@@ -216,16 +250,7 @@ void CVehicleTrafficFile::Read(std::filesystem::path file, int filetype)
 	m_vVehicles.clear();
 	m_iCurVehicle = 0;
 
-	std::unique_ptr<CVehicleFileParser> parser;
-	try
-	{
-		parser = createVehicleFileParser(file, filetype);
-	}
-	catch (const std::exception& e)
-	{
-		std::cout << e.what() << std::endl;
-		exit(1);
-	}
+	std::unique_ptr<CVehicleFileParser> parser = createVehicleFileParser(file, filetype);
 
 	while (CVehicle_sp pVeh = parser->nextVehicle())
 	{

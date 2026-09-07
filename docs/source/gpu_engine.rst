@@ -118,7 +118,9 @@ The GPU engine is experimental and intentionally narrower than the CPU engine:
   (a 1000-year run uses the same memory as a 1-year run, only more wall-clock).
 * **Influence lines:** discrete, built-in (ids 1-9) and influence surfaces,
   including hogging / negative ILs and a distinct influence line / weight per
-  lane (matching the C++ engine's per-lane summation).
+  lane (matching the C++ engine's per-lane summation). The per-lane influence
+  line and weight apply to line-type effects only: one influence surface covers
+  all lanes and carries no weight, on either engine.
 * **Load-effect mode:** vertical, centrifugal (``W·v²/g``) and braking
   (``W·|a|/g``, or ``W·braking_factor`` when the acceleration is zero) — the same
   per-axle force coefficient the C++ engine applies.

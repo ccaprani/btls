@@ -278,3 +278,54 @@ def test_traffic_generator_missing_lane_raises():
 
     with pytest.raises(ValueError, match="lane index"):
         tg._get_traffic_generator(20.0)
+
+
+# --- Simulation(overwrite=...) ----------------------------------------------
+
+
+def test_simulation_overwrite_default_false_still_raises(tmp_path):
+    """Re-running a tag without overwrite must stay an error: the previous
+    run's files would otherwise be globbed back as this run's results."""
+    _run_single_vehicle_sim(tmp_path, overwrite=False)
+    with pytest.raises(FileExistsError):
+        _run_single_vehicle_sim(tmp_path, overwrite=False)
+
+
+def test_simulation_overwrite_replaces_previous_output(tmp_path):
+    _run_single_vehicle_sim(tmp_path, overwrite=False)
+    stale = tmp_path / "ow" / "stale_from_previous_run.txt"
+    stale.write_text("stale")
+    _run_single_vehicle_sim(tmp_path, overwrite=True)
+    assert not stale.exists(), "overwrite=True left the previous run's files behind"
+
+
+def test_make_sim_dir_refuses_to_delete_outside_the_output_root(tmp_path):
+    """overwrite=True must never turn a stray tag into a recursive delete
+    somewhere outside the simulation output directory."""
+    from pybtls.simulation import _make_sim_dir
+
+    root = tmp_path / "out"
+    root.mkdir()
+    outside = tmp_path / "precious"
+    outside.mkdir()
+    (outside / "data.txt").write_text("do not delete")
+
+    with pytest.raises(ValueError):
+        _make_sim_dir(outside, root, True)
+    assert (outside / "data.txt").exists()
+
+
+def _run_single_vehicle_sim(root, overwrite):
+    inf_line = pb.InfluenceLine(IL_type="built-in")
+    inf_line.set_IL(id=1, length=20.0)
+    bridge = pb.Bridge(length=20.0, no_lane=1)
+    bridge.add_load_effect(inf_line_surf=inf_line, threshold=0.0)
+
+    vehicle = pb.Vehicle(no_axles=2)
+    vehicle.set_axle_weights([100.0, 100.0])
+    vehicle.set_axle_spacings([5.0, 0.0])
+    vehicle.set_axle_widths([2.0, 2.0])
+
+    sim = pb.Simulation(output_dir=root, overwrite=overwrite)
+    sim.add_sim(bridge=bridge, vehicle=vehicle, tag="ow")
+    sim.run(no_core=1, show_progress=False)

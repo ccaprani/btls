@@ -35,7 +35,11 @@ def read_FE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
           (kN or kN·m). Each event is written as two lines (one extreme
           per line); the two are re-ordered here by comparing amplitudes
           so "Max" is always the larger value, regardless of which one
-          occurred first in the file.\n
+          occurred first in the file. The comparison is on the signed
+          value, whereas the engine picks its event extremes by absolute
+          magnitude, so for an effect with negative ordinates (e.g. a
+          hogging influence line) "Max" is the algebraically larger of
+          the pair, not the largest-magnitude one.\n
         The number of effects is inferred from the file. Returns an
         empty DataFrame with this schema if the file has no data rows.
     """
@@ -46,12 +50,16 @@ def read_FE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
 
     with open(file_path, "r") as file:
         for _ in range(max(0, 2 * (start_line - 1))):
-            next(file)  # Skip the specified number of lines
+            next(file, None)  # Skip the specified number of lines
         i = 0
 
         for line in file:
+            line_2 = next(file, None)
+            if line_2 is None:
+                break  # A truncated half event; drop it.
+
             split_line_1 = line.strip().split()  # Split by spaces or tabs
-            split_line_2 = next(file).strip().split()  # Split by spaces or tabs
+            split_line_2 = line_2.strip().split()  # Split by spaces or tabs
 
             no_effects = int((len(split_line_1) - 1) / 2)
 

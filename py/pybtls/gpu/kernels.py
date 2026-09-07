@@ -14,8 +14,9 @@ interpolation.
 
 
 def triton_available() -> bool:
+    if not _HAVE_TRITON:  # the kernels below fell back to the stubs
+        return False
     try:
-        import triton  # noqa: F401
         import torch
 
         return bool(torch.cuda.is_available())
@@ -159,7 +160,13 @@ try:
             BLOCK=BLOCK,
         )
 
-except ImportError:  # pragma: no cover - triton ships with the torch CUDA wheels
+    _HAVE_TRITON = True
+
+except Exception:  # pragma: no cover - triton ships with the torch CUDA wheels
+    # not just ImportError: a broken Triton install raises RuntimeError /
+    # FileNotFoundError / AttributeError out of its backend discovery, and the
+    # torch fallback path is complete — never fail a run over it
+    _HAVE_TRITON = False
 
     def scatter_interp_1d(*args, **kwargs):
         raise RuntimeError("Triton is not available")

@@ -89,7 +89,7 @@ double CInfluenceSurface::giveOrdinate(double x, double laneEccentricity, std::s
 	// ylocal is the transverse position within lane number iLane
 
 	//if(iLane > m_NoLanes-1) return 0.0; // better off to crash here though?
-	const std::pair<double,double>& lane = m_Ylanes[iLane];	// iLane is 0-based global lane index
+	const std::pair<double,double>& lane = m_Ylanes.at(iLane);	// iLane is 0-based global lane index; .at() traps a lane index beyond the surface's lanes
 	double yLaneCentre = (lane.first+lane.second)/2;
 	double y = yLaneCentre + laneEccentricity; // y is now global wrt influence surface
 

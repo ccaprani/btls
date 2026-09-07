@@ -59,9 +59,10 @@ public:
 	void setFirstArrivalTime();
 
 	/// @brief Get the total number of stored vehicles still to be consumed.
-	size_t GetNoVehicles() { return m_vVehicles.size(); };
+	size_t GetNoVehicles() { return m_vVehicles.size() - m_iCurVehicle; };
 
 private:
 	std::vector<CVehicle_sp> m_vVehicles;  ///< Pre-recorded vehicles, consumed in order.
+	size_t m_iCurVehicle;                  ///< Cursor into m_vVehicles for GetNextVehicle().
 };
 typedef std::shared_ptr<CLaneFileTraffic> CLaneFileTraffic_sp;  ///< Shared-pointer alias for CLaneFileTraffic.

@@ -297,7 +297,8 @@ PYBIND11_MODULE(libbtls, m) {
 					config.Traffic.CONSTANT_SPEED = attribute_dict["Traffic"]["CONSTANT_SPEED"].cast<double>();
 					config.Traffic.CONSTANT_GAP = attribute_dict["Traffic"]["CONSTANT_GAP"].cast<double>();
 
-					config.Output.OUTPUT_DIR = attribute_dict["Output"]["OUTPUT_DIR"].cast<std::string>();
+					if (attribute_dict["Output"].cast<py::dict>().contains("OUTPUT_DIR"))  // absent before pybtls 1.2.0
+						config.Output.OUTPUT_DIR = attribute_dict["Output"]["OUTPUT_DIR"].cast<std::string>();
 					config.Output.WRITE_TIME_HISTORY = attribute_dict["Output"]["WRITE_TIME_HISTORY"].cast<bool>();
 					config.Output.WRITE_EACH_EVENT = attribute_dict["Output"]["WRITE_EACH_EVENT"].cast<bool>();
 					config.Output.WRITE_EVENT_BUFFER_SIZE = attribute_dict["Output"]["WRITE_EVENT_BUFFER_SIZE"].cast<size_t>();
@@ -335,7 +336,8 @@ PYBIND11_MODULE(libbtls, m) {
 					config.Output.Fatigue.RAINFLOW_DECIMAL = attribute_dict["Output"]["Fatigue"]["RAINFLOW_DECIMAL"].cast<int>();
 					config.Output.Fatigue.RAINFLOW_CUTOFF = attribute_dict["Output"]["Fatigue"]["RAINFLOW_CUTOFF"].cast<double>();
 					config.Output.Fatigue.WRITE_FATIGUE_BUFFER_SIZE = attribute_dict["Output"]["Fatigue"]["WRITE_FATIGUE_BUFFER_SIZE"].cast<size_t>();
-					config.Output.Fatigue.WRITE_RAINFLOW_RESIDUALS = attribute_dict["Output"]["Fatigue"]["WRITE_RAINFLOW_RESIDUALS"].cast<bool>();
+					if (attribute_dict["Output"]["Fatigue"].cast<py::dict>().contains("WRITE_RAINFLOW_RESIDUALS"))  // absent before pybtls 1.2.0
+						config.Output.Fatigue.WRITE_RAINFLOW_RESIDUALS = attribute_dict["Output"]["Fatigue"]["WRITE_RAINFLOW_RESIDUALS"].cast<bool>();
 
 					return config;
 				}
@@ -660,7 +662,9 @@ PYBIND11_MODULE(libbtls, m) {
 				py::arg("index"), py::arg("width"))
 			.def("get_length", &CVehicle::getLength, "Get the vehicle length, in metres.")
 			.def("write",
-				[](CVehicle_sp self, size_t file_format) { return self->Write(file_format); },
+				// Write() normalises a near-zero transverse position in place, so
+				// serialise a copy to leave the caller's vehicle untouched
+				[](CVehicle_sp self, size_t file_format) { CVehicle veh(*self); return veh.Write(file_format); },
 				R"(
 				Serialise the vehicle to one line in the given traffic-file format.
 
@@ -743,7 +747,7 @@ PYBIND11_MODULE(libbtls, m) {
 				py::arg("prop_tuple"))
 			.def("_create", &CVehicle::create, py::arg("str"), py::arg("format"))
 			.def("__eq__", 
-				[](CVehicle_sp self, CVehicle_sp other) { return self->Write(4) == other->Write(4); }, 
+				[](CVehicle_sp self, CVehicle_sp other) { CVehicle a(*self), b(*other); return a.Write(4) == b.Write(4); }, 
 				py::is_operator())
 			.def(py::pickle(
 				[](CVehicle_sp self) {  // __getstate__

@@ -42,13 +42,36 @@ Chunked simulations coexist freely with ordinary ones: you can add
 several chunked and unchunked simulations to the same ``Simulation``
 and they share one process pool.
 
+The ``__main__`` guard
+----------------------
+
+Workers are started with the ``spawn`` start method, which re-imports
+the main module in every child process. The set-up and the ``run()``
+call must therefore live inside a function that is called from a guard:
+
+.. code-block:: python
+
+   def main():
+       sim = Simulation(output_dir="./out_100yr")
+       ...
+       sim.run(no_core=25)
+
+
+   if __name__ == "__main__":
+       main()
+
+Without the guard each child re-executes the module body, tries to
+start a pool of its own and dies during bootstrap; the pool replaces
+every dead worker, so the script neither raises nor terminates - it
+just keeps spawning processes.
+
 Why day-chunking is statistically valid
 ---------------------------------------
 
 The traffic flow model is periodic over one day (hourly blocks,
 ``FlowGenerator``); there is no weekly or seasonal pattern. Each chunk
-runs with an independent, deterministic RNG stream
-(``master_seed + chunk_index``), so the chunks behave like different
+runs with an independent, deterministic RNG stream derived by mixing
+``(master_seed, chunk_index)``, so the chunks behave like different
 stretches of one long traffic history. The merged outputs are therefore
 *statistically equivalent* to a sequential run - they are not the same
 random realisation a particular sequential seed would have produced.
@@ -106,12 +129,20 @@ Reproducibility
 |                                            | it back from         |
 |                                            | ``out.master_seed``  |
 +--------------------------------------------+----------------------+
-| ``seed=42, no_chunk=N``                    | Yes - chunk i runs   |
-|                                            | with seed 42 + i     |
+| ``seed=42, no_chunk=N``                    | Yes - chunk i is     |
+|                                            | seeded from (42, i)  |
 +--------------------------------------------+----------------------+
 | Same seed, different ``no_chunk``          | No - different chunk |
 |                                            | boundaries and seeds |
 +--------------------------------------------+----------------------+
+
+A chunked run is a different statistical realisation, not a
+reproduction of the serial run with the same seed: chunk *i* is seeded
+from ``(master_seed, i)`` and starts with an empty bridge. The mixing
+means two runs whose master seeds are close (a ``seed=100+k`` replicate
+study, say) do not silently share chunk streams. Reproducible here
+means that repeating the *same* chunked configuration gives the same
+numbers, not that the numbers match ``no_chunk=None``.
 
 Performance expectations
 ------------------------

@@ -96,7 +96,7 @@ def main():
     )
 
     # set simulation
-    sim_task = pb.Simulation(Path(__file__).parent / "output")
+    sim_task = pb.Simulation(Path(__file__).parent / "output", overwrite=True)
     sim_task.add_sim(
         traffic=traffic_gen,
         no_day=10,
