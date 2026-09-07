@@ -38,6 +38,13 @@ Added
 Fixed
 ^^^^^
 
+- ``utils.df_to_vehicle_list`` now matches columns by name. It rebuilds each
+  vehicle through a positional C++ call, so a DataFrame whose columns were in
+  a different order, or which carried an extra column, was silently read into
+  the wrong properties; a frame straight from ``vehicle_list_to_df`` was
+  unaffected. Extra columns are now ignored, a missing one is named in the
+  error, and the caller's frame is no longer modified in place by the
+  GVW / Length refresh.
 - **Grave vehicle model, direction-1 lanes (changes results).** The gross
   vehicle weight of trucks in direction-1 lanes was drawn from the
   direction-2 distribution because the lane direction was never handed to

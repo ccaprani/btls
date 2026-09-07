@@ -277,3 +277,55 @@ def test_warn_if_file_too_large_silent_when_memory_plentiful(
 
     captured = capsys.readouterr()
     assert captured.err == ""
+
+
+def _one_vehicle():
+    v = pb.Vehicle(no_axles=3)
+    v.set_axle_weights([80.0, 90.0, 100.0])
+    v.set_axle_spacings([4.0, 3.0, 0.0])
+    v.set_axle_widths([2.0, 2.0, 2.0])
+    v.set_velocity(20.0)
+    v.set_direction(1)
+    v.set_local_lane(1)
+    v.set_time(7 * 86400.0)
+    return v
+
+
+def test_df_to_vehicle_list_matches_columns_by_name_not_position():
+    """_set_all_properties is positional, so a frame whose columns are in a
+    different order must still be read into the right properties."""
+    df = pb.utils.vehicle_list_to_df([_one_vehicle()])
+    shuffled = df[sorted(df.columns)]
+    assert list(shuffled.columns) != list(df.columns)
+
+    back = pb.utils.df_to_vehicle_list(shuffled)[0]
+    assert back.get_no_axles() == 3
+    assert back.get_gvw() == pytest.approx(270.0)
+    assert back.get_velocity() == pytest.approx(20.0)
+
+
+def test_df_to_vehicle_list_ignores_extra_columns():
+    df = pb.utils.vehicle_list_to_df([_one_vehicle()])
+    df["SomeUserAnnotation"] = "keep me out of the tuple"
+
+    back = pb.utils.df_to_vehicle_list(df)[0]
+    assert back.get_no_axles() == 3
+    assert back.get_gvw() == pytest.approx(270.0)
+
+
+def test_df_to_vehicle_list_does_not_mutate_the_callers_frame():
+    """The GVW / Length refresh must not write back into the input frame."""
+    df = pb.utils.vehicle_list_to_df([_one_vehicle()])
+    df["GVW"] = -1.0
+    df["Length"] = -1.0
+
+    pb.utils.df_to_vehicle_list(df)
+
+    assert df["GVW"].iloc[0] == -1.0
+    assert df["Length"].iloc[0] == -1.0
+
+
+def test_df_to_vehicle_list_names_the_missing_columns():
+    df = pb.utils.vehicle_list_to_df([_one_vehicle()]).drop(columns=["Dir", "Trns"])
+    with pytest.raises(ValueError, match="Dir, Trns"):
+        pb.utils.df_to_vehicle_list(df)
