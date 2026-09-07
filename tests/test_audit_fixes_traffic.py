@@ -5,6 +5,8 @@ D2 - CVehModelDataNominal::getKernels returned the axle-spacing and
      axle-weight kernels swapped (declaration and call site used the
      opposite parameter order to the definition), so COV_AS acted on axle
      weights and COV_AW on axle spacings.
+D3 - CFlowModelDataCongested used CONGESTED_GAP_COEF_VAR as an absolute
+     standard deviation in seconds instead of multiplying it by the mean gap.
 """
 
 import numpy as np
@@ -60,3 +62,26 @@ def test_nominal_cov_list_order_is_spacing_then_weight():
 
     assert spacing.std() / spacing.mean() == pytest.approx(cov_as, rel=0.15)
     assert weight.std() / weight.mean() == pytest.approx(cov_aw, rel=0.15)
+
+
+# --- D3: congested gap coefficient of variation ------------------------------
+
+
+@pytest.mark.parametrize("spacing_m", [20.0, 40.0])
+def test_congested_gap_std_scales_with_mean_gap(spacing_m):
+    speed_kmh, cov = 36.0, 0.25
+    mean_gap = spacing_m / (speed_kmh / 3.6)  # CONGESTED_GAP, in seconds
+    vehicles = _generate(
+        pb.VehicleGenNominal(nominal_vehicle=_nominal_truck(), COV_list=[0.0, 0.0]),
+        pb.HeadwayGenCongested(
+            congested_spacing=spacing_m,
+            congested_speed=speed_kmh,
+            congested_gap_coef_var=cov,
+        ),
+        n=4000,
+        seed=5,
+    )
+    # headway = (constant vehicle passage time) + Normal(mean_gap, mean_gap * cov)
+    headways = np.diff([v.get_time() for v in vehicles])
+
+    assert headways.std() == pytest.approx(cov * mean_gap, rel=0.1)
