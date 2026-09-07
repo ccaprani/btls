@@ -9,6 +9,8 @@ D3 - CFlowModelDataCongested used CONGESTED_GAP_COEF_VAR as an absolute
      standard deviation in seconds instead of multiplying it by the mean gap.
 D4 - TrafficLoader.add_traffic(use_average_speed=True) was forwarded to C++
      with the master UseConstSpeed switch off, so it silently did nothing.
+D5 - Simulation.add_sim documented ``overlap_avoid_distance`` but only read
+     ``min_chase_distance``; unknown keyword arguments were dropped silently.
 """
 
 from pathlib import Path
@@ -116,3 +118,20 @@ def test_loader_use_const_speed_applies_given_value():
     speeds = _loaded_speeds(use_const_speed=True, const_speed_value=54.0)
 
     assert np.all(speeds == pytest.approx(54.0 / 3.6))
+
+
+# --- D5: add_sim keyword arguments -------------------------------------------
+
+
+def test_add_sim_reads_overlap_avoid_distance(tmp_path):
+    sim = pb.Simulation(output_dir=tmp_path)
+    sim.add_sim(overlap_avoid_distance=42.0)
+
+    assert sim._sim_argument[-1][9] == 42.0
+
+
+@pytest.mark.parametrize("name", ["overlap_avoid_distanc", "min_chase_distance"])
+def test_add_sim_rejects_unknown_keyword(tmp_path, name):
+    sim = pb.Simulation(output_dir=tmp_path)
+    with pytest.raises(TypeError, match=name):
+        sim.add_sim(**{name: 42.0})

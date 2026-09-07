@@ -201,7 +201,17 @@ class Simulation:
         else:
             sim_tag = tag
 
-        overlap_avoid_distance = kwargs.get("min_chase_distance", 100.0)
+        unknown_kwargs = set(kwargs) - {
+            "overlap_avoid_distance",
+            "track_progress",
+            "engine",
+        }
+        if unknown_kwargs:
+            raise TypeError(
+                f"add_sim() got unexpected keyword argument(s): {sorted(unknown_kwargs)}"
+            )
+
+        overlap_avoid_distance = kwargs.get("overlap_avoid_distance", 100.0)
         track_progress = kwargs.get("track_progress", False)
         engine = kwargs.get("engine", "cpu")
         if engine not in ("cpu", "cuda", "mps", "xpu"):
