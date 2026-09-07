@@ -23,6 +23,9 @@ FR_*.txt
 TH_*.txt
 FlowData_*.txt
 
+# Where every examples/*.py writes its results
+examples/output/
+
 BridgeTrafficLoadSim
 
 # Memory check

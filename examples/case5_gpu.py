@@ -22,7 +22,6 @@ the simulation in a function.
 """
 
 import pybtls as pb
-import shutil
 from pybtls.gpu import is_available
 from pathlib import Path
 
@@ -59,8 +58,7 @@ def run_engine(engine, tag, out_dir):
     output_config.set_BM_output(write_summary=True)
 
     # (remove any previous output for this tag, since pybtls refuses to reuse the dir)
-    shutil.rmtree(out_dir / tag, ignore_errors=True)
-    sim_task = pb.Simulation(out_dir)
+    sim_task = pb.Simulation(out_dir, overwrite=True)
     sim_task.add_sim(
         bridge=build_bridge(),
         traffic=build_traffic(),

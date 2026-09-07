@@ -801,10 +801,13 @@ def run(
     seed,
     device="cuda",
     output_config=None,
+    overwrite=False,
 ):
     """Run the GPU load-effect engine and return an _OutputManager.
 
     ``device`` is the torch device name (``"cuda"`` covers NVIDIA and AMD-ROCm).
+``overwrite`` replaces an existing output directory for ``sim_tag`` instead of
+raising, matching ``Simulation(overwrite=...)``.
     Honors ``output_config``: block-maxima summaries (BM_S), peaks-over-threshold
     (PT_S / PT_C / PT_V), fatigue rainflow (FR), flow statistics (SS_C / SS_S) and
     time history (TH). When ``output_config`` is None, defaults to BM_summary
@@ -835,10 +838,13 @@ def run(
             "The number of lanes in the bridge and traffic generator are not equal."
         )
 
-    # exist_ok=False as on the CPU path: reusing a tag would leave the previous
-    # run's files in place for _OutputManager to glob back as this run's
-    os.makedirs(output_root / str(sim_tag), exist_ok=False)
+    # Same rule as the CPU path: reusing a tag would leave the previous run's
+    # files in place for _OutputManager to glob back as this run's, so an
+    # existing directory is an error unless the caller asked to overwrite.
+    from ..simulation import _make_sim_dir
+
     sim_dir = output_root / str(sim_tag)
+    _make_sim_dir(sim_dir, output_root, overwrite)
     length_str = f"{bridge.length:g}"
 
     il_specs, weights = _il_specs_from_bridge(bridge)

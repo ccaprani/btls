@@ -31,7 +31,6 @@ the simulation in a function.
 """
 
 import pybtls as pb
-import shutil
 from pathlib import Path
 
 
@@ -63,8 +62,7 @@ def main():
 
     # (remove any previous Case6 output, since pybtls refuses to reuse the dir)
     output_root = Path(__file__).parent / "output"
-    shutil.rmtree(output_root / "Case6-Parallel", ignore_errors=True)
-    sim_task = pb.Simulation(output_root)
+    sim_task = pb.Simulation(output_root, overwrite=True)
     sim_task.add_sim(
         bridge=bridge,
         traffic=traffic_gen,

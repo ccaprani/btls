@@ -17,6 +17,7 @@ import numpy as np
 import os
 import pickle
 import random
+import shutil
 import sys
 import time
 import platform
@@ -34,6 +35,29 @@ def _fmt_duration(seconds: float) -> str:
     return f"{seconds:.0f}s"
 
 
+def _make_sim_dir(sim_dir: Path, output_root: Path, overwrite: bool) -> None:
+    """
+    Create one simulation's output directory.
+
+    With ``overwrite=False`` an existing directory is an error: reusing a tag
+    would leave the previous run's files in place for ``_OutputManager`` to glob
+    back as this run's. With ``overwrite=True`` the directory is replaced.
+    """
+
+    if overwrite and sim_dir.is_dir():
+        # Only ever delete a directory strictly inside the output root, so a
+        # stray tag (an absolute path, or one containing "..") cannot turn
+        # overwrite=True into a recursive delete somewhere else.
+        if output_root.resolve() not in sim_dir.resolve().parents:
+            raise ValueError(
+                f"Refusing to overwrite {sim_dir}: it is not inside the "
+                f"simulation output directory {output_root}."
+            )
+        shutil.rmtree(sim_dir)
+
+    os.makedirs(sim_dir, exist_ok=False)
+
+
 def _derive_chunk_seed(master_seed: int, index: int) -> int:
     """Mix (master_seed, index) into a chunk seed, so that runs with nearby
     master seeds do not replay each other's traffic streams."""
@@ -45,7 +69,7 @@ def _derive_chunk_seed(master_seed: int, index: int) -> int:
 class Simulation:
     """Assembles bridges, traffic, and output settings into runnable simulations, optionally parallelised across cores."""
 
-    def __init__(self, output_dir: Path = Path("./")):
+    def __init__(self, output_dir: Path = Path("./"), overwrite: bool = False):
         """
         This is the class for setting and running simulations.
 
@@ -53,6 +77,14 @@ class Simulation:
         ----------
         output_dir : Path, optional\n
             The output directory for the simulation results. The default is "./".
+
+        overwrite : bool, optional\n
+            Whether to replace a simulation's output directory if one already
+            exists for that tag. The default is False, which raises
+            ``FileExistsError``: reusing a tag would otherwise leave the previous
+            run's files in place, and they would be read back as this run's
+            results. Pass True to re-run a script over its own output, as a
+            demo or notebook typically wants to.
         """
 
         try:
@@ -64,6 +96,7 @@ class Simulation:
         self._sim_argument = []
         self._sim_output = {}
         self._chunk_groups = {}
+        self._overwrite = bool(overwrite)
         self._output_root = (
             Path(output_dir).resolve()
             if not isinstance(output_dir, Path)
@@ -544,6 +577,7 @@ class Simulation:
                 seed,
                 device=engine,
                 output_config=output_config,
+                overwrite=self._overwrite,
             )
         if traffic is not None:
             return self._single_traffic_sim(
@@ -570,7 +604,7 @@ class Simulation:
     def _single_vehicle_sim(
         self, bridge, vehicle, active_lane, sim_tag, output_root
     ) -> _OutputManager:
-        os.makedirs(output_root / str(sim_tag), exist_ok=False)
+        _make_sim_dir(output_root / str(sim_tag), output_root, self._overwrite)
 
         if not isinstance(bridge, Bridge):
             raise TypeError("Argument bridge needs to be Bridge type.")
@@ -667,7 +701,7 @@ class Simulation:
             libbtls.seed(seed)
 
         sim_dir = output_root / str(sim_tag)
-        os.makedirs(sim_dir, exist_ok=False)
+        _make_sim_dir(sim_dir, output_root, self._overwrite)
 
         if isinstance(traffic, TrafficGenerator) and no_day is None:
             raise ValueError("Argument no_day is not given.")

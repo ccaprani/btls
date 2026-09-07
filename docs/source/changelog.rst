@@ -21,6 +21,12 @@ Added
   engine. See :doc:`gpu_engine`.
 - ``Simulation.run(show_progress=...)``: progress reporting over the
   queued simulations.
+- ``Simulation(overwrite=...)``: replaces a simulation's output directory
+  instead of raising ``FileExistsError`` when the tag already exists. The
+  default is ``False``, which keeps the existing behaviour — reusing a tag
+  would otherwise leave the previous run's files in place to be read back as
+  this run's results. All of ``examples/`` now passes ``overwrite=True`` so
+  the scripts can be re-run.
 - SiWIM CSV traffic input, as ``traffic_format=5`` wherever a recorded
   traffic file is read.
 - ``OutputConfig.set_fatigue_output(write_residuals=...)``: writes the
