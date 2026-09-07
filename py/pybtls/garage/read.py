@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Literal
 
 from .._resource import warn_if_file_too_large
+from .._kwargs import reject_unknown_kwargs
 
 __all__ = ["read_garage_file"]
 
@@ -46,6 +47,8 @@ def read_garage_file(
     vehicle_list : list[Vehicle] \n
         A list of Vehicle objects.
     """
+
+    reject_unknown_kwargs("read_garage_file", kwargs, ("vehicle_class_type",))
 
     if kwargs.get("vehicle_class_type") == "axle":
         vehicle_classification = _VehClassAxle()

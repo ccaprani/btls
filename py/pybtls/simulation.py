@@ -19,6 +19,7 @@ import sys
 import time
 import platform
 import warnings
+from ._kwargs import reject_unknown_kwargs
 
 __all__ = ["Simulation"]
 
@@ -202,15 +203,9 @@ class Simulation:
         else:
             sim_tag = tag
 
-        unknown_kwargs = set(kwargs) - {
-            "overlap_avoid_distance",
-            "track_progress",
-            "engine",
-        }
-        if unknown_kwargs:
-            raise TypeError(
-                f"add_sim() got unexpected keyword argument(s): {sorted(unknown_kwargs)}"
-            )
+        reject_unknown_kwargs(
+            "add_sim", kwargs, ("overlap_avoid_distance", "track_progress", "engine")
+        )
 
         overlap_avoid_distance = kwargs.get("overlap_avoid_distance", 100.0)
         if (

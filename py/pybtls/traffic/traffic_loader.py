@@ -14,6 +14,7 @@ from pathlib import Path
 import warnings
 
 from .._resource import warn_if_file_too_large
+from .._kwargs import reject_unknown_kwargs
 
 __all__ = ["TrafficLoader"]
 
@@ -89,6 +90,8 @@ class TrafficLoader:
         -------
         None.
         """
+
+        reject_unknown_kwargs("add_traffic", kwargs, ("classifier_type",))
 
         if use_average_speed and use_const_speed:
             raise ValueError(

@@ -47,7 +47,9 @@ def _nominal_truck():
 
 def _generate(vehicle_gen, headway_gen, n, seed):
     tg = pb.TrafficGenerator(no_lane=1)
-    tg.add_lane(vehicle_gen=vehicle_gen, headway_gen=headway_gen, lfc=_trucks_only_lfc())
+    tg.add_lane(
+        vehicle_gen=vehicle_gen, headway_gen=headway_gen, lfc=_trucks_only_lfc()
+    )
     libbtls.seed(seed)
     lane = tg._get_traffic_generator(50.0)[0]
     return [lane.getNextVehicle() for _ in range(n)]
@@ -148,3 +150,51 @@ def test_add_sim_warns_when_bridge_length_overrides_overlap_avoid_distance(tmp_p
     with warnings.catch_warnings():  # same value as the bridge: nothing to say
         warnings.simplefilter("error")
         sim.add_sim(bridge=bridge, overlap_avoid_distance=20.0)
+
+
+# --- follow-up: every **kwargs entry point rejects unknown names ------------
+
+GARAGE_FILE = Path(__file__).parent / "test_data/garage.txt"
+
+
+def _bogus_calls(tmp_path):
+    bogus = {"bogus_option": 1}
+    truck = _nominal_truck()
+    return {
+        "add_traffic": lambda: pb.TrafficLoader(no_lane=4).add_traffic(
+            traffic=TRAFFIC_FILE, traffic_format=4, **bogus
+        ),
+        "VehicleGenNominal": lambda: pb.VehicleGenNominal(
+            nominal_vehicle=truck, COV_list=[0.05, 0.05], **bogus
+        ),
+        "VehicleGenGrave": lambda: pb.VehicleGenGrave(traffic_site="Auxerre", **bogus),
+        "VehicleGenGarage": lambda: pb.VehicleGenGarage(
+            garage=[truck], kernel=[[1.0, 0.05]] * 3, **bogus
+        ),
+        "HeadwayGenHeDS": lambda: pb.HeadwayGenHeDS(**bogus),
+        "HeadwayGenConstant": lambda: pb.HeadwayGenConstant(
+            constant_speed=36.0, constant_gap=5.0, **bogus
+        ),
+        "HeadwayGenCongested": lambda: pb.HeadwayGenCongested(
+            congested_spacing=20.0, congested_speed=36.0, **bogus
+        ),
+        "HeadwayGenFreeflow": lambda: pb.HeadwayGenFreeflow(**bogus),
+        "assign_lane_data": lambda: pb.LaneFlowComposition(
+            lane_index=1, lane_dir=1
+        ).assign_lane_data(
+            hourly_truck_flow=[100] * 24, hourly_car_flow=[0] * 24, **bogus
+        ),
+        "set_IL": lambda: pb.InfluenceLine("built-in").set_IL(
+            id=1, length=20.0, **bogus
+        ),
+        "read_garage_file": lambda: pb.garage.read_garage_file(GARAGE_FILE, 4, **bogus),
+        "write_garage_file": lambda: pb.garage.write_garage_file(
+            [truck], tmp_path / "garage.txt", 4, **bogus
+        ),
+    }
+
+
+@pytest.mark.parametrize("entry_point", sorted(_bogus_calls(Path(".")).keys()))
+def test_unknown_kwargs_are_rejected(entry_point, tmp_path):
+    with pytest.raises(TypeError, match="bogus_option"):
+        _bogus_calls(tmp_path)[entry_point]()

@@ -12,6 +12,7 @@ from ..lib.BTLS import (
 from typing import Literal
 from pathlib import Path
 import os
+from .._kwargs import reject_unknown_kwargs
 
 __all__ = ["write_garage_file"]
 
@@ -44,6 +45,8 @@ def write_garage_file(
         axle: Categorise vehicle by axle. \n
         pattern (Default): Categorise vehicle by pattern. \n
     """
+
+    reject_unknown_kwargs("write_garage_file", kwargs, ("vehicle_class_type",))
 
     out_path = Path(out_path)
     file_name = out_path.name
