@@ -20,6 +20,7 @@ from ..garage.read import read_garage_file
 from typing import Literal, Union
 from pathlib import Path
 import importlib.resources as pkg_resources
+from .._kwargs import reject_unknown_kwargs
 
 __all__ = ["VehicleGenNominal", "VehicleGenGrave", "VehicleGenGarage"]
 
@@ -52,6 +53,12 @@ class VehicleGenNominal:
         kernel_type : int\n
             Kernel type. 0 (Normal) or 1 (Triangle). Default is 1 (Triangle).
         """
+
+        reject_unknown_kwargs(
+            "VehicleGenNominal",
+            kwargs,
+            ("classifier_type", "lane_eccentricity_std", "kernel_type"),
+        )
 
         self._tag = "Nominal"
         self._config = _ConfigData()
@@ -150,6 +157,10 @@ class VehicleGenGrave:
         lane_eccentricity_std : float\n
             Standard deviation of lane eccentricity. Default is 0.0.
         """
+
+        reject_unknown_kwargs(
+            "VehicleGenGrave", kwargs, ("classifier_type", "lane_eccentricity_std")
+        )
 
         self._tag = "Grave"
         self._config = _ConfigData()
@@ -275,6 +286,12 @@ class VehicleGenGarage:
         kernel_type : int\n
             Kernel type. 0 (Normal) or 1 (Triangle). Default is 1 (Triangle).
         """
+
+        reject_unknown_kwargs(
+            "VehicleGenGarage",
+            kwargs,
+            ("classifier_type", "lane_eccentricity_std", "kernel_type"),
+        )
 
         self._tag = "Garage"
         self._config = _ConfigData()

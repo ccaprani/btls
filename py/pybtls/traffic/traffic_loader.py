@@ -14,6 +14,7 @@ from pathlib import Path
 import warnings
 
 from .._resource import warn_if_file_too_large
+from .._kwargs import reject_unknown_kwargs
 
 __all__ = ["TrafficLoader"]
 
@@ -90,6 +91,8 @@ class TrafficLoader:
         None.
         """
 
+        reject_unknown_kwargs("add_traffic", kwargs, ("classifier_type",))
+
         if use_average_speed and use_const_speed:
             raise ValueError(
                 "use_average_speed and use_const_speed cannot both be True."
@@ -107,8 +110,14 @@ class TrafficLoader:
             vehicle_classifier = _VehClassPattern()
             self._vehicle_classifier = 1
 
+        # C++ contract: use_const_speed is the master switch (overwrite every
+        # vehicle with one speed) and use_average_speed only selects where that
+        # speed comes from (file average vs const_speed_value).
         traffic_data = _VehicleTrafficFile(
-            vehicle_classifier, use_const_speed, use_average_speed, const_speed_value
+            vehicle_classifier,
+            use_const_speed or use_average_speed,
+            use_average_speed,
+            const_speed_value,
         )
 
         if isinstance(traffic, (Path, str)):

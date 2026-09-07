@@ -4,6 +4,7 @@ The methods and classes that are not defined in Python are defined in C++ py_mai
 
 from ..lib.BTLS import _LaneFlowComposition
 from typing import Literal
+from .._kwargs import reject_unknown_kwargs
 
 __all__ = ["LaneFlowComposition"]
 
@@ -117,6 +118,19 @@ class LaneFlowComposition:
         -------
         None.
         """
+
+        reject_unknown_kwargs(
+            "assign_lane_data",
+            kwargs,
+            (
+                "hourly_truck_flow",
+                "hourly_car_flow",
+                "hourly_car_percentage",
+                "hourly_speed_mean",
+                "hourly_speed_std",
+                "hourly_truck_composition",
+            ),
+        )
 
         if (
             kwargs.get("hourly_truck_flow") is not None
