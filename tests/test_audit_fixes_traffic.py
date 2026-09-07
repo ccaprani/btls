@@ -13,6 +13,7 @@ D5 - Simulation.add_sim documented ``overlap_avoid_distance`` but only read
      ``min_chase_distance``; unknown keyword arguments were dropped silently.
 """
 
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -135,3 +136,15 @@ def test_add_sim_rejects_unknown_keyword(tmp_path, name):
     sim = pb.Simulation(output_dir=tmp_path)
     with pytest.raises(TypeError, match=name):
         sim.add_sim(**{name: 42.0})
+
+
+def test_add_sim_warns_when_bridge_length_overrides_overlap_avoid_distance(tmp_path):
+    sim = pb.Simulation(output_dir=tmp_path)
+    bridge = pb.Bridge(length=20.0, no_lane=1)
+
+    with pytest.warns(UserWarning, match="overlap_avoid_distance"):
+        sim.add_sim(bridge=bridge, overlap_avoid_distance=42.0)
+
+    with warnings.catch_warnings():  # same value as the bridge: nothing to say
+        warnings.simplefilter("error")
+        sim.add_sim(bridge=bridge, overlap_avoid_distance=20.0)

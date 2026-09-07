@@ -18,6 +18,7 @@ import random
 import sys
 import time
 import platform
+import warnings
 
 __all__ = ["Simulation"]
 
@@ -130,7 +131,7 @@ class Simulation:
         Keyword Arguments
         -----------------
         overlap_avoid_distance : float, optional\n
-            The minimum chase distance (in m) between two vehicles to avoid overlap (should equal to bridge length). If the bridge argument has an input then no need to specify this argument. The default is 100.0.
+            The minimum chase distance (in m) between two vehicles to avoid overlap (should equal to bridge length). If the bridge argument has an input then the bridge length is used instead, and a different explicit value triggers a warning. The default is 100.0.
 
         track_progress : bool, optional\n
             Whether to track the simulation progress. A single-vehicle simulation will ignore this argument. The default is False.
@@ -212,6 +213,16 @@ class Simulation:
             )
 
         overlap_avoid_distance = kwargs.get("overlap_avoid_distance", 100.0)
+        if (
+            "overlap_avoid_distance" in kwargs
+            and bridge is not None
+            and overlap_avoid_distance != bridge.length
+        ):
+            warnings.warn(
+                f"overlap_avoid_distance={overlap_avoid_distance} is ignored because a "
+                f"bridge is given; its length ({bridge.length} m) is used instead.",
+                stacklevel=2,
+            )
         track_progress = kwargs.get("track_progress", False)
         engine = kwargs.get("engine", "cpu")
         if engine not in ("cpu", "cuda", "mps", "xpu"):
