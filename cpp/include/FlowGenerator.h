@@ -28,8 +28,10 @@
  * - **Minimum gap**: @c m_MinGap enforces a physically realistic
  *   spacing between vehicles, set in setMinGap() from the previous
  *   and next vehicle velocities and lengths.
- * - **Bridge length**: @c m_MaxBridgeLength lets the generator reason
- *   about multi-vehicle interactions on long spans.
+ * - **No-overlap length**: @c m_MaxBridgeLength is the road length over
+ *   which a faster following vehicle must not catch the vehicle ahead
+ *   (normally the bridge length); see that member for why it is named
+ *   after the bridge.
  *
  * Concrete subclasses implement GenerateGap() and GenerateSpeed()
  * corresponding to different headway models:
@@ -84,8 +86,9 @@ public:
 	virtual void prepareNextGen(double time, CVehicle_sp pPrevVeh, CVehicle_sp pNextVeh);
 
 	/**
-	 * @brief Record the maximum bridge length for minimum-gap reasoning.
-	 * @param[in] length Bridge length in metres.
+	 * @brief Set the no-overlap length used by setMinGap().
+	 * @param[in] length Bridge length in metres (the longest bridge when
+	 *                   several bridges share one traffic stream).
 	 */
 	void setMaxBridgeLength(double length);
 
@@ -118,7 +121,22 @@ protected:
 	size_t m_BlockSize;                  ///< Block size in seconds (typically 3600).
 	size_t m_BlockCount;                 ///< Number of blocks in one cycle (typically 24).
 
-	double m_MaxBridgeLength;            ///< Maximum bridge length in metres (used for multi-vehicle spacing).
+	/**
+	 * @brief No-overlap length in metres: the road length over which a faster
+	 *        following vehicle must not catch up with the vehicle ahead
+	 *        (see setMinGap()). Overlap only matters while both vehicles are
+	 *        on the deck, so this is the bridge length.
+	 *
+	 * The name comes from the standalone BTLS binary, which runs one traffic
+	 * stream past every bridge in the bridge file and must therefore honour
+	 * the longest of them: CPrepareSim sets Gen.NO_OVERLAP_LENGTH from
+	 * CBridgeFile::getMaxBridgeLength(), and that config value is the initial
+	 * value here (via CFlowModelData::getGapLimits()). PyBTLS simulates one
+	 * bridge per run and overrides it per lane through setMaxBridgeLength()
+	 * with bridge.length, or with add_sim's overlap_avoid_distance when no
+	 * bridge is given.
+	 */
+	double m_MaxBridgeLength;
 	double m_BufferGapSpace;             ///< Additional safety gap in metres.
 	double m_BufferGapTime;              ///< Additional safety gap in seconds.
 
