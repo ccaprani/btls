@@ -37,10 +37,12 @@ public:
  * and the vehicles can be popped in order via getNextVehicle(), or
  * retrieved in bulk via getVehicles().
  *
- * The constructor accepts speed overrides: @p UseConstSpeed replaces
- * every vehicle's velocity with @p ConstSpeed, and @p UseAveSpeed
- * replaces it with the average speed across the file. If both are
- * false, the speeds read from the file are used as-is.
+ * The constructor accepts a speed override. @p UseConstSpeed is the
+ * master switch: when true, every vehicle's velocity is replaced by one
+ * constant value. @p UseAveSpeed selects where that constant comes from:
+ * the average speed across the file when true, @p ConstSpeed when false.
+ * @p UseAveSpeed has no effect while @p UseConstSpeed is false, in which
+ * case the speeds read from the file are used as-is.
  *
  * @see CVehicle
  * @see CLaneFileTraffic
@@ -52,9 +54,9 @@ public:
 	 * @brief Construct with a vehicle classifier and speed override flags.
 	 *
 	 * @param[in] pVC           Vehicle classifier used to tag each parsed vehicle.
-	 * @param[in] UseConstSpeed If true, replace every vehicle's velocity with @p ConstSpeed.
-	 * @param[in] UseAveSpeed   If true, replace every vehicle's velocity with the file-average speed.
-	 * @param[in] ConstSpeed    Constant speed in m/s used when @p UseConstSpeed is true.
+	 * @param[in] UseConstSpeed Master switch: if true, every vehicle's velocity is replaced by one constant value.
+	 * @param[in] UseAveSpeed   Source of that constant: the file-average speed if true, @p ConstSpeed if false. Ignored when @p UseConstSpeed is false.
+	 * @param[in] ConstSpeed    Constant speed in km/h, used when @p UseConstSpeed is true and @p UseAveSpeed is false.
 	 */
 	CVehicleTrafficFile(CVehicleClassification_sp pVC, bool UseConstSpeed, bool UseAveSpeed, double ConstSpeed);
 	~CVehicleTrafficFile(void);
@@ -112,9 +114,9 @@ private:
 	/// @brief Apply the speed-override flags to every vehicle.
 	void SetSpeed();
 
-	bool m_UseConstSpeed;       ///< If true, overwrite vehicle velocities with @c m_ConstSpeed.
-	bool m_UseAveSpeed;         ///< If true, overwrite vehicle velocities with the file-average speed.
-	double m_ConstSpeed;        ///< Constant speed used when @c m_UseConstSpeed is true (m/s).
+	bool m_UseConstSpeed;       ///< Master switch: overwrite every vehicle's velocity with one constant value.
+	bool m_UseAveSpeed;         ///< Source of that constant: file-average speed (true) or @c m_ConstSpeed (false). Ignored unless @c m_UseConstSpeed.
+	double m_ConstSpeed;        ///< Constant speed in km/h, used when @c m_UseConstSpeed is true and @c m_UseAveSpeed is false.
 
 	CVehicleClassification_sp m_pVehClassification;  ///< Vehicle classifier applied during parsing.
 
