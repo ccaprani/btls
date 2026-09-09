@@ -4,8 +4,10 @@ Changelog
 1.2.0 (September 2026)
 ----------------------
 
-The first release carrying the parallel and GPU refactor, together with
-traffic-generation and loading fixes from an engine audit. Several
+The first release carrying the GPU engine and the refactored load-effect
+calculation, together with traffic-generation and loading fixes from two
+engine audits. (Chunked parallel simulation is not new here; it shipped in
+1.0.1.) Several
 changes alter simulation results, and the output files themselves
 changed; read "Output files" below and regenerate any reference results
 that depend on the affected paths. The bundled C++ program is versioned
@@ -14,9 +16,6 @@ that depend on the affected paths. The bundled C++ program is versioned
 Added
 ^^^^^
 
-- ``Simulation.add_sim(no_chunk=...)``: a long simulation is split into
-  independent day-chunks that run in parallel and are merged back into a
-  single output object. See :doc:`parallel`.
 - ``Simulation.add_sim(engine="cuda"/"mps"/"xpu")``: an experimental GPU
   engine. See :doc:`gpu_engine`.
 - ``Simulation.run(show_progress=...)``: progress reporting over the
@@ -29,9 +28,6 @@ Added
   the scripts can be re-run.
 - SiWIM CSV traffic input, as ``traffic_format=5`` wherever a recorded
   traffic file is read.
-- ``OutputConfig.set_fatigue_output(write_residuals=...)``: writes the
-  unclosed rainflow residuals that a chunked fatigue run needs in order
-  to merge.
 - ``pybtls.post_processing``: ``fit_gev`` and ``fit_gpd``, with the
   ``GEVFit`` and ``GPDFit`` result objects, for extreme-value fitting.
 - ``InfluenceLine.set_mode`` and ``InfluenceSurface.set_mode``: a load
@@ -112,10 +108,11 @@ Fixed
   records blocks that had an event, so a chunk ending in silent blocks used
   to under-shift every later chunk. Only the "Index" column of
   ``BM_by_no_trucks`` frames moves.
-- ``read_FE`` orders each event's pair of extremes by absolute magnitude,
-  which is how the engine selects them. Ordering by signed value meant that
-  for a hogging influence line the reader and the engine disagreed about
-  which of the pair was the maximum.
+- ``read_FE`` pairs each event's two extremes by absolute magnitude, which
+  is how the engine selects them. It used to take them in the order the two
+  lines appear in the file, which is chronological, so whenever the
+  larger-magnitude extreme happened to be written second - routinely, for a
+  hogging influence line - the reader labelled the smaller one "Max".
 - Writing a vehicle out no longer changes it. ``CVehicle::Write`` assigned
   the normalised transverse position back to the vehicle, and that position
   feeds influence-surface eccentricity, so a load effect could depend on
@@ -125,11 +122,6 @@ Fixed
 Changed
 ^^^^^^^
 
-- **save_output now writes a JSON manifest instead of a binary pickle.**
-  ``load_output`` cannot read ``.pkl`` files written by earlier
-  versions. Re-save them with the pybtls version that wrote them, or read
-  the simulation output text files directly with ``pybtls.output.read`` -
-  the manifest only records where those files are.
 - Misspelled keyword arguments now raise ``TypeError`` instead of being
   ignored, in ``Simulation.add_sim``, ``TrafficLoader.add_traffic``, the
   vehicle and headway generators, ``LaneFlowComposition.assign_lane_data``,
