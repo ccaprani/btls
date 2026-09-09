@@ -20,8 +20,10 @@ def _run_single_vehicle(
     """Run the single-vehicle simulation and return the peak of effect 1."""
     inf_line = pb.InfluenceLine(IL_type="built-in")
     inf_line.set_IL(id=1, length=20.0)
-    if mode != "vertical":
+    if mode == "braking":
         inf_line.set_mode(mode, braking_factor=braking_factor)
+    elif mode != "vertical":
+        inf_line.set_mode(mode)
 
     bridge = pb.Bridge(length=20.0, no_lane=2)
     bridge.add_load_effect(inf_line_surf=inf_line, threshold=0.0)
@@ -128,6 +130,55 @@ def test_invalid_mode_raises():
     inf_line.set_IL(id=1, length=20.0)
     with pytest.raises(ValueError):
         inf_line.set_mode("sideways")
+
+
+@pytest.mark.parametrize("bad", [-0.3, float("nan"), float("inf"), "0.3", None])
+def test_invalid_braking_factor_raises(bad):
+    # braking_factor is a magnitude: the travel-direction sign is the engine's
+    inf_line = pb.InfluenceLine(IL_type="built-in")
+    inf_line.set_IL(id=1, length=20.0)
+    with pytest.raises(ValueError):
+        inf_line.set_mode("braking", braking_factor=bad)
+
+
+def test_braking_factor_ignored_outside_braking_mode_warns():
+    inf_line = pb.InfluenceLine(IL_type="built-in")
+    inf_line.set_IL(id=1, length=20.0)
+    with pytest.warns(UserWarning, match="only used by 'braking' mode"):
+        inf_line.set_mode("centrifugal", braking_factor=0.3)
+
+
+def test_mode_is_captured_per_load_effect():
+    # The mode is snapshotted by add_load_effect, like the weight and threshold:
+    # one influence line added twice carries a different mode for each effect,
+    # and a later set_mode() does not reach back into the effect already added.
+    root = Path(__file__).parent / "temp_le_per_effect"
+    remove_folder(root)
+
+    inf_line = pb.InfluenceLine(IL_type="built-in")
+    inf_line.set_IL(id=1, length=20.0)
+
+    bridge = pb.Bridge(length=20.0, no_lane=2)
+    bridge.add_load_effect(inf_line_surf=inf_line, threshold=0.0)  # vertical
+    inf_line.set_mode("centrifugal")
+    bridge.add_load_effect(inf_line_surf=inf_line, threshold=0.0)  # centrifugal
+
+    vehicle = pb.Vehicle(no_axles=2)
+    vehicle.set_axle_weights([100.0, 100.0])
+    vehicle.set_axle_spacings([5.0, 0.0])
+    vehicle.set_axle_widths([2.0, 2.0])
+
+    sim = pb.Simulation(output_dir=root)
+    sim.add_sim(bridge=bridge, vehicle=vehicle, tag="per_effect")
+    sim.run(no_core=1)
+
+    history = next(iter(sim.get_output().values())).read_data("time_history")
+    peak_1 = max(df["Effect 1"].abs().max() for df in history.values())
+    peak_2 = max(df["Effect 2"].abs().max() for df in history.values())
+
+    assert peak_1 > 0.0
+    assert peak_2 / peak_1 == pytest.approx(SPEED**2 / GRAVITY, rel=1e-4)
+    remove_folder(root)
 
 
 def test_vehicle_acceleration_survives_pickle():

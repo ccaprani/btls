@@ -34,6 +34,11 @@ _COLUMN_NAMES = [
     "Acceleration",
 ]
 
+# Columns a caller may omit, with the value used in their place. "Acceleration"
+# is new in 1.1.0, so a frame saved by an earlier release carries 18 columns;
+# a vehicle without a recorded acceleration is simply a constant-velocity one.
+_OPTIONAL_COLUMNS = {"Acceleration": 0.0}
+
 
 def vehicle_list_to_df(vehicle_list: list[Vehicle]) -> pd.DataFrame:
     """
@@ -84,7 +89,8 @@ def df_to_vehicle_list(df: pd.DataFrame) -> list[Vehicle]:
         A DataFrame containing vehicle properties, as produced by
         ``vehicle_list_to_df``. Columns are matched by name, so their order does
         not matter and any extra column is ignored; the caller's frame is not
-        modified.
+        modified. "Acceleration" is optional and defaults to 0.0, so a frame
+        saved by pybtls 1.0.1 or earlier is still accepted.
 
     Returns
     -------
@@ -95,9 +101,14 @@ def df_to_vehicle_list(df: pd.DataFrame) -> list[Vehicle]:
     ------
     ValueError\n
         If any required column is absent. The message names the missing ones.
+        "Acceleration" is optional and is not reported.
     """
 
-    missing = [col for col in _COLUMN_NAMES if col not in df.columns]
+    missing = [
+        col
+        for col in _COLUMN_NAMES
+        if col not in df.columns and col not in _OPTIONAL_COLUMNS
+    ]
     if missing:
         raise ValueError(
             f"DataFrame is missing the required column(s): {', '.join(missing)}."
@@ -108,7 +119,11 @@ def df_to_vehicle_list(df: pd.DataFrame) -> list[Vehicle]:
     # differently, or which carries extra ones, would otherwise be read into the
     # wrong properties. Copy so that refreshing GVW and Length cannot write back
     # into the caller's frame.
-    df = df[_COLUMN_NAMES].copy()
+    df = df[[col for col in _COLUMN_NAMES if col in df.columns]].copy()
+    for col, default in _OPTIONAL_COLUMNS.items():
+        if col not in df.columns:
+            df[col] = default
+    df = df[_COLUMN_NAMES]
 
     # Recalculate the GVW and Length just in case if AxleWeights and AxleSpacings are modified. The NoAxles should not be modified; instead, a new vehicle should be created if user wants to change the number of axles.
     df["GVW"] = df["AxleWeights"].apply(lambda x: sum(x))

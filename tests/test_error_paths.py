@@ -246,6 +246,36 @@ def test_vehicle_df_round_trip_preserves_properties():
         assert back.get_acceleration() == pytest.approx(original.get_acceleration())
 
 
+def test_vehicle_df_accepts_frame_without_acceleration():
+    # "Acceleration" is new in 1.1.0, so a frame saved by an earlier release
+    # carries 18 columns; it must still load, as constant-velocity vehicles.
+    v = pb.Vehicle(no_axles=2)
+    v.set_axle_weights([80.0, 70.0])
+    v.set_axle_spacings([4.0, 0.0])
+    v.set_axle_widths([2.0, 2.0])
+    v.set_velocity(20.0)
+    v.set_acceleration(-0.2)
+
+    df = pb.utils.vehicle_list_to_df([v]).drop(columns=["Acceleration"])
+    back = pb.utils.df_to_vehicle_list(df)
+
+    assert len(back) == 1
+    assert back[0].get_acceleration() == pytest.approx(0.0)
+    assert back[0].get_velocity() == pytest.approx(20.0)
+    assert "Acceleration" not in df.columns  # the caller's frame is untouched
+
+
+def test_vehicle_df_still_names_a_genuinely_missing_column():
+    v = pb.Vehicle(no_axles=2)
+    v.set_axle_weights([80.0, 70.0])
+    v.set_axle_spacings([4.0, 0.0])
+    v.set_axle_widths([2.0, 2.0])
+
+    df = pb.utils.vehicle_list_to_df([v]).drop(columns=["Velocity"])
+    with pytest.raises(ValueError, match="Velocity"):
+        pb.utils.df_to_vehicle_list(df)
+
+
 # --- 8. _resource.warn_if_file_too_large ------------------------------------
 #
 # Note: the current implementation prints a warning to stderr (not

@@ -87,9 +87,12 @@ double CInfluenceLine::getAxleLoadEffect(CAxle& axle)
 		// each axle). If m_Acceleration is exactly zero (e.g. a constant-velocity stream
 		// without an IDM-driven deceleration), the scalar m_BrakingFactor (= a_design / g)
 		// configured via setBrakingFactor() is used as a code-prescribed-design fallback.
+		// Both branches are magnitudes: the travel-direction sign below is the
+		// only sign the braking force carries, so a negative m_BrakingFactor
+		// must not silently flip the whole load effect.
 		double a_over_g = (axle.m_Acceleration != 0.0)
 			? std::abs(axle.m_Acceleration) / GRAVITY_MS2_FOR_LE
-			: m_BrakingFactor;
+			: std::abs(m_BrakingFactor);
 		// A braking force acts along the direction of travel, so it carries the
 		// travel-direction sign; both directions are mapped onto the same bridge
 		// x-axis by CBridgeLane::setAxleVector, so without the sign two vehicles

@@ -573,7 +573,10 @@ def test_gpu_load_effect_modes_match_cpu(mode, bf):
     def factory():
         il = pb.InfluenceLine(IL_type="discrete")
         il.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 10.0, 0.0])
-        il.set_mode(mode, braking_factor=bf)
+        if mode == "braking":
+            il.set_mode(mode, braking_factor=bf)
+        else:
+            il.set_mode(mode)
         b = pb.Bridge(length=20.0, no_lane=4)
         b.add_load_effect(inf_line_surf=il, threshold=0.0)
         return b
@@ -635,7 +638,10 @@ def test_gpu_braking_uses_vehicle_acceleration():
     def bridge(mode):
         il = pb.InfluenceLine(IL_type="discrete")
         il.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 10.0, 0.0])
-        il.set_mode(mode, braking_factor=0.0)
+        if mode == "braking":
+            il.set_mode(mode, braking_factor=0.0)
+        else:
+            il.set_mode(mode)
         b = pb.Bridge(length=20.0, no_lane=1)
         b.add_load_effect(inf_line_surf=il, threshold=0.0)
         return b

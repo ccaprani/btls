@@ -24,10 +24,14 @@ Source = "https://github.com/ccaprani/btls"
 Tracker = "https://github.com/ccaprani/btls/issues"
 
 [project.optional-dependencies]
-# torch is a test dependency, not just a GPU extra: without it the whole
-# GPU test suite skips, so CI goes green while the GPU engine is untested.
-# A CPU-only wheel is enough for the parity cases (device="cpu").
-test = ["pytest>=6.0", "pycba>=0.5", "torch>=2.1"]
+# torch is deliberately NOT here, even though the GPU suite skips without it:
+# cibuildwheel installs `test-extras` into every wheel's test environment, and
+# no torch wheel exists for some of those legs (macOS x86_64 stops at torch
+# 2.2.2 / CPython 3.12, and torch ships no sdist), which would fail the whole
+# release build. CI installs torch explicitly on the one leg that then sets
+# PYBTLS_REQUIRE_TORCH=1, so the engine is still covered; see
+# .github/workflows/ci.yml.
+test = ["pytest>=6.0", "pycba>=0.5"]
 # Experimental GPU load-effect engine (engine="cuda"). Needs a CUDA build of
 # PyTorch; Triton (used for the fused kernel) ships with it. Install the wheel
 # matching your CUDA toolkit, e.g. `pip install pybtls[gpu]`.

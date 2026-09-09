@@ -192,12 +192,15 @@ public:
 	 * Used in braking mode whenever the per-axle CAxle::m_Acceleration is zero
 	 * (for example, when the upstream traffic generator does not write a
 	 * per-vehicle deceleration). The per-axle braking force becomes
-	 *   F_B = AxleWeight * brakingFactor
+	 *   F_B = AxleWeight * |brakingFactor|
 	 * with @p brakingFactor interpreted as a dimensionless deceleration ratio
-	 * (a / g) for a code-prescribed constant-deceleration design rule. The
-	 * travel-direction sign is applied to F_B as well (see @ref LoadEffectMode).
+	 * (a / g) for a code-prescribed constant-deceleration design rule. It is
+	 * taken as a magnitude, exactly as the per-axle |Acceleration| branch is;
+	 * the travel-direction sign is applied to F_B as well (see @ref
+	 * LoadEffectMode), and is the only sign the braking force carries.
 	 *
-	 * @param[in] brakingFactor Dimensionless braking ratio (deceleration / g).
+	 * @param[in] brakingFactor Dimensionless braking ratio (deceleration / g),
+	 *            used as a magnitude.
 	 */
 	void setBrakingFactor(double brakingFactor);
 

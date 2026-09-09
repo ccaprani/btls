@@ -31,15 +31,19 @@ from .flow import FlowStatsAccumulator
 SECONDS_PER_DAY = 86400.0
 
 
-def _il_to_spec(il):
+def _il_to_spec(il, mode):
     """Convert one InfluenceLine / InfluenceSurface to an il_spec dict. The
     per-axle force mode (vertical / centrifugal / braking) and braking_factor are
     carried along so the device applies the same per-axle force coefficient the
-    C++ engine does (cpp/src/InfluenceLine.cpp:getAxleLoadEffect)."""
-    mode = {
-        "mode": getattr(il, "_load_effect_mode", "vertical"),
-        "braking_factor": float(getattr(il, "_braking_factor", 0.0)),
-    }
+    C++ engine does (cpp/src/InfluenceLine.cpp:getAxleLoadEffect). ``mode`` is
+    the (load effect mode, braking factor) pair Bridge.add_load_effect
+    snapshotted for this lane, the same pair the CPU path hands to
+    InfluenceLine._get_IL."""
+    mode_spec = {"mode": mode[0], "braking_factor": float(mode[1])}
+    if isinstance(il, InfluenceLine) and il._data_dict.get("inf_surf") is not None:
+        # an InfluenceLine wrapping an influence surface: the CPU path unwraps it
+        # the same way (Bridge.add_load_effect), and the mode is the wrapper's
+        il = il._data_dict["inf_surf"]
     if isinstance(il, InfluenceSurface):
         M = np.asarray(il._data_dict["IS_matrix"], dtype=float)
         lp = il._data_dict["lane_position"]
@@ -50,21 +54,21 @@ def _il_to_spec(il):
             "ISords": M[1:, 1:],
             "lane_centre": np.array([(a + b) / 2.0 for a, b in lp]),
             "lane_width": np.array([abs(b - a) for a, b in lp]),
-            **mode,
+            **mode_spec,
         }
     if isinstance(il, InfluenceLine) and il._data_dict.get("position") is not None:
         return {
             "kind": "discrete",
             "pos": np.asarray(il._data_dict["position"], dtype=float),
             "ord": np.asarray(il._data_dict["ordinate"], dtype=float),
-            **mode,
+            **mode_spec,
         }
     if isinstance(il, InfluenceLine) and il._data_dict.get("id") is not None:
         return {
             "kind": "builtin",
             "id": int(il._data_dict["id"]),
             "length": float(il._data_dict["length"]),
-            **mode,
+            **mode_spec,
         }
     raise NotImplementedError(
         "engine='cuda' (experimental) supports discrete/built-in influence lines "
@@ -99,14 +103,15 @@ def _il_specs_from_bridge(bridge):
     for key in sorted(bridge._inf_file_dict, key=int):
         ils = bridge._inf_file_dict[key]["inf_line"]
         wts = [float(w) for w in bridge._inf_file_dict[key]["weight"]]
+        modes = bridge._inf_file_dict[key]["mode"]
         uniform = all(il is ils[0] for il in ils) and all(w == wts[0] for w in wts)
         if uniform:
-            spec = _il_to_spec(ils[0])
+            spec = _il_to_spec(ils[0], modes[0])
             _check_il_length(spec, bridge.length, 1, key)
             il_specs.append(spec)
             weights.append(wts[0])
         else:
-            lane_specs = [_il_to_spec(il) for il in ils]
+            lane_specs = [_il_to_spec(il, m) for il, m in zip(ils, modes)]
             if any(s["kind"] == "surface" for s in lane_specs):
                 raise NotImplementedError(
                     "engine='cuda' (experimental) does not support per-lane influence "
@@ -127,8 +132,8 @@ def _il_specs_from_bridge(bridge):
                     "kind": "per_lane",
                     "lane_specs": lane_specs,
                     "lane_weights": wts,
-                    "mode": getattr(ils[0], "_load_effect_mode", "vertical"),
-                    "braking_factor": float(getattr(ils[0], "_braking_factor", 0.0)),
+                    "mode": modes[0][0],
+                    "braking_factor": float(modes[0][1]),
                 }
             )
             weights.append(1.0)  # folded into lane_weights
@@ -818,8 +823,9 @@ def run(
     """Run the GPU load-effect engine and return an _OutputManager.
 
     ``device`` is the torch device name (``"cuda"`` covers NVIDIA and AMD-ROCm).
-``overwrite`` replaces an existing output directory for ``sim_tag`` instead of
-raising, matching ``Simulation(overwrite=...)``.
+    ``overwrite`` replaces an existing output directory for ``sim_tag`` instead
+    of raising, matching ``Simulation(overwrite=...)``.
+
     Honors ``output_config``: block-maxima summaries (BM_S), peaks-over-threshold
     (PT_S / PT_C / PT_V), fatigue rainflow (FR), flow statistics (SS_C / SS_S) and
     time history (TH). When ``output_config`` is None, defaults to BM_summary

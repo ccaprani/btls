@@ -70,6 +70,13 @@ class Bridge:
         Returns
         -------
         None.
+
+        Notes
+        -----
+        The load-effect mode of each influence line or surface (see
+        ``set_mode``) is read once, here. Calling ``set_mode`` afterwards
+        affects only load effects added after it, so the same influence line
+        can carry a different mode for each effect it is added to.
         """
 
         if isinstance(inf_line_surf, list):
@@ -139,6 +146,16 @@ class Bridge:
             [1.0] * self._no_lane if inf_weight is None else inf_weight
         )
 
+        # Snapshot the load-effect mode now, exactly as the weight and threshold
+        # are snapshotted. The influence line itself is stored by reference, so
+        # reading the mode later would let a set_mode() call after this one
+        # rewrite an effect that is already added, and would make it impossible
+        # for one influence line to carry two modes for two different effects.
+        self._inf_file_dict[str(self._no_load_effect)]["mode"] = [
+            (inf_line._load_effect_mode, inf_line._braking_factor)
+            for inf_line in lane_inf_lines
+        ]
+
         self._threshold_list.append(threshold)
 
     def _get_bridge(self, output_config: OutputConfig) -> _Bridge:
@@ -157,17 +174,14 @@ class Bridge:
             for i in range(self._no_lane):
                 temp_inf_file = self._inf_file_dict[load_case]["inf_line"][i]
                 temp_weight = self._inf_file_dict[load_case]["weight"][i]
+                temp_mode = self._inf_file_dict[load_case]["mode"][i]
 
                 if isinstance(temp_inf_file, InfluenceLine):
-                    temp_IL = temp_inf_file._get_IL()
+                    temp_IL = temp_inf_file._get_IL(temp_mode)
                 elif isinstance(temp_inf_file, InfluenceSurface):
                     temp_IL_file = InfluenceLine("surface")
                     temp_IL_file.set_IL(inf_surf=temp_inf_file)
-                    temp_IL_file.set_mode(
-                        temp_inf_file._load_effect_mode,
-                        temp_inf_file._braking_factor,
-                    )
-                    temp_IL = temp_IL_file._get_IL()
+                    temp_IL = temp_IL_file._get_IL(temp_mode)
 
                 temp_IL.setIndex(int(load_case))
                 if not isclose(

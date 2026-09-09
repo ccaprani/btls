@@ -578,7 +578,7 @@ def compute_from_axles(
                     * torch.where(
                         accel_b != 0.0,
                         accel_b.abs() / GRAVITY,
-                        torch.full_like(accel_b, bf),
+                        torch.full_like(accel_b, abs(bf)),
                     )
                     * sign_b
                 )
