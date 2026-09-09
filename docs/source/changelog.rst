@@ -142,27 +142,21 @@ The output text files, and the DataFrames the readers build from them,
 changed in this release. Existing parsing scripts and any stored results
 need to be reviewed against the list below.
 
-- ``read_E_CS`` and ``read_E_IS`` gained "Min" and "Max" columns. The old
-  labels were shifted by two positions and were simply wrong, so "Mean",
-  "Variance", "Skewness" and "Kurtosis" now return different data than
-  before.
 - "No. Trucks" is renamed "No. Vehicles" in ``read_TH``, ``read_AE``,
   ``read_FE``, ``read_POT_S`` and the BM and POT event readers, because
   the column has always counted every vehicle, cars included. Scripts
   using the old name raise ``KeyError``. ``read_E_CS`` and ``read_E_IS``
   keep a "No. Trucks" column, but there it means trucks only.
-- BM_S, PT_C and FlowData files gain rows for silent blocks and for the
-  tail after the last event.
 - The POT counter file (PT_C) has one row per block. Earlier versions wrote
   a row per event-buffer flush, so a block could appear several times: a
   two-day congested run wrote 29 rows where it now writes 2.
-- A lane whose flow profile has a zero-flow block used to fall silent for
-  the rest of the run. It now resumes at the next block that has flow, so
-  any diurnal profile with a zero-flow hour generates more traffic than
-  before.
-- The AllEvents file writes the event start time with fixed 3-decimal
-  formatting; the default 6-significant-digit output lost second-level
-  accuracy on long runs.
+- In the AllEvents file, the fixed 3-decimal formatting now applies to the
+  event start time only, which is what needs it: at long simulation lengths
+  the default formatting loses second-level accuracy. The effect values go
+  back to the default 6 significant digits, because the fixed format wrote
+  every small effect as "0.000". Effect values therefore change in their
+  last digit or two — 293.790 is written as 293.79, and 83.898 as 83.8981 —
+  while the number itself is unchanged.
 
 Earlier releases are described on the
 `GitHub releases page <https://github.com/ccaprani/btls/releases>`_.
