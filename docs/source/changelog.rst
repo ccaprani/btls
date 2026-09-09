@@ -124,9 +124,6 @@ Fixed
   engine truncated it while the GPU engine compared it as a float, so a
   fractional threshold meant different things on the two engines; it is now
   rejected outright.
-- The GPU engine accepts an ``InfluenceLine`` that wraps an influence
-  surface, as the C++ engine does. It used to reject one with a message
-  saying influence surfaces were supported.
 - ``torch`` is no longer part of the ``test`` extra. ``cibuildwheel``
   installs that extra into every wheel's test environment, and no torch
   wheel exists for some of them, which would fail the release build. CI
