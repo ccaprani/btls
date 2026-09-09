@@ -18,7 +18,6 @@ CAxle::CAxle(size_t i, double t, double v, double x, double w, double tw, int di
 	m_AxleWeight = w;
 	m_TrackWidth = tw;
 	m_Dirn = dirn;
-	m_Acceleration = 0.0;
 
 	m_Sign = m_Dirn == 1 ? 1 : -1;
 }
@@ -33,7 +32,6 @@ CAxle::CAxle(size_t i, size_t iAxle, double t, double x, const CVehicle_sp pVeh)
 	m_TrackWidth = pVeh->getAT(iAxle);
 
 	m_Speed = pVeh->getVelocity();
-	m_Acceleration = pVeh->getAcceleration();
 	m_Dirn = pVeh->getDirection();
 	m_TransPos = pVeh->getTrans();
 	m_Eccentricity = pVeh->getLaneEccentricity();
@@ -44,7 +42,7 @@ CAxle::CAxle(size_t i, size_t iAxle, double t, double x, const CVehicle_sp pVeh)
 
 CAxle::CAxle()
 {
-	m_Acceleration = 0.0;
+
 }
 
 CAxle::~CAxle()

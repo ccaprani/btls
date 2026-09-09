@@ -152,8 +152,7 @@ class Bridge:
         # rewrite an effect that is already added, and would make it impossible
         # for one influence line to carry two modes for two different effects.
         self._inf_file_dict[str(self._no_load_effect)]["mode"] = [
-            (inf_line._load_effect_mode, inf_line._braking_factor)
-            for inf_line in lane_inf_lines
+            inf_line._load_effect_mode for inf_line in lane_inf_lines
         ]
 
         self._threshold_list.append(threshold)

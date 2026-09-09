@@ -24,13 +24,13 @@ What does the book cover?
 .. image:: images/ColinBook.png
    :target: https://books.google.com.au/books?hl=zh-CN&lr=&id=j9tKEAAAQBAJ&oi=fnd&pg=PP1&dq=Bridge+traffic+loading:+From+research+to+practice&ots=Pl6tyRIMb-&sig=NYrA_Docg2jJYymS-Z-w5x6lbRk#v=onepage&q=Bridge%20traffic%20loading%3A%20From%20research%20to%20practice&f=false
 
-Load effect modes: centrifugal and braking forces
--------------------------------------------------
+Load effect modes: centrifugal force
+------------------------------------
 
 .. warning::
 
-   Experimental. These modes have not been checked against a reference
-   solution, and their sign conventions may change in a future release.
+   Experimental. This mode has not been checked against a reference
+   solution, and its sign convention may change in a future release.
 
 Besides the ordinary vertical reaction, an influence line can be switched
 to a horizontal-force mode via ``InfluenceLine.set_mode()``:
@@ -46,16 +46,6 @@ to a horizontal-force mode via ``InfluenceLine.set_mode()``:
   ``inf_weight``, so there the constants must go into the surface
   ordinates themselves. The force is unsigned: it points to the outside
   of the curve for both directions of travel.
-- **Braking**: :math:`F = \pm W_{axle} \, |a| / g`, with each vehicle's
-  longitudinal deceleration :math:`a` (``Vehicle.set_acceleration``, in
-  m/s², negative for braking). For constant-velocity traffic where no
-  per-vehicle deceleration is available, a dimensionless design fallback
-  :math:`a_{design}/g` can be supplied as ``braking_factor``; it is used
-  as a magnitude. Unlike the centrifugal force, the braking force carries
-  the sign of travel — positive for direction 1, negative for direction 2 —
-  because a longitudinal force acts along the direction of travel, so
-  vehicles braking in opposite directions partially cancel rather than
-  adding.
 
 The mode only changes the per-axle force entering the influence-line
 convolution; event detection, extreme-value statistics, and all output

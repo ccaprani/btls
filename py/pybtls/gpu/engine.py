@@ -195,7 +195,6 @@ def _reconstruct_axles(
         vlane,
         vtrans,
         vlen,
-        vacc,
         vcount,
         aw,
         asp,
@@ -207,12 +206,11 @@ def _reconstruct_axles(
 
     keep = vgvw > min_gvw
     if not keep.any():
-        return [np.array([]) for _ in range(4)] + [None, None, None, None, None]
+        return [np.array([]) for _ in range(4)] + [None, None, None, None]
 
     axle_keep = np.repeat(keep, vcount)  # axle-level mask (full vcount)
     counts = vcount[keep]  # kept vehicles' axle counts
     a_speed = np.repeat(vspeed[keep], counts)
-    a_accel = np.repeat(vacc[keep], counts)  # per-axle longitudinal acceleration
     a_sign = np.where(np.repeat(vdir[keep] == 1, counts), 1.0, -1.0)
     a_time = np.repeat(vtime[keep] - time_offset, counts)
     a_dir2 = np.repeat(vdir[keep] == 2, counts)
@@ -242,7 +240,7 @@ def _reconstruct_axles(
         "kept_idx": np.nonzero(keep)[0],
     }
 
-    out = [datum, a_sign, a_speed, weight, a_accel]
+    out = [datum, a_sign, a_speed, weight]
     if need_transverse:
         # total transverse offset from the lane centre-line combines the recorded
         # trans and the generated lane eccentricity, matching the C++ engine
@@ -271,7 +269,7 @@ def prepare_axles(
     times (window-local origin for streamed runs)."""
     # surfaces need (lane, trans, track); per-lane 1D effects need the lane
     need_lane = any(s["kind"] in ("surface", "per_lane") for s in il_specs)
-    datum, sign, speed, weight, accel, lane, trans, track, veh = _reconstruct_axles(
+    datum, sign, speed, weight, lane, trans, track, veh = _reconstruct_axles(
         extracted, bridge_length, min_gvw, need_lane, time_offset
     )
     if len(datum) == 0:
@@ -282,7 +280,6 @@ def prepare_axles(
         "sign": sign,
         "speed": speed,
         "weight": weight,
-        "accel": accel,
     }
     if lane is not None:
         axles.update(lane=lane, trans=trans, track=track)
@@ -477,16 +474,11 @@ def compute_from_axles(
         else:
             prepared.append(("torch_builtin", spec))
 
-    # per-effect force mode: vertical (default), centrifugal (x v^2/g), braking
-    # (x |a|/g, or braking_factor when a==0, signed by the travel direction).
-    # The factor scales each axle's weight before the influence-ordinate
-    # multiply (cpp/src/InfluenceLine.cpp).
-    modes = [
-        (s.get("mode", "vertical"), float(s.get("braking_factor", 0.0)))
-        for s in il_specs
-    ]
-    any_mode = any(mo != "vertical" for mo, _ in modes)
-    accel = torch.as_tensor(axles["accel"], dtype=dt, device=dev) if any_mode else None
+    # per-effect force mode: vertical (default) or centrifugal (x v^2/g). The
+    # factor scales each axle's weight before the influence-ordinate multiply
+    # (cpp/src/InfluenceLine.cpp).
+    modes = [s.get("mode", "vertical") for s in il_specs]
+    any_mode = any(mo != "vertical" for mo in modes)
 
     block = int(round(block_size_days * SECONDS_PER_DAY / time_step))
     n_blocks = (n_total + block - 1) // block
@@ -555,33 +547,15 @@ def compute_from_axles(
         si, pp, ww = si[m].contiguous(), pp[m].contiguous(), ww[m].contiguous()
         if need_transverse:
             lane_b, trans_b, track_b = lane_b[m], trans_b[m], track_b[m]
-        if any_mode:  # per-pair speed / acceleration / direction for the mode
+        if any_mode:  # per-pair speed for the mode
             speed_b = torch.repeat_interleave(speed, cnt)[m].contiguous()
-            accel_b = torch.repeat_interleave(accel, cnt)[m].contiguous()
-            sign_b = torch.repeat_interleave(sign, cnt)[m].contiguous()
         E = torch.zeros((n_eff, z - a), dtype=dt, device=dev)  # effect-major rows
         for e, (method, data) in enumerate(prepared):
-            mode, bf = modes[e]
+            mode = modes[e]
             if mode == "vertical":
                 ww_e = ww
-            elif mode == "centrifugal":
+            else:  # centrifugal
                 ww_e = ww * (speed_b * speed_b / GRAVITY)
-            else:  # braking: |a|/g per axle, falling back to braking_factor if a==0
-                # signed by the travel direction (+ for direction 1, - for
-                # direction 2): a longitudinal force acts along the direction of
-                # travel, so opposing-direction traffic partially cancels
-                # (cpp/src/InfluenceLine.cpp::getAxleLoadEffect). Centrifugal
-                # stays unsigned - it points to the outside of the curve for
-                # both directions.
-                ww_e = (
-                    ww
-                    * torch.where(
-                        accel_b != 0.0,
-                        accel_b.abs() / GRAVITY,
-                        torch.full_like(accel_b, abs(bf)),
-                    )
-                    * sign_b
-                )
             if method == "triton1d":
                 grid, dx = data
                 scatter_interp_1d(si, pp, ww_e, grid, dx, float(weights[e]), E[e])

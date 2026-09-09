@@ -13,7 +13,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CVehicle::CVehicle() : m_Class(Classification(0, "default")), m_Acceleration(0.0)
+CVehicle::CVehicle() : m_Class(Classification(0, "default"))
 {
 	setConstants();
 }
@@ -79,7 +79,7 @@ py::tuple CVehicle::getPropInTuple()
 		axleWidths.append(this->getAT(i));  // in meters
 	}
 
-	py::tuple propTuple = py::make_tuple(m_Head, m_Day, m_Month, m_Year, m_Hour, m_Min, m_Sec, m_NoAxles, m_NoAxleGroups, m_GVW, m_Velocity, m_Length, m_Lane, m_Dir, m_Trns, axleWeights, axleSpacings, axleWidths, m_Acceleration);
+	py::tuple propTuple = py::make_tuple(m_Head, m_Day, m_Month, m_Year, m_Hour, m_Min, m_Sec, m_NoAxles, m_NoAxleGroups, m_GVW, m_Velocity, m_Length, m_Lane, m_Dir, m_Trns, axleWeights, axleSpacings, axleWidths);
 
 	return propTuple;
 }
@@ -107,8 +107,6 @@ void CVehicle::setPropByTuple(py::tuple propTuple)
 	std::vector<double> axleWeights = propTuple[15].cast<std::vector<double>>();
 	std::vector<double> axleSpacings = propTuple[16].cast<std::vector<double>>();
 	std::vector<double> axleWidths = propTuple[17].cast<std::vector<double>>();
-	// acceleration appended in v1.1; tolerate older 18-element tuples
-	m_Acceleration = propTuple.size() > 18 ? propTuple[18].cast<double>() : 0.0;
 
 	setNoAxles(m_NoAxles);
 	for (size_t i = 0; i < m_NoAxles; i++) 
@@ -691,11 +689,6 @@ void CVehicle::setVelocity(double vel)
 	m_Velocity = vel;
 }
 
-void CVehicle::setAcceleration(double acc)
-{
-	m_Acceleration = acc;
-}
-
 void CVehicle::setLength(double length)
 {
 	m_Length = length;
@@ -871,11 +864,6 @@ double CVehicle::getTimeOnBridge()
 double CVehicle::getVelocity()
 {
 	return m_Velocity;
-}
-
-double CVehicle::getAcceleration()
-{
-	return m_Acceleration;
 }
 
 double CVehicle::getLength()

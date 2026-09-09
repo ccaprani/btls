@@ -221,7 +221,7 @@ class Simulation:
               peak values/times, statistics and fatigue cycle amplitudes carry
               uniform-grid sampling noise. Scope: recorded or generated traffic;
               discrete, built-in or surface influence lines, including a distinct
-              IL/weight per lane; vertical / centrifugal / braking modes. It does
+              IL/weight per lane; vertical / centrifugal modes. It does
               NOT produce the per-event / per-vehicle detail outputs
               (write_each_event, the vehicle file, BM-vehicle / mixed,
               write_fatigue_event); those are skipped with a

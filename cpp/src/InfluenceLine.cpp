@@ -1,25 +1,22 @@
 #include "InfluenceLine.h"
 #include <algorithm>
 
-#include <cmath>
 #include <stdexcept>
 
 
-// Acceleration due to gravity used in centrifugal- and braking-mode
-// force conversion. CAxle::m_AxleWeight is in kN (= mass[kg] * g[m/s^2]
+// Acceleration due to gravity used in centrifugal-mode force
+// conversion. CAxle::m_AxleWeight is in kN (= mass[kg] * g[m/s^2]
 // / 1000); dividing by g recovers an axle "mass coefficient" so that
 // the per-axle centrifugal force AxleWeight * v^2 / g (kN.m, before
-// IL convolution that bakes in 1/R) and braking force
-// AxleWeight * |a| / g (kN) come out in the right units.
+// IL convolution that bakes in 1/R) comes out in the right units.
 static constexpr double GRAVITY_MS2_FOR_LE = 9.80665;
 
 CInfluenceLine::CInfluenceLine(void)
 	: m_Type(0), m_Weight(1.0)
 	, m_LoadEffectMode(0)
-	, m_BrakingFactor(0.0)
 {
 	// Type: 1 - expression, 2 - discrete, 3 - Surface
-	// LoadEffectMode: 0 - vertical (default), 1 - centrifugal, 2 - braking
+	// LoadEffectMode: 0 - vertical (default), 1 - centrifugal
 
 	m_vLEfptr.push_back(&CInfluenceLine::LoadEffect1);
 	m_vLEfptr.push_back(&CInfluenceLine::LoadEffect2);
@@ -57,7 +54,7 @@ double CInfluenceLine::getAxleLoadEffect(CAxle& axle)
 
 	// Per-axle force coefficient: depends on the load-effect mode.
 	// Bridge-geometry constants (radius R, superelevation factor k_e for
-	// centrifugal; lever-arm or design constants for braking) are baked
+	// centrifugal) are baked
 	// into the influence-line ordinates by the caller at IL construction
 	// time. For type-1 and type-2 influence lines they may instead be
 	// applied through setWeight(); the weight is deliberately NOT applied
@@ -68,39 +65,11 @@ double CInfluenceLine::getAxleLoadEffect(CAxle& axle)
 	//   Centrifugal (1): F_axle = AxleWeight * Speed^2 / g                (per-vehicle v^2).
 	//                    Caller bakes k_e / R into the IL ordinates so that
 	//                    the convolved bearing reaction is in kN.
-	//   Braking     (2): F_axle = AxleWeight * |Acceleration| / g         (per-vehicle deceleration,
-	//                    signed by the travel direction: + for direction 1, - for direction 2);
-	//                    falls back to AxleWeight * |brakingFactor| if Acceleration is zero, where
-	//                    brakingFactor is dimensionless (deceleration / g) configured via
-	//                    @ref setBrakingFactor for code-prescribed constant-deceleration cases.
 	double force_coeff = axle.m_AxleWeight;
 	if (m_LoadEffectMode == LE_Centrifugal)
 	{
 		double v = axle.m_Speed;
 		force_coeff = axle.m_AxleWeight * (v * v) / GRAVITY_MS2_FOR_LE;
-	}
-	else if (m_LoadEffectMode == LE_Braking)
-	{
-		// Braking force on each axle is mass * |deceleration|.
-		// Mass = AxleWeight / g; |a| from the per-axle m_Acceleration (set by the upstream
-		// traffic generator, e.g. an IDM-active solver writing per-time deceleration into
-		// each axle). If m_Acceleration is exactly zero (e.g. a constant-velocity stream
-		// without an IDM-driven deceleration), the scalar m_BrakingFactor (= a_design / g)
-		// configured via setBrakingFactor() is used as a code-prescribed-design fallback.
-		// Both branches are magnitudes: the travel-direction sign below is the
-		// only sign the braking force carries, so a negative m_BrakingFactor
-		// must not silently flip the whole load effect.
-		double a_over_g = (axle.m_Acceleration != 0.0)
-			? std::abs(axle.m_Acceleration) / GRAVITY_MS2_FOR_LE
-			: std::abs(m_BrakingFactor);
-		// A braking force acts along the direction of travel, so it carries the
-		// travel-direction sign; both directions are mapped onto the same bridge
-		// x-axis by CBridgeLane::setAxleVector, so without the sign two vehicles
-		// braking in opposite directions would add instead of partially cancelling.
-		// Deliberately NOT applied to centrifugal mode above: the centrifugal force
-		// points to the outside of the curve, which is the same physical direction
-		// for both travel directions, so it must stay unsigned.
-		force_coeff = axle.m_AxleWeight * a_over_g * (axle.m_Dirn == 1 ? 1.0 : -1.0);
 	}
 
 	if(m_Type == 3)	// Influence surface
@@ -181,15 +150,10 @@ void CInfluenceLine::setWeight(double weight)
 
 void CInfluenceLine::setLoadEffectMode(size_t mode)
 {
-	// 0 = vertical (default), 1 = centrifugal, 2 = braking.
-	if(mode > LE_Braking)
-		throw std::invalid_argument("Load effect mode must be 0 (vertical), 1 (centrifugal) or 2 (braking).");
+	// 0 = vertical (default), 1 = centrifugal.
+	if(mode > LE_Centrifugal)
+		throw std::invalid_argument("Load effect mode must be 0 (vertical) or 1 (centrifugal).");
 	m_LoadEffectMode = mode;
-}
-
-void CInfluenceLine::setBrakingFactor(double brakingFactor)
-{
-	m_BrakingFactor = brakingFactor;
 }
 
 double CInfluenceLine::getDiscreteOrdinate(double x)

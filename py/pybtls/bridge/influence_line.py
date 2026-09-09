@@ -6,7 +6,6 @@ from ..lib.BTLS import _InfluenceLine, _InfluenceSurface
 from ..utils.IL_compress import compress_discrete_IL
 import numpy as np
 import warnings
-from math import isfinite
 from typing import Union, Literal
 from .._kwargs import reject_unknown_kwargs
 
@@ -17,28 +16,23 @@ class _LoadEffectModeMixin:
     """Shared per-axle force-mode selection for influence lines and surfaces."""
 
     _load_effect_mode = "vertical"
-    _braking_factor = 0.0
 
-    def set_mode(
-        self,
-        mode: Literal["vertical", "centrifugal", "braking"],
-        braking_factor: float = None,
-    ) -> None:
+    def set_mode(self, mode: Literal["vertical", "centrifugal"]) -> None:
         """
         Select the per-axle force formula used with this influence line/surface.
 
         .. warning::
 
-            Experimental. The centrifugal and braking modes have not been
-            checked against a reference solution, and their sign conventions
-            may change in a future release.
+            Experimental. The centrifugal mode has not been checked against a
+            reference solution, and its sign convention may change in a future
+            release.
 
         The mode is read when the influence line or surface is added to a
         bridge, by ``Bridge.add_load_effect``, so call this before adding it.
 
         Parameters
         ----------
-        mode : Literal["vertical","centrifugal","braking"]
+        mode : Literal["vertical","centrifugal"]
 
             "vertical" (default): F_axle = AxleWeight - the ordinary
             vertical reaction.
@@ -50,66 +44,16 @@ class _LoadEffectModeMixin:
             unsigned: it points to the outside of the curve for both travel
             directions.
 
-            "braking": F_axle = AxleWeight * ``|a|`` / g, using each vehicle's
-            longitudinal acceleration (``Vehicle.set_acceleration``); when
-            a vehicle's acceleration is zero, ``braking_factor`` is used
-            instead. The force carries the sign of travel (positive for
-            direction 1, negative for direction 2), so vehicles braking in
-            opposite directions partially cancel.
-
-        braking_factor : float
-
-            Dimensionless fallback deceleration ratio (a_design / g) for
-            braking mode with constant-velocity traffic, given as a
-            magnitude: the travel-direction sign above is applied by the
-            engine. It is required for braking mode: generated traffic and
-            traffic read from a file carry no per-vehicle acceleration, so a
-            braking_factor of 0.0 makes the whole load effect zero. Pass 0.0
-            explicitly only when every vehicle carries a non-zero
-            acceleration.
-
         Raises
         ------
         ValueError\n
-            If the mode is unknown, if braking mode is selected without a
-            braking_factor, or if braking_factor is not a finite,
-            non-negative number.
+            If the mode is unknown.
         """
 
-        if mode not in ("vertical", "centrifugal", "braking"):
-            raise ValueError("mode must be 'vertical', 'centrifugal' or 'braking'.")
-
-        if mode == "braking" and braking_factor is None:
-            raise ValueError(
-                "braking mode requires braking_factor (= a_design / g). "
-                "Pass 0.0 explicitly only if every vehicle carries a non-zero "
-                "acceleration; generated traffic and traffic read from a file "
-                "do not, which would make the load effect zero everywhere."
-            )
-
-        if braking_factor is not None:
-            if isinstance(braking_factor, bool) or not isinstance(
-                braking_factor, (int, float)
-            ):
-                raise ValueError(
-                    "braking_factor must be a number (a_design / g), got "
-                    f"{braking_factor!r}."
-                )
-            if not isfinite(braking_factor) or braking_factor < 0.0:
-                raise ValueError(
-                    "braking_factor is a magnitude (a_design / g): it must be "
-                    f"finite and non-negative, got {braking_factor!r}. The "
-                    "travel-direction sign is applied by the engine."
-                )
-            if mode != "braking":
-                warnings.warn(
-                    f"braking_factor is only used by 'braking' mode; the value "
-                    f"given with '{mode}' mode has no effect.",
-                    stacklevel=2,
-                )
+        if mode not in ("vertical", "centrifugal"):
+            raise ValueError("mode must be 'vertical' or 'centrifugal'.")
 
         self._load_effect_mode = mode
-        self._braking_factor = 0.0 if braking_factor is None else float(braking_factor)
 
 
 class InfluenceLine(_LoadEffectModeMixin):
@@ -260,12 +204,12 @@ class InfluenceLine(_LoadEffectModeMixin):
 
         self._data_dict["inf_surf"] = inf_surf
 
-    def _get_IL(self, mode: tuple[str, float]) -> _InfluenceLine:
+    def _get_IL(self, mode: str) -> _InfluenceLine:
         """
         Get the created C++ CInfluenceLine instance.
 
-        ``mode`` is the ``(load effect mode, braking factor)`` pair snapshotted
-        by ``Bridge.add_load_effect``, not this object's current one: the same
+        ``mode`` is the load effect mode snapshotted by
+        ``Bridge.add_load_effect``, not this object's current one: the same
         influence line may be added to several load effects under different
         modes.
         """
@@ -279,11 +223,9 @@ class InfluenceLine(_LoadEffectModeMixin):
         elif self._IL_type == "surface":
             inf_line.setIL(self._data_dict["inf_surf"]._get_IS())
 
-        mode_name, braking_factor = mode
-        mode_id = {"vertical": 0, "centrifugal": 1, "braking": 2}[mode_name]
+        mode_id = {"vertical": 0, "centrifugal": 1}[mode]
         if mode_id:
             inf_line.setLoadEffectMode(mode_id)
-            inf_line.setBrakingFactor(braking_factor)
 
         return inf_line
 

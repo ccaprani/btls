@@ -73,7 +73,6 @@ def test_fix1_pot_clamp_no_phantom_events():
         "sign": np.array([1.0, 1.0]),
         "speed": np.array([v, v]),
         "weight": np.array([980.0, 980.0]),
-        "accel": np.array([0.0, 0.0]),
     }
     t_on = np.array([5.03, 5.09])
     t_off = t_on + 3.0
@@ -109,7 +108,6 @@ def test_fix1_symmetric_trailing_leak():
         "sign": np.array([1.0]),
         "speed": np.array([v]),
         "weight": np.array([980.0]),
-        "accel": np.array([0.0]),
     }
     t_on = np.array([2.03])
     t_off = t_on + 3.0  # 5.03 -> last boundary 5.03, sub-ts final region

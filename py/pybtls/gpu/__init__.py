@@ -6,7 +6,7 @@ compute-dominated regime (long span / many influence lines / fine time step).
 It reconstructs axle trajectories from the traffic and computes per-effect
 block maxima (BM), peaks-over-threshold (POT), fatigue rainflow (FR), flow
 statistics (SS) and time history (TH) via per-vehicle superposition on the GPU,
-under vertical / centrifugal / braking load-effect modes. POT and SS rebuild the
+under vertical / centrifugal load-effect modes. POT and SS rebuild the
 C++ event partition from each vehicle's on-bridge window (event geometry tracks
 the CPU to ~1 %, the residual being composition changes that fall inside one
 time step), and FR feeds device-extracted turning points to the same C++

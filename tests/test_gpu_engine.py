@@ -563,20 +563,15 @@ def test_gpu_pot_vehicle_output_structure():
     remove_folder(ROOT)
 
 
-@pytest.mark.parametrize(
-    "mode,bf", [("vertical", 0.0), ("centrifugal", 0.0), ("braking", 0.3)]
-)
-def test_gpu_load_effect_modes_match_cpu(mode, bf):
+@pytest.mark.parametrize("mode", ["vertical", "centrifugal"])
+def test_gpu_load_effect_modes_match_cpu(mode):
     # The GPU applies the same per-axle force coefficient as the C++ engine:
-    # vertical F=W, centrifugal F=W*v^2/g, braking F=W*|a|/g (or W*braking_factor
-    # when a==0). Validate each mode against engine="cpu" on the same traffic.
+    # vertical F=W, centrifugal F=W*v^2/g. Validate each mode against
+    # engine="cpu" on the same traffic.
     def factory():
         il = pb.InfluenceLine(IL_type="discrete")
         il.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 10.0, 0.0])
-        if mode == "braking":
-            il.set_mode(mode, braking_factor=bf)
-        else:
-            il.set_mode(mode)
+        il.set_mode(mode)
         b = pb.Bridge(length=20.0, no_lane=4)
         b.add_load_effect(inf_line_surf=il, threshold=0.0)
         return b
@@ -613,60 +608,6 @@ def test_gpu_load_effect_modes_match_cpu(mode, bf):
     rel = abs(cpu_peak - gpu_peak) / max(abs(cpu_peak), 1e-9)
     assert rel < 0.015, f"{mode}: cpu={cpu_peak} gpu={gpu_peak} rel={rel}"
     remove_folder(ROOT)
-
-
-def test_gpu_braking_uses_vehicle_acceleration():
-    # When vehicles carry a non-zero acceleration, braking mode uses |a|/g per
-    # vehicle (not the fallback). Build two identical trucks with a=-2.0 m/s^2 and
-    # check the GPU braking peak == vertical peak * |a|/g.
-    def trucks():
-        vs = []
-        for t in (0.0, 30.0):
-            v = pb.Vehicle(2)
-            v.set_time(t)
-            v.set_velocity(20.0)
-            v.set_direction(1)
-            v.set_axle_weights([100.0, 100.0])
-            v.set_axle_spacings([4.0])
-            v.set_axle_widths([2.0, 2.0])
-            v.set_trans(1.8)
-            v.set_local_lane(1)
-            v.set_acceleration(-2.0)
-            vs.append(v)
-        return vs
-
-    def bridge(mode):
-        il = pb.InfluenceLine(IL_type="discrete")
-        il.set_IL(position=[0.0, 10.0, 20.0], ordinate=[0.0, 10.0, 0.0])
-        if mode == "braking":
-            il.set_mode(mode, braking_factor=0.0)
-        else:
-            il.set_mode(mode)
-        b = pb.Bridge(length=20.0, no_lane=1)
-        b.add_load_effect(inf_line_surf=il, threshold=0.0)
-        return b
-
-    def peak(mode):
-        remove_folder(ROOT)
-        ld = pb.TrafficLoader(no_lane=1)
-        ld.add_traffic(traffic=trucks())
-        sim = pb.Simulation(output_dir=ROOT)
-        sim.add_sim(
-            bridge=bridge(mode),
-            traffic=ld,
-            no_day=1,
-            time_step=TIME_STEP,
-            min_gvw=0,
-            tag="g",
-            engine="cuda",
-        )
-        sim.run(no_core=1)
-        gbm = next(iter(sim.get_output()["g"].read_data("BM_summary").values()))
-        return gbm[[c for c in gbm.columns if c != "Block Index"]].abs().max().max()
-
-    pv, pb_ = peak("vertical"), peak("braking")
-    remove_folder(ROOT)
-    assert pb_ / pv == pytest.approx(2.0 / 9.80665, rel=0.02), f"v={pv} b={pb_}"
 
 
 def test_gpu_fatigue_rainflow_matches_cpu():

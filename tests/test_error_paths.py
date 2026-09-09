@@ -217,7 +217,6 @@ def test_vehicle_df_round_trip_preserves_properties():
     v1.set_local_lane(1)
     v1.set_time(100.0)
     v1.set_trans(0.5)
-    v1.set_acceleration(-0.2)
 
     v2 = pb.Vehicle(no_axles=3)
     v2.set_axle_weights([50.0, 60.0, 55.0])
@@ -228,7 +227,6 @@ def test_vehicle_df_round_trip_preserves_properties():
     v2.set_local_lane(2)
     v2.set_time(200.0)
     v2.set_trans(-0.3)
-    v2.set_acceleration(0.1)
 
     df = pb.utils.vehicle_list_to_df([v1, v2])
     round_tripped = pb.utils.df_to_vehicle_list(df)
@@ -243,37 +241,6 @@ def test_vehicle_df_round_trip_preserves_properties():
         assert back.get_local_lane() == original.get_local_lane()
         assert back.get_time() == pytest.approx(original.get_time())
         assert back.get_trans() == pytest.approx(original.get_trans())
-        assert back.get_acceleration() == pytest.approx(original.get_acceleration())
-
-
-def test_vehicle_df_accepts_frame_without_acceleration():
-    # "Acceleration" is new in 1.1.0, so a frame saved by an earlier release
-    # carries 18 columns; it must still load, as constant-velocity vehicles.
-    v = pb.Vehicle(no_axles=2)
-    v.set_axle_weights([80.0, 70.0])
-    v.set_axle_spacings([4.0, 0.0])
-    v.set_axle_widths([2.0, 2.0])
-    v.set_velocity(20.0)
-    v.set_acceleration(-0.2)
-
-    df = pb.utils.vehicle_list_to_df([v]).drop(columns=["Acceleration"])
-    back = pb.utils.df_to_vehicle_list(df)
-
-    assert len(back) == 1
-    assert back[0].get_acceleration() == pytest.approx(0.0)
-    assert back[0].get_velocity() == pytest.approx(20.0)
-    assert "Acceleration" not in df.columns  # the caller's frame is untouched
-
-
-def test_vehicle_df_still_names_a_genuinely_missing_column():
-    v = pb.Vehicle(no_axles=2)
-    v.set_axle_weights([80.0, 70.0])
-    v.set_axle_spacings([4.0, 0.0])
-    v.set_axle_widths([2.0, 2.0])
-
-    df = pb.utils.vehicle_list_to_df([v]).drop(columns=["Velocity"])
-    with pytest.raises(ValueError, match="Velocity"):
-        pb.utils.df_to_vehicle_list(df)
 
 
 # --- 8. _resource.warn_if_file_too_large ------------------------------------

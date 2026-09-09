@@ -33,13 +33,12 @@ SECONDS_PER_DAY = 86400.0
 
 def _il_to_spec(il, mode):
     """Convert one InfluenceLine / InfluenceSurface to an il_spec dict. The
-    per-axle force mode (vertical / centrifugal / braking) and braking_factor are
-    carried along so the device applies the same per-axle force coefficient the
-    C++ engine does (cpp/src/InfluenceLine.cpp:getAxleLoadEffect). ``mode`` is
-    the (load effect mode, braking factor) pair Bridge.add_load_effect
-    snapshotted for this lane, the same pair the CPU path hands to
-    InfluenceLine._get_IL."""
-    mode_spec = {"mode": mode[0], "braking_factor": float(mode[1])}
+    per-axle force mode (vertical / centrifugal) is carried along so the device
+    applies the same per-axle force coefficient the C++ engine does
+    (cpp/src/InfluenceLine.cpp:getAxleLoadEffect). ``mode`` is the load effect
+    mode Bridge.add_load_effect snapshotted for this lane, the same one the CPU
+    path hands to InfluenceLine._get_IL."""
+    mode_spec = {"mode": mode}
     if isinstance(il, InfluenceLine) and il._data_dict.get("inf_surf") is not None:
         # an InfluenceLine wrapping an influence surface: the CPU path unwraps it
         # the same way (Bridge.add_load_effect), and the mode is the wrapper's
@@ -119,21 +118,20 @@ def _il_specs_from_bridge(bridge):
                 )
             for i, s in enumerate(lane_specs):
                 _check_il_length(s, bridge.length, i + 1, key)
-            if len({(s["mode"], s["braking_factor"]) for s in lane_specs}) > 1:
+            if len({s["mode"] for s in lane_specs}) > 1:
                 # the device applies one force coefficient per load effect, so a
                 # mixed-mode per-lane effect would silently use lane 1's mode
                 raise NotImplementedError(
                     "engine='cuda' (experimental) does not support per-lane "
                     "load-effect modes: every lane's influence line for one load "
-                    "effect must use the same mode and braking_factor."
+                    "effect must use the same mode."
                 )
             il_specs.append(
                 {
                     "kind": "per_lane",
                     "lane_specs": lane_specs,
                     "lane_weights": wts,
-                    "mode": modes[0][0],
-                    "braking_factor": float(modes[0][1]),
+                    "mode": modes[0],
                 }
             )
             weights.append(1.0)  # folded into lane_weights
@@ -671,13 +669,13 @@ def _array_windows(
         tail["extracted"] = libbtls._extract_axle_data([v], no_lane, classifier)
 
 
-_PER_AXLE_IDX = (9, 10, 11)  # aw, asp, at in the extraction tuple
+_PER_AXLE_IDX = (8, 9, 10)  # aw, asp, at in the extraction tuple
 
 
 def _subset_extracted(extracted, vmask):
     """Row-subset an extraction tuple by a per-vehicle mask (per-axle arrays
     are masked via each vehicle's axle count)."""
-    amask = np.repeat(vmask, extracted[8])
+    amask = np.repeat(vmask, extracted[7])
     return tuple(
         arr[amask] if i in _PER_AXLE_IDX else arr[vmask]
         for i, arr in enumerate(extracted)
@@ -837,7 +835,7 @@ def run(
     Recorded traffic is bounded by its file (the loader holds it).
 
     Scope: recorded or generated traffic; discrete / built-in / surface influence
-    lines; vertical / centrifugal / braking load-effect modes. The event
+    lines; vertical / centrifugal load-effect modes. The event
     partition is rebuilt from the per-vehicle on/off times, so event and
     vehicle/truck counts match the C++ engine to ~1% (uniform-grid sampling
     merges composition changes that fall within one time step); peak values,
@@ -1009,8 +1007,8 @@ def run(
             flow.update(
                 extracted[0][n_carried:],
                 extracted[4][n_carried:],
+                extracted[11][n_carried:],
                 extracted[12][n_carried:],
-                extracted[13][n_carried:],
             )
         has_next = np.isfinite(next_arrival)
         win_secs = win_days * SECONDS_PER_DAY
@@ -1155,7 +1153,7 @@ def run(
             # (CVehicleBuffer::updateFlowData's silent-hour fill)
             ex2 = end_tail["extracted"]
             flow.extend_hours(int(ex2[0][0] // 3600.0) + 1)
-            flow.update(ex2[0], ex2[4], ex2[12], ex2[13])
+            flow.update(ex2[0], ex2[4], ex2[11], ex2[12])
         flow.write(sim_dir)
     if th_file is not None:
         th_file.close()

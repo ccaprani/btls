@@ -32,23 +32,13 @@ Added
   ``GEVFit`` and ``GPDFit`` result objects, for extreme-value fitting.
 - ``InfluenceLine.set_mode`` and ``InfluenceSurface.set_mode``
   (**experimental**): a load effect can be evaluated in ``"vertical"`` mode
-  (the default), ``"centrifugal"`` or ``"braking"``. Braking scales the
-  vertical effect by each vehicle's own deceleration where it has one and by
-  the given ``braking_factor`` otherwise, and carries the sign of travel, so
-  vehicles braking in opposite directions partially cancel. Centrifugal
-  scales by ``v^2/g`` and deliberately does not carry that sign, because the
-  force points to the outside of the curve for both directions of travel.
-  The mode is read once, by ``Bridge.add_load_effect``, so one influence
-  line can carry a different mode for each effect it is added to.
-  These modes have not been checked against a reference solution and their
-  sign conventions may change in a future release; see :doc:`theory`.
-- ``Vehicle.set_acceleration`` / ``Vehicle.get_acceleration``, the vehicle's
-  longitudinal acceleration in m/s² (negative for braking, zero by default),
-  used by the braking mode above. It travels with the vehicle through
-  pickling and through ``utils.vehicle_list_to_df``, which grows an
-  "Acceleration" column. ``utils.df_to_vehicle_list`` treats that column as
-  optional, so a DataFrame saved by 1.0.1 still loads, as constant-velocity
-  vehicles.
+  (the default) or ``"centrifugal"``, which scales the vertical effect by
+  each vehicle's own ``v^2/g``. The force is unsigned, because it points to
+  the outside of the curve for both directions of travel. The mode is read
+  once, by ``Bridge.add_load_effect``, so one influence line can carry a
+  different mode for each effect it is added to. This mode has not been
+  checked against a reference solution and its sign convention may change
+  in a future release; see :doc:`theory`.
 
 Fixed
 ^^^^^
@@ -130,16 +120,6 @@ Fixed
   whether the vehicle had been serialised first. No output changes in
   practice: the call order was safe.
 
-- The load-effect mode is captured when the influence line is added to the
-  bridge, not when the bridge is built. A ``set_mode`` call after
-  ``add_load_effect`` used to reach back into the effect already added, and
-  one influence line reused for two effects could only carry one mode. Both
-  engines read the same snapshot.
-- ``braking_factor`` is used as a magnitude on both engines, so a negative
-  value can no longer flip the sign of the whole load effect; the
-  travel-direction sign is the only sign the braking force carries.
-  ``set_mode`` now rejects a non-numeric, non-finite or negative
-  ``braking_factor``, and warns when one is given for a mode that ignores it.
 - ``min_gvw`` is normalised to a whole number of kN by ``add_sim``. The C++
   engine truncated it while the GPU engine compared it as a float, so a
   fractional threshold meant different things on the two engines; it is now

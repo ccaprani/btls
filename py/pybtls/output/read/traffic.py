@@ -30,8 +30,7 @@ def read_traffic(
     pd.DataFrame\n
         One row per vehicle. See ``vehicle_list_to_df`` for the full
         column schema and units (GVW in kN, Velocity in m/s, Length in
-        m, AxleWeights in kN, AxleSpacings in m, AxleWidths in m,
-        Acceleration in m/s^2, etc.).
+        m, AxleWeights in kN, AxleSpacings in m, AxleWidths in m, etc.).
     """
 
     # Read data

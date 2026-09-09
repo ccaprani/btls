@@ -103,9 +103,6 @@ public:
 	void	setLength(double length);
 	/// @brief Set the vehicle velocity in metres per second.
 	void	setVelocity(double velocity);
-	/// @brief Set the vehicle longitudinal acceleration in metres per second squared (negative = braking).
-	///        Default is zero (constant-velocity motion). Used by the braking mode of @ref CInfluenceLine.
-	void	setAcceleration(double acceleration);
 	/// @brief Set the local (per-direction) lane index, 1-based.
 	void	setLocalLane(size_t localLaneIndex);
 	/// @brief Set the local lane index from a global lane index, given the total number of road lanes.
@@ -177,8 +174,6 @@ public:
 	double	getLength();
 	/// @brief Get the velocity in metres per second.
 	double	getVelocity();
-	/// @brief Get the longitudinal acceleration in metres per second squared (negative = braking).
-	double	getAcceleration();
 	/// @brief Get the local (per-direction) lane index, 1-based.
 	size_t	getLocalLane();
 	/// @brief Get the global (1-based) lane index across both directions.
@@ -257,10 +252,6 @@ private:
 	size_t	m_Dir;              ///< Direction of travel (1 or 2).
 	size_t	m_Lane;             ///< Local (per-direction) lane number, 1-based.
 	double	m_Velocity;         ///< Velocity in metres per second.
-	double	m_Acceleration;     ///< Longitudinal acceleration in metres per second squared
-	                            ///< (negative = braking). Default zero. Propagated to each
-	                            ///< axle's m_Acceleration on construction; used by the
-	                            ///< braking mode of @ref CInfluenceLine.
 	size_t	m_Head;             ///< Record identifier from the source data row.
 	size_t	m_Year;             ///< Year of arrival.
 	size_t	m_Month;            ///< Month of arrival.
