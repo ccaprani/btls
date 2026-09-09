@@ -307,7 +307,7 @@ PYBIND11_MODULE(libbtls, m) {
 					config.Traffic.CONSTANT_SPEED = attribute_dict["Traffic"]["CONSTANT_SPEED"].cast<double>();
 					config.Traffic.CONSTANT_GAP = attribute_dict["Traffic"]["CONSTANT_GAP"].cast<double>();
 
-					if (attribute_dict["Output"].cast<py::dict>().contains("OUTPUT_DIR"))  // absent before pybtls 1.2.0
+					if (attribute_dict["Output"].cast<py::dict>().contains("OUTPUT_DIR"))  // absent before pybtls 1.1.0
 						config.Output.OUTPUT_DIR = attribute_dict["Output"]["OUTPUT_DIR"].cast<std::string>();
 					config.Output.WRITE_TIME_HISTORY = attribute_dict["Output"]["WRITE_TIME_HISTORY"].cast<bool>();
 					config.Output.WRITE_EACH_EVENT = attribute_dict["Output"]["WRITE_EACH_EVENT"].cast<bool>();
@@ -346,7 +346,7 @@ PYBIND11_MODULE(libbtls, m) {
 					config.Output.Fatigue.RAINFLOW_DECIMAL = attribute_dict["Output"]["Fatigue"]["RAINFLOW_DECIMAL"].cast<int>();
 					config.Output.Fatigue.RAINFLOW_CUTOFF = attribute_dict["Output"]["Fatigue"]["RAINFLOW_CUTOFF"].cast<double>();
 					config.Output.Fatigue.WRITE_FATIGUE_BUFFER_SIZE = attribute_dict["Output"]["Fatigue"]["WRITE_FATIGUE_BUFFER_SIZE"].cast<size_t>();
-					if (attribute_dict["Output"]["Fatigue"].cast<py::dict>().contains("WRITE_RAINFLOW_RESIDUALS"))  // absent before pybtls 1.2.0
+					if (attribute_dict["Output"]["Fatigue"].cast<py::dict>().contains("WRITE_RAINFLOW_RESIDUALS"))  // absent before pybtls 1.1.0
 						config.Output.Fatigue.WRITE_RAINFLOW_RESIDUALS = attribute_dict["Output"]["Fatigue"]["WRITE_RAINFLOW_RESIDUALS"].cast<bool>();
 
 					return config;
@@ -447,12 +447,15 @@ PYBIND11_MODULE(libbtls, m) {
 				 "Load-effect mode: 0 = vertical (default), 1 = centrifugal, 2 = braking. "
 				 "For centrifugal, the per-axle force becomes AxleWeight * Speed^2 / g (per-vehicle v^2); "
 				 "the caller bakes the bridge geometric constants (k_e and 1 / R) into the IL ordinates "
-				 "so that the convolved bearing reaction is in kN. For braking, the per-axle force "
+				 "so that the convolved bearing reaction is in kN. It is unsigned: the force points to "
+				 "the outside of the curve for both directions of travel. For braking, the per-axle force "
 				 "becomes AxleWeight * ``|Acceleration|`` / g (per-vehicle deceleration), with a scalar "
-				 "fallback set via setBrakingFactor.")
+				 "fallback set via setBrakingFactor, and carries the sign of travel (+ for direction 1, "
+				 "- for direction 2), so opposing-direction traffic partially cancels.")
 			.def("setBrakingFactor", &CInfluenceLine::setBrakingFactor, py::arg("braking_factor"),
 				 "Set braking-mode dimensionless fallback factor (deceleration / g). Used when the "
-				 "per-axle CAxle::m_Acceleration is zero (e.g. constant-velocity vehicle stream).")
+				 "per-axle CAxle::m_Acceleration is zero (e.g. constant-velocity vehicle stream). "
+				 "Taken as a magnitude: the travel-direction sign is applied separately.")
 			.def("getLength", &CInfluenceLine::getLength);
 	py::class_<CInfluenceSurface> cinfluencesurface(m, "_InfluenceSurface");
 		cinfluencesurface.def(py::init<>())
@@ -505,8 +508,9 @@ PYBIND11_MODULE(libbtls, m) {
 
 				Used by the braking mode of CInfluenceLine: each axle's per-time
 				deceleration is propagated into the load-effect convolution as
-				F_axle = AxleWeight * ``|a|`` / g. Default zero (constant-velocity
-				motion).
+				F_axle = AxleWeight * ``|a|`` / g, carrying the sign of travel
+				(+ for direction 1, - for direction 2). Default zero
+				(constant-velocity motion).
 
 				Parameters
 				----------

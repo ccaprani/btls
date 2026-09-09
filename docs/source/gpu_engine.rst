@@ -121,9 +121,11 @@ The GPU engine is experimental and intentionally narrower than the CPU engine:
   lane (matching the C++ engine's per-lane summation). The per-lane influence
   line and weight apply to line-type effects only: one influence surface covers
   all lanes and carries no weight, on either engine.
-* **Load-effect mode:** vertical, centrifugal (``W·v²/g``) and braking
-  (``W·|a|/g``, or ``W·braking_factor`` when the acceleration is zero) — the same
-  per-axle force coefficient the C++ engine applies.
+* **Load-effect mode:** vertical, centrifugal (``W·v²/g``, unsigned) and braking
+  (``±W·|a|/g``, or ``±W·braking_factor`` when the acceleration is zero; signed by
+  the direction of travel, + for direction 1) — the same per-axle force
+  coefficient the C++ engine applies. Both are experimental: see
+  :doc:`theory`.
 * **Output:** block maxima (``BM_summary``), peaks-over-threshold
   (``PT_S`` / ``PT_C`` / ``PT_V``), fatigue rainflow (``FR_*``, via
   ``set_fatigue_output``; each block's E(t) is reduced to turning points on the
