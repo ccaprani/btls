@@ -273,6 +273,17 @@ class Simulation:
         if engine not in ("cpu", "cuda", "mps", "xpu"):
             raise ValueError('engine must be "cpu", "cuda", "mps" or "xpu".')
 
+        # BTLS compares the gross vehicle weight against a size_t in kN, so the
+        # CPU path truncates min_gvw while the GPU path compares it as a float.
+        # Normalise here instead, so both engines use the same threshold.
+        if int(min_gvw) != min_gvw:
+            raise ValueError(
+                f"min_gvw is a whole number of kN, got {min_gvw!r}. The C++ "
+                "engine truncates it, so a fractional threshold would mean "
+                "different things on the two engines."
+            )
+        min_gvw = int(min_gvw)
+
         if no_chunk is None or no_chunk == 1:
             self._sim_argument.append(
                 (
