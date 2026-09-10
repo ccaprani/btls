@@ -139,18 +139,19 @@ Changed
   ignored, in ``Simulation.add_sim``, ``TrafficLoader.add_traffic``, the
   vehicle and headway generators, ``LaneFlowComposition.assign_lane_data``,
   ``InfluenceLine.set_IL`` and the garage read/write helpers.
-- **Linux wheels need glibc 2.28 or newer.** They are built in the
+- **Linux wheels need glibc 2.27 or newer.** They are built in the
   ``manylinux_2_28`` image rather than cibuildwheel's ``manylinux2014``
-  default, so the published tag moves from ``manylinux_2_17_x86_64`` in
-  1.0.1 to ``manylinux_2_28_x86_64``. The 2.17 baseline can no longer be
-  built or tested: pillow, which matplotlib pulls in, ships no
-  ``manylinux_2_17`` wheel from 12.3.0 on, and neither does numpy or
-  contourpy for CPython 3.11 and later, so pip falls back to their source
-  distributions inside the build image and that build fails. On CentOS and
-  RHEL 7 (glibc 2.17), Debian 9 (2.24), Amazon Linux 2 (2.26) and Ubuntu
-  18.04 (2.27), pip builds the PyBTLS source distribution instead, which
-  needs GCC 9 or newer. RHEL 8 and Debian 10 are at 2.28 exactly and still
-  get a wheel. See :doc:`startup`.
+  default; auditwheel tags the result
+  ``manylinux_2_27_x86_64.manylinux_2_28_x86_64``, so the floor rises from
+  glibc 2.17 in 1.0.1 to 2.27. The 2.17 baseline can no longer be built or
+  tested: pillow, which matplotlib pulls in, ships no ``manylinux_2_17``
+  wheel from 12.3.0 on, and neither does numpy or contourpy for CPython
+  3.11 and later, so pip falls back to their source distributions inside
+  the build image and that build fails. CentOS and RHEL 7 (glibc 2.17),
+  Debian 9 (2.24) and Amazon Linux 2 (2.26) fall below the new floor and
+  build the PyBTLS source distribution instead, which needs GCC 9 or
+  newer. Ubuntu 18.04 (2.27), Debian 10 and RHEL 8 (2.28) still get a
+  wheel. See :doc:`startup`.
 - **macOS wheels are arm64 only.** 1.0.1 also published x86_64 wheels, but
   the GitHub runner that built them stopped being available, so Intel Macs
   install from the source distribution now.

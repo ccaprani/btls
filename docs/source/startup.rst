@@ -8,7 +8,7 @@ Prerequisites
 -------------
 
 - Python 3.10 or later with ``pip`` available.
-- On Linux, the prebuilt wheel is x86_64 and needs glibc 2.28 or newer (Ubuntu 20.04+, Debian 10+, RHEL/Rocky/AlmaLinux 8+, Amazon Linux 2023). Check yours with ``ldd --version``. Older systems and other architectures install from the source distribution instead, so the source-install prerequisites below apply to them as well.
+- On Linux, the prebuilt wheel is x86_64 and needs glibc 2.27 or newer (Ubuntu 18.04+, Debian 10+, RHEL/Rocky/AlmaLinux 8+, Amazon Linux 2023). Check yours with ``ldd --version``. Older systems and other architectures install from the source distribution instead, so the source-install prerequisites below apply to them as well.
 - For source installs: a C++17 compiler whose ``<filesystem>`` needs no separate library (GCC 9 or newer, Clang 9 or newer, MSVC 2017 15.7 or newer), ``cmake`` (>=3.25 is recommended), and ``ninja``.
 - Core Python dependencies: ``matplotlib``, ``numpy``, ``pandas``, ``scipy`` (installed automatically via ``pip``).
 
@@ -18,7 +18,7 @@ Install from PyPI (recommended)
 1. (Optional) create and activate a virtual environment. ::
 
       python -m venv .venv && source .venv/bin/activate   # Linux/macOS
-      python -m venv .venv && .venv\\Scripts\\activate    # Windows
+      python -m venv .venv && .venv\Scripts\activate     # Windows
 
 2. Install PyBTLS. ::
 
@@ -37,7 +37,7 @@ Use this workflow if you want editable installs to modify the code or contribute
 1. Clone your fork (or the main repository). ::
 
       git clone https://github.com/ccaprani/btls.git
-      cd btls-main
+      cd btls
 
 2. Create the development environment using your preferred environment manager. Here we use conda. If you don't have conda installed, see the `Miniconda install guide <https://docs.conda.io/en/latest/miniconda.html>`_. ::
 
