@@ -25,12 +25,13 @@ Tracker = "https://github.com/ccaprani/btls/issues"
 
 [project.optional-dependencies]
 # torch is deliberately NOT here, even though the GPU suite skips without it:
-# cibuildwheel installs `test-extras` into every wheel's test environment, and
-# no torch wheel exists for some of those legs (macOS x86_64 stops at torch
-# 2.2.2 / CPython 3.12, and torch ships no sdist), which would fail the whole
-# release build. CI installs torch explicitly on the one leg that then sets
-# PYBTLS_REQUIRE_TORCH=1, so the engine is still covered; see
-# .github/workflows/ci.yml.
+# cibuildwheel installs `test-extras` into every wheel's test environment (one
+# per CPython per OS), so this would pull a multi-gigabyte torch into all of
+# them and buy nothing. No release runner has a GPU, so the CUDA tests in
+# tests/test_gpu_engine.py skip there whatever is installed, and the
+# torch-on-CPU tests in tests/test_audit_fixes_gpu.py are already covered by
+# the one CI leg that installs torch explicitly and sets
+# PYBTLS_REQUIRE_TORCH=1; see .github/workflows/ci.yml.
 test = ["pytest>=6.0", "pycba>=0.5"]
 # Experimental GPU load-effect engine (engine="cuda"). Needs a CUDA build of
 # PyTorch; Triton (used for the fused kernel) ships with it. Install the wheel
@@ -66,9 +67,17 @@ build-verbosity = 1
 
 [tool.cibuildwheel.linux]
 skip = "*-manylinux_i686 *-musllinux_*"
+# glibc 2.28, not cibuildwheel's manylinux2014 default (glibc 2.17). The 2.17
+# baseline is no longer reachable: pillow (pulled in by matplotlib) ships no
+# manylinux_2_17 wheel from 12.3.0 on, and neither does numpy or contourpy for
+# CPython 3.11+, so pip falls back to their sdists and the build of the first
+# one fails inside the image. Raising the image also raises the glibc floor of
+# the wheels we publish -- see docs/source/startup.rst.
+manylinux-x86_64-image = "manylinux_2_28"
 
 [tool.cibuildwheel.windows]
 skip = "*-win32"            # drop 32-bit on Windows
 
 # [tool.cibuildwheel.macos]
-# (no extra skips needed if using separate macOS runners for Intel/ARM)
+# (no extra skips needed: the macOS leg is macos-14, so cibuildwheel builds the
+#  runner's native arm64 and nothing else)

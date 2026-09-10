@@ -125,8 +125,9 @@ Fixed
   fractional threshold meant different things on the two engines; it is now
   rejected outright.
 - ``torch`` is no longer part of the ``test`` extra. ``cibuildwheel``
-  installs that extra into every wheel's test environment, and no torch
-  wheel exists for some of them, which would fail the release build. CI
+  installs that extra into every wheel's test environment, which would pull
+  a multi-gigabyte torch into each of them and buy nothing: no release
+  runner has a GPU, so the CUDA tests skip there whatever is installed. CI
   installs torch explicitly on the one leg that requires it, so the GPU
   engine keeps its coverage.
 - ``pybtls.post_processing`` is listed in the API documentation.
@@ -138,6 +139,21 @@ Changed
   ignored, in ``Simulation.add_sim``, ``TrafficLoader.add_traffic``, the
   vehicle and headway generators, ``LaneFlowComposition.assign_lane_data``,
   ``InfluenceLine.set_IL`` and the garage read/write helpers.
+- **Linux wheels need glibc 2.28 or newer.** They are built in the
+  ``manylinux_2_28`` image rather than cibuildwheel's ``manylinux2014``
+  default, so the published tag moves from ``manylinux_2_17_x86_64`` in
+  1.0.1 to ``manylinux_2_28_x86_64``. The 2.17 baseline can no longer be
+  built or tested: pillow, which matplotlib pulls in, ships no
+  ``manylinux_2_17`` wheel from 12.3.0 on, and neither does numpy or
+  contourpy for CPython 3.11 and later, so pip falls back to their source
+  distributions inside the build image and that build fails. On CentOS and
+  RHEL 7 (glibc 2.17), Debian 9 (2.24), Amazon Linux 2 (2.26) and Ubuntu
+  18.04 (2.27), pip builds the PyBTLS source distribution instead, which
+  needs GCC 9 or newer. RHEL 8 and Debian 10 are at 2.28 exactly and still
+  get a wheel. See :doc:`startup`.
+- **macOS wheels are arm64 only.** 1.0.1 also published x86_64 wheels, but
+  the GitHub runner that built them stopped being available, so Intel Macs
+  install from the source distribution now.
 
 Output files
 ^^^^^^^^^^^^

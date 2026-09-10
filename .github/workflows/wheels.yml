@@ -21,7 +21,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        # macOS is arm64 only (macos-14). The Intel leg (macos-13) is gone:
+        # GitHub stopped serving that runner, so from 2026-04-16 every push to
+        # main queued it for the full 24 h and then failed the whole workflow.
+        # Intel macOS users install from the sdist.
+        os: [ubuntu-latest, windows-latest, macos-14]
     steps:
       - uses: actions/checkout@v4
 

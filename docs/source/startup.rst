@@ -8,7 +8,8 @@ Prerequisites
 -------------
 
 - Python 3.10 or later with ``pip`` available.
-- For source installs: a C++17 compiler, ``cmake`` (>=3.25 is recommended), and ``ninja``.
+- On Linux, the prebuilt wheel is x86_64 and needs glibc 2.28 or newer (Ubuntu 20.04+, Debian 10+, RHEL/Rocky/AlmaLinux 8+, Amazon Linux 2023). Check yours with ``ldd --version``. Older systems and other architectures install from the source distribution instead, so the source-install prerequisites below apply to them as well.
+- For source installs: a C++17 compiler whose ``<filesystem>`` needs no separate library (GCC 9 or newer, Clang 9 or newer, MSVC 2017 15.7 or newer), ``cmake`` (>=3.25 is recommended), and ``ninja``.
 - Core Python dependencies: ``matplotlib``, ``numpy``, ``pandas``, ``scipy`` (installed automatically via ``pip``).
 
 Install from PyPI (recommended)
@@ -31,7 +32,7 @@ Install from PyPI (recommended)
 Install from source
 -------------------
 
-Use this workflow if you want editable installs to modify the code or contribute to development. Local builds require a C++17 compiler such as Clang (macOS), GCC (Linux), or MSVC (Windows).
+Use this workflow if you want editable installs to modify the code or contribute to development, or if your platform has no published wheel (see Prerequisites), in which case ``pip install pybtls`` builds this same source distribution for you. Local builds require GCC 9 or newer (Linux), Clang 9 or newer (macOS), or MSVC 2017 15.7 or newer (Windows): earlier compilers accept ``-std=c++17`` but need ``-lstdc++fs`` for ``std::filesystem``, which this build does not link.
 
 1. Clone your fork (or the main repository). ::
 
@@ -105,7 +106,7 @@ Getting help
 ------------
 
 - Open an issue at https://github.com/ccaprani/btls/issues for installation or usage problems.
-- For C++ build errors, double-check that your compiler supports C++17 and that ``cmake`` and ``ninja`` are on your ``PATH``.
+- For C++ build errors, check the compiler version and not only whether it accepts C++17: PyBTLS uses ``std::filesystem`` without linking ``stdc++fs``, so ``undefined reference to std::filesystem`` means the compiler is older than GCC 9, Clang 9 or MSVC 2017 15.7. Also check that ``cmake`` and ``ninja`` are on your ``PATH``.
 - Each simulation tag creates a new output directory; remove or rename existing folders if a rerun fails because the directory already exists.
 
 If you are not familiar with Python, you may find the `Python official tutorial <https://docs.python.org/3/tutorial/>`_ helpful. 
