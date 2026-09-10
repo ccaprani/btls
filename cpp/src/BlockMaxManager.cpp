@@ -3,6 +3,8 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "BlockMaxManager.h"
+#include "FilePath.h"
+#include <algorithm>
 
 
 //////////////////////////////////////////////////////////////////////
@@ -14,6 +16,7 @@ CBlockMaxManager::CBlockMaxManager(CConfigDataCore& config)
 	, m_BlockMaxEvent(config.Output.VehicleFile.FILE_FORMAT)
 	, m_BMMixedEvent(config.Output.VehicleFile.FILE_FORMAT)
 {
+	m_OutputDir = config.Output.OUTPUT_DIR;
 	BLOCK_SIZE_DAYS		= config.Output.BlockMax.BLOCK_SIZE_DAYS;
 	BLOCK_SIZE_SECS		= config.Output.BlockMax.BLOCK_SIZE_SECS;
 
@@ -55,17 +58,18 @@ void CBlockMaxManager::Initialize(double BridgeLength, size_t nLE, double SimSta
 	if(WRITE_BM_MIXED)
 	{
 		// This is the mixed event output file
-		m_MixedEventFile = m_FileStem + "_V_" + to_string(m_BridgeLength) + "_All.txt";
+		m_MixedEventFile = btls::outPath(m_OutputDir, m_FileStem + "_V_" + to_string(m_BridgeLength) + "_All.txt");
 		std::ofstream outFile( m_MixedEventFile.c_str(), std::ios::out ); outFile.close();
 	}
 }
 
-void CBlockMaxManager::Update(CEvent curEvent)
+void CBlockMaxManager::Update(CEvent& curEvent)
 {
 	double curTime = curEvent.getStartTime();
 	
-	if (curTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
-		CheckBuffer(false);	// at the end of a block
+	// a zero block size would make the rollover test permanently true
+	while (m_BlockSize > 0 && curTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
+		CheckBuffer(false);	// at the end of a block; while, not if: fill in any silent blocks
 
 	m_CurEventNoVehicles = curEvent.getNoVehicles();
 	if(m_CurEventNoVehicles > 0)
@@ -92,7 +96,7 @@ void CBlockMaxManager::Update(CEvent curEvent)
 	UpdateMixedEvents(curEvent);
 }
 
-void CBlockMaxManager::UpdateMixedEvents(CEvent Ev)
+void CBlockMaxManager::UpdateMixedEvents(CEvent& Ev)
 {
 	for(unsigned int k = 0; k < m_NoLoadEffects; k++)
 	{	
@@ -129,6 +133,61 @@ void CBlockMaxManager::OpenVehicleFiles()
 	}
 }
 
+void CBlockMaxManager::FinishAt(double simEndTime)
+{
+	// fill any silent trailing blocks up to the simulated end time
+	while (m_BlockSize > 0 && simEndTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
+		CheckBuffer(false);
+
+	// an event can start after the end of the simulated window (the bridge is
+	// run on until it empties), which has already rolled the block counter past
+	// the last block of the window; fold that block back so that the window
+	// still produces exactly one row per block
+	while (m_BlockSize > 0 && m_CurBlockNo > 1
+		&& simEndTime - m_SimStartTime <= (double)(m_CurBlockNo-1)*m_BlockSize )
+	{
+		if(!FoldBackBlock())
+			return;	// nothing buffered to fold into, and nothing left to write
+	}
+
+	Finish();
+}
+
+// merge the maxima of one event into another, keeping the larger magnitude
+static void MergeMaxEffects(CEvent& Dest, CEvent& Src, size_t nLE)
+{
+	for(unsigned int k = 0; k < nLE; k++)
+	{
+		if(fabs(Src.getMaxEffect(k).getValue()) >= fabs(Dest.getMaxEffect(k).getValue()))
+			Dest.setMaxEffect(Src.m_vMaxEffects[k],k);
+	}
+}
+
+bool CBlockMaxManager::FoldBackBlock()
+{
+	// take the last completed block back out of the write buffer and merge the
+	// over-run block into it, so Finish() writes it as the last block; the
+	// result is what the block would have held had it never been rolled
+	if(m_vBMEventsBuffer.empty())
+		return false;	// already flushed to disk - drop the over-run block
+
+	CBlockMaxEvent lastBlock = m_vBMEventsBuffer.back();
+	CEvent lastMixed = m_vMixedEvents.back();
+	m_vBMEventsBuffer.pop_back();
+	m_vMixedEvents.pop_back();
+
+	if(m_BlockMaxEvent.getSize() > lastBlock.getSize())
+		lastBlock.AddExtraEvents(m_BlockMaxEvent.getSize());
+	for(size_t iEv = 0; iEv < m_BlockMaxEvent.getSize(); iEv++)
+		MergeMaxEffects(lastBlock.getEvent(iEv), m_BlockMaxEvent.getEvent(iEv), m_NoLoadEffects);
+	MergeMaxEffects(lastMixed, m_BMMixedEvent, m_NoLoadEffects);
+
+	m_BlockMaxEvent = lastBlock;
+	m_BMMixedEvent = lastMixed;
+	m_CurBlockNo--;
+	return true;
+}
+
 void CBlockMaxManager::CheckBuffer(bool bForceOutput)
 {
 	// finish allows for block max buffers greater than the simulation length
@@ -153,13 +212,21 @@ void CBlockMaxManager::WriteBuffer()
 	// call base class implementation first
 	COutputManagerBase::WriteBuffer();
 
-	if(WRITE_BM_MIXED)
+	if(WRITE_BM_MIXED && !m_vMixedEvents.empty())
 	{
+		// open the file once per flush rather than once per event
+		std::ofstream outFile(m_MixedEventFile.c_str(), std::ios::app);
+		if (!outFile)
+		{
+			std::cerr << "Event file could not be opened" << std::endl;
+			exit(1);
+		}
 		for(unsigned int iBlock = 0; iBlock < m_vMixedEvents.size(); iBlock++)
 		{
 			CEvent& Ev = m_vMixedEvents[iBlock];
-			Ev.writeToFile(m_MixedEventFile);
+			Ev.writeToFile(outFile);
 		}
+		outFile.close();
 	}
 
 	m_vBMEventsBuffer.clear();
@@ -168,15 +235,27 @@ void CBlockMaxManager::WriteBuffer()
 
 void CBlockMaxManager::WriteVehicleFiles()
 {
+	// file-major iteration so each output file is opened once per flush;
+	// the per-file byte order (block order) is unchanged
+	size_t maxSize = 0;
 	for(unsigned int iBlock = 0; iBlock < m_vBMEventsBuffer.size(); iBlock++)
+		maxSize = (std::max)(maxSize, m_vBMEventsBuffer[iBlock].getSize());
+
+	for(size_t iEv = 0; iEv < maxSize; iEv++)
 	{
-		CBlockMaxEvent BMEv = m_vBMEventsBuffer[iBlock];
-			
-		for(unsigned int iEv = 0; iEv < BMEv.getSize(); iEv++)
+		std::ofstream outFile(m_vOutFiles[iEv].c_str(), std::ios::app);
+		if (!outFile)
 		{
-			CEvent& Ev = BMEv.getEvent(iEv);
-			Ev.writeToFile(m_vOutFiles[iEv]);
+			std::cerr << "Event file could not be opened" << std::endl;
+			exit(1);
 		}
+		for(unsigned int iBlock = 0; iBlock < m_vBMEventsBuffer.size(); iBlock++)
+		{
+			CBlockMaxEvent& BMEv = m_vBMEventsBuffer[iBlock];
+			if(iEv < BMEv.getSize())
+				BMEv.getEvent(iEv).writeToFile(outFile);
+		}
+		outFile.close();
 	}
 }
 
@@ -188,7 +267,7 @@ void CBlockMaxManager::WriteSummaryFiles()
 		
 		for(unsigned int iBlock = 0; iBlock < m_vBMEventsBuffer.size(); iBlock++)
 		{
-			CBlockMaxEvent BMEv = m_vBMEventsBuffer[iBlock];
+			CBlockMaxEvent& BMEv = m_vBMEventsBuffer[iBlock];
 
 			outFile << BMEv.getID() << '\t';
 		

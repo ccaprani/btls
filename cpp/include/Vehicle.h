@@ -3,12 +3,7 @@
  * @brief Interface for the CVehicle class — a single vehicle with axle geometry and kinematics.
  */
 
-#if !defined(AFX_VEHICLE_H__028A909A_9588_4305_9A3E_D255BD8D332A__INCLUDED_)
-#define AFX_VEHICLE_H__028A909A_9588_4305_9A3E_D255BD8D332A__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include <vector>
 #include <sstream>
@@ -102,6 +97,8 @@ public:
 
 	/// @brief Set the vehicle arrival time in seconds (updates the day/month/year/hour/min/sec fields).
 	void	setTime(double time);
+	/// @brief Set vehicle arrival date/time components directly.
+	void	setDateTime(size_t year, size_t month, size_t day, size_t hour, size_t min, double sec);
 	/// @brief Set the overall vehicle length in metres.
 	void	setLength(double length);
 	/// @brief Set the vehicle velocity in metres per second.
@@ -116,6 +113,8 @@ public:
 	void	setGVW(double weight);
 	/// @brief Set the number of axles (resizes the internal axle vector).
 	void	setNoAxles(size_t noAxle);
+	/// @brief Set the number of axle groups.
+	void	setNoAxleGroups(size_t noAxleGroups);
 	/**
 	 * @brief Set axle weight for axle @p i.
 	 * @param[in] i Zero-based axle index.
@@ -241,10 +240,12 @@ private:
 	void createDITISVehicle(const std::string data);
 	void createMONVehicle(const std::string data);
 
-	std::string	writeBEDITData();
-	std::string	writeCASTORData();
-	std::string writeDITISData();
-	std::string writeMONData();
+	// trns is the effective transverse position to write (see Write()); the
+	// member is left untouched so serialising cannot move the vehicle
+	std::string	writeBEDITData(double trns);
+	std::string	writeCASTORData(double trns);
+	std::string writeDITISData(double trns);
+	std::string writeMONData(double trns);
 
 	Classification m_Class;    ///< Vehicle classification (ID plus label).
 
@@ -321,4 +322,3 @@ typedef std::unique_ptr<CVehicle> CVehicle_up;   ///< Unique-pointer alias for C
 typedef std::weak_ptr<CVehicle> CVehicle_wp;     ///< Weak-pointer alias for CVehicle.
 typedef std::shared_ptr<CVehicle> CVehicle_sp;   ///< Shared-pointer alias for CVehicle.
 
-#endif // !defined(AFX_VEHICLE_H__028A909A_9588_4305_9A3E_D255BD8D332A__INCLUDED_)

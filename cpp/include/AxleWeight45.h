@@ -3,12 +3,7 @@
  * @brief Interface for the CAxleWeight45 class — axle-weight distributions for 4- and 5-axle trucks.
  */
 
-#if !defined(AFX_AXLEWEIGHT45_H__CB51C460_9A57_493D_9649_FA33D6F9805E__INCLUDED_)
-#define AFX_AXLEWEIGHT45_H__CB51C460_9A57_493D_9649_FA33D6F9805E__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include <vector>
 
@@ -77,4 +72,3 @@ private:
 	std::vector<GVWRange> m_v5AxleTrucks;  ///< GVW bands for 5-axle trucks.
 };
 
-#endif // !defined(AFX_AXLEWEIGHT45_H__CB51C460_9A57_493D_9649_FA33D6F9805E__INCLUDED_)

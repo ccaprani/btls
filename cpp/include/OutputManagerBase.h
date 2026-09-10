@@ -51,7 +51,7 @@ public:
 	 *
 	 * @param[in] Ev Completed event (by value so subclasses can mutate).
 	 */
-	virtual void Update(CEvent Ev) = 0;
+	virtual void Update(CEvent& Ev) = 0;
 
 	/// @brief Flush remaining buffers and close output files.
 	void Finish();
@@ -101,6 +101,7 @@ protected:
 
 	double	m_BridgeLength;                     ///< Bridge length in metres, used for filename stemming.
 	const std::string m_FileStem;               ///< Output-file name stem supplied at construction.
+	std::string m_OutputDir;                    ///< Directory output files are written into ("" = cwd).
 
 	double m_SimStartTime;                      ///< Simulation start time in seconds.
 

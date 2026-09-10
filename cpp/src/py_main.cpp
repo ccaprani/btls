@@ -2,15 +2,133 @@
 // the main file for the PyBTLS Build
 
 #include "PrepareSim.h"
+#include "ConsoleOutput.h"
 #include "Distribution.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include "pybind11/stl/filesystem.h"
+#include "pybind11/numpy.h"
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
 namespace py = pybind11;
+
+
+// Bulk-extract per-vehicle scalars and flat per-axle arrays from a vehicle list
+// in one C++ pass, so the GPU engine avoids ~6 Python->C++ getter calls per
+// vehicle. Returns numpy arrays; all the trajectory math stays vectorized in
+// Python. Output: (time, speed, dirn, gvw, global_lane, trans, length,
+// axle_count[/veh], axle_weight[/axle], axle_spacing[/axle], axle_track[/axle],
+// is_car, class_bin, lane_eccentricity).
+// Flat per-vehicle scalars + per-axle arrays for the GPU engine, shared by the
+// loader path (_extract_axle_data) and the fused generator (_generate_and_extract)
+// so a vehicle is unpacked exactly once, the same way, regardless of source.
+struct _AxleArrays
+{
+	std::vector<double> vtime, vspeed, vgvw, vtrans, vlen, vecc;
+	std::vector<std::int64_t> vdir, vlane, vcount, viscar, viscls;
+	std::vector<double> aw, asp, at;
+
+	// classifier (optional): when given, viscls[i] = its class-histogram bin for
+	// the vehicle (CVehicleClassification::getClassID) — for the flow statistics;
+	// otherwise -1 (load-effect runs don't need it).
+	void add(CVehicle& v, std::size_t no_lane, CVehicleClassification* classifier)
+	{
+		vtime.push_back(v.getTime());
+		vspeed.push_back(v.getVelocity());
+		vgvw.push_back(v.getGVW());
+		vtrans.push_back(v.getTrans());
+		vlen.push_back(v.getLength());
+		vecc.push_back(v.getLaneEccentricity());
+		vdir.push_back((std::int64_t)v.getDirection());
+		vlane.push_back((std::int64_t)v.getGlobalLane(no_lane));
+		viscar.push_back((std::int64_t)v.IsCar());
+		viscls.push_back(classifier ? (std::int64_t)classifier->getClassID(v.getClass()) : -1);
+		std::size_t na = v.getNoAxles();
+		vcount.push_back((std::int64_t)na);
+		for (std::size_t j = 0; j < na; j++)
+		{
+			aw.push_back(v.getAW(j));
+			asp.push_back(v.getAS(j));
+			at.push_back(v.getAT(j));
+		}
+	}
+
+	py::tuple to_tuple() const
+	{
+		auto d = [](const std::vector<double>& v) { return py::array_t<double>(v.size(), v.data()); };
+		auto l = [](const std::vector<std::int64_t>& v) { return py::array_t<std::int64_t>(v.size(), v.data()); };
+		// vecc is appended last so the positional indices of the original
+		// 13 fields stay stable for existing consumers
+		return py::make_tuple(d(vtime), d(vspeed), l(vdir), d(vgvw), l(vlane),
+							  d(vtrans), d(vlen), l(vcount), d(aw), d(asp), d(at),
+							  l(viscar), l(viscls), d(vecc));
+	}
+};
+
+
+static py::tuple _extract_axle_data(const std::vector<CVehicle_sp>& vehs, std::size_t no_lane,
+		CVehicleClassification_sp classifier = nullptr)
+{
+	_AxleArrays a;
+	for (const auto& v : vehs)
+		a.add(*v, no_lane, classifier.get());
+	return a.to_tuple();
+}
+
+
+// Pull the globally-earliest-arriving lane until end_time, in the same order the
+// per-vehicle Python loop did (identical RNG draw order -> identical stream).
+// The bound is exclusive by default: an arrival exactly on an intra-run day
+// boundary belongs to the next chunk, which is what the caller's day-window
+// assignment (time // 86400) expects. Pass inclusive=true for the final chunk of
+// a run, where the CPU loop (while current_time <= end_time) does simulate an
+// arrival landing exactly on end_time.
+static int _earliest_lane(const std::vector<CLaneGenTraffic_sp>& lanes, double end_time, bool inclusive)
+{
+	int earliest = -1;
+	double best = 0.0;
+	for (std::size_t i = 0; i < lanes.size(); i++)
+	{
+		double t = lanes[i]->GetNextArrivalTime();
+		bool in_range = inclusive ? (t <= end_time) : (t < end_time);
+		if (in_range && (earliest < 0 || t < best)) { best = t; earliest = (int)i; }
+	}
+	return earliest;
+}
+
+
+// Generate the next slice of generated traffic up to end_time, returning the
+// vehicle objects (used when per-vehicle output, e.g. PT_V, is needed).
+static std::vector<CVehicle_sp> _generate_traffic_stream(
+		std::vector<CLaneGenTraffic_sp> lanes, double end_time, bool inclusive = false)
+{
+	std::vector<CVehicle_sp> out;
+	int earliest;
+	while ((earliest = _earliest_lane(lanes, end_time, inclusive)) >= 0)
+		out.push_back(lanes[earliest]->GetNextVehicle());
+	return out;
+}
+
+
+// Fused generate + extract: generate up to end_time and unpack each vehicle
+// inline, returning the same flat arrays as _extract_axle_data WITHOUT building a
+// Python list of Vehicle objects (the GPU generated-traffic hot path). The stream
+// is byte-identical to _generate_traffic_stream + _extract_axle_data.
+static py::tuple _generate_and_extract(
+		std::vector<CLaneGenTraffic_sp> lanes, double end_time, std::size_t no_lane,
+		CVehicleClassification_sp classifier = nullptr, bool inclusive = false)
+{
+	_AxleArrays a;
+	int earliest;
+	while ((earliest = _earliest_lane(lanes, end_time, inclusive)) >= 0)
+	{
+		CVehicle_sp v = lanes[earliest]->GetNextVehicle();
+		a.add(*v, no_lane, classifier.get());
+	}
+	return a.to_tuple();
+}
 
 
 PYBIND11_MODULE(libbtls, m) {
@@ -20,10 +138,32 @@ PYBIND11_MODULE(libbtls, m) {
 		m.attr("__version__") = "dev";
 	#endif
 	m.def("get_info", &preamble, "Print the information of the BTLS library.");
+	m.def("set_console_output", [](bool enable) { btls::console_output = enable; },
+		"Enable or disable routine console messages (buffer-flush notices). "
+		"Default is off; errors and warnings are always printed.",
+		py::arg("enable"));
 	m.def("_sample_uniform", []() {
 		CDistribution d;
 		return d.GenerateUniform();
 	}, "Internal test helper: draw one uniform [0,1) sample from the process-wide RNG.");
+	m.def("_extract_axle_data", &_extract_axle_data, py::arg("vehicles"), py::arg("no_lane"),
+		py::arg("classifier") = nullptr,
+		"Bulk-extract per-vehicle/per-axle arrays from a vehicle list in one C++ pass "
+		"(used by the GPU engine to avoid per-vehicle Python getter calls). With a "
+		"classifier, also returns each vehicle's flow-statistics class bin.");
+	m.def("_generate_traffic_stream", &_generate_traffic_stream, py::arg("lanes"), py::arg("end_time"),
+		py::arg("inclusive") = false,
+		"Generate generated-traffic vehicles up to end_time in one C++ pass, pulling the "
+		"globally-earliest lane each step (identical interleaving/RNG order to the per-vehicle "
+		"loop). Lets the GPU engine stream generation without per-vehicle Python calls. "
+		"end_time is exclusive unless inclusive=True, which is what the last chunk of a run "
+		"needs to match the CPU loop's `while current_time <= end_time`.");
+	m.def("_generate_and_extract", &_generate_and_extract, py::arg("lanes"), py::arg("end_time"), py::arg("no_lane"),
+		py::arg("classifier") = nullptr, py::arg("inclusive") = false,
+		"Fused generate + extract: generate up to end_time and return the same flat arrays as "
+		"_extract_axle_data, without materializing Python Vehicle objects (the GPU generated-"
+		"traffic hot path). Byte-identical to _generate_traffic_stream + _extract_axle_data. "
+		"end_time is exclusive unless inclusive=True (see _generate_traffic_stream).");
 	m.def("seed", &CRNGWrapper::seed,
 		R"(
 		Seed the process-wide random number generator.
@@ -88,6 +228,7 @@ PYBIND11_MODULE(libbtls, m) {
 					traffic_dict["CONSTANT_GAP"] = self.Traffic.CONSTANT_GAP;
 
 					py::dict output_dict;
+					output_dict["OUTPUT_DIR"] = self.Output.OUTPUT_DIR;
 					output_dict["WRITE_TIME_HISTORY"] = self.Output.WRITE_TIME_HISTORY;
 					output_dict["WRITE_EACH_EVENT"] = self.Output.WRITE_EACH_EVENT;
 					output_dict["WRITE_EVENT_BUFFER_SIZE"] = self.Output.WRITE_EVENT_BUFFER_SIZE;
@@ -134,6 +275,7 @@ PYBIND11_MODULE(libbtls, m) {
 					fatigue_dict["RAINFLOW_DECIMAL"] = self.Output.Fatigue.RAINFLOW_DECIMAL;
 					fatigue_dict["RAINFLOW_CUTOFF"] = self.Output.Fatigue.RAINFLOW_CUTOFF;
 					fatigue_dict["WRITE_FATIGUE_BUFFER_SIZE"] = self.Output.Fatigue.WRITE_FATIGUE_BUFFER_SIZE;
+					fatigue_dict["WRITE_RAINFLOW_RESIDUALS"] = self.Output.Fatigue.WRITE_RAINFLOW_RESIDUALS;
 					output_dict["Fatigue"] = fatigue_dict;
 
 					attribute_dict["Road"] = road_dict;
@@ -164,6 +306,8 @@ PYBIND11_MODULE(libbtls, m) {
 					config.Traffic.CONSTANT_SPEED = attribute_dict["Traffic"]["CONSTANT_SPEED"].cast<double>();
 					config.Traffic.CONSTANT_GAP = attribute_dict["Traffic"]["CONSTANT_GAP"].cast<double>();
 
+					if (attribute_dict["Output"].cast<py::dict>().contains("OUTPUT_DIR"))  // absent before pybtls 1.1.0
+						config.Output.OUTPUT_DIR = attribute_dict["Output"]["OUTPUT_DIR"].cast<std::string>();
 					config.Output.WRITE_TIME_HISTORY = attribute_dict["Output"]["WRITE_TIME_HISTORY"].cast<bool>();
 					config.Output.WRITE_EACH_EVENT = attribute_dict["Output"]["WRITE_EACH_EVENT"].cast<bool>();
 					config.Output.WRITE_EVENT_BUFFER_SIZE = attribute_dict["Output"]["WRITE_EVENT_BUFFER_SIZE"].cast<size_t>();
@@ -201,6 +345,8 @@ PYBIND11_MODULE(libbtls, m) {
 					config.Output.Fatigue.RAINFLOW_DECIMAL = attribute_dict["Output"]["Fatigue"]["RAINFLOW_DECIMAL"].cast<int>();
 					config.Output.Fatigue.RAINFLOW_CUTOFF = attribute_dict["Output"]["Fatigue"]["RAINFLOW_CUTOFF"].cast<double>();
 					config.Output.Fatigue.WRITE_FATIGUE_BUFFER_SIZE = attribute_dict["Output"]["Fatigue"]["WRITE_FATIGUE_BUFFER_SIZE"].cast<size_t>();
+					if (attribute_dict["Output"]["Fatigue"].cast<py::dict>().contains("WRITE_RAINFLOW_RESIDUALS"))  // absent before pybtls 1.1.0
+						config.Output.Fatigue.WRITE_RAINFLOW_RESIDUALS = attribute_dict["Output"]["Fatigue"]["WRITE_RAINFLOW_RESIDUALS"].cast<bool>();
 
 					return config;
 				}
@@ -230,7 +376,8 @@ PYBIND11_MODULE(libbtls, m) {
 				.def_readwrite("CONSTANT_SPEED", &CConfigDataCore::Traffic_Config::CONSTANT_SPEED)
 				.def_readwrite("CONSTANT_GAP", &CConfigDataCore::Traffic_Config::CONSTANT_GAP);
 		py::class_<CConfigDataCore::Output_Config> output_config(cconfigdatacore, "_Output_Config");
-			output_config.def_readwrite("WRITE_TIME_HISTORY", &CConfigDataCore::Output_Config::WRITE_TIME_HISTORY)
+			output_config.def_readwrite("OUTPUT_DIR", &CConfigDataCore::Output_Config::OUTPUT_DIR)
+				.def_readwrite("WRITE_TIME_HISTORY", &CConfigDataCore::Output_Config::WRITE_TIME_HISTORY)
 				.def_readwrite("WRITE_EACH_EVENT", &CConfigDataCore::Output_Config::WRITE_EACH_EVENT)
 				.def_readwrite("WRITE_EVENT_BUFFER_SIZE", &CConfigDataCore::Output_Config::WRITE_EVENT_BUFFER_SIZE)
 				.def_readwrite("WRITE_FATIGUE_EVENT", &CConfigDataCore::Output_Config::WRITE_FATIGUE_EVENT)
@@ -271,8 +418,22 @@ PYBIND11_MODULE(libbtls, m) {
 					fatigue_config.def_readwrite("DO_FATIGUE_RAINFLOW", &CConfigDataCore::Output_Config::Fatigue_Config::DO_FATIGUE_RAINFLOW)
 						.def_readwrite("RAINFLOW_DECIMAL", &CConfigDataCore::Output_Config::Fatigue_Config::RAINFLOW_DECIMAL)
 						.def_readwrite("RAINFLOW_CUTOFF", &CConfigDataCore::Output_Config::Fatigue_Config::RAINFLOW_CUTOFF)
-						.def_readwrite("WRITE_FATIGUE_BUFFER_SIZE", &CConfigDataCore::Output_Config::Fatigue_Config::WRITE_FATIGUE_BUFFER_SIZE);
+						.def_readwrite("WRITE_FATIGUE_BUFFER_SIZE", &CConfigDataCore::Output_Config::Fatigue_Config::WRITE_FATIGUE_BUFFER_SIZE)
+						.def_readwrite("WRITE_RAINFLOW_RESIDUALS", &CConfigDataCore::Output_Config::Fatigue_Config::WRITE_RAINFLOW_RESIDUALS);
 
+	py::class_<CRainflow> crainflow(m, "_Rainflow");
+		crainflow.doc() = "ASTM E1049-85 rainflow cycle counter. Used to close spliced chunk residuals exactly.";
+		crainflow.def(py::init<int, double>(), py::arg("decimal"), py::arg("cutoff"))
+			.def("processData", &CRainflow::processData, py::arg("series"),
+				"Feed a load-effect series (or a residual reversal sequence) into the reversal buffer.")
+			.def("calcCycles", &CRainflow::calcCycles, py::arg("is_final"),
+				"Run the rainflow count; pass True to close the residual at end of data.")
+			.def("getRainflowOutput", &CRainflow::getRainflowOutput,
+				py::return_value_policy::copy,
+				"Get the accumulated output: dict of rounded range -> cycle count.")
+			.def("getResiduals", &CRainflow::getResiduals,
+				py::return_value_policy::copy,
+				"Get the residual (unclosed) reversal sequence after calcCycles(False).");
 
 	py::class_<CInfluenceLine> cinfluenceline(m, "_InfluenceLine");
 		cinfluenceline.def(py::init<>())
@@ -280,6 +441,13 @@ PYBIND11_MODULE(libbtls, m) {
 			.def("setIL", py::overload_cast<size_t, double>(&CInfluenceLine::setIL), py::arg("built_in_IL_no"), py::arg("length"))
 			.def("setIL", py::overload_cast<std::vector<double>, std::vector<double> >(&CInfluenceLine::setIL), py::arg("positions"), py::arg("ordinates"))
 			.def("setIL", py::overload_cast<CInfluenceSurface>(&CInfluenceLine::setIL), py::arg("inf_surface"))
+			.def("setWeight", &CInfluenceLine::setWeight, py::arg("weight"))
+			.def("setLoadEffectMode", &CInfluenceLine::setLoadEffectMode, py::arg("mode"),
+				 "Load-effect mode: 0 = vertical (default), 1 = centrifugal. "
+				 "For centrifugal, the per-axle force becomes AxleWeight * Speed^2 / g (per-vehicle v^2); "
+				 "the caller bakes the bridge geometric constants (k_e and 1 / R) into the IL ordinates "
+				 "so that the convolved bearing reaction is in kN. It is unsigned: the force points to "
+				 "the outside of the curve for both directions of travel.")
 			.def("getLength", &CInfluenceLine::getLength);
 	py::class_<CInfluenceSurface> cinfluencesurface(m, "_InfluenceSurface");
 		cinfluencesurface.def(py::init<>())
@@ -297,13 +465,14 @@ PYBIND11_MODULE(libbtls, m) {
 			.def("addVehicle", &CBridge::AddVehicle, py::arg("vehicle"))
 			.def("setCalcTimeStep", &CBridge::setCalcTimeStep, py::arg("time_step"))
 			.def("update", &CBridge::Update, py::arg("next_arrival_time"), py::arg("current_time"))
-			.def("finish", &CBridge::Finish)
+			.def("finish", py::overload_cast<>(&CBridge::Finish))
+			.def("finish", py::overload_cast<double>(&CBridge::Finish), py::arg("sim_end_time"), "Finish, filling silent trailing blocks/intervals up to the simulated end time.")
 			.def("initializeDataMgr", &CBridge::InitializeDataMgr, py::arg("sim_start_time"));
 	py::class_<CBridgeLane> cbridgelane(m, "_BridgeLane");
 		cbridgelane.def("addLoadEffect", &CBridgeLane::addLoadEffect, py::arg("IL"), py::arg("weight"));
 
 
-	py::class_<CVehicle, CVehicle_sp> cvehicle(m, "Vehicle");
+	py::class_<CVehicle, CVehicle_sp> cvehicle(m, "Vehicle", "A vehicle: axle weights/spacings/widths, speed, lane, direction and arrival time.");
 		cvehicle.def(py::init<size_t>(), 
 				R"(
 				The Vehicle class is inherited from the CVehicle class in the C++ BTLS library. 
@@ -480,8 +649,22 @@ PYBIND11_MODULE(libbtls, m) {
 					The axle width.
 				)",
 				py::arg("index"), py::arg("width"))
-			.def("get_length", &CVehicle::getLength, "Get the vehicle length.")
-			.def("get_velocity", &CVehicle::getVelocity, "Get the vehicle velocity.")
+			.def("get_length", &CVehicle::getLength, "Get the vehicle length, in metres.")
+			.def("write",
+				// the fixed-width writers truncate the axle count in place when
+				// the vehicle has more axles than the format holds, so serialise
+				// a copy to leave the caller's vehicle untouched
+				[](CVehicle_sp self, size_t file_format) { CVehicle veh(*self); return veh.Write(file_format); },
+				R"(
+				Serialise the vehicle to one line in the given traffic-file format.
+
+				Parameters
+				----------
+				file_format : int
+					The traffic file format (1=CASTOR, 2=BEDIT, 3=DITIS, 4=MON).
+				)",
+				py::arg("file_format"))
+			.def("get_velocity", &CVehicle::getVelocity, "Get the vehicle velocity, in m/s.")
 			.def("get_gvw", &CVehicle::getGVW, "Get the gross vehicle weight of the vehicle.")
 			.def("get_no_axles", &CVehicle::getNoAxles, "Get the number of axles of the vehicle.")
 			.def("get_axle_weights", 
@@ -541,8 +724,8 @@ PYBIND11_MODULE(libbtls, m) {
 					The 0-based index of the axle.
 				)", 
 				py::arg("index"))
-			.def("get_time", &CVehicle::getTime, "Get the show-up time of the vehicle.")
-			.def("get_trans", &CVehicle::getTrans, "Get the vehicle transverse position on its lane.")
+			.def("get_time", &CVehicle::getTime, "Get the show-up time of the vehicle, in seconds.")
+			.def("get_trans", &CVehicle::getTrans, "Get the vehicle transverse position on its lane, in metres.")
 			.def("get_direction", &CVehicle::getDirection, "Get the vehicle direction (1 or 2).")
 			.def("_getGlobalLane", &CVehicle::getGlobalLane, "Get the 1-based global lane index of the vehicle.", py::arg("no_lanes"))
 			.def("get_local_lane", &CVehicle::getLocalLane, "Get the 1-based local lane index of the vehicle.")
@@ -552,18 +735,30 @@ PYBIND11_MODULE(libbtls, m) {
 				py::arg("prop_tuple"))
 			.def("_create", &CVehicle::create, py::arg("str"), py::arg("format"))
 			.def("__eq__", 
-				[](CVehicle_sp self, CVehicle_sp other) { return self->Write(4) == other->Write(4); }, 
+				[](CVehicle_sp self, CVehicle_sp other) { CVehicle a(*self), b(*other); return a.Write(4) == b.Write(4); }, 
 				py::is_operator())
 			.def(py::pickle(
 				[](CVehicle_sp self) {  // __getstate__
 
-					return self->getPropInTuple();
+					// The property tuple does not carry m_Class, but the class
+					// drives IsCar() and the flow/statistics truck counts, so it
+					// must survive the pickle across process boundaries
+					// (multiprocessing sends TrafficLoader vehicles to workers).
+					Classification cl = self->getClass();
+					return py::make_tuple(self->getPropInTuple(), cl.m_ID, cl.m_String, cl.m_Desc);
 				},
-				[](py::tuple propTuple) {  // __setstate__
+				[](py::tuple state) {  // __setstate__
 
 					CVehicle_sp vehicle = std::make_shared<CVehicle>();
-					vehicle->setPropByTuple(propTuple);
-					
+					if (state.size() == 4 && py::isinstance<py::tuple>(state[0]))
+					{	// current format: (property tuple, class id, pattern, desc)
+						vehicle->setPropByTuple(state[0].cast<py::tuple>());
+						vehicle->setClass(Classification(state[1].cast<size_t>(),
+							state[2].cast<std::string>(), state[3].cast<std::string>()));
+					}
+					else
+						vehicle->setPropByTuple(state);  // legacy flat property tuple
+
 					return vehicle;
 				}
 			));
@@ -654,33 +849,93 @@ PYBIND11_MODULE(libbtls, m) {
 	py::class_<CVehicleBuffer> cvehiclebuffer(m, "_VehicleBuffer");
 		cvehiclebuffer.def(py::init<CConfigDataCore&, CVehicleClassification_sp, double>(), py::arg("config"), py::arg("vehicle_classifier"), py::arg("start_time"))
 			.def("addVehicle", &CVehicleBuffer::AddVehicle, py::arg("vehicle"))
-			.def("flushBuffer", &CVehicleBuffer::FlushBuffer);
+			.def("flushBuffer", py::overload_cast<>(&CVehicleBuffer::FlushBuffer))
+			.def("flushBuffer", py::overload_cast<double>(&CVehicleBuffer::FlushBuffer), py::arg("sim_end_time"), "Flush, filling silent trailing FlowData hours up to the simulated end time.");
 
 
-	py::class_<CMultiModalNormal> cmultimodalnormal(m, "_MultiModalNormal");
+	py::class_<CMultiModalNormal> cmultimodalnormal(m, "_MultiModalNormal",
+		"A mixture of one or more normal modes, each with its own weight, mean and "
+		"standard deviation. Build it with add_mode(), then sample it via "
+		"Distribution.gen_multimodalnormal.");
 		cmultimodalnormal.def(py::init<>())
-			.def("add_mode", &CMultiModalNormal::AddMode, py::arg("w"), py::arg("m"), py::arg("s"))
-			.def("get_no_modes", &CMultiModalNormal::getNoModes);
-	py::class_<CDistribution> cdistribution(m, "_Distribution");
+			.def("add_mode", &CMultiModalNormal::AddMode,
+				R"(
+				Append one normal mode to the mixture.
+
+				Parameters
+				----------
+				w : float
+					Mode weight. Weights should sum to 1 across all modes; a mode
+					is drawn with probability proportional to its weight.
+				m : float
+					Mode mean, in the sampled quantity's native unit.
+				s : float
+					Mode standard deviation, in the sampled quantity's native unit.
+				)",
+				py::arg("w"), py::arg("m"), py::arg("s"))
+			.def("get_no_modes", &CMultiModalNormal::getNoModes,
+				"Get the number of modes currently in the mixture.");
+	py::class_<CDistribution> cdistribution(m, "_Distribution",
+		"A family of random-variate generators sharing configurable location, scale "
+		"and shape parameters and the process-wide RNG. Each gen_* method draws one "
+		"sample from the corresponding distribution using the currently set "
+		"parameters (or explicit arguments where provided). Values are in the sampled "
+		"quantity's native unit.");
 		cdistribution.def(py::init<>())
-			.def(py::init<double, double, double>(), py::arg("loc"), py::arg("scale"), py::arg("shape"))
-			.def("set_shape", &CDistribution::setShape, py::arg("shape"))
-			.def("set_scale", &CDistribution::setScale, py::arg("scale"))
-			.def("set_location", &CDistribution::setLocation, py::arg("loc"))
-			.def("get_shape", &CDistribution::getShape)
-			.def("get_scale", &CDistribution::getScale)
-			.def("get_location", &CDistribution::getLocation)
-			.def("gen_uniform", &CDistribution::GenerateUniform)
-			.def("gen_normal", py::overload_cast<>(&CDistribution::GenerateNormal))
-			.def("gen_normal", py::overload_cast<double,double>(&CDistribution::GenerateNormal), py::arg("mean"), py::arg("stdev"))
-			.def("gen_multimodalnormal", &CDistribution::GenerateMultiModalNormal, py::arg("mmn"))
-			.def("gen_exponential", &CDistribution::GenerateExponential)
-			.def("gen_lognormal", &CDistribution::GenerateLogNormal)
-			.def("gen_gamma", &CDistribution::GenerateGamma)
-			.def("gen_gumbel", &CDistribution::GenerateGumbel)
-			.def("gen_poisson", &CDistribution::GeneratePoisson)
-			.def("gen_gev", &CDistribution::GenerateGEV)
-			.def("gen_triangular", py::overload_cast<>(&CDistribution::GenerateTriangular))
-			.def("gen_triangular", py::overload_cast<double,double>(&CDistribution::GenerateTriangular), py::arg("loc"), py::arg("w"));
+			.def(py::init<double, double, double>(),
+				"Construct with explicit location (loc), scale (scale) and shape "
+				"(shape) parameters. shape is only used by gen_gev.",
+				py::arg("loc"), py::arg("scale"), py::arg("shape"))
+			.def("set_shape", &CDistribution::setShape,
+				"Set the shape parameter (used by gen_gev).", py::arg("shape"))
+			.def("set_scale", &CDistribution::setScale,
+				"Set the scale parameter.", py::arg("scale"))
+			.def("set_location", &CDistribution::setLocation,
+				"Set the location parameter.", py::arg("loc"))
+			.def("get_shape", &CDistribution::getShape, "Get the shape parameter.")
+			.def("get_scale", &CDistribution::getScale, "Get the scale parameter.")
+			.def("get_location", &CDistribution::getLocation, "Get the location parameter.")
+			.def("gen_uniform", &CDistribution::GenerateUniform,
+				"Draw one uniform sample from [0, 1). Ignores location/scale/shape.")
+			.def("gen_normal", py::overload_cast<>(&CDistribution::GenerateNormal),
+				"Draw one normal sample with mean = location and standard deviation = scale.")
+			.def("gen_normal", py::overload_cast<double,double>(&CDistribution::GenerateNormal),
+				"Draw one normal sample with the given mean (mean) and standard "
+				"deviation (stdev).",
+				py::arg("mean"), py::arg("stdev"))
+			.def("gen_multimodalnormal", &CDistribution::GenerateMultiModalNormal,
+				R"(
+				Draw one sample from a multi-modal normal mixture: pick a mode
+				weighted by its weight, then draw from that mode's normal. Uses the
+				mixture's own parameters, not this object's location/scale/shape.
+
+				Parameters
+				----------
+				mmn : MultiModalNormal
+					The mixture to sample from.
+				)",
+				py::arg("mmn"))
+			.def("gen_exponential", &CDistribution::GenerateExponential,
+				"Draw one exponential sample shifted by location, with scale = scale "
+				"(the mean of the exponential part equals scale).")
+			.def("gen_lognormal", &CDistribution::GenerateLogNormal,
+				"Draw one lognormal sample whose underlying normal (in log space) has "
+				"mean = location and standard deviation = scale.")
+			.def("gen_gamma", &CDistribution::GenerateGamma,
+				"Draw one gamma sample parameterised by location and scale.")
+			.def("gen_gumbel", &CDistribution::GenerateGumbel,
+				"Draw one Gumbel (extreme-value type I) sample with mode = location "
+				"and dispersion controlled by scale.")
+			.def("gen_poisson", &CDistribution::GeneratePoisson,
+				"Draw one (normal-approximated) Poisson sample with mean = location "
+				"and variance = scale.")
+			.def("gen_gev", &CDistribution::GenerateGEV,
+				"Draw one Generalised Extreme Value sample using location, scale and shape.")
+			.def("gen_triangular", py::overload_cast<>(&CDistribution::GenerateTriangular),
+				"Draw one symmetric triangular sample centred at location with "
+				"half-width = scale.")
+			.def("gen_triangular", py::overload_cast<double,double>(&CDistribution::GenerateTriangular),
+				"Draw one symmetric triangular sample centred at loc with half-width w.",
+				py::arg("loc"), py::arg("w"));
 };
 

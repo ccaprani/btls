@@ -1,165 +1,166 @@
-Parallelisation Guide
-=====================
+Parallel Simulation Guide
+=========================
 
-PyBTLS simulations of long return periods (e.g. 100 years × 250 days =
-25 000 simulated days) can be parallelised across CPU cores by chunking
-the timeline into independent day-ranges and running each chunk as a
-separate process.  On a 30-core workstation this gives a near-linear
-speedup — a run that takes 8 hours single-threaded drops to ~16 minutes.
+Long simulations (e.g. a 100-year return period) can be split into
+independent day-chunks that run in parallel across CPU cores. PyBTLS
+does the splitting, seeding and result merging for you: pass
+``no_chunk`` to :meth:`Simulation.add_sim` and read the merged result
+as if it were a single run. On a 30-core workstation a simulation that
+takes ~10 hours single-threaded completes in ~20 minutes.
 
-Prerequisites
--------------
-
-The ``seed()`` API must be available (see PR #104 / the ``seed-api``
-branch).  Once merged, call it as:
+Quick start
+-----------
 
 .. code-block:: python
 
-   import pybtls
-   pybtls.lib.libbtls.seed(42)   # deterministic from here on
+   from pybtls import Simulation
 
+   sim = Simulation(output_dir="./out_100yr")
+   sim.add_sim(
+       bridge=bridge,
+       traffic=traffic_gen,          # a TrafficGenerator
+       no_day=25000,                 # e.g. 100 years x 250 days
+       output_config=output_config,
+       time_step=0.1,
+       seed=42,                      # master seed (optional)
+       no_chunk=25,                  # split into 25 chunks of 1000 days
+       tag="100yr",
+   )
+   sim.run(no_core=25)
 
-Why day-level parallelism works
--------------------------------
+   out = sim.get_output()["100yr"]   # one merged result
+   out.read_data("BM_summary")       # same shape as a sequential run
 
-The traffic flow model resets on hourly blocks
-(``FlowGenerator.cpp:updateBlock`` uses ``time % 3600``), so every day
-boundary (multiple of 86 400 s) is a natural seam.  The only coupling
-between consecutive days is:
+Everything else - per-chunk seeding, output directories, and the merge
+of every output type - is automatic. The merged object mirrors the
+usual output-manager interface (``get_summary``, ``read_data``,
+``relocate``); per-chunk results remain on disk under
+``<tag>/chunk_000``, ``<tag>/chunk_001``, ... and can be inspected with
+``out.read_chunk_data(key)`` or ``out.chunks``.
 
-* **Vehicles mid-bridge at midnight** — a truck crossing a 50 m bridge
-  at 80 km/h is on it for ~2.3 s.  This is handled by the *warmup
-  buffer* described below.
-* **Event-manager state** (running block-max, POT counters) — these are
-  accumulated per-chunk and merged post-hoc.
+Chunked simulations coexist freely with ordinary ones: you can add
+several chunked and unchunked simulations to the same ``Simulation``
+and they share one process pool.
 
-Neither of these requires the chunks to run in sequence.
+The ``__main__`` guard
+----------------------
 
-
-Recipe
-------
-
-The ``seed`` parameter on ``Simulation.add_sim()`` does the heavy
-lifting.  Add one sim per chunk, each with its own seed, then call
-``run()`` with the desired core count:
+Workers are started with the ``spawn`` start method, which re-imports
+the main module in every child process. The set-up and the ``run()``
+call must therefore live inside a function that is called from a guard:
 
 .. code-block:: python
 
-   from pybtls import Simulation, Bridge, TrafficGenerator, OutputConfig
-
-   MASTER_SEED    = 12345
-   TOTAL_DAYS     = 25000     # e.g. 100 years × 250 days
-   N_CHUNKS       = 30        # match your core count
-   DAYS_PER_CHUNK = TOTAL_DAYS // N_CHUNKS
-
-   # Set up bridge, traffic, output config as usual
-   bridge  = Bridge(...)
-   traffic = TrafficGenerator(...)
-   output  = OutputConfig(...)
-
-   sim = Simulation(output_dir="./parallel_run")
-
-   for i in range(N_CHUNKS):
-       sim.add_sim(
-           bridge=bridge,
-           traffic=traffic,
-           no_day=DAYS_PER_CHUNK,
-           output_config=output,
-           seed=MASTER_SEED + i,      # unique deterministic stream
-           tag=f"chunk_{i:03d}",
-       )
-
-   sim.run(no_core=N_CHUNKS)          # maps across Pool workers
-
-   # Each chunk's output is in sim.get_output()["chunk_000"], etc.
-   # Merge POT / BlockMax / Stats post-hoc (see below).
-
-Because each chunk is seeded differently, the traffic in chunk 0 is
-statistically independent of chunk 1 — as if they were different
-stretches of a very long traffic stream.  The flow model's hourly
-pattern repeats identically in every chunk (same hour-of-day profile),
-so the merged result has the same distributional properties as a
-single sequential run.
+   def main():
+       sim = Simulation(output_dir="./out_100yr")
+       ...
+       sim.run(no_core=25)
 
 
-The warmup buffer
-^^^^^^^^^^^^^^^^^
+   if __name__ == "__main__":
+       main()
 
-Each chunk starts ``WARMUP_SECS`` before its target window.  During
-the warmup, vehicles enter the bridge and the event manager begins
-tracking — but the results from the warmup period are discarded before
-returning.  This ensures that at the chunk boundary the bridge is
-realistically populated rather than empty.
+Without the guard each child re-executes the module body, tries to
+start a pool of its own and dies during bootstrap; the pool replaces
+every dead worker, so the script neither raises nor terminates - it
+just keeps spawning processes.
 
-``WARMUP_SECS`` only needs to exceed the maximum bridge crossing time.
-For a 100 m bridge at 60 km/h that is ~6 s; a conservative 60 s
-covers any realistic span.  The cost is negligible — 60 s of warmup
-per 250-day chunk is 0.0003 % overhead.
+Why day-chunking is statistically valid
+---------------------------------------
 
+The traffic flow model is periodic over one day (hourly blocks,
+``FlowGenerator``); there is no weekly or seasonal pattern. Each chunk
+runs with an independent, deterministic RNG stream derived by mixing
+``(master_seed, chunk_index)``, so the chunks behave like different
+stretches of one long traffic history. The merged outputs are therefore
+*statistically equivalent* to a sequential run - they are not the same
+random realisation a particular sequential seed would have produced.
+
+The only physical seam is the empty bridge at each chunk start: a
+crossing event that would have straddled the boundary is split. At one
+boundary per several hundred simulated days this bias is negligible
+(well below the Monte Carlo noise).
+
+What "merged exactly" means per output
+--------------------------------------
+
+PyBTLS validates this with a *split-replay* test: a recorded traffic
+stream is replayed once continuously and once as two chunks; the merged
+chunk outputs must equal the continuous outputs. The merge rules are:
+
+* **Block maxima, POT, events, time history, fatigue events** -
+  concatenated with time/index continuation. Exact.
+* **Interval statistics (SS_S)** - intervals are self-contained;
+  concatenated with index continuation. Exact.
+* **Cumulative statistics (SS_C)** - each chunk's statistics are
+  inverted back to raw moment sums and combined with the parallel
+  (Chan) formulas - the exact counterpart of the C++ accumulator. The
+  only error is the 0.01 text quantisation of the inputs.
+* **Fatigue rainflow** - chunk runs keep their unclosed residual
+  reversals (``FRR_*`` sidecar files) instead of closing them; the
+  merge concatenates the residual sequences in order and closes them
+  with the same C++ algorithm (residue splicing). Exact.
+* **Flow statistics / vehicle files** - concatenated with hour /
+  calendar continuation. Exact.
+
+Chunk-size validation
+---------------------
+
+For the merged indices to align, the chunk length must be a whole
+number of days that is also a multiple of the configured block-maximum
+block size, the POT counter block size, and the statistics interval.
+:meth:`Simulation.add_sim` validates this and raises ``ValueError``
+with a specific message if a setting is incompatible - adjust
+``no_chunk`` (or the block sizes) accordingly. With the default
+day-based blocks and the default 3600 s interval, any whole-day chunk
+length is valid.
+
+Chunking requires a :class:`TrafficGenerator` (recorded traffic cannot
+be re-seeded) and ``no_day`` divisible by ``no_chunk``.
 
 Reproducibility
-^^^^^^^^^^^^^^^
+---------------
 
-+-----------------------------------------+------------------+
-| Scenario                                | Reproducible?    |
-+=========================================+==================+
-| Single run, no ``seed()``               | No (same as      |
-|                                         | today)           |
-+-----------------------------------------+------------------+
-| Single run, ``seed(42)``                | Yes              |
-+-----------------------------------------+------------------+
-| Parallel, no ``seed()``                 | No (each worker  |
-|                                         | auto-seeds from  |
-|                                         | ``random_device``|
-|                                         | — different but  |
-|                                         | independent)     |
-+-----------------------------------------+------------------+
-| Parallel, ``seed(master + chunk_id)``   | Yes              |
-+-----------------------------------------+------------------+
++--------------------------------------------+----------------------+
+| Scenario                                   | Reproducible?        |
++============================================+======================+
+| ``seed=None`` (default)                    | No - a random master |
+|                                            | seed is drawn; read  |
+|                                            | it back from         |
+|                                            | ``out.master_seed``  |
++--------------------------------------------+----------------------+
+| ``seed=42, no_chunk=N``                    | Yes - chunk i is     |
+|                                            | seeded from (42, i)  |
++--------------------------------------------+----------------------+
+| Same seed, different ``no_chunk``          | No - different chunk |
+|                                            | boundaries and seeds |
++--------------------------------------------+----------------------+
 
-If ``seed()`` is never called, every spawned worker process loads
-``libbtls`` fresh, which triggers ``std::random_device`` to seed the
-Mersenne Twister independently.  The result is non-reproducible but
-statistically valid — exactly the same behaviour as a single unseeded
-run, just faster.
+A chunked run is a different statistical realisation, not a
+reproduction of the serial run with the same seed: chunk *i* is seeded
+from ``(master_seed, i)`` and starts with an empty bridge. The mixing
+means two runs whose master seeds are close (a ``seed=100+k`` replicate
+study, say) do not silently share chunk streams. Reproducible here
+means that repeating the *same* chunked configuration gives the same
+numbers, not that the numbers match ``no_chunk=None``.
 
+Performance expectations
+------------------------
 
-Merging results
-^^^^^^^^^^^^^^^
+Day-chunking is embarrassingly parallel; the only overheads are the
+process spawn (~0.5 s per worker, one-off) and the merge (sub-second).
+Measured on a 32-core workstation (2 lanes, 500 trucks/h/lane, 0.1 s
+step, BM+POT+Stats+rainflow outputs):
 
-After the parallel run, each chunk returns its own:
+==========  ===========  ================  ========
+Days        single core  8 chunks/8 cores  speedup
+==========  ===========  ================  ========
+16          2.5 s        0.8 s             3.1x
+96          15.0 s       2.1 s             7.1x
+==========  ===========  ================  ========
 
-* **POT events** — concatenate the per-chunk event lists.  Threshold
-  comparisons were already applied within each chunk; no re-filtering
-  needed.
-* **Block maxima** — if a block boundary falls inside a chunk, that
-  chunk's block-max is final.  If the block spans two chunks (unlikely
-  when chunks are ≥ 1 day and blocks are also ≥ 1 day), take the
-  per-load-effect maximum across the two partial blocks.
-* **Running statistics** — online-moment accumulators (mean, M2, M3,
-  M4) can be combined across chunks using the parallel version of
-  Welford's algorithm.  See the ``CEventStatistics`` accumulator in
-  the C++ API docs.
-* **Fatigue rainflow** — the cycle-range histograms are additive:
-  sum the cycle counts for each range bin across chunks.
+The shortfall from 8x is the fixed spawn cost; for real workloads
+(minutes to hours per chunk) the speedup approaches the core count.
 
-
-Scaling expectations
-^^^^^^^^^^^^^^^^^^^^
-
-Day-level parallelism is embarrassingly parallel (no synchronisation,
-no shared memory).  The overhead per worker is:
-
-* Process spawn: ~0.5 s (one-time, amortised over hours of work)
-* Warmup: ~60 s of extra simulation per chunk
-* Merge: sub-second for concatenation + max
-
-Expected speedup on *N* cores:
-
-.. math::
-
-   \text{speedup} \approx N \times \frac{T_\text{chunk}}{T_\text{chunk} + T_\text{warmup}}
-
-For a 250-day chunk, ``T_chunk`` is minutes to hours and
-``T_warmup`` is ~60 s — the fraction is effectively 1.  So 30 cores
-→ ~30× speedup.
+Choose ``no_chunk`` roughly equal to the cores you will give
+``run(no_core=...)``; more chunks than cores also works (they queue).

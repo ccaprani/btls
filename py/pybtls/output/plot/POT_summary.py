@@ -9,13 +9,21 @@ def plot_POT_S(data: pd.DataFrame, threshold: float, save_to: Path = None) -> No
     """
     Plot the POT summary data from pybtls results.
 
+    Only peaks with "Peak Value" >= threshold are plotted, as vertical
+    lines from threshold up to the peak value against the peak index.
+
     Parameters
     ----------
     data : pd.DataFrame\n
-        The loaded POT summary from read_POT_S.
+        The loaded POT summary from read_POT_S. Must have columns
+        "Peak Index" and "Peak Value".
 
     threshold : float\n
-        The POT threshold value.
+        The POT threshold value, compared directly against "Peak Value".
+        Must be in the same native unit (kN or kN·m) as "Peak Value",
+        which is not known to this function and not labelled on the
+        y-axis. If no peaks meet the threshold, the plot is produced
+        with empty axes rather than raising an error.
 
     save_to : Path, optional\n
         The path to save the plot to. \n

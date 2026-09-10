@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include "VehicleBuffer.h"
+#include "ConsoleOutput.h"
+#include "FilePath.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -17,6 +19,7 @@ CVehicleBuffer::CVehicleBuffer(CConfigDataCore& config, CVehicleClassification_s
 	WRITE_VEHICLE_BUFFER_SIZE	= config.Output.VehicleFile.WRITE_VEHICLE_BUFFER_SIZE;
 	WRITE_FLOW_STATS			= config.Output.VehicleFile.WRITE_FLOW_STATS;
 
+	m_OutputDir = config.Output.OUTPUT_DIR;
 	NO_LANES_DIR1	= config.Road.NO_LANES_DIR1;
 	NO_LANES_DIR2	= config.Road.NO_LANES_DIR2;
 
@@ -35,7 +38,7 @@ CVehicleBuffer::CVehicleBuffer(CConfigDataCore& config, CVehicleClassification_s
 	
 	if(WRITE_VEHICLE_FILE)
 	{
-		m_OutFileVeh.open(VEHICLE_FILENAME.c_str(), std::ios::out);
+		m_OutFileVeh.open(btls::outPath(m_OutputDir, VEHICLE_FILENAME).c_str(), std::ios::out);
 		m_vVehicles.reserve(WRITE_VEHICLE_BUFFER_SIZE);	
 	}
 }
@@ -70,6 +73,18 @@ void CVehicleBuffer::AddVehicle(const CVehicle_sp& pVeh)
 		FlushBuffer();
 }
 
+void CVehicleBuffer::FlushBuffer(double simEndTime)
+{
+	if (WRITE_FLOW_STATS)
+	{
+		// fill any silent trailing hours up to the simulated end time
+		double endRelTime = simEndTime - m_FirstHour*3600.0;
+		while (endRelTime > m_CurHour*3600.0)
+			flushFlowData();
+	}
+	FlushBuffer();
+}
+
 void CVehicleBuffer::FlushBuffer()
 {
 	if(WRITE_VEHICLE_FILE)
@@ -77,9 +92,12 @@ void CVehicleBuffer::FlushBuffer()
 		size_t nVehs = m_vVehicles.size();
 		if(nVehs > 0)
 		{
-			CVehicle_up& pVeh = m_vVehicles.at(nVehs-1);
-			std::cout << std::endl  << "Flushing buffer of " 
-				<< nVehs << " vehicles at " << pVeh->getTimeStr() <<  std::endl;
+			if (btls::console_output)
+			{
+				CVehicle_up& pVeh = m_vVehicles.at(nVehs-1);
+				std::cout << std::endl  << "Flushing buffer of "
+					<< nVehs << " vehicles at " << pVeh->getTimeStr() <<  std::endl;
+			}
 			
 			for (size_t i = 0; i < nVehs; i++)
 				m_OutFileVeh << m_vVehicles.at(i)->Write(FILE_FORMAT) << '\n';
@@ -106,7 +124,7 @@ void CVehicleBuffer::updateFlowData(const CVehicle_sp& pV)
 		return;
 
 	double curRelTime = pV->getTime() - m_FirstHour*3600.0;
-	if (curRelTime > m_CurHour*3600.0)
+	while (curRelTime > m_CurHour*3600.0)	// while, not if: fill in any silent hours
 		flushFlowData();
 	
 	// get ref to data
@@ -141,7 +159,7 @@ void CVehicleBuffer::writeFlowData()
 	{
 		int dir = iLane < NO_LANES_DIR1 ? 1 : 2;
 
-		std::string file = ("FlowData_" + to_string(dir) + "_" + to_string(iLane+1) + ".txt");
+		std::string file = btls::outPath(m_OutputDir, "FlowData_" + to_string(dir) + "_" + to_string(iLane+1) + ".txt");
 		m_OutFileFlow.open(file.c_str(), std::ios::out);
 
 		std::ostringstream oStr;

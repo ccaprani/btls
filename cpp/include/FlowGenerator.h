@@ -28,8 +28,10 @@
  * - **Minimum gap**: @c m_MinGap enforces a physically realistic
  *   spacing between vehicles, set in setMinGap() from the previous
  *   and next vehicle velocities and lengths.
- * - **Bridge length**: @c m_MaxBridgeLength lets the generator reason
- *   about multi-vehicle interactions on long spans.
+ * - **No-overlap length**: @c m_MaxBridgeLength is the road length over
+ *   which a faster following vehicle must not catch the vehicle ahead
+ *   (normally the bridge length); see that member for why it is named
+ *   after the bridge.
  *
  * Concrete subclasses implement GenerateGap() and GenerateSpeed()
  * corresponding to different headway models:
@@ -84,8 +86,9 @@ public:
 	virtual void prepareNextGen(double time, CVehicle_sp pPrevVeh, CVehicle_sp pNextVeh);
 
 	/**
-	 * @brief Record the maximum bridge length for minimum-gap reasoning.
-	 * @param[in] length Bridge length in metres.
+	 * @brief Set the no-overlap length used by setMinGap().
+	 * @param[in] length Bridge length in metres (the longest bridge when
+	 *                   several bridges share one traffic stream).
 	 */
 	void setMaxBridgeLength(double length);
 
@@ -102,7 +105,8 @@ protected:
 	/// @brief Refresh block-dependent parameters at a block transition.
 	virtual void updateProperties();
 
-	/// @brief Sample from an exponential distribution with the current truck-flow rate.
+	/// @brief Sample from an exponential distribution with the current arrival rate
+	///        (the truck flow for a truck-only model, otherwise the total flow).
 	double genExponential();
 
 	CFlowModelData_sp m_pFlowModelData;  ///< Flow model parameters (by block and lane).
@@ -111,17 +115,43 @@ protected:
 	CVehicle_sp m_pNextVeh;              ///< Next vehicle to be emitted.
 
 	double m_MinGap;                     ///< Minimum physical gap in seconds (car-following constraint).
+	double m_CurTime;                    ///< Absolute time of the last arrival (set by prepareNextGen).
 	double m_TotalFlow;                  ///< Total vehicle flow for the current block (veh/h).
 	double m_TruckFlow;                  ///< Truck flow for the current block (truck/h).
 	size_t m_CurBlock;                   ///< Current block index — i.e. which hour of day.
 	size_t m_BlockSize;                  ///< Block size in seconds (typically 3600).
 	size_t m_BlockCount;                 ///< Number of blocks in one cycle (typically 24).
 
-	double m_MaxBridgeLength;            ///< Maximum bridge length in metres (used for multi-vehicle spacing).
+	/**
+	 * @brief No-overlap length in metres: the road length over which a faster
+	 *        following vehicle must not catch up with the vehicle ahead
+	 *        (see setMinGap()). Overlap only matters while both vehicles are
+	 *        on the deck, so this is the bridge length.
+	 *
+	 * The name comes from the standalone BTLS binary, which runs one traffic
+	 * stream past every bridge in the bridge file and must therefore honour
+	 * the longest of them: CPrepareSim sets Gen.NO_OVERLAP_LENGTH from
+	 * CBridgeFile::getMaxBridgeLength(), and that config value is the initial
+	 * value here (via CFlowModelData::getGapLimits()). PyBTLS simulates one
+	 * bridge per run and overrides it per lane through setMaxBridgeLength()
+	 * with bridge.length, or with add_sim's overlap_avoid_distance when no
+	 * bridge is given.
+	 */
+	double m_MaxBridgeLength;
 	double m_BufferGapSpace;             ///< Additional safety gap in metres.
 	double m_BufferGapTime;              ///< Additional safety gap in seconds.
 
 private:
+	/**
+	 * @brief Skip blocks with zero total flow.
+	 *
+	 * A block with zero flow has no arrivals: advance to the start of the
+	 * next block with flow and return the dead time to add to the gap.
+	 * Without this, an infinite exponential gap (mean 3600/0) permanently
+	 * silenced the lane for the rest of the simulation.
+	 */
+	double skipZeroFlowBlocks();
+
 	/// @brief Advance @c m_CurBlock when @p time crosses a block boundary.
 	void updateBlock(double time);
 
@@ -162,6 +192,7 @@ private:
 	CFlowModelDataHeDS_sp m_pFMD;  ///< HeDS model data.
 	matrix m_vHeDS;                ///< Per-flow-rate headway cumulative distribution table.
 	Normal m_Speed;                ///< Normal distribution from which speeds are drawn.
+	bool m_bFlowRangeWarned;       ///< True once the above-range flow warning has been issued.
 };
 typedef std::shared_ptr<CFlowGenHeDS> CFlowGenHeDS_sp;  ///< Shared-pointer alias for CFlowGenHeDS.
 
@@ -200,7 +231,7 @@ typedef std::shared_ptr<CFlowGenCongested> CFlowGenCongested_sp;  ///< Shared-po
  *
  * Models free-flow traffic as a Poisson process: inter-vehicle gaps
  * are drawn from an exponential distribution whose rate is set by the
- * current truck-flow rate. Speeds come from a normal distribution.
+ * current total flow rate. Speeds come from a normal distribution.
  * This is the classical assumption for light traffic.
  *
  * @see CFlowGenerator

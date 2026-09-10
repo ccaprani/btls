@@ -3,12 +3,7 @@
  * @brief Interface for the CEventManager class — records load-effect events for one bridge.
  */
 
-#if !defined(AFX_EVENTMANAGER_H__3ED9F26C_A94D_4EA8_A87C_4DB2819160E5__INCLUDED_)
-#define AFX_EVENTMANAGER_H__3ED9F26C_A94D_4EA8_A87C_4DB2819160E5__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include <vector>
 #include <string>
@@ -97,6 +92,9 @@ public:
 	 */
 	void Finish();
 
+	/// @brief Finish, filling silent trailing blocks up to the simulated end time.
+	void Finish(double simEndTime);
+
 	/**
 	 * @brief Update the running maxima for the current event.
 	 *
@@ -159,6 +157,7 @@ private:
 	int					m_CurBlockNo;        ///< Zero-based index of the current time block.
 	double				m_CurTime;           ///< Most recent simulation time passed to UpdateEffects().
 	double				m_BridgeLength;      ///< Bridge length in metres (copied from Initialize).
+	std::string			m_OutputDir;         ///< Directory output files are written into ("" = cwd).
 	size_t				m_NoLoadEffects;     ///< Number of load effects tracked.
 
 	/// @brief Update @ref m_CurEvent with the per-timestep maxima computed in UpdateEffects().
@@ -183,4 +182,3 @@ private:
 	template <typename T> std::string to_string(T const& value, int nDigits);
 };
 
-#endif // !defined(AFX_EVENTMANAGER_H__3ED9F26C_A94D_4EA8_A87C_4DB2819160E5__INCLUDED_)

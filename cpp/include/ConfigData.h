@@ -66,7 +66,7 @@ public:
 		double TRUCK_TRACK_WIDTH;      ///< Default truck track width in mm (input unit, not metres).
 		double LANE_ECCENTRICITY_STD;  ///< Standard deviation of lane-eccentricity random perturbation.
 		int KERNEL_TYPE;               ///< Kernel type for garage/nominal models (EKernelType enum).
-		double NO_OVERLAP_LENGTH;      ///< Reference length for multi-vehicle no-overlap reasoning.
+		double NO_OVERLAP_LENGTH;      ///< No-overlap length in metres (see CFlowGenerator::m_MaxBridgeLength); PrepareBridges() raises it to the longest bridge.
 	} Gen = {"../Traffic/Auxerre/", false, 1, 190.0, 0.0, 0, 100.0};
 
 	/// @brief Traffic-reading settings (replay mode only).
@@ -167,14 +167,18 @@ public:
 			int RAINFLOW_DECIMAL;           ///< Decimal precision for rainflow binning.
 			double RAINFLOW_CUTOFF;         ///< Amplitude cut-off below which cycles are ignored.
 			size_t WRITE_FATIGUE_BUFFER_SIZE;  ///< Buffer size for rainflow events.
+			bool WRITE_RAINFLOW_RESIDUALS;  ///< Chunk mode: write residual reversals at finish instead of closing them.
 		} Fatigue;
+
+		std::string OUTPUT_DIR;             ///< Directory all output files are written into ("" = current working directory).
 
 	} Output = {false, false, 10000, false,
 				{false, 4, "output_traffic.txt", 10000, false},	// VehicleFile_Config
 				{false, false, false, false, 1, 0, 10000},		// BlockMax_Config
 				{false, false, false, false, 1, 0, 10000},		// POT_Config
 				{false, false, false, 3600, 10000},				// Stats_Config
-				{false, 3, 0.0, 10000}};						// Fatigue_Config
+				{false, 3, 0.0, 10000, false},					// Fatigue_Config
+				""};											// OUTPUT_DIR
 
 	/// @brief Time-unit constants used throughout the simulation.
 	struct Time_Config

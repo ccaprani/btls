@@ -46,7 +46,10 @@ public:
 	 *
 	 * @param[in] Ev Completed event.
 	 */
-	virtual void Update(CEvent Ev);
+	virtual void Update(CEvent& Ev);
+
+	/// @brief Finish, filling silent trailing blocks up to the simulated end time.
+	void FinishAt(double simEndTime);
 
 	/**
 	 * @brief Initialize bucket storage and output files.
@@ -76,8 +79,15 @@ private:
 	/// @brief Grow the vehicle-count bucket list to accommodate larger events.
 	void	AddExtraEvents();
 
+	/**
+	 * @brief Fold a block that was opened past the end of the simulated window
+	 *        back into the last completed block.
+	 * @return False if that block has already been flushed to disk.
+	 */
+	bool	FoldBackBlock();
+
 	/// @brief Update the mixed-events stream with @p Ev.
-	void	UpdateMixedEvents(CEvent Ev);
+	void	UpdateMixedEvents(CEvent& Ev);
 
 	CBlockMaxEvent				m_BlockMaxEvent;   ///< Running block max indexed by vehicle count.
 	CEvent						m_BMMixedEvent;    ///< Running block max across all vehicle counts (mixed stream).

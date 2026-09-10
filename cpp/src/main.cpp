@@ -2,33 +2,23 @@
 // the main file for the BridgeTrafficLoadSim Build
 
 #include "PrepareSim.h"
-
-#ifdef WIN_DEBUG
-// for tracking memory leaks
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-
-#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#define new DEBUG_NEW
-#endif
+#include <exception>
+#include <iostream>
 
 
 int main()
 {
-	#ifdef WIN_DEBUG
-	// For debugging memory leaks to the std::cout, but only after
-	// all other execution has finished, otherwise false reports of
-	// leaks occur (e.g. std::string)
-	// https://stackoverflow.com/questions/4748391/string-causes-a-memory-leak
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
-	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
-	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
-	_CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDOUT);
-	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
-	_CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDOUT);
-	#endif
-
-	run("BTLSin.txt");
-	return 1;
+	// The engine reports unrecoverable input errors by throwing, so that the
+	// Python bindings can surface them as exceptions. The standalone binary
+	// has to turn them back into a message and a non-zero exit status;
+	// letting them escape main() would abort through std::terminate.
+	try
+	{
+		return run("BTLSin.txt");
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "*** ERROR: " << e.what() << std::endl;
+		return 1;
+	}
 }

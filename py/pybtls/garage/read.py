@@ -11,11 +11,14 @@ from ..lib.BTLS import (
 from pathlib import Path
 from typing import Literal
 
+from .._resource import warn_if_file_too_large
+from .._kwargs import reject_unknown_kwargs
+
 __all__ = ["read_garage_file"]
 
 
 def read_garage_file(
-    garage_path: Path, garage_format: Literal[1, 2, 3, 4], **kwargs
+    garage_path: Path, garage_format: Literal[1, 2, 3, 4, 5], **kwargs
 ) -> list[Vehicle]:
     """
     Read a .txt garage file.
@@ -25,12 +28,13 @@ def read_garage_file(
     garage_path : Path \n
         The path of the garage file.
 
-    garage_format : Literal[1,2,3,4] \n
-        The format of the .txt garage file. \n
+    garage_format : Literal[1,2,3,4,5] \n
+        The format of the garage/traffic file. \n
         1: CASTOR format. \n
         2: BEDIT format. \n
         3: DITIS format. \n
-        4: MON format.
+        4: MON format. \n
+        5: SiWIM CSV format.
 
     Keyword Arguments
     -----------------
@@ -44,6 +48,8 @@ def read_garage_file(
         A list of Vehicle objects.
     """
 
+    reject_unknown_kwargs("read_garage_file", kwargs, ("vehicle_class_type",))
+
     if kwargs.get("vehicle_class_type") == "axle":
         vehicle_classification = _VehClassAxle()
     else:
@@ -53,6 +59,7 @@ def read_garage_file(
         Path(garage_path) if not isinstance(garage_path, Path) else garage_path
     )
 
+    warn_if_file_too_large(garage_path, "garage file")
     garage_txt = _VehicleTrafficFile(vehicle_classification, False, False, 80.0)
     garage_txt.read(garage_path, garage_format)
     vehicle_list = garage_txt.getVehicles()

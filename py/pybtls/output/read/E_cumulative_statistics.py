@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 
+from ._empty import read_csv_or_empty
+
 __all__ = ["read_E_CS"]
 
 
@@ -17,32 +19,51 @@ def read_E_CS(file_path: Path) -> pd.DataFrame:
     Returns
     -------
     pd.DataFrame\n
-        The effect cumulative statistics data.
+        One row per load effect, with columns:\n
+        - "Effect" : int, the 1-based load effect number.\n
+        - "No. Events" : int, the number of events counted.\n
+        - "No. Vehicles" : int, the total number of vehicles across all
+          events, including cars.\n
+        - "No. Trucks" : int, the total number of trucks across all
+          events, excluding cars (unlike the "No. Vehicles"/"No. Trucks"
+          columns in the event-file family, which both count all
+          vehicles).\n
+        - "Min", "Max", "Mean", "Std Dev" : float, in the effect's native
+          unit (kN or kN·m).\n
+        - "Variance", "Skewness", "Kurtosis" : float, dimensionless.\n
+        Returns an empty DataFrame with this schema if the file has no
+        data rows.
     """
 
-    # Read data
-    return_data = pd.read_csv(
-        file_path,
-        delimiter="\s+",
-        header=None,
-        skiprows=1,
-    )
-
-    # Remove the truck presence counts (it could mislead user to a wrong number of trucks presence since a truck could be involved in multiple events).
-    return_data = return_data.drop(return_data.columns[9:], axis=1)
-
-    # Set the column names
-    return_data.columns = [
+    column_ids = [
         "Effect",
         "No. Events",
         "No. Vehicles",
         "No. Trucks",
+        "Min",
+        "Max",
         "Mean",
         "Std Dev",
         "Variance",
         "Skewness",
         "Kurtosis",
     ]
+
+    # Read data
+    return_data = read_csv_or_empty(
+        file_path,
+        column_ids,
+        delimiter="\s+",
+        header=None,
+        skiprows=1,
+    )
+
+    # Remove the truck presence counts (it could mislead user to a wrong number of trucks presence since a truck could be involved in multiple events).
+    return_data = return_data.drop(return_data.columns[11:], axis=1)
+
+    # Set the column names (must match CEventStatistics::outputString order:
+    # N, vehicles, trucks, min, max, mean, stddev, variance, skewness, kurtosis)
+    return_data.columns = column_ids
 
     return return_data
 

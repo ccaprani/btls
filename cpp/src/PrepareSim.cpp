@@ -1,12 +1,15 @@
 #include "PrepareSim.h"
 
+#define STRINGIFY(x) #x
+#define MACRO_STRINGIFY(x) STRINGIFY(x)
 
-void preamble() 
+
+void preamble()
 {
 	std::cout << "---------------------------------------------" << std::endl;
 	std::cout << "This is based on the work from:			   " << std::endl;
 	std::cout << "Bridge Traffic Load Simulation - C.C. Caprani" << std::endl;
-	std::cout << "                Version 2.0.0			       " << std::endl;
+	std::cout << "                Version " << MACRO_STRINGIFY(VERSION_INFO) << std::endl;
 	std::cout << "---------------------------------------------" << std::endl << std::endl;
 };
 
@@ -18,7 +21,11 @@ std::vector<CBridge_sp> PrepareBridges()
 		readIL.getInfLines(CConfigData::get().Sim.INFSURF_FILE,1));	// Influence Surfaces
 
 	std::vector<CBridge_sp> vpBridges = BridgeFile.getBridges();
-	CConfigData::get().Gen.NO_OVERLAP_LENGTH = BridgeFile.getMaxBridgeLength();
+	// The no-overlap length must cover the longest bridge. With no bridges at
+	// all, getMaxBridgeLength() is 0 m, which would disable the overlap check;
+	// keep the configured default instead.
+	if (!vpBridges.empty())
+		CConfigData::get().Gen.NO_OVERLAP_LENGTH = BridgeFile.getMaxBridgeLength();
 
 	for(unsigned int i = 0; i < vpBridges.size(); i++)
 		vpBridges.at(i)->setCalcTimeStep( CConfigData::get().Sim.CALC_TIME_STEP );
@@ -152,13 +159,13 @@ void doSimulation(CVehicleClassification_sp pVC, std::vector<CBridge_sp> vBridge
 	if(CConfigData::get().Sim.CALC_LOAD_EFFECTS)
 	{
 		for(unsigned int i = 0; i < vBridges.size(); i++)
-			vBridges[i]->Finish();
+			vBridges[i]->Finish(SimEndTime);
 	}
 
-	VehBuff.FlushBuffer();
+	VehBuff.FlushBuffer(SimEndTime);
 }
 
-void run(std::string inFile) 
+int run(std::string inFile)
 {
 	preamble();
 
@@ -166,8 +173,8 @@ void run(std::string inFile)
 
 	if (!CConfigData::get().ReadData(inFile) )
 	{
-		std::cout << "BTLSin file could not be opened" << std::endl;
-		std::cout << "Using default values" << std::endl;
+		std::cerr << "***ERROR: BTLSin file could not be opened: " << inFile << std::endl;
+		return 1;
 	}
 
 	std::cout << "Program Mode: " << CConfigData::get().Mode.PROGRAM_MODE << std::endl;
@@ -206,8 +213,8 @@ void run(std::string inFile)
 	std::cout << std::endl << "Simulation complete" << std::endl;
 
 	clock_t end = clock();
-	std::cout << std::endl << "Duration of analysis: " << std::fixed << std::setprecision(3) 
+	std::cout << std::endl << "Duration of analysis: " << std::fixed << std::setprecision(3)
 		<< ((double)(end) - (double)(start))/((double)CLOCKS_PER_SEC) << " s" << std::endl;
 
-	system("PAUSE");
+	return 0;
 }

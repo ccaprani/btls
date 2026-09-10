@@ -7,19 +7,69 @@ from .lib.BTLS import Vehicle, _VehClassPattern, _VehClassAxle, _VehicleBuffer
 from .bridge import Bridge
 from .traffic import TrafficGenerator, TrafficLoader
 from .output import OutputConfig, _OutputManager
+from .output.chunked_manager import _ChunkedOutputManager
 from typing import Union
 from pathlib import Path
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import importlib.metadata as package_metadata
 import multiprocessing
+import numpy as np
 import os
+import pickle
+import random
+import shutil
 import sys
+import time
 import platform
+import warnings
+from ._kwargs import reject_unknown_kwargs
 
 __all__ = ["Simulation"]
 
 
+def _fmt_duration(seconds: float) -> str:
+    if seconds >= 3600:
+        return f"{int(seconds // 3600)}h{int(seconds % 3600 // 60):02d}m"
+    if seconds >= 60:
+        return f"{int(seconds // 60)}m{int(seconds % 60):02d}s"
+    return f"{seconds:.0f}s"
+
+
+def _make_sim_dir(sim_dir: Path, output_root: Path, overwrite: bool) -> None:
+    """
+    Create one simulation's output directory.
+
+    With ``overwrite=False`` an existing directory is an error: reusing a tag
+    would leave the previous run's files in place for ``_OutputManager`` to glob
+    back as this run's. With ``overwrite=True`` the directory is replaced.
+    """
+
+    if overwrite and sim_dir.is_dir():
+        # Only ever delete a directory strictly inside the output root, so a
+        # stray tag (an absolute path, or one containing "..") cannot turn
+        # overwrite=True into a recursive delete somewhere else.
+        if output_root.resolve() not in sim_dir.resolve().parents:
+            raise ValueError(
+                f"Refusing to overwrite {sim_dir}: it is not inside the "
+                f"simulation output directory {output_root}."
+            )
+        shutil.rmtree(sim_dir)
+
+    os.makedirs(sim_dir, exist_ok=False)
+
+
+def _derive_chunk_seed(master_seed: int, index: int) -> int:
+    """Mix (master_seed, index) into a chunk seed, so that runs with nearby
+    master seeds do not replay each other's traffic streams."""
+
+    seq = np.random.SeedSequence([master_seed, index])
+    return int(seq.generate_state(1, dtype=np.uint32)[0])
+
+
 class Simulation:
-    def __init__(self, output_dir: Path = Path("./")):
+    """Assembles bridges, traffic, and output settings into runnable simulations, optionally parallelised across cores."""
+
+    def __init__(self, output_dir: Path = Path("./"), overwrite: bool = False):
         """
         This is the class for setting and running simulations.
 
@@ -27,16 +77,26 @@ class Simulation:
         ----------
         output_dir : Path, optional\n
             The output directory for the simulation results. The default is "./".
+
+        overwrite : bool, optional\n
+            Whether to replace a simulation's output directory if one already
+            exists for that tag. The default is False, which raises
+            ``FileExistsError``: reusing a tag would otherwise leave the previous
+            run's files in place, and they would be read back as this run's
+            results. Pass True to re-run a script over its own output, as a
+            demo or notebook typically wants to.
         """
 
         try:
             multiprocessing.set_start_method("spawn")
-        except:
-            pass
+        except RuntimeError:
+            pass  # already set, by an earlier Simulation or another library
 
         self._sim_count = 0
         self._sim_argument = []
         self._sim_output = {}
+        self._chunk_groups = {}
+        self._overwrite = bool(overwrite)
         self._output_root = (
             Path(output_dir).resolve()
             if not isinstance(output_dir, Path)
@@ -56,6 +116,7 @@ class Simulation:
         active_lane: list[int] = None,
         tag: str = None,
         seed: int = None,
+        no_chunk: int = None,
         **kwargs,
     ) -> None:
         """
@@ -82,7 +143,9 @@ class Simulation:
             The minimum gross vehicle weight (in kN) to be considered in the load effect calculation for traffic simulation. A single-vehicle simulation will ignore this argument.
 
         vehicle : Vehicle, optional\n
-            The vehicle for a single-vehicle simulation.
+            The vehicle for a single-vehicle simulation. It drives at its own
+            velocity (1 m/s if the velocity was never set), which matters for
+            the speed-dependent "centrifugal" load effect mode.
 
         active_lane : list[int], optional\n
             The active bridge lanes during the simulation. The default is None, which means all lanes are active. [1-based global index].
@@ -94,19 +157,94 @@ class Simulation:
             Seed for the C++ random number generator. If provided,
             ``libbtls.seed(seed)`` is called at the start of this
             simulation, making the traffic generation deterministic.
-            For day-level parallelism, pass a different seed per chunk
-            (e.g. ``master_seed + chunk_id``) so each worker gets an
-            independent, reproducible stream. If None (default), the
-            RNG keeps its current state (non-reproducible, same as the
-            pre-seed-API behaviour).
+            If None (default), the RNG keeps its current state
+            (non-reproducible, same as the pre-seed-API behaviour).
+            For a chunked simulation (``no_chunk > 1``) this acts as
+            the master seed: each chunk's seed is derived from it by
+            mixing ``(seed, chunk index)``, so that runs whose master
+            seeds are close do not share traffic streams.
+
+        no_chunk : int, optional\n
+            Split this simulation into ``no_chunk`` independent
+            day-chunks that run in parallel across cores (each chunk
+            gets its own RNG stream), then merge the outputs into a
+            single result on ``get_output()``. The merged outputs are
+            statistically equivalent to - and formatted identically
+            to - a single sequential run. Requires a TrafficGenerator
+            traffic and ``no_day`` divisible by ``no_chunk``; the
+            chunk length must also align with the configured BM / POT
+            block sizes and statistics intervals (validated here).
+            The chunks run in spawned processes, so the calling
+            script must guard its entry point with
+            ``if __name__ == "__main__":``.
+            Default is None (no chunking).
 
         Keyword Arguments
         -----------------
         overlap_avoid_distance : float, optional\n
-            The minimum chase distance (in m) between two vehicles to avoid overlap (should equal to bridge length). If the bridge argument has an input then no need to specify this argument. The default is 100.0.
+            The minimum chase distance (in m) between two vehicles to avoid overlap (should equal to bridge length). If the bridge argument has an input then the bridge length is used instead, and a different explicit value triggers a warning. The default is 100.0.
 
         track_progress : bool, optional\n
             Whether to track the simulation progress. A single-vehicle simulation will ignore this argument. The default is False.
+
+        engine : str, optional\n
+            Load-effect engine for traffic simulation. Default "cpu".
+
+            Each value names the device the engine runs on:
+
+            - "cpu": the C++ time-stepping engine, on the **CPU**. Full-featured
+              (time history, block maxima, POT, statistics, fatigue/rainflow) and
+              the right choice for essentially all runs.
+            - "cuda" / "mps" / "xpu": the experimental GPU engine (PyTorch +
+              Triton). The engine name IS the torch device:
+
+                * "cuda" -> **NVIDIA**, and **AMD** via ROCm (both use torch's
+                  cuda device); float64.
+                * "mps"  -> **Apple Silicon** (Metal); runs in float32 (MPS has
+                  no float64). The MPS backend may lack ``searchsorted`` /
+                  ``scatter_reduce`` — the engine probes for this and raises a
+                  clear error; set ``PYTORCH_ENABLE_MPS_FALLBACK=1`` to run those
+                  ops on the CPU (slower).
+                * "xpu"  -> **Intel** GPU; float64.
+
+              Only "cuda" is currently tested; "mps"/"xpu" are wired but
+              unverified (the engine probes each backend for the ops it needs
+              and errors clearly if one is missing). Needs ``pybtls[gpu]`` (a build of torch for that
+              device). It computes per-effect block-maxima (BM),
+              peaks-over-threshold (POT: PT_S/PT_C/PT_V), fatigue rainflow
+              (FR), load-effect statistics (SS_C/SS_S), vehicle flow statistics
+              (FlowData) and time history (TH) via
+              per-vehicle superposition, honouring the matching OutputConfig
+              flags. POT/SS rebuild the "cpu" event
+              partition, so event / vehicle / truck counts track "cpu" to ~1%
+              (uniform sampling merges composition changes inside one time step);
+              peak values/times, statistics and fatigue cycle amplitudes carry
+              uniform-grid sampling noise. Scope: recorded or generated traffic;
+              discrete, built-in or surface influence lines, including a distinct
+              IL/weight per lane; vertical / centrifugal modes. It does
+              NOT produce the per-event / per-vehicle detail outputs
+              (write_each_event, the vehicle file, BM-vehicle / mixed,
+              write_fatigue_event); those are skipped with a
+              warning — use engine="cpu" for them.
+
+            When is the GPU engine worth it? Only when the load-effect *computation*
+            dominates the run — which it usually does NOT. Profiling shows the
+            per-step load summation is typically ~15-20% of wall-clock; the
+            bottleneck is the output writers (time history, POT, fatigue) plus
+            per-event overhead, none of which the GPU engine accelerates.
+            Measured against ONE CPU core (RTX 3090 vs Ryzen 9 7950X, float64):
+            ~2.5-5x for typical free-flow runs, ~10x for a compute-dominated
+            case (long-span congested bridge; the gap grows with the number of
+            load effects and of axles simultaneously on the deck). Note that
+            for generated traffic, CPU chunk-parallelism (``no_chunk``) scales
+            near-linearly across cores and often matches or beats the GPU — the
+            GPU engine's clear wins are recorded traffic (which cannot chunk),
+            runs needing exact sequential equivalence, and many-effect
+            congested/long-span cases. The device working set is tiled
+            adaptively to the free VRAM, so small or shared GPUs shrink the
+            tile instead of running out of memory. For ordinary short-span
+            bridges with a handful of effects, or any run needing the full
+            output set, use "cpu".
         """
 
         self._sim_count += 1
@@ -115,28 +253,172 @@ class Simulation:
         else:
             sim_tag = tag
 
-        overlap_avoid_distance = kwargs.get("min_chase_distance", 100.0)
-        track_progress = kwargs.get("track_progress", False)
-
-        self._sim_argument.append(
-            (
-                bridge,
-                traffic,
-                no_day,
-                output_config,
-                time_step,
-                min_gvw,
-                vehicle,
-                active_lane,
-                sim_tag,
-                overlap_avoid_distance,
-                track_progress,
-                self._output_root,
-                seed,
-            )
+        reject_unknown_kwargs(
+            "add_sim", kwargs, ("overlap_avoid_distance", "track_progress", "engine")
         )
 
-    def run(self, no_core: int = None) -> None:
+        overlap_avoid_distance = kwargs.get("overlap_avoid_distance", 100.0)
+        if (
+            "overlap_avoid_distance" in kwargs
+            and bridge is not None
+            and overlap_avoid_distance != bridge.length
+        ):
+            warnings.warn(
+                f"overlap_avoid_distance={overlap_avoid_distance} is ignored because a "
+                f"bridge is given; its length ({bridge.length} m) is used instead.",
+                stacklevel=2,
+            )
+        track_progress = kwargs.get("track_progress", False)
+        engine = kwargs.get("engine", "cpu")
+        if engine not in ("cpu", "cuda", "mps", "xpu"):
+            raise ValueError('engine must be "cpu", "cuda", "mps" or "xpu".')
+
+        # BTLS compares the gross vehicle weight against a size_t in kN, so the
+        # CPU path truncates min_gvw while the GPU path compares it as a float.
+        # Normalise here instead, so both engines use the same threshold.
+        if int(min_gvw) != min_gvw:
+            raise ValueError(
+                f"min_gvw is a whole number of kN, got {min_gvw!r}. The C++ "
+                "engine truncates it, so a fractional threshold would mean "
+                "different things on the two engines."
+            )
+        min_gvw = int(min_gvw)
+
+        if no_chunk is None or no_chunk == 1:
+            self._sim_argument.append(
+                (
+                    bridge,
+                    traffic,
+                    no_day,
+                    output_config,
+                    time_step,
+                    min_gvw,
+                    vehicle,
+                    active_lane,
+                    sim_tag,
+                    overlap_avoid_distance,
+                    track_progress,
+                    self._output_root,
+                    seed,
+                    engine,
+                )
+            )
+            return
+
+        chunk_days = self._validate_chunking(
+            traffic, vehicle, no_day, no_chunk, output_config
+        )
+        master_seed = (
+            seed if seed is not None else random.SystemRandom().randrange(1, 2**31)
+        )
+
+        # Chunk runs keep their rainflow residuals open (written to FRR_*
+        # sidecars) so the merged histogram can be spliced exactly. Copy the
+        # config so the caller's object is not mutated.
+        if output_config._Output.Fatigue.DO_FATIGUE_RAINFLOW:
+            output_config = pickle.loads(pickle.dumps(output_config))
+            output_config._Output.Fatigue.WRITE_RAINFLOW_RESIDUALS = True
+
+        chunk_tags = []
+        chunk_seeds = []
+        for i in range(no_chunk):
+            chunk_tag = f"{sim_tag}/chunk_{i:03d}"
+            chunk_tags.append(chunk_tag)
+            chunk_seeds.append(_derive_chunk_seed(master_seed, i))
+            self._sim_argument.append(
+                (
+                    bridge,
+                    traffic,
+                    chunk_days,
+                    output_config,
+                    time_step,
+                    min_gvw,
+                    vehicle,
+                    active_lane,
+                    chunk_tag,
+                    overlap_avoid_distance,
+                    track_progress,
+                    self._output_root,
+                    chunk_seeds[i],
+                    engine,
+                )
+            )
+
+        self._chunk_groups[sim_tag] = {
+            "chunk_tags": chunk_tags,
+            "chunk_days": [chunk_days] * no_chunk,
+            "master_seed": master_seed,
+            "chunk_seeds": chunk_seeds,
+        }
+
+    def _validate_chunking(
+        self, traffic, vehicle, no_day, no_chunk, output_config
+    ) -> int:
+        """Validate a chunked add_sim request; return the days per chunk."""
+
+        if vehicle is not None:
+            raise ValueError("no_chunk does not apply to single-vehicle simulations.")
+        if not isinstance(traffic, TrafficGenerator):
+            raise ValueError(
+                "no_chunk requires a TrafficGenerator traffic: recorded "
+                "traffic (TrafficLoader) cannot be re-seeded per chunk."
+            )
+        if any(lane is not None and lane.start_time != 0.0 for lane in traffic._lanes):
+            raise ValueError(
+                "no_chunk requires a zero lane start time: every chunk starts "
+                "its traffic that late, so the merged result would have a gap "
+                "of that length at each chunk boundary."
+            )
+        if not isinstance(no_chunk, int) or no_chunk < 2:
+            raise ValueError("no_chunk must be an integer >= 2.")
+        if no_day is None:
+            raise ValueError("no_chunk requires no_day to be given.")
+        if no_day % no_chunk != 0:
+            raise ValueError(
+                f"no_day ({no_day}) must be divisible by no_chunk ({no_chunk}) "
+                "so that chunks cover whole days."
+            )
+        if not isinstance(output_config, OutputConfig):
+            raise TypeError("Argument output needs to be OutputConfig type.")
+
+        chunk_days = int(no_day) // int(no_chunk)
+        chunk_secs = chunk_days * 86400
+
+        out = output_config._Output
+        if (
+            out.BlockMax.WRITE_BM_VEHICLES
+            or out.BlockMax.WRITE_BM_MIXED
+            or out.BlockMax.WRITE_BM_SUMMARY
+        ):
+            block_secs = (
+                out.BlockMax.BLOCK_SIZE_DAYS * 86400 + out.BlockMax.BLOCK_SIZE_SECS
+            )
+            if block_secs == 0 or chunk_secs % block_secs != 0:
+                raise ValueError(
+                    f"Chunk length ({chunk_days} days) must be a multiple of "
+                    f"the block-maximum block size ({block_secs} s) for the "
+                    "merged result to equal a sequential run."
+                )
+        if out.POT.WRITE_POT_COUNTER:
+            pot_secs = out.POT.POT_COUNT_SIZE_DAYS * 86400 + out.POT.POT_COUNT_SIZE_SECS
+            if pot_secs == 0 or chunk_secs % pot_secs != 0:
+                raise ValueError(
+                    f"Chunk length ({chunk_days} days) must be a multiple of "
+                    f"the POT counter block size ({pot_secs} s) for the "
+                    "merged result to equal a sequential run."
+                )
+        if out.Stats.WRITE_SS_INTERVALS:
+            interval = out.Stats.WRITE_SS_INTERVAL_SIZE
+            if interval == 0 or chunk_secs % interval != 0:
+                raise ValueError(
+                    f"Chunk length ({chunk_days} days) must be a multiple of "
+                    f"the statistics interval size ({interval} s) for the "
+                    "merged result to equal a sequential run."
+                )
+
+        return chunk_days
+
+    def run(self, no_core: int = None, show_progress: bool = True) -> None:
         """
         Run the simulations. \n
 
@@ -146,34 +428,116 @@ class Simulation:
             The number of cores to be used for multi-core running. \n
             If no_core is one or there is only one added simulation, the running will be single-core. \n
             Otherwise, the running will be multi-core. \n
-            By default, (no_cpu_logic_core - 2) processes will be used for multi-core running.
+            By default, max(1, no_cpu_logic_core - 2) processes will be used for multi-core running. \n
+            Multi-core running spawns worker processes, so the calling script must guard its entry point with ``if __name__ == "__main__":``.
+
+        show_progress : bool, optional\n
+            Print one line as each simulation (or chunk) completes, with
+            elapsed time and an ETA. Only the main process prints, so the
+            lines do not interleave. Default is True; nothing is printed
+            when there is only one task.
 
         Returns
         -------
         None
         """
 
-        if no_core == 1 or len(self._sim_argument) == 1:
-            for sim_arg in self._sim_argument:
-                self._sim_output[sim_arg[8]] = self._single_sim(sim_arg)
-        else:
-            no_processes = (
-                no_core if no_core is not None else multiprocessing.cpu_count() - 2
-            )
-            with multiprocessing.Pool(processes=no_processes) as pool:
-                temp = pool.map(self._single_sim, self._sim_argument)
-            for i, sim_arg in enumerate(self._sim_argument):
-                self._sim_output[sim_arg[8]] = temp[i]
+        if no_core is not None and no_core < 1:
+            raise ValueError("no_core must be >= 1.")
 
-    def get_output(self) -> dict[str, _OutputManager]:
+        # GPU engines share one device: running tasks concurrently serialises the
+        # device compute (no speed-up) while each worker process replicates its
+        # window in host RAM + VRAM, so multi-core only multiplies memory and can
+        # OOM. Warn so the default no_core (cpu_count-2) isn't applied to GPU runs.
+        effective_cores = (
+            no_core if no_core is not None else max(1, multiprocessing.cpu_count() - 2)
+        )
+        gpu_tasks = sum(
+            1 for a in self._sim_argument if a[13] in ("cuda", "mps", "xpu")
+        )
+        if gpu_tasks and effective_cores > 1:
+            print(
+                f"Warning: {gpu_tasks} GPU task(s) queued with no_core="
+                f"{effective_cores}. GPU tasks share one device — concurrency gives "
+                "no speed-up, but each process replicates its window in host RAM + "
+                "VRAM (risking OOM). Use no_core=1 for GPU runs.",
+                file=sys.stderr,
+                flush=True,
+            )
+
+        total = len(self._sim_argument)
+        start = time.perf_counter()
+        done = 0
+
+        def report(index: int) -> None:
+            nonlocal done
+            done += 1
+            if not show_progress or total < 2:
+                return
+            elapsed = time.perf_counter() - start
+            eta = elapsed / done * (total - done)
+            width = len(str(total))
+            print(
+                f"[{done:>{width}}/{total}] {self._sim_argument[index][8]} done, "
+                f"elapsed {_fmt_duration(elapsed)}, ETA ~{_fmt_duration(eta)}",
+                flush=True,
+            )
+
+        if no_core == 1 or total == 1:
+            for i, sim_arg in enumerate(self._sim_argument):
+                self._sim_output[sim_arg[8]] = self._single_sim(sim_arg)
+                report(i)
+        else:
+            # An explicit spawn context, not the (mutable) global default: fork
+            # workers would break CUDA re-initialisation, and set_start_method
+            # in __init__ is silently ignored if another library set the
+            # method first. ProcessPoolExecutor rather than multiprocessing.Pool
+            # because a worker that dies (segfault, OOM kill, a C++ exit()) then
+            # raises BrokenProcessPool instead of blocking run() forever.
+            ctx = multiprocessing.get_context("spawn")
+            results = {}
+            with ProcessPoolExecutor(
+                max_workers=effective_cores, mp_context=ctx
+            ) as executor:
+                futures = {
+                    executor.submit(self._single_sim, sim_arg): i
+                    for i, sim_arg in enumerate(self._sim_argument)
+                }
+                for future in as_completed(futures):
+                    i = futures[future]
+                    results[i] = future.result()
+                    report(i)
+            # insert in add_sim order so get_output() keys are deterministic
+            for i, sim_arg in enumerate(self._sim_argument):
+                self._sim_output[sim_arg[8]] = results[i]
+
+        self._reduce_chunk_groups()
+
+    def _reduce_chunk_groups(self) -> None:
+        """Replace per-chunk outputs with one merged view per chunked sim."""
+
+        for parent_tag, group in self._chunk_groups.items():
+            chunk_managers = [
+                self._sim_output.pop(chunk_tag) for chunk_tag in group["chunk_tags"]
+            ]
+            self._sim_output[parent_tag] = _ChunkedOutputManager(
+                chunk_managers,
+                group["chunk_days"],
+                parent_tag,
+                master_seed=group["master_seed"],
+            )
+
+    def get_output(self) -> dict[str, Union[_OutputManager, _ChunkedOutputManager]]:
         """
         Get the output manager for each simulation.
 
         Returns
         -------
-        dict[str, _OutputManager]
-            A dict storing output manager for each simulation.\n
-            The keys are the sim_tags.
+        dict[str, Union[_OutputManager, _ChunkedOutputManager]]
+            A dict storing the output manager for each simulation.\n
+            The keys are the sim_tags. A simulation added with
+            ``no_chunk > 1`` is represented by a single
+            ``_ChunkedOutputManager`` that reads as one merged result.
         """
 
         return self._sim_output
@@ -205,8 +569,27 @@ class Simulation:
             track_progress,
             output_root,
             seed,
+            engine,
         ) = args
 
+        if traffic is not None and engine in ("cuda", "mps", "xpu"):
+            from .gpu import run as gpu_run
+
+            return gpu_run(
+                bridge,
+                traffic,
+                no_day,
+                time_step,
+                min_gvw,
+                active_lane,
+                sim_tag,
+                overlap_avoid_distance,
+                output_root,
+                seed,
+                device=engine,
+                output_config=output_config,
+                overwrite=self._overwrite,
+            )
         if traffic is not None:
             return self._single_traffic_sim(
                 bridge,
@@ -232,9 +615,7 @@ class Simulation:
     def _single_vehicle_sim(
         self, bridge, vehicle, active_lane, sim_tag, output_root
     ) -> _OutputManager:
-        sim_root = Path("./").resolve()
-        os.makedirs(output_root / str(sim_tag), exist_ok=False)
-        os.chdir(output_root / str(sim_tag))
+        _make_sim_dir(output_root / str(sim_tag), output_root, self._overwrite)
 
         if not isinstance(bridge, Bridge):
             raise TypeError("Argument bridge needs to be Bridge type.")
@@ -255,9 +636,20 @@ class Simulation:
 
         no_dir = 2
         bridge_length = bridge.length
-        vehicle_time_gap = 2 * (bridge_length + vehicle.get_length()) / 1.0  # in s
 
-        vehicle.set_velocity(1.0)  # 1 m/s
+        # The run sets the vehicle's velocity, time, direction and lane, so
+        # work on a copy and leave the caller's object as it was.
+        vehicle = pickle.loads(pickle.dumps(vehicle))
+
+        # Drive at the vehicle's own speed: the "centrifugal" load effect mode
+        # scales with v^2. A vehicle whose velocity was never set keeps the
+        # historical 1 m/s (a zero velocity would give infinite axle times).
+        velocity = vehicle.get_velocity()
+        if velocity <= 0.0:
+            velocity = 1.0
+            vehicle.set_velocity(velocity)
+
+        vehicle_time_gap = 2 * (bridge_length + vehicle.get_length()) / velocity  # in s
 
         no_lane_dir_1 = [bridge.no_lane, 0]
         no_lane_dir_2 = [0, bridge.no_lane]
@@ -271,8 +663,9 @@ class Simulation:
             current_time = 0.0
             vehicle.set_time(current_time)
 
-            os.mkdir("dir" + str(i + 1))
-            os.chdir("dir" + str(i + 1))
+            dir_path = output_root / str(sim_tag) / ("dir" + str(i + 1))
+            os.mkdir(dir_path)
+            output_config._Output.OUTPUT_DIR = str(dir_path)
             output_config._setRoad(
                 bridge.no_lane, 1, no_lane_dir_1[i], no_lane_dir_2[i]
             )
@@ -281,7 +674,7 @@ class Simulation:
             )  # vehicle drive from one dirn then another
 
             load_calc.initializeDataMgr(current_time)
-            load_calc.setCalcTimeStep(0.01)
+            load_calc.setCalcTimeStep(0.01 / velocity)  # 1 cm of travel per step
 
             for j, lane_index in enumerate(lane_for_calc):
                 next_arrival_time = (j + 1) * vehicle_time_gap
@@ -295,9 +688,6 @@ class Simulation:
                 current_time = next_arrival_time
 
             load_calc.finish()
-            os.chdir("..")
-
-        os.chdir(sim_root)
 
         return _OutputManager(output_root, sim_tag, None)
 
@@ -318,11 +708,11 @@ class Simulation:
     ) -> _OutputManager:
         if seed is not None:
             from .lib import libbtls
+
             libbtls.seed(seed)
 
-        sim_root = Path("./").resolve()
-        os.makedirs(output_root / str(sim_tag), exist_ok=False)
-        os.chdir(output_root / str(sim_tag))
+        sim_dir = output_root / str(sim_tag)
+        _make_sim_dir(sim_dir, output_root, self._overwrite)
 
         if isinstance(traffic, TrafficGenerator) and no_day is None:
             raise ValueError("Argument no_day is not given.")
@@ -333,6 +723,11 @@ class Simulation:
 
         if not isinstance(output_config, OutputConfig):
             raise TypeError("Argument output needs to be OutputConfig type.")
+
+        # all C++ writers place their files under OUTPUT_DIR; work on a copy
+        # so the caller's config object is not mutated
+        output_config = pickle.loads(pickle.dumps(output_config))
+        output_config._Output.OUTPUT_DIR = str(sim_dir)
 
         output_config._setRoad(
             traffic.no_lane,
@@ -388,6 +783,14 @@ class Simulation:
                 )
             lane_for_calc = [lane_list[i - 1] for i in active_lane]
 
+        if isinstance(traffic, TrafficLoader):
+            # An initially-empty lane keeps CLane's default next-arrival time
+            # (0.0), so it would sort first and end the merge loop on the
+            # first iteration — exclude empty lanes from the calculation.
+            lane_for_calc = [lane for lane in lane_for_calc if lane.getNoVehicles() > 0]
+            if not lane_for_calc:
+                raise ValueError("No vehicles in any simulated lane.")
+
         while current_time <= end_time:
             lane_for_calc = sorted(lane_for_calc, key=lambda t: t.getNextArrivalTime())
 
@@ -416,10 +819,9 @@ class Simulation:
                         sim_progress_print = ""
 
         if isinstance(bridge, Bridge):
-            load_calc.finish()
+            load_calc.finish(end_time)
 
-        vehicle_buffer.flushBuffer()
-        os.chdir(sim_root)
+        vehicle_buffer.flushBuffer(end_time)
 
         return _OutputManager(output_root, sim_tag, output_config)
 

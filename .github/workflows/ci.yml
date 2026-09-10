@@ -43,8 +43,21 @@ jobs:
           python -m pip install -U pip
           pip install -e .[test]
 
+      # torch is not in the [test] extra (see pyproject.toml). Install it on the
+      # one leg that requires it below, so the GPU engine's CPU-device parity
+      # cases really run without making every release-wheel leg need a torch build.
+      - name: Install torch (GPU-engine parity leg)
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.11'
+        run: pip install "torch>=2.1"
+
       - name: Run tests
         run: pytest -q
+        env:
+          # Require torch on one leg so that a future torch install failure fails
+          # the build instead of silently skipping the whole GPU suite, which is
+          # how it went untested before. Only ubuntu/3.11: the other legs have no
+          # torch installed and skip cleanly.
+          PYBTLS_REQUIRE_TORCH: ${{ (matrix.os == 'ubuntu-latest' && matrix.python == '3.11') && '1' || '0' }}
 
   # Build sdist once on linux
   sdist-smoke:

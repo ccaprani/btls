@@ -3,12 +3,7 @@
  * @brief Interface for the CCalcEffect class — legacy analytical load-effect calculator.
  */
 
-#if !defined(AFX_CALCEFFECT_H__3FD6FAB1_0A36_43E9_9240_1CBF454DABF4__INCLUDED_)
-#define AFX_CALCEFFECT_H__3FD6FAB1_0A36_43E9_9240_1CBF454DABF4__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 /**
  * @brief Unused analytical load-effect calculator.
@@ -78,4 +73,3 @@ private:
 	double give_effect16(double x);     ///< Legacy analytical effect function.
 };
 
-#endif // !defined(AFX_CALCEFFECT_H__3FD6FAB1_0A36_43E9_9240_1CBF454DABF4__INCLUDED_)

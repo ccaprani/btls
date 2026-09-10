@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "OutputManagerBase.h"
 
 /**
@@ -42,7 +44,10 @@ public:
 	 *
 	 * @param[in] Ev Completed event.
 	 */
-	virtual void Update(CEvent Ev);
+	virtual void Update(CEvent& Ev);
+
+	/// @brief Finish, filling silent trailing counter blocks up to the simulated end time.
+	void FinishAt(double simEndTime);
 
 	/**
 	 * @brief Initialize thresholds, buffers and output files.
@@ -66,20 +71,27 @@ private:
 	/// @brief Open the per-load-effect vehicle output files.
 	virtual void	OpenVehicleFiles();
 
-	/// @brief Flush the current buffer contents to disk.
-	virtual void	WriteBuffer();
-
 	/// @brief Open the optional block counter file.
 	void OpenCounterFile();
 
-	/// @brief Write the accumulated per-block counts to the counter file.
-	void WriteCounter();
+	/**
+	 * @brief Retire the closed counter blocks, writing them to the counter
+	 *        file if it is enabled.
+	 *
+	 * The block still being counted is held back so that it is written once,
+	 * with its full count, rather than split across event-buffer flushes.
+	 *
+	 * @param[in] bFinal End of simulation: retire the current block too.
+	 */
+	void WriteCounter(bool bFinal);
 
 	/// @brief Increment the counter for the current block.
 	void UpdateCounter();
 
 	size_t m_NoPeaks;                                 ///< Running count of peaks written across all load effects.
-	std::vector< std::vector<CEvent> >	m_vEvents;    ///< Buffered events per load effect.
+	/// Buffered events per load effect. An event exceeding several
+	/// thresholds is stored once and shared, not deep-copied per effect.
+	std::vector< std::vector<std::shared_ptr<CEvent>> >	m_vEvents;
 	std::string m_EventFile;                          ///< Current event output filename.
 	std::vector<double> m_vThreshold;                 ///< Peak thresholds, one per load effect.
 	std::string m_CounterFile;                        ///< Block counter output filename.

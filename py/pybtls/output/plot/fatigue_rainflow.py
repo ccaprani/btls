@@ -9,10 +9,15 @@ def plot_FR(data: pd.DataFrame, save_to: Path = None) -> None:
     """
     Plot the fatigue rainflow counting data from pybtls results.
 
+    Draws horizontal lines from 0 to each amplitude bin's cycle count.
+
     Parameters
     ----------
     data : pd.DataFrame\n
-        The loaded fatigue rainflow data from read_FR.
+        The loaded fatigue rainflow data from read_FR. Must have columns
+        "Amplitude" (native load effect unit, kN or kN·m - not known to
+        this function and not labelled) and "No. Cycles" (can include
+        0.5 half-cycles).
 
     save_to : Path, optional\n
         The path to save the plot to. \n

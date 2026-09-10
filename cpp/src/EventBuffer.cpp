@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "EventBuffer.h"
+#include "ConsoleOutput.h"
 
 
 //////////////////////////////////////////////////////////////////////
@@ -31,7 +32,7 @@ void CEventBuffer::setMode(bool bFatigue)
 
 void CEventBuffer::setOutFile(std::string OutFile)
 {
-	m_OutFile.open(OutFile.c_str(), std::ios::out);
+	m_OutFile.open(btls::outPath(m_OutputDir, OutFile).c_str(), std::ios::out);
 }
 
 void CEventBuffer::setOutFile(double BridgeLength)
@@ -39,7 +40,7 @@ void CEventBuffer::setOutFile(double BridgeLength)
 	std::string stem = m_Mode == ALLEVENTS ? "_AllEvents" : "_Fatigue";
 	std::string OutFile;
 	m_BridgeLength = BridgeLength;
-	OutFile = "BL_" + to_string(m_BridgeLength) + stem + ".txt";
+	OutFile = btls::outPath(m_OutputDir, "BL_" + to_string(m_BridgeLength) + stem + ".txt");
 	m_OutFile.open(OutFile.c_str(), std::ios::out);
 }
 
@@ -70,14 +71,21 @@ void CEventBuffer::FlushBuffer()
 void CEventBuffer::FlushAllEventsBuff()
 {
 	size_t nEvs = m_vEvents.size();
-	CEvent Ev = m_vEvents[nEvs-1];
-	std::cout << std::endl << "Bridge " << to_string(m_BridgeLength) << " m: Flushing AllEvents buffer: " << nEvs << " events at " << Ev.getTimeStr() << '\t';
+	if (btls::console_output && nEvs > 0)
+	{
+		CEvent& Ev = m_vEvents[nEvs-1];
+		std::cout << std::endl << "Bridge " << to_string(m_BridgeLength) << " m: Flushing AllEvents buffer: " << nEvs << " events at " << Ev.getTimeStr() << '\t';
+	}
 	
 	for (size_t i = 0; i < nEvs; i++)
-	{	
+	{
 		CEvent& Ev = m_vEvents[i];
 
-		m_OutFile << Ev.getStartTime() << '\t';
+		// fixed precision for the time only: the default 6-significant-digit
+		// formatting degrades with simulation length (at 100 years the times lose
+		// second-level accuracy), but it would write small effect values as 0.000
+		m_OutFile << std::fixed << std::setprecision(3) << Ev.getStartTime() << '\t';
+		m_OutFile << std::defaultfloat << std::setprecision(6);
 		m_OutFile << Ev.getNoVehicles() << '\t';
 		for (size_t j = 0; j < Ev.getNoEffects(); j++)
 			m_OutFile << Ev.getMaxEffect(j).getValue() << '\t';
@@ -95,8 +103,11 @@ void CEventBuffer::FlushFatigueBuff()
 	// first column is event start time and no. trucks in lines 1 & 2.
 
 	size_t nEvs = m_vEvents.size();
-	CEvent Ev = m_vEvents[nEvs-1];
-	std::cout << std::endl << "Bridge " << to_string(m_BridgeLength) << " m: Flushing Fatigue buffer: " << nEvs << " events at " << Ev.getTimeStr() << '\t';
+	if (btls::console_output && nEvs > 0)
+	{
+		CEvent& Ev = m_vEvents[nEvs-1];
+		std::cout << std::endl << "Bridge " << to_string(m_BridgeLength) << " m: Flushing Fatigue buffer: " << nEvs << " events at " << Ev.getTimeStr() << '\t';
+	}
 	
 	for (size_t i = 0; i < nEvs; i++)
 	{	

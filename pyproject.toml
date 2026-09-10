@@ -1,6 +1,6 @@
 [project]
 name = "pybtls"
-version = "1.0.1"
+version = "1.1.0"
 description = "A package for short-to-mid span bridge traffic loading simulation"
 readme = "README.rst"
 requires-python = ">=3.10" # must be consistent with ci.yml
@@ -24,7 +24,19 @@ Source = "https://github.com/ccaprani/btls"
 Tracker = "https://github.com/ccaprani/btls/issues"
 
 [project.optional-dependencies]
+# torch is deliberately NOT here, even though the GPU suite skips without it:
+# cibuildwheel installs `test-extras` into every wheel's test environment (one
+# per CPython per OS), so this would pull a multi-gigabyte torch into all of
+# them and buy nothing. No release runner has a GPU, so the CUDA tests in
+# tests/test_gpu_engine.py skip there whatever is installed, and the
+# torch-on-CPU tests in tests/test_audit_fixes_gpu.py are already covered by
+# the one CI leg that installs torch explicitly and sets
+# PYBTLS_REQUIRE_TORCH=1; see .github/workflows/ci.yml.
 test = ["pytest>=6.0", "pycba>=0.5"]
+# Experimental GPU load-effect engine (engine="cuda"). Needs a CUDA build of
+# PyTorch; Triton (used for the fused kernel) ships with it. Install the wheel
+# matching your CUDA toolkit, e.g. `pip install pybtls[gpu]`.
+gpu = ["torch>=2.1"]
 
 [build-system]
 requires = [
@@ -40,6 +52,7 @@ build-backend = "scikit_build_core.build"
 wheel.packages = ["py/pybtls"]
 sdist.include = ["py/pybtls/data/*/*/*.csv"]
 sdist.exclude = []
+cmake.build-type = "Release"
 
 [tool.scikit-build.cmake.define]
 Binary = "OFF"
@@ -54,9 +67,19 @@ build-verbosity = 1
 
 [tool.cibuildwheel.linux]
 skip = "*-manylinux_i686 *-musllinux_*"
+# glibc 2.28, not cibuildwheel's manylinux2014 default (glibc 2.17). The 2.17
+# baseline is no longer reachable: pillow (pulled in by matplotlib) ships no
+# manylinux_2_17 wheel from 12.3.0 on, and neither does numpy or contourpy for
+# CPython 3.11+, so pip falls back to their sdists and the build of the first
+# one fails inside the image. Raising the image also raises the glibc floor of
+# the wheels we publish, though not all the way to the image's own 2.28:
+# auditwheel reads the symbols actually referenced and tags the result
+# manylinux_2_27_x86_64.manylinux_2_28_x86_64 -- see docs/source/startup.rst.
+manylinux-x86_64-image = "manylinux_2_28"
 
 [tool.cibuildwheel.windows]
 skip = "*-win32"            # drop 32-bit on Windows
 
 # [tool.cibuildwheel.macos]
-# (no extra skips needed if using separate macOS runners for Intel/ARM)
+# (no extra skips needed: the macOS leg is macos-14, so cibuildwheel builds the
+#  runner's native arm64 and nothing else)

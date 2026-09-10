@@ -9,10 +9,21 @@ def plot_BM_S(data: pd.DataFrame, save_to: Path = None) -> None:
     """
     Plot the BM summary data from pybtls results.
 
+    One subplot per truck-count bucket, each showing vertical lines from
+    0 to the bucket's load effect value against the block index.
+
     Parameters
     ----------
     data : pd.DataFrame\n
-        The loaded BM summary from read_BM_S.
+        The loaded BM summary from read_BM_S. Must have columns
+        "Block Index" and one or more "{i}-Truck Event" columns
+        (i = 1, 2, ...); a subplot is drawn for every column after the
+        first, so a DataFrame with only "Block Index" raises an error
+        from ``plt.subplots``. NaN bucket values are filled with 0.0
+        before plotting. The y-axis is labelled "Effect Amplitude" with
+        no unit (the "{i}-Truck Event" columns are load effect values in
+        kN or kN·m, per read_BM_S; the unit is not known to this
+        function).
 
     save_to : Path, optional\n
         The path to save the plot to. \n
@@ -36,7 +47,7 @@ def plot_BM_S(data: pd.DataFrame, save_to: Path = None) -> None:
     if no_event_types == 1:
         axes = [axes]
 
-    # Pick the maximum value among different no_truck events
+    # Use the Block Index column as the x axis
     the_index = data["Block Index"]
 
     # Plotting
