@@ -64,7 +64,11 @@ class Bridge:
             The default is 1.0 for all lanes.
 
         threshold : float, optional \n
-            Threshold for POT analysis. \n
+            Threshold for POT analysis: an event is recorded as a peak when \n
+            its maximum value exceeds the threshold. The comparison is \n
+            signed, and the maximum is the value of largest magnitude, so a \n
+            load effect whose governing values are negative needs a \n
+            negative threshold. \n
             The default is 0.0.
 
         Returns

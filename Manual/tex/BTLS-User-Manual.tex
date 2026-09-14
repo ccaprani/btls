@@ -3366,7 +3366,10 @@ Where \emph{L} is the bridge length. The file gives the maximum of each
 calculated load effect recorded during each loading event to occur. A
 loading event is defined as the loading that occurs between two
 occasions of zero trucks on the bridge, or the departure or arrival of
-another vehicle. A sample output is:
+another vehicle on the bridge. A vehicle at or below the minimum GVW for
+inclusion in the calculations (Line 28 of BTLSin.txt) never enters the
+bridge, so its arrival does not end an event; it is still written to the
+vehicle file and counted in the flow statistics. A sample output is:
 
 \includegraphics[width=5.19792in,height=2.96528in]{media/image19.png}
 

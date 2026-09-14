@@ -140,7 +140,12 @@ class Simulation:
             The calculation time step (in s) for the simulation (about precision). This argument is only used in load effect calculation for traffic simulation. A single-vehicle simulation will ignore this argument.
 
         min_gvw : int, optional\n
-            The minimum gross vehicle weight (in kN) to be considered in the load effect calculation for traffic simulation. A single-vehicle simulation will ignore this argument.
+            The minimum gross vehicle weight (in kN) to be considered in the
+            load effect calculation for traffic simulation. A vehicle at or
+            below it never enters the bridge: it is still written to the
+            vehicle file and counted in the flow statistics, but it does not
+            load the bridge and its arrival does not end an event. A
+            single-vehicle simulation will ignore this argument.
 
         vehicle : Vehicle, optional\n
             The vehicle for a single-vehicle simulation. It drives at its own

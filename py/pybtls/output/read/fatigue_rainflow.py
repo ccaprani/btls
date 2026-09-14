@@ -34,7 +34,7 @@ def read_FR(file_path: Path) -> pd.DataFrame:
     return_data = read_csv_or_empty(
         file_path,
         ["Amplitude", "No. Cycles"],
-        delimiter="\s+",
+        delimiter=r"\s+",
         names=["Amplitude", "No. Cycles"],
         skiprows=1,
     )

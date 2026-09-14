@@ -83,7 +83,7 @@ def read_TS(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     return_data = read_csv_or_empty(
         file_path,
         column_names,
-        delimiter="\s+",
+        delimiter=r"\s+",
         names=column_names,
         skiprows=max(1, start_line),
         nrows=no_lines,

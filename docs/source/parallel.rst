@@ -89,7 +89,9 @@ stream is replayed once continuously and once as two chunks; the merged
 chunk outputs must equal the continuous outputs. The merge rules are:
 
 * **Block maxima, POT, events, time history, fatigue events** -
-  concatenated with time/index continuation. Exact.
+  concatenated with time/index continuation, including the arrival times
+  of the ``Vehicle`` objects embedded in the BM and POT event files (the
+  "Trucks" column), which are copied onto the merged timeline. Exact.
 * **Interval statistics (SS_S)** - intervals are self-contained;
   concatenated with index continuation. Exact.
 * **Cumulative statistics (SS_C)** - each chunk's statistics are

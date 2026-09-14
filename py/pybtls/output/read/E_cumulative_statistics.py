@@ -54,7 +54,7 @@ def read_E_CS(file_path: Path) -> pd.DataFrame:
     return_data = read_csv_or_empty(
         file_path,
         column_ids,
-        delimiter="\s+",
+        delimiter=r"\s+",
         header=None,
         skiprows=1,
     )

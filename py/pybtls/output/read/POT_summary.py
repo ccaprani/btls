@@ -46,7 +46,7 @@ def read_POT_S(
     return_data = read_csv_or_empty(
         file_path,
         column_names,
-        delimiter="\s+",
+        delimiter=r"\s+",
         names=column_names,
         skiprows=max(0, start_line - 1),
         nrows=no_lines,
