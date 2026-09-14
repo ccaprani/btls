@@ -227,13 +227,14 @@ def fit_gev(
     negated to the standard convention ``xi = -c``.
 
     Blocks without a qualifying event are dropped before fitting. In a
-    ``read_BM_S`` column they take two forms: NaN, where the truck-count
-    bucket is missing from that block's row, and a literal 0.0, where the
-    engine created the bucket (because the block held a larger event) but
-    never filled it. Neither is a block maximum, so both are excluded and
-    counted as empty blocks; ``GEVFit.return_level`` then scales the return
-    period by the populated fraction, since the fit describes the populated
-    blocks only.
+    ``read_BM_S`` column they hold 0.0: the engine writes it for a bucket it
+    opened but never filled, and the reader pads a block whose row stops
+    short of a later block's buckets with the same value. A 0.0 is not a
+    block maximum, so it is excluded from the fit but still counted as an
+    observed block; ``GEVFit.return_level`` then scales the return period by
+    the populated fraction, since the fit describes the populated blocks
+    only. NaN, which only a hand-built array can carry, is absent data and
+    is dropped from both counts.
 
     Parameters
     ----------
@@ -268,11 +269,12 @@ def fit_gev(
     blocks = np.asarray(block_maxima, dtype=float).ravel()
     # 0.0 marks a block that ran but held no qualifying event: the engine
     # writes one value per bucket from a default-constructed CEffect
-    # (CBlockMaxManager::WriteSummaryFiles). Such a block still counts
-    # towards the exceedance rate, so it is excluded from the fit but kept
-    # in n_blocks_total. NaN is absent data instead of an observed empty
-    # block -- pandas pads it in where a block row carries fewer buckets
-    # than a later one -- so it is dropped from both counts.
+    # (CBlockMaxManager::WriteSummaryFiles), and read_BM_S pads a block whose
+    # row stops short of a later block's buckets with the same 0.0. Such a
+    # block still counts towards the exceedance rate, so it is excluded from
+    # the fit but kept in n_blocks_total. NaN never comes from the reader; in
+    # a hand-built array it is absent data, not an observed empty block, so
+    # it is dropped from both counts.
     finite = blocks[np.isfinite(blocks)]
     data = finite[finite != 0.0]
     if data.size < 4:

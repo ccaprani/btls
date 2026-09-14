@@ -1,5 +1,6 @@
 #include "POTManager.h"
 #include "FilePath.h"
+#include <algorithm>
 
 
 CPOTManager::CPOTManager(CConfigDataCore& config) : COutputManagerBase("PT")
@@ -22,9 +23,10 @@ CPOTManager::~CPOTManager(void)
 	
 }
 
-void CPOTManager::Initialize(double BridgeLength, std::vector<double> vThreshold, double SimStartTime)
+void CPOTManager::Initialize(double BridgeLength, std::vector<double> vThreshold, double SimStartTime, double SimEndTime)
 {
 	m_SimStartTime = SimStartTime;
+	m_SimEndTime = SimEndTime;
 	m_BridgeLength = BridgeLength;
 	m_vThreshold = vThreshold;
 	m_NoLoadEffects = m_vThreshold.size();
@@ -46,7 +48,10 @@ void CPOTManager::Initialize(double BridgeLength, std::vector<double> vThreshold
 
 void CPOTManager::Update(CEvent& curEvent)
 {
-	double curTime = curEvent.getStartTime();
+	// an event can start after the end of the simulated window (the bridge is
+	// run on until the first arrival beyond it); it belongs to the window's
+	// last block, so clamp the rollover time and never open a block past the end
+	double curTime = (std::min)(curEvent.getStartTime(), m_SimEndTime);
 	
 	// a zero block size would make the rollover test permanently true
 	while( m_BlockSize > 0 && curTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )	// while, not if: fill in any silent blocks
@@ -74,27 +79,13 @@ void CPOTManager::Update(CEvent& curEvent)
 	CheckBuffer(false);
 }
 
-void CPOTManager::FinishAt(double simEndTime)
+void CPOTManager::Finish()
 {
 	// fill any silent trailing counter blocks up to the simulated end time
-	while( m_BlockSize > 0 && simEndTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
+	while( m_BlockSize > 0 && m_SimEndTime - m_SimStartTime > (double)(m_CurBlockNo)*m_BlockSize )
 		UpdateCounter();
 
-	// an event can start after the end of the simulated window (the bridge is
-	// run on until it empties), which has already opened a counter block past
-	// the last block of the window; fold its counts back into that block so
-	// that the window still produces exactly one row per block
-	while( m_BlockSize > 0 && m_CurBlockNo > 1 && !m_vCounter.empty()
-		&& simEndTime - m_SimStartTime <= (double)(m_CurBlockNo-1)*m_BlockSize )
-	{
-		if(m_vCounter.size() > 1)	// else the block is already written out
-			for (size_t i = 0; i < m_NoLoadEffects; i++)
-				m_vCounter.at(m_vCounter.size()-2).at(i) += m_vCounter.back().at(i);
-		m_vCounter.pop_back();
-		m_CurBlockNo--;
-	}
-
-	Finish();
+	COutputManagerBase::Finish();
 }
 
 void CPOTManager::CheckBuffer(bool bForceOutput)

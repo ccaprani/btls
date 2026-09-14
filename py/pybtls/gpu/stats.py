@@ -124,10 +124,10 @@ class StatsAccumulator:
         starts = B[:-1][ev] + time_offset - self.sim_start
         # interval i (1-based) covers event starts in ((i-1)·size, i·size] —
         # CStatsManager::Update advances on strict `>` — so bin by ceil. An event
-        # starting past the run end (before the A2 boundary) rolls the C++
-        # counter into an extra interval, which CStatsManager::FinishAt then
-        # folds back into the last interval of the window: clipping here is that
-        # same fold, so both engines write exactly one row per interval.
+        # starting past the run end (before the A2 boundary) is folded into the
+        # last interval of the window (CStatsManager::Update clamps the rollover
+        # time to the simulated end): clipping here is that same rule, so both
+        # engines write exactly one row per interval.
         idx = np.clip(
             np.ceil(starts / self.interval_size).astype(np.int64) - 1, 0, self.ni - 1
         )

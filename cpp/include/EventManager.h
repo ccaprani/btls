@@ -71,8 +71,11 @@ public:
 	 * @param[in] BridgeLength Bridge length in metres (used to stem output filenames).
 	 * @param[in] vThresholds  Peak-recording thresholds, one per load effect.
 	 * @param[in] SimStartTime Simulation start time in seconds.
+	 * @param[in] SimEndTime   Simulated end time in seconds: the output managers
+	 *                         fill silent trailing blocks up to it and credit
+	 *                         events that start after it to the last block.
 	 */
-	void Initialize(double BridgeLength, std::vector<double> vThresholds, double SimStartTime);
+	void Initialize(double BridgeLength, std::vector<double> vThresholds, double SimStartTime, double SimEndTime);
 
 	/**
 	 * @brief Close the current event and dispatch it to the output managers.
@@ -91,9 +94,6 @@ public:
 	 * buffers are written.
 	 */
 	void Finish();
-
-	/// @brief Finish, filling silent trailing blocks up to the simulated end time.
-	void Finish(double simEndTime);
 
 	/**
 	 * @brief Update the running maxima for the current event.

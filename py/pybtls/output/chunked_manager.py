@@ -78,8 +78,13 @@ class _ChunkedOutputManager:
             The available outputs.
         """
 
+        # the union over the chunks: a chunk only has the outputs its own
+        # traffic produced (a day without a qualifying truck writes no BM_V_*)
         if not with_path:
-            return self._chunks[0].get_summary()
+            keys: list[str] = []
+            for chunk in self._chunks:
+                keys.extend(k for k in chunk.get_summary() if k not in keys)
+            return keys
 
         merged: dict[str, list] = {}
         for chunk in self._chunks:
@@ -105,7 +110,7 @@ class _ChunkedOutputManager:
 
         spec = MERGE_REGISTRY[key]
         index_spans = self._index_spans(key)
-        per_chunk = [chunk.read_data(key) for chunk in self._chunks]
+        per_chunk = self.read_chunk_data(key)
 
         # A chunk only writes the files its own traffic produced - the
         # BM_V_*_<n> per-truck-count files, for one, stop at the largest event
@@ -207,10 +212,21 @@ class _ChunkedOutputManager:
         Returns
         -------
         list[dict[str, pd.DataFrame]]\n
-            One dict per chunk, in chunk (time) order.
+            One dict per chunk, in chunk (time) order; empty for a chunk
+            whose traffic produced no file of this output.
         """
 
-        return [chunk.read_data(key) for chunk in self._chunks]
+        # a chunk without any file of a requested output (a day without a
+        # qualifying truck writes no BM_V_*) has no data, which is not the
+        # same as the output being invalid: only an output no chunk has is
+        # invalid, as it is for a single-run _OutputManager
+        per_chunk = [
+            chunk.read_data(key) if key in chunk.get_summary() else {}
+            for chunk in self._chunks
+        ]
+        if not any(per_chunk):
+            raise ValueError(f"Output {key} is invalid.")
+        return per_chunk
 
     def relocate(self, output_root: Path) -> None:
         """

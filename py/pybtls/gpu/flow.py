@@ -64,24 +64,15 @@ class FlowStatsAccumulator:
         self.n_trk = np.zeros((H, L), dtype=np.int64)
         self.hist = np.zeros((H, L, self.n_bins), dtype=np.int64)
 
-    def extend_hours(self, total_hours):
-        """Grow the hourly tables to ``total_hours`` rows (no-op if not larger).
-        Used for the beyond-end vehicle the CPU flow buffer counts after the
-        last in-run hour (CVehicleBuffer::updateFlowData opens the hour row
-        containing it)."""
-        add = int(total_hours) - self.total_hours
-        if add <= 0:
-            return
-        for name in ("n_veh", "n_car", "n_trk", "hist"):
-            arr = getattr(self, name)
-            pad = np.zeros((add,) + arr.shape[1:], dtype=arr.dtype)
-            setattr(self, name, np.concatenate([arr, pad]))
-        self.total_hours = int(total_hours)
-
     def update(self, vtime, vlane, viscar, viscls):
         """Fold one window's raw per-vehicle arrays (absolute times) into the
         hourly per-lane tallies."""
-        hour = ((np.asarray(vtime) - self.hour_origin) / 3600.0).astype(np.int64)
+        # hour h (1-based) holds the arrivals in ((h-1)*3600, h*3600]: the C++
+        # buffer rolls the hour on a strict `>` (CVehicleBuffer::updateFlowData),
+        # so an arrival exactly on the hour stays in the hour ending there, and
+        # the run start (t = 0) opens hour 1
+        rel = np.asarray(vtime, dtype=float) - self.hour_origin
+        hour = np.maximum(np.ceil(rel / 3600.0).astype(np.int64) - 1, 0)
         lane = np.asarray(vlane).astype(np.int64) - 1  # 0-based global lane
         cls = np.asarray(viscls).astype(np.int64)
         ok = (

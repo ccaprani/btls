@@ -2,7 +2,7 @@
 Output-integrity tests targeting failure modes found during the parallel
 work: silent-block index misalignment (DR-1/DR-10), the lost final
 statistics interval (DR-9), statistics column mislabelling (DR-11), and
-vehicle-file round-trip fidelity.
+the statistics/event cross-checks.
 """
 
 import numpy as np
@@ -191,21 +191,3 @@ def test_zero_flow_hours_recover():
     assert (in_resumed & (events["Start Time"] >= 86400.0)).sum() > 0
 
     remove_folder(root)
-
-
-def test_garage_round_trip(tmp_path):
-    # Vehicle files must round-trip: read -> write -> read preserves every
-    # vehicle's fields (the values are already quantised by the format).
-    src = Path(__file__).parent / "test_data/garage.txt"
-    vehicles = pb.garage.read_garage_file(garage_path=src, garage_format=4)
-
-    rewritten = tmp_path / "rewritten.txt"
-    pb.garage.write_garage_file(vehicles, rewritten, 4)
-    again = pb.garage.read_garage_file(garage_path=rewritten, garage_format=4)
-
-    assert len(vehicles) == len(again)
-    for v1, v2 in zip(vehicles, again):
-        assert v1.get_time() == v2.get_time()
-        assert v1.get_gvw() == pytest.approx(v2.get_gvw(), rel=1e-9)
-        assert v1.get_no_axles() == v2.get_no_axles()
-        assert v1.get_velocity() == pytest.approx(v2.get_velocity(), rel=1e-9)

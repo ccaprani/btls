@@ -29,7 +29,8 @@ Tracker = "https://github.com/ccaprani/btls/issues"
 # per CPython per OS), so this would pull a multi-gigabyte torch into all of
 # them and buy nothing. No release runner has a GPU, so the CUDA tests in
 # tests/test_gpu_engine.py skip there whatever is installed, and the
-# torch-on-CPU tests in tests/test_audit_fixes_gpu.py are already covered by
+# torch-on-CPU tests (tests/test_gpu_engine_torch_cpu.py and
+# tests/test_event_boundaries.py) are already covered by
 # the one CI leg that installs torch explicitly and sets
 # PYBTLS_REQUIRE_TORCH=1; see .github/workflows/ci.yml.
 test = ["pytest>=6.0", "pycba>=0.5"]

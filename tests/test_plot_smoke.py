@@ -1,6 +1,5 @@
 """
-Smoke tests for output/plot/* (plot_TH is already covered in
-test_audit_fixes_output.py). Column names match the current read_*
+Smoke tests for output/plot/*. Column names match the current read_*
 counterparts, matching the actual on-disk column set produced after the
 recent "No. Vehicles" rename in output/read/*.
 """
@@ -11,7 +10,7 @@ matplotlib.use("Agg")
 
 import pandas as pd
 
-from pybtls.output.plot import plot_AE, plot_BM_S, plot_FR, plot_POT_S
+from pybtls.output.plot import plot_AE, plot_BM_S, plot_FR, plot_POT_S, plot_TH
 
 
 def test_plot_AE_smoke(tmp_path):
@@ -70,5 +69,14 @@ def test_plot_POT_S_smoke(tmp_path):
     save_to = tmp_path / "pot_s.png"
 
     plot_POT_S(data, threshold=10.0, save_to=save_to)
+
+    assert save_to.exists()
+
+
+def test_plot_TH_single_row_does_not_crash(tmp_path):
+    data = pd.DataFrame({"Time": [0.0], "No. Vehicles": [1], "Effect 1": [12.5]})
+    save_to = tmp_path / "th_single_row.png"
+
+    plot_TH(data, save_to=save_to)
 
     assert save_to.exists()

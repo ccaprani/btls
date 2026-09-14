@@ -117,3 +117,24 @@ def test_error_cases():
     gev = GEVFit(shape=0.1, loc=100.0, scale=10.0, block_size_days=250.0)
     with pytest.raises(ValueError):
         gev.return_level(0.5)  # return period shorter than one block
+
+
+def test_fit_gev_counts_zero_blocks_as_observed():
+    # read_BM_S writes 0.0 for a block without an event of the column's size
+    # (padding a short row like the engine's own opened-but-empty bucket): such
+    # a block was simulated, so it counts in n_blocks_total but not in the fit,
+    # and the return level is scaled down by the populated fraction
+    rng = np.random.default_rng(17)
+    peaks = genextreme.rvs(-0.1, loc=500.0, scale=50.0, size=100, random_state=rng)
+    column = pd.Series(np.concatenate([np.zeros(900), peaks]))
+
+    fit = fit_gev(column, block_size_days=1)
+
+    assert fit.n_blocks_used == 100 and fit.n_blocks_total == 1000
+    populated_only = fit_gev(peaks, block_size_days=1)
+    assert (fit.shape, fit.loc, fit.scale) == (
+        populated_only.shape,
+        populated_only.loc,
+        populated_only.scale,
+    )
+    assert fit.return_level(100) < populated_only.return_level(100)

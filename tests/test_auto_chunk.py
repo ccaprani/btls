@@ -9,7 +9,7 @@ import pandas as pd
 import pybtls as pb
 import pytest
 from pathlib import Path
-from utils import remove_folder
+from utils import remove_folder, run_loader_cpu
 
 from pybtls.output.chunked_manager import _ChunkedOutputManager
 
@@ -222,3 +222,47 @@ def test_chunking_validation_errors():
         )
 
     remove_folder(Path(__file__).parent / "temp_auto_chunk_err")
+
+
+# --- hand-built two-chunk outputs from real C++ runs ------------------------
+
+
+def _chunk(root, tag, heavy):
+    # one 100 kN truck (or a 1 kN car) at 0 s, and a 1 kN car at 30 s; the BM
+    # and POT vehicle files hold the truck as a Vehicle object
+    cfg = pb.OutputConfig()
+    cfg.set_BM_output(write_vehicle=True, write_mixed=True)
+    cfg.set_POT_output(write_vehicle=True)
+    return run_loader_cpu(root, tag, [(0.0, 100.0 if heavy else 1.0), (30.0, 1.0)], cfg)
+
+
+def test_merged_event_vehicles_are_shifted_with_the_event_time(tmp_path):
+    first, second = _chunk(tmp_path, "a", True), _chunk(tmp_path, "b", True)
+    merged = _ChunkedOutputManager([first, second], [1, 1], "merged")
+    for key in ("BM_by_no_trucks", "BM_by_mixed", "POT_vehicle"):
+        (df,) = merged.read_data(key).values()
+        assert len(df) == 2, key
+        for _, row in df.iterrows():
+            # the truck arrives at 0 s in its chunk and governs at 19.9 s: that
+            # gap must survive the merge for every embedded vehicle
+            for vehicle in row["Trucks"]:
+                assert row["Time"] - vehicle.get_time() == pytest.approx(19.9), key
+        assert [v.get_time() for v in df["Trucks"].iloc[-1]] == [86400.0], key
+        # the chunk's own objects are left as read
+        (own,) = second.read_data(key).values()
+        assert [v.get_time() for v in own["Trucks"].iloc[0]] == [0.0], key
+
+
+def test_chunk_without_a_bm_vehicle_file_does_not_hide_the_others(tmp_path):
+    empty, full = _chunk(tmp_path, "empty", False), _chunk(tmp_path, "full", True)
+    assert "BM_by_no_trucks" not in empty.get_summary()  # no truck, no BM_V_20_1
+    merged = _ChunkedOutputManager([empty, full], [1, 1], "merged")
+    assert "BM_by_no_trucks" in merged.get_summary()
+    assert set(merged.get_summary()) == set(merged.get_summary(with_path=True))
+
+    (df,) = merged.read_data("BM_by_no_trucks").values()
+    assert df["Index"].tolist() == [2]  # the truck's day is the second block
+    assert [v.get_time() for v in df["Trucks"].iloc[0]] == [86400.0]
+    assert merged.read_chunk_data("BM_by_no_trucks")[0] == {}
+    with pytest.raises(ValueError, match="invalid"):
+        merged.read_data("time_history")  # no chunk has it

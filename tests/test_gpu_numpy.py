@@ -201,6 +201,17 @@ def test_flow_stats_accumulator(tmp_path):
     assert row1[:4] == ["1", "3", "1", "2"]  # Hour, #Vehicles, #Trucks, #Cars
 
 
+def test_flow_stats_accumulator_bins_arrivals_on_the_hour():
+    from pybtls.gpu.flow import FlowStatsAccumulator
+
+    # hour h holds the arrivals in ((h-1)*3600, h*3600], as the C++ buffer
+    # rolls the hour on a strict `>`; t = 0 opens hour 1
+    flow = FlowStatsAccumulator(1, 0, 1, total_hours=24)
+    times = np.array([0.0, 3600.0, 3600.1, 86400.0])  # hours 1, 1, 2, 24
+    flow.update(times, np.ones(4), np.zeros(4, dtype=bool), np.zeros(4))
+    assert flow.n_veh[:, 0].tolist() == [2, 1] + [0] * 21 + [1]
+
+
 # --- influence-surface / influence-line resampling (influence.py) ------------
 
 

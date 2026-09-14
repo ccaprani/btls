@@ -1,7 +1,7 @@
 """
-Tests closing the ranked coverage gaps in
-dev_log/audit_20260704/tests_audit.md "Top gaps" for validation/error paths
-that were not already covered by test_audit_fixes_core.py.
+Argument validation and error paths of the Python API: every entry point
+rejects what it cannot use, fails before mutating state, and names what is
+wrong.
 """
 
 from pathlib import Path
@@ -40,8 +40,8 @@ def _lane_fixture(lane_index, lane_dir=1, classifier_type=None):
     return lfc, vehicle_gen, headway_gen
 
 
-# --- 1. vehicle_generator.py raise sites (kernel checks already covered in
-# test_audit_fixes_core.py, skipped here) ------------------------------------
+# --- 1. vehicle_generator.py raise sites (kernel checks are in
+# test_traffic_generator.py) -------------------------------------------------
 
 
 def test_vehicle_gen_nominal_rejects_invalid_cov_list():
@@ -326,3 +326,99 @@ def test_df_to_vehicle_list_names_the_missing_columns():
     df = pb.utils.vehicle_list_to_df([_one_vehicle()]).drop(columns=["Dir", "Trns"])
     with pytest.raises(ValueError, match="Dir, Trns"):
         pb.utils.df_to_vehicle_list(df)
+
+
+def test_bridge_add_load_effect_validates_before_mutating_state():
+    bridge = pb.Bridge(length=10.0, no_lane=2)
+
+    inf_line = pb.InfluenceLine(IL_type="built-in")
+    inf_line.set_IL(id=1, length=10.0)
+
+    with pytest.raises(ValueError):
+        bridge.add_load_effect(inf_line, inf_weight=[1.0])  # wrong length
+
+    # State must be unchanged after the failed call.
+    assert bridge._no_load_effect == 0
+    assert len(bridge._threshold_list) == 0
+
+    # Correct retry must succeed and be usable.
+    bridge.add_load_effect(inf_line, inf_weight=[1.0, 1.0])
+    assert bridge._no_load_effect == 1
+
+    output_config = pb.OutputConfig()
+    c_bridge = bridge._get_bridge(output_config)  # must not raise KeyError
+    assert c_bridge is not None
+
+
+def test_vehicle_list_to_df_day_year_columns():
+    vehicle = pb.Vehicle(no_axles=1)
+    vehicle.set_axle_weights([100.0])
+    vehicle.set_axle_spacings([0.0])
+    vehicle.set_axle_widths([2.0])
+
+    props = list(vehicle._get_all_properties())
+    props[1] = 15  # Day
+    props[2] = 6  # Month
+    props[3] = 2020  # Year
+    vehicle._set_all_properties(tuple(props))
+
+    df = pb.utils.vehicle_list_to_df([vehicle])
+    assert df["Day"].iloc[0] == 15
+    assert df["Month"].iloc[0] == 6
+    assert df["Year"].iloc[0] == 2020
+
+    # Round trip must preserve the (now correctly labelled) values.
+    round_tripped = pb.utils.df_to_vehicle_list(df)[0]
+    rt_props = round_tripped._get_all_properties()
+    assert rt_props[1] == 15
+    assert rt_props[2] == 6
+    assert rt_props[3] == 2020
+
+
+# --- every **kwargs entry point rejects unknown names ------------------------
+
+TRAFFIC_FILE = Path(__file__).parent / "test_data/test_traffic_file.txt"
+GARAGE_FILE = Path(__file__).parent / "test_data/garage.txt"
+
+
+def _bogus_calls(tmp_path):
+    bogus = {"bogus_option": 1}
+    truck = _nominal_vehicle()
+    return {
+        "add_traffic": lambda: pb.TrafficLoader(no_lane=4).add_traffic(
+            traffic=TRAFFIC_FILE, traffic_format=4, **bogus
+        ),
+        "VehicleGenNominal": lambda: pb.VehicleGenNominal(
+            nominal_vehicle=truck, COV_list=[0.05, 0.05], **bogus
+        ),
+        "VehicleGenGrave": lambda: pb.VehicleGenGrave(traffic_site="Auxerre", **bogus),
+        "VehicleGenGarage": lambda: pb.VehicleGenGarage(
+            garage=[truck], kernel=[[1.0, 0.05]] * 3, **bogus
+        ),
+        "HeadwayGenHeDS": lambda: pb.HeadwayGenHeDS(**bogus),
+        "HeadwayGenConstant": lambda: pb.HeadwayGenConstant(
+            constant_speed=36.0, constant_gap=5.0, **bogus
+        ),
+        "HeadwayGenCongested": lambda: pb.HeadwayGenCongested(
+            congested_spacing=20.0, congested_speed=36.0, **bogus
+        ),
+        "HeadwayGenFreeflow": lambda: pb.HeadwayGenFreeflow(**bogus),
+        "assign_lane_data": lambda: pb.LaneFlowComposition(
+            lane_index=1, lane_dir=1
+        ).assign_lane_data(
+            hourly_truck_flow=[100] * 24, hourly_car_flow=[0] * 24, **bogus
+        ),
+        "set_IL": lambda: pb.InfluenceLine("built-in").set_IL(
+            id=1, length=20.0, **bogus
+        ),
+        "read_garage_file": lambda: pb.garage.read_garage_file(GARAGE_FILE, 4, **bogus),
+        "write_garage_file": lambda: pb.garage.write_garage_file(
+            [truck], tmp_path / "garage.txt", 4, **bogus
+        ),
+    }
+
+
+@pytest.mark.parametrize("entry_point", sorted(_bogus_calls(Path(".")).keys()))
+def test_unknown_kwargs_are_rejected(entry_point, tmp_path):
+    with pytest.raises(TypeError, match="bogus_option"):
+        _bogus_calls(tmp_path)[entry_point]()

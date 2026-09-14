@@ -5,6 +5,10 @@ The C++ engine forms an *event* every time the set of vehicles on the bridge
 changes: an event window is bounded by vehicle on/off transitions, and its
 "peak" is the largest ``|E|`` over that window (recorded if it exceeds the
 threshold). See cpp/src/Bridge.cpp (event loop) and cpp/src/POTManager.cpp.
+A vehicle at or below ``min_gvw`` never joins the bridge, so its arrival is
+not a composition change and does not end an event (the driver loops in
+simulation.py and PrepareSim.cpp advance the bridge only to the arrivals of
+the vehicles they put on it).
 
 Because the GPU engine reconstructs each vehicle's on-bridge interval
 ``[t_on, t_off)`` exactly as the C++ engine does

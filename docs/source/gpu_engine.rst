@@ -142,19 +142,20 @@ The GPU engine is experimental and intentionally narrower than the CPU engine:
   their fatigue histograms exactly.
 
 The POT and statistics paths rebuild the C++ engine's *event* partition — an
-event is a window of constant on-bridge vehicle composition — from each
-vehicle's on-bridge interval, so the events, vehicle counts and truck counts
-track ``engine="cpu"`` to within ~1 % (the uniform sampling grid merges
-composition changes that fall inside one ``time_step``, which the CPU resolves
-exactly); the peak *values/times* carry the same grid-sampling noise as the
-block maxima, and borderline events near a POT threshold may flicker in or out.
-Flow statistics (``SS_C`` / ``SS_S``) are the distribution of each event's
-governing value, so they inherit the same tolerance. The very end of a run
-differs slightly by design: the CPU loop never simulates the final vehicle of a
-recorded stream and lets events that started before the end time run past it,
-while the GPU computes every vehicle's full crossing and keeps events starting
-up to (and including) the end time. To enable POT, configure it
-before adding the simulation::
+event is a window of constant on-bridge vehicle composition; a vehicle at or
+below ``min_gvw`` never joins the bridge, so its arrival does not end one —
+from each vehicle's on-bridge interval, so the events, vehicle counts and
+truck counts track ``engine="cpu"`` to within ~1 % (the uniform sampling grid
+merges composition changes that fall inside one ``time_step``, which the CPU
+resolves exactly); the peak *values/times* carry the same grid-sampling noise
+as the block maxima, and borderline events near a POT threshold may flicker
+in or out. Flow statistics (``SS_C`` / ``SS_S``) are the distribution of each
+event's governing value, so they inherit the same tolerance. The end of a run
+is the same on both engines: the run is the vehicles arriving up to the end
+time, each crossed to completion (events starting after the end time are
+credited to the last block), and the first arrival beyond the end is neither
+simulated nor counted. To enable POT, configure it before adding the
+simulation::
 
    cfg = OutputConfig()
    cfg.set_POT_output(write_summary=True, write_counter=True, write_vehicle=True)

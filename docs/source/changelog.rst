@@ -95,11 +95,47 @@ Fixed
 - **Block and interval accounting (changes results).** The driver runs the
   bridge past the end of the simulation window on its final iteration, so an
   event starting after the window closed could open a block of its own. The
-  end of the window is now authoritative and an over-run block is folded
-  back into the final one, in the block-maximum, statistics and POT managers
-  alike. A chunked run no longer shifts every later chunk by the inflated
-  count. On a two-day congested run this removes a spurious 49th interval
-  row and a spurious third block-maximum row.
+  end of the window is now authoritative: the output managers are told the
+  simulated end time up front, and an event starting after it is credited to
+  the final block, in the block-maximum, statistics and POT managers alike,
+  whatever the state of the write buffer (an earlier form of this fix folded
+  the over-run block back at the end of the run, which silently dropped it
+  when the final block had already been flushed to disk, so the block maxima
+  and POT counts depended on ``buffer_size``). A chunked run no longer
+  shifts every later chunk by the inflated count. On a two-day congested run
+  this removes a spurious 49th interval row and a spurious third
+  block-maximum row.
+- **Event boundaries and the end of the run (changes results).** An event
+  is a period over which the set of vehicles on the bridge is constant. The
+  driver loop, in ``Simulation`` and in the C++ program alike, advanced the
+  bridge to *every* arrival before testing the vehicle against ``min_gvw``,
+  so the arrival of a vehicle that never joined the bridge still cut the
+  running event: one truck crossing could yield several POT peaks, several
+  fatigue events with truncated ranges and several rows of event
+  statistics. The bridge is now advanced only to the arrivals of the
+  vehicles put on it. With the default ``min_gvw=0`` nothing changes;
+  with a threshold, POT peak counts and the event statistics' event and
+  vehicle counts fall, fatigue events span whole crossings, block maxima
+  keep their values up to the sampling grid, and the time history and
+  rainflow are unchanged beyond that grid. The GPU engine, which always
+  split events at composition changes only, now agrees with the CPU.
+  The run is the vehicles arriving in ``[0, no_day * 86400]``: the bridge is
+  run on until it empties, so the last vehicles' crossings are recorded
+  whether the traffic is generated, cut by ``no_day``, or at the end of a
+  recorded file (``Simulation`` used to stop at the last arrival of a file
+  that ended early, unlike the C++ program), and the first arrival beyond
+  the end is neither simulated nor written to the vehicle file or the flow
+  statistics (it used to open one more hour row). GPU flow-statistics hours
+  are the C++ ``((h-1)*3600, h*3600]``, so a vehicle arriving on the hour
+  is counted in the hour that ends there rather than the next one.
+- The chunk merge shifts the arrival time of the ``Vehicle`` objects in the
+  "Trucks" column of the BM and POT event files by the chunk offset, on
+  copies, so they sit on the same timeline as the row's shifted "Time";
+  they used to keep their chunk-local time. A chunk whose traffic produced
+  no file of an output (a day without a qualifying truck writes no BM_V_*)
+  no longer makes the merged output unreadable, and ``get_summary()`` of a
+  chunked run lists the union of the chunks' outputs rather than the first
+  chunk's.
 - The POT counter writes one row per block. It used to split a block across
   an event-buffer flush and emit the same block index more than once; the
   per-block totals were already correct, only the row layout was not. A
@@ -171,6 +207,18 @@ need to be reviewed against the list below.
 - The POT counter file (PT_C) has one row per block. Earlier versions wrote
   a row per event-buffer flush, so a block could appear several times: a
   two-day congested run wrote 29 rows where it now writes 2.
+- The vehicle file and the flow statistics (FlowData) end with the last
+  vehicle arriving within the simulated window: the first arrival beyond it
+  is no longer written or counted, so a one-day run has 24 FlowData rows.
+- ``read_BM_S`` pads a block whose row stops short of a later block's
+  buckets with 0.0, the value the engine writes for a bucket it opened but
+  never filled, instead of NaN: the block was simulated and had no event
+  of that size. ``fit_gev`` counts such blocks as observed, so a
+  ``read_data("BM_summary")`` column whose higher truck-count buckets are
+  sparse now yields the return level of the full simulated length; it used
+  to drop those blocks from the count and overstate the exceedance rate.
+  The merged BM_summary of a chunked run fills a bucket a chunk never
+  opened the same way.
 - In the AllEvents file, the fixed 3-decimal formatting now applies to the
   event start time only, which is what needs it: at long simulation lengths
   the default formatting loses second-level accuracy. The effect values go

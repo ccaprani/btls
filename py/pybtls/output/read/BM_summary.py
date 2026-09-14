@@ -38,8 +38,10 @@ def read_BM_S(
           (BlockMaxManager.cpp getNoVehicles()), which equals the number
           of trucks only when cars are kept out of the load calculation
           (no car flow, or ``min_gvw`` above the car GVW). A bucket the
-          block never filled holds 0.0; NaN only appears where pandas
-          pads a block that has fewer buckets than a later one.\n
+          block never filled holds 0.0, whether the engine wrote it or the
+          block's row stops short of a later block's buckets (a missing
+          bucket means the block had no event of that size); a value that
+          fails to parse is NaN.\n
         The number of bucket columns is inferred from the file. Returns
         a DataFrame with only the "Block Index" column (no rows) if the
         file has no data rows, since the number of buckets cannot be
@@ -66,6 +68,14 @@ def read_BM_S(
         # The number of vehicle-count buckets cannot be inferred without
         # any data; return the one column that is always known.
         return empty_frame(["Block Index"])
+
+    # A row lists one value per vehicle-count bucket the block had opened by
+    # its end, so a shorter row simply had no event of the missing sizes: pad
+    # it with the 0.0 the engine itself writes for an opened-but-empty bucket
+    # (CBlockMaxManager::WriteSummaryFiles) rather than leaving NaN, which
+    # downstream (fit_gev) would read as an unobserved block.
+    width = max(len(row) for row in data_rows)
+    data_rows = [row + ["0.0"] * (width - len(row)) for row in data_rows]
 
     # Convert to DataFrame
     return_data = pd.DataFrame(data_rows)

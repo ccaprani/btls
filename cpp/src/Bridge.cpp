@@ -26,10 +26,10 @@ CBridge::~CBridge()
 
 }
 
-void CBridge::InitializeDataMgr(double SimStartTime)
+void CBridge::InitializeDataMgr(double SimStartTime, double SimEndTime)
 {
 	// must be called after length, thresholds, etc set
-	m_EventMgr.Initialize(m_Length, m_vThresholds, SimStartTime);
+	m_EventMgr.Initialize(m_Length, m_vThresholds, SimStartTime, SimEndTime);
 }
 
 void CBridge::setLength(double length)
@@ -127,11 +127,6 @@ void CBridge::Update(double NextArrivalTime, double curTime)
 void CBridge::Finish()
 {
 	m_EventMgr.Finish();
-}
-
-void CBridge::Finish(double simEndTime)
-{
-	m_EventMgr.Finish(simEndTime);
 }
 
 double CBridge::TimeNextVehOffBridge()

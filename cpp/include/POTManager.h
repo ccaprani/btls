@@ -46,8 +46,8 @@ public:
 	 */
 	virtual void Update(CEvent& Ev);
 
-	/// @brief Finish, filling silent trailing counter blocks up to the simulated end time.
-	void FinishAt(double simEndTime);
+	/// @brief Finish: fill the silent trailing counter blocks up to the simulated end time, then flush.
+	virtual void Finish();
 
 	/**
 	 * @brief Initialize thresholds, buffers and output files.
@@ -55,8 +55,11 @@ public:
 	 * @param[in] BridgeLength Bridge length in metres.
 	 * @param[in] vThreshold   Peak thresholds, one per load effect.
 	 * @param[in] SimStartTime Simulation start time in seconds.
+	 * @param[in] SimEndTime   Simulated end time in seconds. An event starting
+	 *                         later (the bridge is run on until the first arrival
+	 *                         beyond the end) is counted in the last block.
 	 */
-	virtual void Initialize(double BridgeLength, std::vector<double> vThreshold, double SimStartTime);
+	virtual void Initialize(double BridgeLength, std::vector<double> vThreshold, double SimStartTime, double SimEndTime);
 
 private:
 	/// @brief Write the per-vehicle event files.

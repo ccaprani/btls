@@ -465,9 +465,8 @@ PYBIND11_MODULE(libbtls, m) {
 			.def("addVehicle", &CBridge::AddVehicle, py::arg("vehicle"))
 			.def("setCalcTimeStep", &CBridge::setCalcTimeStep, py::arg("time_step"))
 			.def("update", &CBridge::Update, py::arg("next_arrival_time"), py::arg("current_time"))
-			.def("finish", py::overload_cast<>(&CBridge::Finish))
-			.def("finish", py::overload_cast<double>(&CBridge::Finish), py::arg("sim_end_time"), "Finish, filling silent trailing blocks/intervals up to the simulated end time.")
-			.def("initializeDataMgr", &CBridge::InitializeDataMgr, py::arg("sim_start_time"));
+			.def("finish", &CBridge::Finish, "Finish: fill the silent trailing blocks/intervals up to the simulated end time given to initializeDataMgr, then flush the output buffers.")
+			.def("initializeDataMgr", &CBridge::InitializeDataMgr, py::arg("sim_start_time"), py::arg("sim_end_time"));
 	py::class_<CBridgeLane> cbridgelane(m, "_BridgeLane");
 		cbridgelane.def("addLoadEffect", &CBridgeLane::addLoadEffect, py::arg("IL"), py::arg("weight"));
 

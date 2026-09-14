@@ -43,13 +43,15 @@ public:
 	 */
 	virtual void Update(CEvent& Ev);
 
-	/// @brief Finish, filling silent trailing intervals up to the simulated end time.
-	void FinishAt(double simEndTime);
+	/// @brief Finish: fill the silent trailing intervals up to the simulated end time, then flush.
+	virtual void Finish();
 
 	/**
-	 * @brief Initialize with bridge length, load-effect count, and simulation start time.
+	 * @brief Initialize with bridge length, load-effect count, and the simulated
+	 *        start and end times. An event starting after the end (the bridge is
+	 *        run on until the first arrival beyond it) is folded into the last interval.
 	 */
-	virtual void Initialize(double BridgeLength, size_t nLE, double SimStartTime);
+	virtual void Initialize(double BridgeLength, size_t nLE, double SimStartTime, double SimEndTime);
 
 private:
 	/// @brief Write per-load-effect summary files at end-of-simulation.
@@ -69,11 +71,6 @@ private:
 
 	/// @brief Fold one value into the accumulator for load effect @p i.
 	void accumulateLE(unsigned int i, double x);
-
-	/// @brief Fold an interval that was opened past the end of the simulated
-	///        window back into the last completed interval (which must be
-	///        buffered).
-	void FoldBackInterval();
 
 	std::vector<CEventStatistics> m_vIntervalStats;                  ///< Per-LE interval accumulators.
 	std::vector<CEventStatistics> m_vCumulativeStats;                ///< Per-LE cumulative accumulators.

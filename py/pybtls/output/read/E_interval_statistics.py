@@ -41,7 +41,8 @@ def read_E_IS(
           count all vehicles).\n
         - "Min", "Max", "Mean", "Std Dev" : float, in the effect's native
           unit (kN or kN·m).\n
-        - "Variance", "Skewness", "Kurtosis" : float, dimensionless.\n
+        - "Variance" : float, in the square of the effect's native unit.\n
+        - "Skewness", "Kurtosis" : float, dimensionless.\n
         Returns an empty DataFrame with this schema if the file has no
         data rows.
     """

@@ -852,8 +852,8 @@ def test_gpu_surface_fused_kernel_matches_torch():
             remove_folder(ROOT)
 
     # uniform grid: fused kernel is an exact pass-through -> bit-identical to
-    # torch (equal_nan: BM_S rows are ragged — one column per event type seen
-    # in the block — so short rows read back NaN-padded)
+    # torch (BM_S rows are ragged — one column per event type seen in the
+    # block — and read back 0.0-padded; equal_nan only guards a failed parse)
     assert np.array_equal(
         bm(uniform, False), bm(uniform, True), equal_nan=True
     ), "fused surface kernel != torch path on a uniform grid"
@@ -1038,13 +1038,9 @@ def test_gpu_engine_window_seam_superposition_matches_cpu():
         b.add_load_effect(inf_line_surf=il, threshold=0.0)
         return b
 
-    # the trailing light sentinel makes the CPU engine simulate B's crossing
-    # (the last vehicle in a recorded stream is never simulated by the CPU loop)
-    vehicles = [
-        truck(1, 86399.0),
-        truck(2, 86400.5),
-        truck(1, 86500.0, weight=1.0),
-    ]
+    # the recorded stream ends with B: both engines run the bridge on until it
+    # empties, so B's crossing is simulated in full
+    vehicles = [truck(1, 86399.0), truck(2, 86400.5)]
 
     def run(engine, tag, force_tiny_windows):
         remove_folder(ROOT)
@@ -1087,10 +1083,9 @@ def test_gpu_engine_window_seam_superposition_matches_cpu():
         c, g = cdf.loc[block, col], gdf.loc[block, col]
         assert np.isfinite(c) and np.isfinite(g), f"block {block + 1} {col}: {c} vs {g}"
         assert abs(g - c) / abs(c) < 0.02, f"block {block + 1} {col}: cpu={c} gpu={g}"
-    # block 1 saw no 2-truck event on either engine
-    assert np.isnan(cdf.loc[0, "2-Truck Event"]) and np.isnan(
-        gdf.loc[0, "2-Truck Event"]
-    )
+    # block 1 saw no 2-truck event on either engine: a bucket the block never
+    # opened reads as the engine's own empty-bucket value, 0.0 (read_BM_S)
+    assert cdf.loc[0, "2-Truck Event"] == 0.0 and gdf.loc[0, "2-Truck Event"] == 0.0
 
 
 def test_gpu_engine_lane_eccentricity_matches_cpu():

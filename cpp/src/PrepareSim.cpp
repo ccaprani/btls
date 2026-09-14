@@ -1,4 +1,5 @@
 #include "PrepareSim.h"
+#include <limits>
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -107,18 +108,23 @@ void doSimulation(CVehicleClassification_sp pVC, std::vector<CBridge_sp> vBridge
 {
 	CVehicleBuffer VehBuff(CConfigData::get(), pVC, SimStartTime);
 	//size_t nLanes = vLanes.size();
+	// The run is the set of vehicles arriving in [SimStartTime, SimEndTime]:
+	// each is counted once and, if it loads the bridge, crossed to completion.
+	// The bridges are advanced only to the arrivals of the vehicles put on
+	// them: an event ends when the set of vehicles ON the bridge changes, and a
+	// vehicle at or below MIN_GVW never joins it, so its arrival must not cut
+	// the running event. bridgeTime is the last such arrival, where the bridge
+	// clocks stand between updates. (pybtls' Simulation._single_traffic_sim is
+	// the same loop.)
 	double curTime = SimStartTime;
-	//double nextTime = 0.0;
+	double bridgeTime = SimStartTime;
 	int curDay = (int)(SimStartTime/86400);
 	
 	std::cout << "Starting simulation..." << std::endl;
 	std::cout << "Day complete..." << std::endl;
 
-	while (curTime <= SimEndTime)
+	while (true)
 	{
-		//if(curTime >= 74821.73)
-		//	cout << "here" << endl;
-
 		// find the next arrival lane and the time
 		sort(vLanes.begin(), vLanes.end(), [](const CLane_sp& pL1, const CLane_sp& pL2){
 			return pL1->GetNextArrivalTime() < pL2->GetNextArrivalTime();
@@ -127,24 +133,26 @@ void doSimulation(CVehicleClassification_sp pVC, std::vector<CBridge_sp> vBridge
 
 		// generate the next vehicle from the lane with the next arrival time
 		const CVehicle_sp& pVeh = vLanes[0]->GetNextVehicle();
+
+		// end of the recorded traffic, or the first arrival beyond the window:
+		// neither is part of the run
+		if (pVeh == nullptr || pVeh->getTime() > SimEndTime)
+			break;
+
 		VehBuff.AddVehicle(pVeh);
-		if (CConfigData::get().Sim.CALC_LOAD_EFFECTS)
+		if (CConfigData::get().Sim.CALC_LOAD_EFFECTS && pVeh->getGVW() > CConfigData::get().Sim.MIN_GVW)
 		{
 			for (size_t i = 0; i < vBridges.size(); i++)
 			{
-				// update each bridge until the next vehicle comes on
-				vBridges[i]->Update(NextArrivalTime, curTime);
-				// Add the next vehicle to the bridge, if it is not a car
-				if (pVeh != nullptr && pVeh->getGVW() > CConfigData::get().Sim.MIN_GVW)
-					vBridges[i]->AddVehicle(pVeh);
+				// update each bridge until this vehicle comes on, then add it
+				vBridges[i]->Update(NextArrivalTime, bridgeTime);
+				vBridges[i]->AddVehicle(pVeh);
 			}
+			bridgeTime = NextArrivalTime;
 		}
 
 		// update the current time to that of the vehicle just added
-		if (pVeh != nullptr)
-			curTime = pVeh->getTime();
-		else	// finish
-			curTime = SimEndTime + 1.0;
+		curTime = pVeh->getTime();
 
 		// Keep informing the user
 		if (curTime > (double)(86400)*(curDay + 1))
@@ -159,7 +167,12 @@ void doSimulation(CVehicleClassification_sp pVC, std::vector<CBridge_sp> vBridge
 	if(CConfigData::get().Sim.CALC_LOAD_EFFECTS)
 	{
 		for(unsigned int i = 0; i < vBridges.size(); i++)
-			vBridges[i]->Finish(SimEndTime);
+		{
+			// run the bridge on until it empties: the last vehicles' crossings,
+			// and the events they form after the end time, belong to the run
+			vBridges[i]->Update(std::numeric_limits<double>::infinity(), bridgeTime);
+			vBridges[i]->Finish();
+		}
 	}
 
 	VehBuff.FlushBuffer(SimEndTime);
@@ -203,9 +216,9 @@ int run(std::string inFile)
 	if (CConfigData::get().Gen.GEN_TRAFFIC)	GetGeneratorLanes(pVC, vLanes, StartTime, EndTime); 
 	if (CConfigData::get().Read.READ_FILE)	GetTrafficFileLanes(pVC, vLanes, StartTime, EndTime);
 
-	// Now we know the time, we can tell bridge data managers when to start
+	// Now we know the times, we can tell bridge data managers when to start and end
 	for (auto& it : vBridges)
-		it->InitializeDataMgr(StartTime);
+		it->InitializeDataMgr(StartTime, EndTime);
 	
 	clock_t start = clock();
 	doSimulation(pVC, vBridges, vLanes, StartTime, EndTime);

@@ -196,3 +196,18 @@ def test_vehicle_traffic_preserves_head_verbatim():
     merged = merge_vehicle_traffic([chunk_0, chunk_1], [0, 1])
 
     assert merged["Head"].tolist() == [1001, 1001, 1001, 1001]
+
+
+def test_concat_fills_columns_a_chunk_never_wrote():
+    # BM_summary: a chunk only writes the "n-Truck Event" buckets some block of
+    # it opened; a bucket missing from a whole chunk is observed-empty (0.0),
+    # not missing data
+    a = pd.DataFrame({"Block Index": [1, 2], "1-Truck Event": [10.0, 12.0]})
+    b = pd.DataFrame(
+        {"Block Index": [1], "1-Truck Event": [11.0], "2-Truck Event": [20.0]}
+    )
+    merged = merge_concat(
+        [a, b], MERGE_REGISTRY["BM_summary"], [0.0, 2 * 86400.0], index_spans=[2, 1]
+    )
+    assert merged["Block Index"].tolist() == [1, 2, 3]
+    assert merged["2-Truck Event"].tolist() == [0.0, 0.0, 20.0]

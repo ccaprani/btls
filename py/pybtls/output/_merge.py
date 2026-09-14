@@ -19,7 +19,12 @@ concat
     where the counter has no geometric span;
     ``hour_index_cols`` are indices on the fixed 3600 s grid, shifted by
     the chunk's start hour and summed where chunks overlap;
-    ``renumber_index_cols`` are re-sequenced 1..N after concatenation.
+    ``renumber_index_cols`` are re-sequenced 1..N after concatenation;
+    ``vehicle_cols`` hold lists of ``Vehicle`` objects (an event's member
+    vehicles), which are copied with their arrival time shifted by the
+    chunk offset; ``fill_value`` fills a column a chunk never wrote (a
+    BM_S bucket no block of that chunk opened), which is observed-empty,
+    not missing.
     Exact, provided chunk boundaries align with the relevant block /
     interval size (validated at chunking time).
 bin_sum
@@ -39,6 +44,7 @@ rainflow_splice
     no sidecars exist. See ``merge_rainflow``.
 """
 
+import copy
 from dataclasses import dataclass, field
 from fnmatch import fnmatch
 
@@ -71,6 +77,8 @@ class MergeSpec:
     offset_index_cols: tuple = ()  # continuing counters; shifted by prior max
     hour_index_cols: tuple = ()  # 1-h grid indices; shifted by chunk start hour
     renumber_index_cols: tuple = ()  # re-sequenced 1..N after concat
+    vehicle_cols: tuple = ()  # lists of Vehicle objects; copied, times shifted
+    fill_value: float = None  # concat: value for a column a chunk never wrote
     sum_key_cols: tuple = ()  # bin_sum: group-by keys
     sum_value_cols: tuple = ()  # bin_sum: summed values
 
@@ -85,28 +93,41 @@ MERGE_REGISTRY: dict[str, MergeSpec] = {
     # offset has to come from the chunk geometry (merge_concat's
     # index_spans), not from the largest index the chunk happened to write.
     "BM_by_no_trucks": MergeSpec(
-        "concat", time_cols=("Time",), offset_index_cols=("Index",)
+        "concat",
+        time_cols=("Time",),
+        offset_index_cols=("Index",),
+        vehicle_cols=("Trucks",),
     ),
     "BM_by_mixed": MergeSpec(
-        "concat", time_cols=("Time",), offset_index_cols=("Index",)
+        "concat",
+        time_cols=("Time",),
+        offset_index_cols=("Index",),
+        vehicle_cols=("Trucks",),
     ),
-    "BM_summary": MergeSpec("concat", offset_index_cols=("Block Index",)),
+    # A chunk only writes the "n-Truck Event" buckets some block of it opened;
+    # a bucket missing from a whole chunk is observed-empty (0.0, as the
+    # engine writes an opened-but-empty bucket), not missing data.
+    "BM_summary": MergeSpec(
+        "concat", offset_index_cols=("Block Index",), fill_value=0.0
+    ),
     # POT_vehicle "Index" is the event's ordinal within its output buffer
     # flush (CPOTManager::WriteVehicleFiles restarts it at 1 after every
     # flush), repeated on one row per load effect within each event —
     # offsetting by the prior chunk's maximum keeps the repeats intact and
     # keeps chunks from colliding.
     "POT_vehicle": MergeSpec(
-        "concat", time_cols=("Time",), offset_index_cols=("Index",)
+        "concat",
+        time_cols=("Time",),
+        offset_index_cols=("Index",),
+        vehicle_cols=("Trucks",),
     ),
     "POT_summary": MergeSpec(
         "concat", time_cols=("Time",), renumber_index_cols=("Peak Index",)
     ),
     "POT_counter": MergeSpec("concat", offset_index_cols=("Block",)),
-    # FlowData "Hour" indexes a fixed 1-hour grid from the run start. A
-    # chunk also opens a partial hour for the first vehicle generated past
-    # its end time, so consecutive chunks overlap on that hour: rebase to
-    # absolute hours and sum the counts of coincident rows.
+    # FlowData "Hour" indexes a fixed 1-hour grid from the run start: rebase
+    # to absolute hours, summing the counts of any coincident rows (a chunk's
+    # tables end on its own last hour, so none coincide in practice).
     "traffic_statistics": MergeSpec("concat", hour_index_cols=("Hour",)),
     # Whole-run cumulative moments: needs Welford/Chan combination (Phase 2).
     "E_cumulative_statistics": MergeSpec("moment_merge"),
@@ -129,6 +150,19 @@ MERGE_REGISTRY: dict[str, MergeSpec] = {
 
 def _match_cols(df: pd.DataFrame, patterns: tuple) -> list[str]:
     return [c for c in df.columns if any(fnmatch(c, p) for p in patterns)]
+
+
+def _shift_vehicles(vehicles: list, offset: float) -> list:
+    """Copies of an event's member Vehicle objects with their arrival time
+    advanced by ``offset`` seconds, so that the vehicles sit on the same
+    (merged) timeline as the row's shifted "Time"; the chunk's own objects
+    are left as read."""
+    shifted = []
+    for vehicle in vehicles:
+        vehicle = copy.deepcopy(vehicle)
+        vehicle.set_time(vehicle.get_time() + offset)
+        shifted.append(vehicle)
+    return shifted
 
 
 def merge_concat(
@@ -193,6 +227,9 @@ def merge_concat(
             ):
                 new_col = new_col.astype(df[col].dtype)
             df[col] = new_col
+        for col in spec.vehicle_cols:
+            if col in df.columns and offset:
+                df[col] = [_shift_vehicles(vehicles, offset) for vehicles in df[col]]
         for col in spec.offset_index_cols:
             if col in df.columns:
                 if geom_bases is None:
@@ -209,6 +246,11 @@ def merge_concat(
         return chunk_dfs[0].copy() if chunk_dfs else pd.DataFrame()
 
     merged = pd.concat(shifted, ignore_index=True)
+
+    if spec.fill_value is not None:
+        # a column only some chunks wrote (a BM_S bucket no block of the other
+        # chunks opened) is observed-empty there, not missing data
+        merged = merged.fillna(spec.fill_value)
 
     grid_cols = [col for col in spec.hour_index_cols if col in merged.columns]
     if grid_cols:

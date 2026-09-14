@@ -1,11 +1,7 @@
 """
-Regression tests for the output/read and output/plot bugs found in
-dev_log/audit_20260704/bugs_output.md and docs_audit_read_part1.md.
+The output/read readers on hand-written files: header sniffing, empty files,
+column naming, row windows, and the event files' embedded vehicles.
 """
-
-import matplotlib
-
-matplotlib.use("Agg")
 
 import pandas as pd
 import pybtls as pb
@@ -13,7 +9,6 @@ import pytest
 from pathlib import Path
 
 from pybtls.output.output_manager import _OutputManager
-from pybtls.output.plot import plot_TH
 from pybtls.output.read import (
     read_AE,
     read_BM_All,
@@ -32,9 +27,6 @@ from pybtls.output.read import (
 from pybtls.output.read.event_file import read_event_file
 
 GARAGE = Path(__file__).parent / "test_data/garage.txt"
-
-
-# --- FIX 1: read_TS header sniff / axle-classifier columns ------------------
 
 
 def test_read_TS_detects_axle_classifier_header(tmp_path):
@@ -109,9 +101,6 @@ def test_read_TS_empty_file(tmp_path):
     assert len(df.columns) == 13
 
 
-# --- FIX 2: read_FE Max/Min chronological-order swap ------------------------
-
-
 def test_read_FE_max_min_not_swapped_regardless_of_chronological_order(tmp_path):
     path = tmp_path / "BL_20.0_Fatigue.txt"
     # Event 1: the minimum occurs before the maximum (min written on line 1).
@@ -139,9 +128,6 @@ def test_read_FE_max_min_not_swapped_regardless_of_chronological_order(tmp_path)
     assert df["Effect 1 Min Amplitude"].iloc[1] == 5.0
 
 
-# --- FIX 3: read_FE empty file ----------------------------------------------
-
-
 def test_read_FE_empty_file(tmp_path):
     path = tmp_path / "BL_20.0_Fatigue.txt"
     path.write_text("")
@@ -150,9 +136,6 @@ def test_read_FE_empty_file(tmp_path):
 
     assert len(df) == 0
     assert list(df.columns) == ["Start Time", "No. Vehicles"]
-
-
-# --- FIX 4: empty-file handling across output/read --------------------------
 
 
 def test_read_AE_empty_file(tmp_path):
@@ -263,9 +246,6 @@ def test_read_event_file_family_empty_file(tmp_path, reader):
     ]
 
 
-# --- FIX 5: "No. Trucks" -> "No. Vehicles" rename ---------------------------
-
-
 def test_read_AE_has_no_vehicles_column(tmp_path):
     path = tmp_path / "BL_20.0_AllEvents.txt"
     path.write_text("100.000\t3\t50.0\n")
@@ -299,9 +279,6 @@ def test_read_E_CS_keeps_no_trucks_column(tmp_path):
     assert df["No. Trucks"].iloc[0] == 5
 
 
-# --- FIX 6: read_POT_S Peak Index renumbering -------------------------------
-
-
 def test_read_POT_S_peak_index_offset_by_start_line(tmp_path):
     path = tmp_path / "PT_S_20.0_1.txt"
     path.write_text(
@@ -313,31 +290,6 @@ def test_read_POT_S_peak_index_offset_by_start_line(tmp_path):
     assert df["Peak Index"].tolist() == [3, 4]
     assert df["Time"].tolist() == [1300, 1400]
     assert df["Peak Value"].tolist() == [53, 54]
-
-
-# --- FIX 7: plot_TH single-row crash ----------------------------------------
-
-
-def test_plot_TH_single_row_does_not_crash(tmp_path):
-    data = pd.DataFrame({"Time": [0.0], "No. Vehicles": [1], "Effect 1": [12.5]})
-    save_to = tmp_path / "th_single_row.png"
-
-    plot_TH(data, save_to=save_to)
-
-    assert save_to.exists()
-
-
-# --- FIX 8: event vehicles are written in the configured format -------------
-
-
-def _event_file_text(vehicles: list) -> str:
-    """One event with a single load effect, as CEvent::writeToFile() writes
-    it: the event id on its own line, the 5-field effect summary line, then
-    one line per vehicle in the configured traffic-file format."""
-
-    lines = ["1", f"        1     500.0          100.0     10.00{len(vehicles):4d}"]
-    lines += [vehicle.write(4) for vehicle in vehicles]
-    return "\n".join(lines) + "\n"
 
 
 def test_read_event_file_parses_vehicles_in_the_written_format(tmp_path):
@@ -356,6 +308,29 @@ def test_read_event_file_parses_vehicles_in_the_written_format(tmp_path):
     assert [t.get_gvw() for t in trucks] == pytest.approx(
         [v.get_gvw() for v in vehicles], abs=0.01
     )
+
+
+def test_read_BM_S_pads_short_rows_with_zero(tmp_path):
+    # a block's row lists one value per bucket the block opened; a shorter row
+    # had no event of the missing sizes, which the engine writes as 0.0 when it
+    # did open the bucket, so the reader pads with that value rather than NaN
+    path = tmp_path / "BM_S_20.0_1.txt"
+    path.write_text("1\t10\n2\t12\t20\n3\n")
+    df = read_BM_S(path)
+    assert list(df.columns) == ["Block Index", "1-Truck Event", "2-Truck Event"]
+    assert df["1-Truck Event"].tolist() == [10.0, 12.0, 0.0]
+    assert df["2-Truck Event"].tolist() == [0.0, 20.0, 0.0]
+    assert not df.isna().any().any()
+
+
+def _event_file_text(vehicles: list) -> str:
+    """One event with a single load effect, as CEvent::writeToFile() writes
+    it: the event id on its own line, the 5-field effect summary line, then
+    one line per vehicle in the configured traffic-file format."""
+
+    lines = ["1", f"        1     500.0          100.0     10.00{len(vehicles):4d}"]
+    lines += [vehicle.write(4) for vehicle in vehicles]
+    return "\n".join(lines) + "\n"
 
 
 @pytest.mark.parametrize(

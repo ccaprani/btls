@@ -673,7 +673,9 @@ class Simulation:
                 output_config
             )  # vehicle drive from one dirn then another
 
-            load_calc.initializeDataMgr(current_time)
+            load_calc.initializeDataMgr(
+                current_time, len(lane_for_calc) * vehicle_time_gap
+            )
             load_calc.setCalcTimeStep(0.01 / velocity)  # 1 cm of travel per step
 
             for j, lane_index in enumerate(lane_for_calc):
@@ -759,7 +761,7 @@ class Simulation:
                 raise RuntimeError(
                     "The number of lanes in the bridge and traffic generator are not equal."
                 )
-            load_calc.initializeDataMgr(current_time)
+            load_calc.initializeDataMgr(current_time, end_time)
             load_calc.setCalcTimeStep(time_step)
             bridge_length = bridge.length
 
@@ -791,22 +793,32 @@ class Simulation:
             if not lane_for_calc:
                 raise ValueError("No vehicles in any simulated lane.")
 
-        while current_time <= end_time:
+        # The run is the set of vehicles arriving in [start, end]: each is
+        # counted once and, if it loads the bridge, crossed to completion. The
+        # bridge is advanced only to the arrivals of the vehicles put on it: an
+        # event ends when the set of vehicles ON the bridge changes, and a
+        # vehicle at or below min_gvw never joins it, so its arrival must not
+        # cut the running event. bridge_time is the last such arrival, where
+        # the bridge clock stands between updates. (The C++ program's
+        # doSimulation in PrepareSim.cpp is the same loop.)
+        bridge_time = current_time
+        while True:
             lane_for_calc = sorted(lane_for_calc, key=lambda t: t.getNextArrivalTime())
 
             next_arrival_time = lane_for_calc[0].getNextArrivalTime()
             vehicle = lane_for_calc[0].getNextVehicle()
 
-            if (
-                vehicle is None
-            ):  # This is to skip the empty (NoneType) vehicle at the end of Read&Sim
+            # end of the recorded traffic, or the first arrival beyond the
+            # window: neither is part of the run
+            if vehicle is None or vehicle.get_time() > end_time:
                 break
 
             vehicle_buffer.addVehicle(vehicle)
-            if isinstance(bridge, Bridge):
-                load_calc.update(next_arrival_time, current_time)
-                if vehicle.get_gvw() > int(min_gvw):  # BTLS requires in size_t kN
-                    load_calc.addVehicle(vehicle)
+            if isinstance(bridge, Bridge) and vehicle.get_gvw() > int(min_gvw):
+                # (BTLS requires min_gvw in size_t kN)
+                load_calc.update(next_arrival_time, bridge_time)
+                load_calc.addVehicle(vehicle)
+                bridge_time = next_arrival_time
 
             current_time = vehicle.get_time()
 
@@ -819,7 +831,10 @@ class Simulation:
                         sim_progress_print = ""
 
         if isinstance(bridge, Bridge):
-            load_calc.finish(end_time)
+            # run the bridge on until it empties: the last vehicles' crossings,
+            # and the events they form after the end time, belong to the run
+            load_calc.update(float("inf"), bridge_time)
+            load_calc.finish()
 
         vehicle_buffer.flushBuffer(end_time)
 
