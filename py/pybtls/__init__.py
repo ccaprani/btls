@@ -35,4 +35,4 @@ from .traffic import (
 )
 from .output import OutputConfig, read, plot
 from .simulation import Simulation
-from .utils import save_output, load_output
+from .utils import save_output, load_output, load_legacy_output

@@ -271,6 +271,12 @@ void CVehicleTrafficFile::AssignTraffic(std::vector<CVehicle_sp> vVehicles)
 	AnalyseTraffic();
 }
 
+void CVehicleTrafficFile::CheckCalendarDates() const
+{
+	for (const CVehicle_sp& pVeh : m_vVehicles)
+		pVeh->checkCalendarDate();
+}
+
 void CVehicleTrafficFile::AnalyseTraffic()
 {
 	UpdateProperties();
@@ -344,7 +350,11 @@ void CVehicleTrafficFile::UpdateProperties()
 	{
 		m_Starttime = m_vVehicles.front()->getTime();
 		m_Endtime = m_vVehicles.back()->getTime();
-		m_NoDays = (int)((m_Endtime - m_Starttime)/(3600.0*24)) + 1;
+		// from midnight of the first day, where a replay starts (getStartTime):
+		// counted from the first arrival, a file starting late in its day and
+		// ending early in its last gets a day too few, and the replay window
+		// ends before the last vehicles
+		m_NoDays = (int)((m_Endtime - getStartTime())/(3600.0*24)) + 1;
 	}
 	else
 		std::cout << "*** ERROR: No vehicles in traffic file" << std::endl;

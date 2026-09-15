@@ -11,6 +11,8 @@ __all__ = [
     "run_loader_cpu",
     "run_loader_torch",
     "read_records",
+    "write_mon_traffic",
+    "make_4lane_bridge",
 ]
 
 
@@ -107,3 +109,27 @@ def run_loader_torch(root, tag, rows, cfg, min_gvw=10):
 def read_records(manager, key):
     """``read_data(key)`` as plain records, for equality checks between engines."""
     return {stem: df.to_dict("records") for stem, df in manager.read_data(key).items()}
+
+
+# --- recorded traffic with its dates moved: the first records of the 4-lane MON
+# test traffic file, which starts on BTLS day 0 (1/1/2010), dated another year --
+
+
+def write_mon_traffic(path, n_records, year):
+    """Write the first ``n_records`` of the MON test traffic file to ``path``,
+    dated ``year`` instead of 2010 (the MON year field, columns 14-17): MON
+    years count from 2010, so 2019 starts the traffic on BTLS day 9*250."""
+    source = Path(__file__).parent / "test_data/test_traffic_file.txt"
+    lines = source.read_text().splitlines()[:n_records]
+    path.write_text("".join(f"{line[:13]}{year:4d}{line[17:]}\n" for line in lines))
+    return path
+
+
+def make_4lane_bridge():
+    """A 20 m, 4-lane bridge for the MON test traffic: built-in influence line 1
+    on every lane, POT threshold 500."""
+    il = pb.InfluenceLine(IL_type="built-in")
+    il.set_IL(id=1, length=20.0)
+    bridge = pb.Bridge(length=20.0, no_lane=4)
+    bridge.add_load_effect(inf_line_surf=il, inf_weight=[1.0] * 4, threshold=500.0)
+    return bridge

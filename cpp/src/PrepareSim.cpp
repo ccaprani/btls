@@ -62,6 +62,7 @@ void GetTrafficFileLanes(CVehicleClassification_sp pVC, std::vector<CLane_sp>& v
 	std::cout << "Reading traffic file..." << std::endl;
 	std::filesystem::path file = CConfigData::get().Read.TRAFFIC_FILE;
 	TrafficFile.Read(file,CConfigData::get().Read.FILE_FORMAT);
+	TrafficFile.CheckCalendarDates();
 	
 	CConfigData::get().Gen.NO_DAYS		= TrafficFile.getNoDays();
 	CConfigData::get().Road.NO_LANES		= TrafficFile.getNoLanes();

@@ -27,7 +27,12 @@ Added
   this run's results. All of ``examples/`` now passes ``overwrite=True`` so
   the scripts can be re-run.
 - SiWIM CSV traffic input, as ``traffic_format=5`` wherever a recorded
-  traffic file is read.
+  traffic file is read. Replaying one needs its dates within the BTLS
+  calendar, like any recorded traffic (see Fixed).
+- ``pybtls.utils.to_btls_calendar`` renumbers a recording dated by the real
+  calendar, such as a SiWIM export, into the BTLS calendar so that it can be
+  replayed. It keeps working days only, Monday to Friday less any holidays
+  given, and numbers them on from 1 January of the first one's year.
 - ``pybtls.post_processing``: ``fit_gev`` and ``fit_gpd``, with the
   ``GEVFit`` and ``GPDFit`` result objects, for extreme-value fitting.
 - ``InfluenceLine.set_mode`` and ``InfluenceSurface.set_mode``
@@ -68,6 +73,25 @@ Fixed
   undocumented ``min_chase_distance`` key it used to read is removed. A
   warning is issued when a bridge is given together with a different
   explicit value, since the bridge length is what gets used.
+- ``Simulation.add_sim`` rejects a tag whose output directory is, contains or
+  lies inside that of a simulation already queued, including the default
+  ``Sim_N`` tags and a chunked simulation's directory. Two such runs used to
+  clear or mix each other's files.
+- ``active_lane`` must hold lane indices from 1 to the number of lanes. A 0
+  or negative index was accepted and, by Python's negative indexing, silently
+  simulated another lane; an empty list failed with an unrelated error.
+- With ``Simulation(overwrite=True)``, a simulation queued with bad
+  arguments no longer clears its previous output directory before the error
+  is raised.
+- When a simulation fails in a multi-core ``Simulation.run``, the queued
+  simulations are cancelled instead of all run to completion before the
+  error surfaced, and ``get_output()`` keeps every simulation that finished
+  (a chunked simulation only when all its chunks did) instead of returning
+  nothing. Interrupting the run with Ctrl+C cancels the queue the same way.
+- Worker processes started with ``fork`` (the default on Linux before
+  Python 3.14) no longer share the C++ random number generator's state: each
+  child is reseeded from OS entropy, so unseeded runs in parallel workers no
+  longer generate identical traffic. A seeded run is unaffected.
 - C++ program: a run with load effects enabled but an empty bridge file no
   longer sets the no-overlap length to 0 m.
 - **Influence surfaces on lanes of unequal width (changes results).** A
@@ -119,7 +143,9 @@ Fixed
   keep their values up to the sampling grid, and the time history and
   rainflow are unchanged beyond that grid. The GPU engine, which always
   split events at composition changes only, now agrees with the CPU.
-  The run is the vehicles arriving in ``[0, no_day * 86400]``: the bridge is
+  The run is the vehicles arriving in ``[start, start + no_day * 86400]``,
+  where ``start`` is 0 for generated traffic and midnight of the first
+  vehicle's day for recorded traffic: the bridge is
   run on until it empties, so the last vehicles' crossings are recorded
   whether the traffic is generated, cut by ``no_day``, or at the end of a
   recorded file (``Simulation`` used to stop at the last arrival of a file
@@ -128,6 +154,45 @@ Fixed
   statistics (it used to open one more hour row). GPU flow-statistics hours
   are the C++ ``((h-1)*3600, h*3600]``, so a vehicle arriving on the hour
   is counted in the hour that ends there rather than the next one.
+- **Recorded traffic dated after day 0.** ``Simulation`` replayed recorded
+  traffic from t = 0 for the file's number of days, on both engines, so a
+  file whose first vehicle is not on BTLS day 0 - MON records dated 2019,
+  say - simulated nothing, without an error. The replay now starts at
+  midnight of the first vehicle's day, as the C++ program always did, and
+  keeps the traffic's dates: the outputs carry its absolute times, and the
+  block, counter, interval and flow-hour rows count from that day. Traffic
+  starting on day 0 is unaffected. Times that large are rounded more
+  coarsely, so such a replay can differ in the last printed digit from the
+  same traffic dated on day 0, as in the C++ program.
+- ``TrafficLoader.sim_day``, the default length of a replay, counts days from
+  midnight of the first vehicle's day. Counted from the first arrival, a file
+  that starts later in its first day than it ends in its last got a day too
+  few, and the replay closed before its last vehicles; such a file now
+  replays one more day.
+- Replaying recorded traffic dated outside the BTLS calendar raises
+  ``ValueError``, and the C++ program stops with an error. BTLS counts 25
+  days to a month and 10 months to a year, so a real calendar date after the
+  25th or in November or December took the time of a day in the following
+  month or year: the vehicle replayed out of order, and the replay could stop
+  at it and drop the rest of the file without a warning. Renumber such dates
+  into the BTLS calendar first, for instance with ``utils.to_btls_calendar``.
+  Reading a garage file does not use the dates and is unaffected.
+- ``Simulation.run`` with several cores sends each worker only its own
+  simulation. Each task used to pickle the whole ``Simulation``, the bridge and
+  traffic of every queued simulation included, so the transfer grew with the
+  square of the number of simulations: with eight simulations each replaying
+  9 427 recorded vehicles, every task pickled 12.4 MB where its own share was
+  1.55 MB. Results are unchanged.
+- ``OutputConfig``, and the configuration the generators carry, keep every
+  field Python can set when they are pickled, whether sent to a worker process
+  or written into a ``save_output`` manifest. The pickle state was a hand-kept
+  list that missed six writable fields (``_Road.LANES_FILE``,
+  ``_Gen.GEN_TRAFFIC``, ``_Gen.NO_DAYS``, ``_Gen.NO_OVERLAP_LENGTH``,
+  ``_Traffic.VEHICLE_MODEL`` and ``_Traffic.HEADWAY_MODEL``), which reset to
+  their defaults on the way. pybtls itself never sets them, so no results
+  change. The state now comes from the same field table as the bindings, and
+  a manifest or pickle written before still loads, a field it lacks keeping
+  its default.
 - The chunk merge shifts the arrival time of the ``Vehicle`` objects in the
   "Trucks" column of the BM and POT event files by the chunk offset, on
   copies, so they sit on the same timeline as the row's shifted "Time";
@@ -150,11 +215,12 @@ Fixed
   lines appear in the file, which is chronological, so whenever the
   larger-magnitude extreme happened to be written second - routinely, for a
   hogging influence line - the reader labelled the smaller one "Max".
-- Writing a vehicle out no longer changes it. ``CVehicle::Write`` assigned
-  the normalised transverse position back to the vehicle, and that position
-  feeds influence-surface eccentricity, so a load effect could depend on
-  whether the vehicle had been serialised first. No output changes in
-  practice: the call order was safe.
+- Comparing two vehicles with ``==`` no longer changes them. The comparison
+  serialised both vehicles, serialising writes the normalised transverse
+  position back to the vehicle, and that position feeds influence-surface
+  eccentricity, so a load effect could depend on whether the vehicle had
+  been compared first. The comparison now serialises copies. No output
+  changes in practice: the call order was safe.
 
 - ``min_gvw`` is normalised to a whole number of kN by ``add_sim``. The C++
   engine truncated it while the GPU engine compared it as a float, so a
@@ -175,6 +241,29 @@ Changed
   ignored, in ``Simulation.add_sim``, ``TrafficLoader.add_traffic``, the
   vehicle and headway generators, ``LaneFlowComposition.assign_lane_data``,
   ``InfluenceLine.set_IL`` and the garage read/write helpers.
+- ``Simulation.add_sim`` validates its arguments when the simulation is
+  queued, so a bad one raises from ``add_sim`` rather than from ``run``. A
+  ``bridge`` that is not a ``Bridge`` now raises ``TypeError``; it used to
+  run the simulation without load effects.
+- The package metadata declares the licence as the SPDX expression
+  ``GPL-3.0-only`` (PEP 639), in place of the free text "GNU GPL v3", and
+  names ``LICENSE`` as the licence file.
+- ``Simulation`` no longer sets the process-wide ``multiprocessing`` start
+  method to ``spawn``. ``run`` already starts its workers with an explicit
+  spawn context, and the global setting changed how the calling program's
+  own process pools started.
+- ``save_output`` writes a JSON manifest, holding each output's directory and
+  configuration, instead of a pickle file; the data stays in the output text
+  files, and a manifest stays readable across pybtls versions. ``save_output``
+  writes to a temporary file first, so a failed save leaves an existing
+  manifest intact. ``load_output`` reads manifests only and raises
+  ``RuntimeError`` for any other file, and for a manifest of a format version
+  it does not know. A
+  ``.pkl`` file saved by 1.0.1 or earlier is read with the new
+  ``load_legacy_output``, which is deprecated: it issues a ``FutureWarning``
+  and may be removed in a future release, so load such a file once and
+  re-save it with ``save_output``. Only load a pickle file you trust, because
+  unpickling can run arbitrary code.
 - **Linux wheels need glibc 2.27 or newer.** They are built in the
   ``manylinux_2_28`` image rather than cibuildwheel's ``manylinux2014``
   default; auditwheel tags the result

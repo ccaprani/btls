@@ -7,7 +7,6 @@ wrong.
 from pathlib import Path
 
 import pybtls as pb
-import pybtls._resource as _resource
 import pytest
 
 
@@ -241,39 +240,6 @@ def test_vehicle_df_round_trip_preserves_properties():
         assert back.get_local_lane() == original.get_local_lane()
         assert back.get_time() == pytest.approx(original.get_time())
         assert back.get_trans() == pytest.approx(original.get_trans())
-
-
-# --- 8. _resource.warn_if_file_too_large ------------------------------------
-#
-# Note: the current implementation prints a warning to stderr (not
-# warnings.warn), so this is verified via capsys rather than pytest.warns
-# -- confirmed empirically against the current source.
-
-
-def test_warn_if_file_too_large_prints_warning_when_memory_scarce(
-    tmp_path, monkeypatch, capsys
-):
-    big_file = tmp_path / "big.txt"
-    big_file.write_text("x" * 1000)
-
-    monkeypatch.setattr(_resource, "available_host_memory", lambda: 100)
-    _resource.warn_if_file_too_large(big_file, "traffic file")
-
-    captured = capsys.readouterr()
-    assert "WARNING" in captured.err
-
-
-def test_warn_if_file_too_large_silent_when_memory_plentiful(
-    tmp_path, monkeypatch, capsys
-):
-    small_file = tmp_path / "small.txt"
-    small_file.write_text("x" * 1000)
-
-    monkeypatch.setattr(_resource, "available_host_memory", lambda: 10**15)
-    _resource.warn_if_file_too_large(small_file, "traffic file")
-
-    captured = capsys.readouterr()
-    assert captured.err == ""
 
 
 def _one_vehicle():

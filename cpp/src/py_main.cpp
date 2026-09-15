@@ -9,6 +9,9 @@
 #include "pybind11/stl/filesystem.h"
 #include "pybind11/numpy.h"
 
+#include <functional>
+#include <vector>
+
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
@@ -131,6 +134,171 @@ static py::tuple _generate_and_extract(
 }
 
 
+namespace
+{
+	// A config struct's field table is the one list of its fields: it binds
+	// them to Python and names what a pickle of CConfigDataCore carries, which
+	// is also the state save_output writes as JSON. A field added to a table is
+	// therefore readable from Python and kept across a pickle, with no second
+	// list to keep in step. A nested struct is bound as a member and carried as
+	// a dict of its own table.
+	template <typename S>
+	struct ConfigField
+	{
+		const char* key;  // key in the pickle state
+		std::function<void(py::class_<S>&)> bind;
+		std::function<py::object(const S&)> get;
+		std::function<void(S&, py::handle)> set;
+	};
+
+	template <typename S>
+	using ConfigTable = std::vector<ConfigField<S>>;
+
+	template <typename S>
+	void bindConfigFields(py::class_<S>& cls, const ConfigTable<S>& table)
+	{
+		for (const auto& field : table)
+			field.bind(cls);
+	}
+
+	template <typename S>
+	py::dict configState(const S& s, const ConfigTable<S>& table)
+	{
+		py::dict state;
+		for (const auto& field : table)
+			state[field.key] = field.get(s);
+		return state;
+	}
+
+	// A key absent from the state leaves its field at the default, so a pickle
+	// or manifest written before the field was added still loads.
+	template <typename S>
+	void applyConfigState(S& s, const ConfigTable<S>& table, const py::dict& state)
+	{
+		for (const auto& field : table)
+			if (state.contains(field.key))
+				field.set(s, state[field.key]);
+	}
+
+	template <typename S, typename T>
+	ConfigField<S> configField(const char* key, T S::*member)
+	{
+		return {key,
+			[key, member](py::class_<S>& cls) { cls.def_readwrite(key, member); },
+			[member](const S& s) { return py::cast(s.*member); },
+			[member](S& s, py::handle value) { s.*member = value.cast<T>(); }};
+	}
+
+	// py_name is the Python attribute when it differs from the state key
+	template <typename S, typename T>
+	ConfigField<S> configStruct(const char* key, T S::*member, const ConfigTable<T>& table,
+		const char* py_name = nullptr)
+	{
+		const char* name = py_name ? py_name : key;
+		return {key,
+			[name, member](py::class_<S>& cls) { cls.def_readwrite(name, member); },
+			[member, &table](const S& s) { return py::object(configState(s.*member, table)); },
+			[member, &table](S& s, py::handle value) {
+				applyConfigState(s.*member, table, value.cast<py::dict>()); }};
+	}
+
+	using Road = CConfigDataCore::Road_Config;
+	using Gen = CConfigDataCore::Gen_Config;
+	using Traffic = CConfigDataCore::Traffic_Config;
+	using Output = CConfigDataCore::Output_Config;
+	using VehicleFile = Output::VehicleFile_Config;
+	using BlockMax = Output::BlockMax_Config;
+	using POT = Output::POT_Config;
+	using Stats = Output::Stats_Config;
+	using Fatigue = Output::Fatigue_Config;
+
+	const ConfigTable<Road> roadFields = {
+		configField("LANES_FILE", &Road::LANES_FILE),
+		configField("NO_LANES_DIR1", &Road::NO_LANES_DIR1),
+		configField("NO_LANES_DIR2", &Road::NO_LANES_DIR2),
+		configField("NO_LANES", &Road::NO_LANES),
+		configField("NO_DIRS", &Road::NO_DIRS),
+	};
+	const ConfigTable<Gen> genFields = {
+		configField("TRAFFIC_FOLDER", &Gen::TRAFFIC_FOLDER),
+		configField("GEN_TRAFFIC", &Gen::GEN_TRAFFIC),
+		configField("NO_DAYS", &Gen::NO_DAYS),
+		configField("TRUCK_TRACK_WIDTH", &Gen::TRUCK_TRACK_WIDTH),
+		configField("LANE_ECCENTRICITY_STD", &Gen::LANE_ECCENTRICITY_STD),
+		configField("KERNEL_TYPE", &Gen::KERNEL_TYPE),
+		configField("NO_OVERLAP_LENGTH", &Gen::NO_OVERLAP_LENGTH),
+	};
+	const ConfigTable<Traffic> trafficFields = {
+		configField("CLASSIFICATION", &Traffic::CLASSIFICATION),
+		configField("VEHICLE_MODEL", &Traffic::VEHICLE_MODEL),
+		configField("HEADWAY_MODEL", &Traffic::HEADWAY_MODEL),
+		configField("CONGESTED_SPACING", &Traffic::CONGESTED_SPACING),
+		configField("CONGESTED_SPEED", &Traffic::CONGESTED_SPEED),
+		configField("CONGESTED_GAP", &Traffic::CONGESTED_GAP),
+		configField("CONGESTED_GAP_COEF_VAR", &Traffic::CONGESTED_GAP_COEF_VAR),
+		configField("CONSTANT_SPEED", &Traffic::CONSTANT_SPEED),
+		configField("CONSTANT_GAP", &Traffic::CONSTANT_GAP),
+	};
+	const ConfigTable<VehicleFile> vehicleFileFields = {
+		configField("WRITE_VEHICLE_FILE", &VehicleFile::WRITE_VEHICLE_FILE),
+		configField("FILE_FORMAT", &VehicleFile::FILE_FORMAT),
+		configField("VEHICLE_FILENAME", &VehicleFile::VEHICLE_FILENAME),
+		configField("WRITE_VEHICLE_BUFFER_SIZE", &VehicleFile::WRITE_VEHICLE_BUFFER_SIZE),
+		configField("WRITE_FLOW_STATS", &VehicleFile::WRITE_FLOW_STATS),
+	};
+	const ConfigTable<BlockMax> blockMaxFields = {
+		configField("WRITE_BM", &BlockMax::WRITE_BM),
+		configField("WRITE_BM_VEHICLES", &BlockMax::WRITE_BM_VEHICLES),
+		configField("WRITE_BM_SUMMARY", &BlockMax::WRITE_BM_SUMMARY),
+		configField("WRITE_BM_MIXED", &BlockMax::WRITE_BM_MIXED),
+		configField("BLOCK_SIZE_DAYS", &BlockMax::BLOCK_SIZE_DAYS),
+		configField("BLOCK_SIZE_SECS", &BlockMax::BLOCK_SIZE_SECS),
+		configField("WRITE_BM_BUFFER_SIZE", &BlockMax::WRITE_BM_BUFFER_SIZE),
+	};
+	const ConfigTable<POT> potFields = {
+		configField("WRITE_POT", &POT::WRITE_POT),
+		configField("WRITE_POT_VEHICLES", &POT::WRITE_POT_VEHICLES),
+		configField("WRITE_POT_SUMMARY", &POT::WRITE_POT_SUMMARY),
+		configField("WRITE_POT_COUNTER", &POT::WRITE_POT_COUNTER),
+		configField("POT_COUNT_SIZE_DAYS", &POT::POT_COUNT_SIZE_DAYS),
+		configField("POT_COUNT_SIZE_SECS", &POT::POT_COUNT_SIZE_SECS),
+		configField("WRITE_POT_BUFFER_SIZE", &POT::WRITE_POT_BUFFER_SIZE),
+	};
+	const ConfigTable<Stats> statsFields = {
+		configField("WRITE_STATS", &Stats::WRITE_STATS),
+		configField("WRITE_SS_CUMULATIVE", &Stats::WRITE_SS_CUMULATIVE),
+		configField("WRITE_SS_INTERVALS", &Stats::WRITE_SS_INTERVALS),
+		configField("WRITE_SS_INTERVAL_SIZE", &Stats::WRITE_SS_INTERVAL_SIZE),
+		configField("WRITE_SS_BUFFER_SIZE", &Stats::WRITE_SS_BUFFER_SIZE),
+	};
+	const ConfigTable<Fatigue> fatigueFields = {
+		configField("DO_FATIGUE_RAINFLOW", &Fatigue::DO_FATIGUE_RAINFLOW),
+		configField("RAINFLOW_DECIMAL", &Fatigue::RAINFLOW_DECIMAL),
+		configField("RAINFLOW_CUTOFF", &Fatigue::RAINFLOW_CUTOFF),
+		configField("WRITE_FATIGUE_BUFFER_SIZE", &Fatigue::WRITE_FATIGUE_BUFFER_SIZE),
+		configField("WRITE_RAINFLOW_RESIDUALS", &Fatigue::WRITE_RAINFLOW_RESIDUALS),
+	};
+	const ConfigTable<Output> outputFields = {
+		configField("OUTPUT_DIR", &Output::OUTPUT_DIR),
+		configField("WRITE_TIME_HISTORY", &Output::WRITE_TIME_HISTORY),
+		configField("WRITE_EACH_EVENT", &Output::WRITE_EACH_EVENT),
+		configField("WRITE_EVENT_BUFFER_SIZE", &Output::WRITE_EVENT_BUFFER_SIZE),
+		configField("WRITE_FATIGUE_EVENT", &Output::WRITE_FATIGUE_EVENT),
+		configStruct("VehicleFile", &Output::VehicleFile, vehicleFileFields),
+		configStruct("BlockMax", &Output::BlockMax, blockMaxFields),
+		configStruct("POT", &Output::POT, potFields),
+		configStruct("Stats", &Output::Stats, statsFields),
+		configStruct("Fatigue", &Output::Fatigue, fatigueFields),
+	};
+	const ConfigTable<CConfigDataCore> configCoreFields = {
+		configStruct("Road", &CConfigDataCore::Road, roadFields, "_Road"),
+		configStruct("Gen", &CConfigDataCore::Gen, genFields, "_Gen"),
+		configStruct("Traffic", &CConfigDataCore::Traffic, trafficFields, "_Traffic"),
+		configStruct("Output", &CConfigDataCore::Output, outputFields, "_Output"),
+	};
+}
+
+
 PYBIND11_MODULE(libbtls, m) {
 	#ifdef VERSION_INFO
 		m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
@@ -197,229 +365,36 @@ PYBIND11_MODULE(libbtls, m) {
 		py::arg("BTLSin_file"));
 	py::class_<CConfigDataCore> cconfigdatacore(m, "_ConfigDataCore");
 		cconfigdatacore.def(py::init<>())
-			.def_readwrite("_Road", &CConfigDataCore::Road)
-			.def_readwrite("_Gen", &CConfigDataCore::Gen)
-			.def_readwrite("_Traffic", &CConfigDataCore::Traffic)
-			.def_readwrite("_Output", &CConfigDataCore::Output)
 			.def("_setRoad", &CConfigDataCore::setRoad, "set CConfigDataCore.Road attribute.", py::arg("no_lane"), py::arg("no_dir"), py::arg("no_lanes_dir1"), py::arg("no_lanes_dir2"))
 			.def(py::pickle(
-				[](CConfigDataCore& self) {  // __getstate__
-					py::dict attribute_dict;
-
-					py::dict road_dict;
-					road_dict["NO_LANES_DIR1"] = self.Road.NO_LANES_DIR1;
-					road_dict["NO_LANES_DIR2"] = self.Road.NO_LANES_DIR2;
-					road_dict["NO_LANES"] = self.Road.NO_LANES;
-					road_dict["NO_DIRS"] = self.Road.NO_DIRS;
-
-					py::dict gen_dict;
-					gen_dict["TRAFFIC_FOLDER"] = self.Gen.TRAFFIC_FOLDER;
-					gen_dict["TRUCK_TRACK_WIDTH"] = self.Gen.TRUCK_TRACK_WIDTH;
-					gen_dict["LANE_ECCENTRICITY_STD"] = self.Gen.LANE_ECCENTRICITY_STD;
-					gen_dict["KERNEL_TYPE"] = self.Gen.KERNEL_TYPE;
-
-					py::dict traffic_dict;
-					traffic_dict["CLASSIFICATION"] = self.Traffic.CLASSIFICATION;
-					traffic_dict["CONGESTED_SPACING"] = self.Traffic.CONGESTED_SPACING;
-					traffic_dict["CONGESTED_SPEED"] = self.Traffic.CONGESTED_SPEED;
-					traffic_dict["CONGESTED_GAP"] = self.Traffic.CONGESTED_GAP;
-					traffic_dict["CONGESTED_GAP_COEF_VAR"] = self.Traffic.CONGESTED_GAP_COEF_VAR;
-					traffic_dict["CONSTANT_SPEED"] = self.Traffic.CONSTANT_SPEED;
-					traffic_dict["CONSTANT_GAP"] = self.Traffic.CONSTANT_GAP;
-
-					py::dict output_dict;
-					output_dict["OUTPUT_DIR"] = self.Output.OUTPUT_DIR;
-					output_dict["WRITE_TIME_HISTORY"] = self.Output.WRITE_TIME_HISTORY;
-					output_dict["WRITE_EACH_EVENT"] = self.Output.WRITE_EACH_EVENT;
-					output_dict["WRITE_EVENT_BUFFER_SIZE"] = self.Output.WRITE_EVENT_BUFFER_SIZE;
-					output_dict["WRITE_FATIGUE_EVENT"] = self.Output.WRITE_FATIGUE_EVENT;
-
-					py::dict vehiclefile_dict;
-					vehiclefile_dict["WRITE_VEHICLE_FILE"] = self.Output.VehicleFile.WRITE_VEHICLE_FILE;
-					vehiclefile_dict["FILE_FORMAT"] = self.Output.VehicleFile.FILE_FORMAT;
-					vehiclefile_dict["VEHICLE_FILENAME"] = self.Output.VehicleFile.VEHICLE_FILENAME;
-					vehiclefile_dict["WRITE_VEHICLE_BUFFER_SIZE"] = self.Output.VehicleFile.WRITE_VEHICLE_BUFFER_SIZE;
-					vehiclefile_dict["WRITE_FLOW_STATS"] = self.Output.VehicleFile.WRITE_FLOW_STATS;
-					output_dict["VehicleFile"] = vehiclefile_dict;
-
-					py::dict blockmax_dict;
-					blockmax_dict["WRITE_BM"] = self.Output.BlockMax.WRITE_BM;
-					blockmax_dict["WRITE_BM_VEHICLES"] = self.Output.BlockMax.WRITE_BM_VEHICLES;
-					blockmax_dict["WRITE_BM_SUMMARY"] = self.Output.BlockMax.WRITE_BM_SUMMARY;
-					blockmax_dict["WRITE_BM_MIXED"] = self.Output.BlockMax.WRITE_BM_MIXED;
-					blockmax_dict["BLOCK_SIZE_DAYS"] = self.Output.BlockMax.BLOCK_SIZE_DAYS;
-					blockmax_dict["BLOCK_SIZE_SECS"] = self.Output.BlockMax.BLOCK_SIZE_SECS;
-					blockmax_dict["WRITE_BM_BUFFER_SIZE"] = self.Output.BlockMax.WRITE_BM_BUFFER_SIZE;
-					output_dict["BlockMax"] = blockmax_dict;
-
-					py::dict pot_dict;
-					pot_dict["WRITE_POT"] = self.Output.POT.WRITE_POT;
-					pot_dict["WRITE_POT_VEHICLES"] = self.Output.POT.WRITE_POT_VEHICLES;
-					pot_dict["WRITE_POT_SUMMARY"] = self.Output.POT.WRITE_POT_SUMMARY;
-					pot_dict["WRITE_POT_COUNTER"] = self.Output.POT.WRITE_POT_COUNTER;
-					pot_dict["POT_COUNT_SIZE_DAYS"] = self.Output.POT.POT_COUNT_SIZE_DAYS;
-					pot_dict["POT_COUNT_SIZE_SECS"] = self.Output.POT.POT_COUNT_SIZE_SECS;
-					pot_dict["WRITE_POT_BUFFER_SIZE"] = self.Output.POT.WRITE_POT_BUFFER_SIZE;
-					output_dict["POT"] = pot_dict;
-
-					py::dict stats_dict;
-					stats_dict["WRITE_STATS"] = self.Output.Stats.WRITE_STATS;
-					stats_dict["WRITE_SS_CUMULATIVE"] = self.Output.Stats.WRITE_SS_CUMULATIVE;
-					stats_dict["WRITE_SS_INTERVALS"] = self.Output.Stats.WRITE_SS_INTERVALS;
-					stats_dict["WRITE_SS_INTERVAL_SIZE"] = self.Output.Stats.WRITE_SS_INTERVAL_SIZE;
-					stats_dict["WRITE_SS_BUFFER_SIZE"] = self.Output.Stats.WRITE_SS_BUFFER_SIZE;
-					output_dict["Stats"] = stats_dict;
-
-					py::dict fatigue_dict;
-					fatigue_dict["DO_FATIGUE_RAINFLOW"] = self.Output.Fatigue.DO_FATIGUE_RAINFLOW;
-					fatigue_dict["RAINFLOW_DECIMAL"] = self.Output.Fatigue.RAINFLOW_DECIMAL;
-					fatigue_dict["RAINFLOW_CUTOFF"] = self.Output.Fatigue.RAINFLOW_CUTOFF;
-					fatigue_dict["WRITE_FATIGUE_BUFFER_SIZE"] = self.Output.Fatigue.WRITE_FATIGUE_BUFFER_SIZE;
-					fatigue_dict["WRITE_RAINFLOW_RESIDUALS"] = self.Output.Fatigue.WRITE_RAINFLOW_RESIDUALS;
-					output_dict["Fatigue"] = fatigue_dict;
-
-					attribute_dict["Road"] = road_dict;
-					attribute_dict["Gen"] = gen_dict;
-					attribute_dict["Traffic"] = traffic_dict;
-					attribute_dict["Output"] = output_dict;
-
-					return attribute_dict;
+				[](const CConfigDataCore& self) {  // __getstate__
+					return configState(self, configCoreFields);
 				},
-				[](py::dict attribute_dict){  // __setstate__
+				[](py::dict state) {  // __setstate__
 					CConfigDataCore config;
-
-					config.Road.NO_LANES_DIR1 = attribute_dict["Road"]["NO_LANES_DIR1"].cast<size_t>();
-					config.Road.NO_LANES_DIR2 = attribute_dict["Road"]["NO_LANES_DIR2"].cast<size_t>();
-					config.Road.NO_LANES = attribute_dict["Road"]["NO_LANES"].cast<size_t>();
-					config.Road.NO_DIRS = attribute_dict["Road"]["NO_DIRS"].cast<size_t>();
-
-					config.Gen.TRAFFIC_FOLDER = attribute_dict["Gen"]["TRAFFIC_FOLDER"].cast<std::string>();
-					config.Gen.TRUCK_TRACK_WIDTH = attribute_dict["Gen"]["TRUCK_TRACK_WIDTH"].cast<double>();
-					config.Gen.LANE_ECCENTRICITY_STD = attribute_dict["Gen"]["LANE_ECCENTRICITY_STD"].cast<double>();
-					config.Gen.KERNEL_TYPE = attribute_dict["Gen"]["KERNEL_TYPE"].cast<int>();
-
-					config.Traffic.CLASSIFICATION = attribute_dict["Traffic"]["CLASSIFICATION"].cast<int>();
-					config.Traffic.CONGESTED_SPACING = attribute_dict["Traffic"]["CONGESTED_SPACING"].cast<double>();
-					config.Traffic.CONGESTED_SPEED = attribute_dict["Traffic"]["CONGESTED_SPEED"].cast<double>();
-					config.Traffic.CONGESTED_GAP = attribute_dict["Traffic"]["CONGESTED_GAP"].cast<double>();
-					config.Traffic.CONGESTED_GAP_COEF_VAR = attribute_dict["Traffic"]["CONGESTED_GAP_COEF_VAR"].cast<double>();
-					config.Traffic.CONSTANT_SPEED = attribute_dict["Traffic"]["CONSTANT_SPEED"].cast<double>();
-					config.Traffic.CONSTANT_GAP = attribute_dict["Traffic"]["CONSTANT_GAP"].cast<double>();
-
-					if (attribute_dict["Output"].cast<py::dict>().contains("OUTPUT_DIR"))  // absent before pybtls 1.1.0
-						config.Output.OUTPUT_DIR = attribute_dict["Output"]["OUTPUT_DIR"].cast<std::string>();
-					config.Output.WRITE_TIME_HISTORY = attribute_dict["Output"]["WRITE_TIME_HISTORY"].cast<bool>();
-					config.Output.WRITE_EACH_EVENT = attribute_dict["Output"]["WRITE_EACH_EVENT"].cast<bool>();
-					config.Output.WRITE_EVENT_BUFFER_SIZE = attribute_dict["Output"]["WRITE_EVENT_BUFFER_SIZE"].cast<size_t>();
-					config.Output.WRITE_FATIGUE_EVENT = attribute_dict["Output"]["WRITE_FATIGUE_EVENT"].cast<bool>();
-
-					config.Output.VehicleFile.WRITE_VEHICLE_FILE = attribute_dict["Output"]["VehicleFile"]["WRITE_VEHICLE_FILE"].cast<bool>();
-					config.Output.VehicleFile.FILE_FORMAT = attribute_dict["Output"]["VehicleFile"]["FILE_FORMAT"].cast<size_t>();
-					config.Output.VehicleFile.VEHICLE_FILENAME = attribute_dict["Output"]["VehicleFile"]["VEHICLE_FILENAME"].cast<std::string>();
-					config.Output.VehicleFile.WRITE_VEHICLE_BUFFER_SIZE = attribute_dict["Output"]["VehicleFile"]["WRITE_VEHICLE_BUFFER_SIZE"].cast<size_t>();
-					config.Output.VehicleFile.WRITE_FLOW_STATS = attribute_dict["Output"]["VehicleFile"]["WRITE_FLOW_STATS"].cast<bool>();
-
-					config.Output.BlockMax.WRITE_BM = attribute_dict["Output"]["BlockMax"]["WRITE_BM"].cast<bool>();
-					config.Output.BlockMax.WRITE_BM_VEHICLES = attribute_dict["Output"]["BlockMax"]["WRITE_BM_VEHICLES"].cast<bool>();
-					config.Output.BlockMax.WRITE_BM_SUMMARY = attribute_dict["Output"]["BlockMax"]["WRITE_BM_SUMMARY"].cast<bool>();
-					config.Output.BlockMax.WRITE_BM_MIXED = attribute_dict["Output"]["BlockMax"]["WRITE_BM_MIXED"].cast<bool>();
-					config.Output.BlockMax.BLOCK_SIZE_DAYS = attribute_dict["Output"]["BlockMax"]["BLOCK_SIZE_DAYS"].cast<size_t>();
-					config.Output.BlockMax.BLOCK_SIZE_SECS = attribute_dict["Output"]["BlockMax"]["BLOCK_SIZE_SECS"].cast<size_t>();
-					config.Output.BlockMax.WRITE_BM_BUFFER_SIZE = attribute_dict["Output"]["BlockMax"]["WRITE_BM_BUFFER_SIZE"].cast<size_t>();
-
-					config.Output.POT.WRITE_POT = attribute_dict["Output"]["POT"]["WRITE_POT"].cast<bool>();
-					config.Output.POT.WRITE_POT_VEHICLES = attribute_dict["Output"]["POT"]["WRITE_POT_VEHICLES"].cast<bool>();
-					config.Output.POT.WRITE_POT_SUMMARY = attribute_dict["Output"]["POT"]["WRITE_POT_SUMMARY"].cast<bool>();
-					config.Output.POT.WRITE_POT_COUNTER = attribute_dict["Output"]["POT"]["WRITE_POT_COUNTER"].cast<bool>();
-					config.Output.POT.POT_COUNT_SIZE_DAYS = attribute_dict["Output"]["POT"]["POT_COUNT_SIZE_DAYS"].cast<size_t>();
-					config.Output.POT.POT_COUNT_SIZE_SECS = attribute_dict["Output"]["POT"]["POT_COUNT_SIZE_SECS"].cast<size_t>();
-					config.Output.POT.WRITE_POT_BUFFER_SIZE = attribute_dict["Output"]["POT"]["WRITE_POT_BUFFER_SIZE"].cast<size_t>();
-
-					config.Output.Stats.WRITE_STATS = attribute_dict["Output"]["Stats"]["WRITE_STATS"].cast<bool>();
-					config.Output.Stats.WRITE_SS_CUMULATIVE = attribute_dict["Output"]["Stats"]["WRITE_SS_CUMULATIVE"].cast<bool>();
-					config.Output.Stats.WRITE_SS_INTERVALS = attribute_dict["Output"]["Stats"]["WRITE_SS_INTERVALS"].cast<bool>();
-					config.Output.Stats.WRITE_SS_INTERVAL_SIZE = attribute_dict["Output"]["Stats"]["WRITE_SS_INTERVAL_SIZE"].cast<size_t>();
-					config.Output.Stats.WRITE_SS_BUFFER_SIZE = attribute_dict["Output"]["Stats"]["WRITE_SS_BUFFER_SIZE"].cast<size_t>();
-
-					config.Output.Fatigue.DO_FATIGUE_RAINFLOW = attribute_dict["Output"]["Fatigue"]["DO_FATIGUE_RAINFLOW"].cast<bool>();
-					config.Output.Fatigue.RAINFLOW_DECIMAL = attribute_dict["Output"]["Fatigue"]["RAINFLOW_DECIMAL"].cast<int>();
-					config.Output.Fatigue.RAINFLOW_CUTOFF = attribute_dict["Output"]["Fatigue"]["RAINFLOW_CUTOFF"].cast<double>();
-					config.Output.Fatigue.WRITE_FATIGUE_BUFFER_SIZE = attribute_dict["Output"]["Fatigue"]["WRITE_FATIGUE_BUFFER_SIZE"].cast<size_t>();
-					if (attribute_dict["Output"]["Fatigue"].cast<py::dict>().contains("WRITE_RAINFLOW_RESIDUALS"))  // absent before pybtls 1.1.0
-						config.Output.Fatigue.WRITE_RAINFLOW_RESIDUALS = attribute_dict["Output"]["Fatigue"]["WRITE_RAINFLOW_RESIDUALS"].cast<bool>();
-
+					applyConfigState(config, configCoreFields, state);
 					return config;
 				}
 			));
-		py::class_<CConfigDataCore::Road_Config> road_config(cconfigdatacore, "_Road_Config");
-			road_config.def_readwrite("LANES_FILE", &CConfigDataCore::Road_Config::LANES_FILE)
-				.def_readwrite("NO_LANES_DIR1", &CConfigDataCore::Road_Config::NO_LANES_DIR1)
-				.def_readwrite("NO_LANES_DIR2", &CConfigDataCore::Road_Config::NO_LANES_DIR2)
-				.def_readwrite("NO_LANES", &CConfigDataCore::Road_Config::NO_LANES)
-				.def_readwrite("NO_DIRS", &CConfigDataCore::Road_Config::NO_DIRS);
-		py::class_<CConfigDataCore::Gen_Config> gen_config(cconfigdatacore, "_Gen_Config");
-			gen_config.def_readwrite("TRAFFIC_FOLDER", &CConfigDataCore::Gen_Config::TRAFFIC_FOLDER)
-				.def_readwrite("GEN_TRAFFIC", &CConfigDataCore::Gen_Config::GEN_TRAFFIC)
-				.def_readwrite("NO_DAYS", &CConfigDataCore::Gen_Config::NO_DAYS)
-				.def_readwrite("TRUCK_TRACK_WIDTH", &CConfigDataCore::Gen_Config::TRUCK_TRACK_WIDTH)
-				.def_readwrite("LANE_ECCENTRICITY_STD", &CConfigDataCore::Gen_Config::LANE_ECCENTRICITY_STD)
-				.def_readwrite("KERNEL_TYPE", &CConfigDataCore::Gen_Config::KERNEL_TYPE)
-				.def_readwrite("NO_OVERLAP_LENGTH", &CConfigDataCore::Gen_Config::NO_OVERLAP_LENGTH);
-		py::class_<CConfigDataCore::Traffic_Config> traffic_config(cconfigdatacore, "_Traffic_Config");
-			traffic_config.def_readwrite("CLASSIFICATION", &CConfigDataCore::Traffic_Config::CLASSIFICATION)
-				.def_readwrite("VEHICLE_MODEL", &CConfigDataCore::Traffic_Config::VEHICLE_MODEL)
-				.def_readwrite("HEADWAY_MODEL", &CConfigDataCore::Traffic_Config::HEADWAY_MODEL)
-				.def_readwrite("CONGESTED_SPACING", &CConfigDataCore::Traffic_Config::CONGESTED_SPACING)
-				.def_readwrite("CONGESTED_SPEED", &CConfigDataCore::Traffic_Config::CONGESTED_SPEED)
-				.def_readwrite("CONGESTED_GAP", &CConfigDataCore::Traffic_Config::CONGESTED_GAP)
-				.def_readwrite("CONGESTED_GAP_COEF_VAR", &CConfigDataCore::Traffic_Config::CONGESTED_GAP_COEF_VAR)
-				.def_readwrite("CONSTANT_SPEED", &CConfigDataCore::Traffic_Config::CONSTANT_SPEED)
-				.def_readwrite("CONSTANT_GAP", &CConfigDataCore::Traffic_Config::CONSTANT_GAP);
-		py::class_<CConfigDataCore::Output_Config> output_config(cconfigdatacore, "_Output_Config");
-			output_config.def_readwrite("OUTPUT_DIR", &CConfigDataCore::Output_Config::OUTPUT_DIR)
-				.def_readwrite("WRITE_TIME_HISTORY", &CConfigDataCore::Output_Config::WRITE_TIME_HISTORY)
-				.def_readwrite("WRITE_EACH_EVENT", &CConfigDataCore::Output_Config::WRITE_EACH_EVENT)
-				.def_readwrite("WRITE_EVENT_BUFFER_SIZE", &CConfigDataCore::Output_Config::WRITE_EVENT_BUFFER_SIZE)
-				.def_readwrite("WRITE_FATIGUE_EVENT", &CConfigDataCore::Output_Config::WRITE_FATIGUE_EVENT)
-				.def_readwrite("VehicleFile", &CConfigDataCore::Output_Config::VehicleFile)
-				.def_readwrite("BlockMax", &CConfigDataCore::Output_Config::BlockMax)
-				.def_readwrite("POT", &CConfigDataCore::Output_Config::POT)
-				.def_readwrite("Stats", &CConfigDataCore::Output_Config::Stats)
-				.def_readwrite("Fatigue", &CConfigDataCore::Output_Config::Fatigue);
-			py::class_<CConfigDataCore::Output_Config::VehicleFile_Config> vehiclefile_config(output_config, "VehicleFile_Config");
-				vehiclefile_config.def_readwrite("WRITE_VEHICLE_FILE", &CConfigDataCore::Output_Config::VehicleFile_Config::WRITE_VEHICLE_FILE)
-						.def_readwrite("FILE_FORMAT", &CConfigDataCore::Output_Config::VehicleFile_Config::FILE_FORMAT)
-						.def_readwrite("VEHICLE_FILENAME", &CConfigDataCore::Output_Config::VehicleFile_Config::VEHICLE_FILENAME)
-						.def_readwrite("WRITE_VEHICLE_BUFFER_SIZE", &CConfigDataCore::Output_Config::VehicleFile_Config::WRITE_VEHICLE_BUFFER_SIZE)
-						.def_readwrite("WRITE_FLOW_STATS", &CConfigDataCore::Output_Config::VehicleFile_Config::WRITE_FLOW_STATS);
-			py::class_<CConfigDataCore::Output_Config::BlockMax_Config> blockmax_config(output_config, "BlockMax_Config");
-				blockmax_config.def_readwrite("WRITE_BM", &CConfigDataCore::Output_Config::BlockMax_Config::WRITE_BM)
-						.def_readwrite("WRITE_BM_VEHICLES", &CConfigDataCore::Output_Config::BlockMax_Config::WRITE_BM_VEHICLES)
-						.def_readwrite("WRITE_BM_SUMMARY", &CConfigDataCore::Output_Config::BlockMax_Config::WRITE_BM_SUMMARY)
-						.def_readwrite("WRITE_BM_MIXED", &CConfigDataCore::Output_Config::BlockMax_Config::WRITE_BM_MIXED)
-						.def_readwrite("BLOCK_SIZE_DAYS", &CConfigDataCore::Output_Config::BlockMax_Config::BLOCK_SIZE_DAYS)
-						.def_readwrite("BLOCK_SIZE_SECS", &CConfigDataCore::Output_Config::BlockMax_Config::BLOCK_SIZE_SECS)
-						.def_readwrite("WRITE_BM_BUFFER_SIZE", &CConfigDataCore::Output_Config::BlockMax_Config::WRITE_BM_BUFFER_SIZE);
-			py::class_<CConfigDataCore::Output_Config::POT_Config> pot_config(output_config, "POT_Config");
-				pot_config.def_readwrite("WRITE_POT", &CConfigDataCore::Output_Config::POT_Config::WRITE_POT)
-					.def_readwrite("WRITE_POT_VEHICLES", &CConfigDataCore::Output_Config::POT_Config::WRITE_POT_VEHICLES)
-					.def_readwrite("WRITE_POT_SUMMARY", &CConfigDataCore::Output_Config::POT_Config::WRITE_POT_SUMMARY)
-					.def_readwrite("WRITE_POT_COUNTER", &CConfigDataCore::Output_Config::POT_Config::WRITE_POT_COUNTER)
-					.def_readwrite("POT_COUNT_SIZE_DAYS", &CConfigDataCore::Output_Config::POT_Config::POT_COUNT_SIZE_DAYS)
-					.def_readwrite("POT_COUNT_SIZE_SECS", &CConfigDataCore::Output_Config::POT_Config::POT_COUNT_SIZE_SECS)
-					.def_readwrite("WRITE_POT_BUFFER_SIZE", &CConfigDataCore::Output_Config::POT_Config::WRITE_POT_BUFFER_SIZE);
-			py::class_<CConfigDataCore::Output_Config::Stats_Config> stats_config(output_config, "Stats_Config");
-				stats_config.def_readwrite("WRITE_STATS", &CConfigDataCore::Output_Config::Stats_Config::WRITE_STATS)
-					.def_readwrite("WRITE_SS_CUMULATIVE", &CConfigDataCore::Output_Config::Stats_Config::WRITE_SS_CUMULATIVE)
-					.def_readwrite("WRITE_SS_INTERVALS", &CConfigDataCore::Output_Config::Stats_Config::WRITE_SS_INTERVALS)
-					.def_readwrite("WRITE_SS_INTERVAL_SIZE", &CConfigDataCore::Output_Config::Stats_Config::WRITE_SS_INTERVAL_SIZE)
-					.def_readwrite("WRITE_SS_BUFFER_SIZE", &CConfigDataCore::Output_Config::Stats_Config::WRITE_SS_BUFFER_SIZE);
-			py::class_<CConfigDataCore::Output_Config::Fatigue_Config> fatigue_config(output_config, "Fatigue_Config");
-					fatigue_config.def_readwrite("DO_FATIGUE_RAINFLOW", &CConfigDataCore::Output_Config::Fatigue_Config::DO_FATIGUE_RAINFLOW)
-						.def_readwrite("RAINFLOW_DECIMAL", &CConfigDataCore::Output_Config::Fatigue_Config::RAINFLOW_DECIMAL)
-						.def_readwrite("RAINFLOW_CUTOFF", &CConfigDataCore::Output_Config::Fatigue_Config::RAINFLOW_CUTOFF)
-						.def_readwrite("WRITE_FATIGUE_BUFFER_SIZE", &CConfigDataCore::Output_Config::Fatigue_Config::WRITE_FATIGUE_BUFFER_SIZE)
-						.def_readwrite("WRITE_RAINFLOW_RESIDUALS", &CConfigDataCore::Output_Config::Fatigue_Config::WRITE_RAINFLOW_RESIDUALS);
+		bindConfigFields(cconfigdatacore, configCoreFields);  // _Road, _Gen, _Traffic, _Output
+		py::class_<Road> road_config(cconfigdatacore, "_Road_Config");
+			bindConfigFields(road_config, roadFields);
+		py::class_<Gen> gen_config(cconfigdatacore, "_Gen_Config");
+			bindConfigFields(gen_config, genFields);
+		py::class_<Traffic> traffic_config(cconfigdatacore, "_Traffic_Config");
+			bindConfigFields(traffic_config, trafficFields);
+		py::class_<Output> output_config(cconfigdatacore, "_Output_Config");
+			bindConfigFields(output_config, outputFields);
+			py::class_<VehicleFile> vehiclefile_config(output_config, "VehicleFile_Config");
+				bindConfigFields(vehiclefile_config, vehicleFileFields);
+			py::class_<BlockMax> blockmax_config(output_config, "BlockMax_Config");
+				bindConfigFields(blockmax_config, blockMaxFields);
+			py::class_<POT> pot_config(output_config, "POT_Config");
+				bindConfigFields(pot_config, potFields);
+			py::class_<Stats> stats_config(output_config, "Stats_Config");
+				bindConfigFields(stats_config, statsFields);
+			py::class_<Fatigue> fatigue_config(output_config, "Fatigue_Config");
+				bindConfigFields(fatigue_config, fatigueFields);
 
 	py::class_<CRainflow> crainflow(m, "_Rainflow");
 		crainflow.doc() = "ASTM E1049-85 rainflow cycle counter. Used to close spliced chunk residuals exactly.";
@@ -650,9 +625,10 @@ PYBIND11_MODULE(libbtls, m) {
 				py::arg("index"), py::arg("width"))
 			.def("get_length", &CVehicle::getLength, "Get the vehicle length, in metres.")
 			.def("write",
-				// the fixed-width writers truncate the axle count in place when
-				// the vehicle has more axles than the format holds, so serialise
-				// a copy to leave the caller's vehicle untouched
+				// Write() normalises the transverse position in place, and the
+				// fixed-width writers truncate the axle count when the vehicle has
+				// more axles than the format holds, so serialise a copy to leave
+				// the caller's vehicle untouched
 				[](CVehicle_sp self, size_t file_format) { CVehicle veh(*self); return veh.Write(file_format); },
 				R"(
 				Serialise the vehicle to one line in the given traffic-file format.
@@ -836,6 +812,8 @@ PYBIND11_MODULE(libbtls, m) {
 		cvehicletrafficfile.def(py::init<CVehicleClassification_sp, bool, bool, double>(), py::arg("vehicle_classification"), py::arg("use_const_speed"), py::arg("use_average_speed"), py::arg("const_speed_value"))
 			.def("read", &CVehicleTrafficFile::Read, py::arg("file"), py::arg("format"))
 			.def("assignTraffic", &CVehicleTrafficFile::AssignTraffic, py::arg("vehicle_list"))
+			.def("checkCalendarDates", &CVehicleTrafficFile::CheckCalendarDates)
+			.def("getStartTime", &CVehicleTrafficFile::getStartTime)
 			.def("getNoDays", &CVehicleTrafficFile::getNoDays)
 			.def("getNoLanes", &CVehicleTrafficFile::getNoLanes)
 			.def("getNoDirn", &CVehicleTrafficFile::getNoDirn)

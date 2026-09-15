@@ -46,8 +46,9 @@ class FlowStatsAccumulator:
     """Per (hour, global lane) vehicle / truck / car + class-histogram counts,
     streamed window by window. ``classifier_type`` is 0 (axle) or 1 (pattern);
     ``no_lane_dir1`` splits the global lanes into directions for the file names.
-    ``hour_origin`` is hour 1's start time — 0 for both traffic kinds, matching
-    the C++ ``m_FirstHour`` with the ``start_time=0.0`` the CPU path passes."""
+    ``hour_origin`` is hour 1's start time: the run start, 0 for generated
+    traffic and midnight of recorded traffic's first day, matching the C++
+    ``m_FirstHour`` with the start time the CPU path passes."""
 
     def __init__(
         self, no_lane, classifier_type, no_lane_dir1, total_hours, hour_origin=0.0
@@ -70,7 +71,7 @@ class FlowStatsAccumulator:
         # hour h (1-based) holds the arrivals in ((h-1)*3600, h*3600]: the C++
         # buffer rolls the hour on a strict `>` (CVehicleBuffer::updateFlowData),
         # so an arrival exactly on the hour stays in the hour ending there, and
-        # the run start (t = 0) opens hour 1
+        # the run start opens hour 1
         rel = np.asarray(vtime, dtype=float) - self.hour_origin
         hour = np.maximum(np.ceil(rel / 3600.0).astype(np.int64) - 1, 0)
         lane = np.asarray(vlane).astype(np.int64) - 1  # 0-based global lane

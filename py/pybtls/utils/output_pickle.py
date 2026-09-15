@@ -4,8 +4,9 @@ Persistence for simulation output managers.
 The on-disk format is a JSON manifest: an output manager is only a set of
 file paths plus the output configuration, so a human-readable manifest is
 robust across pybtls/pandas versions (the simulation data itself always
-lives in the output text files). Legacy pickle files written by earlier
-versions are still loadable.
+lives in the output text files). The pickle files that pybtls 1.0.1 and
+earlier saved are read by ``load_legacy_output``, which may be removed in a
+future release.
 """
 
 from ..output.output_manager import _OutputManager
@@ -14,10 +15,11 @@ from ..output.output_config import OutputConfig
 from pathlib import Path
 from typing import Union
 import json
+import os
 import pickle
 import warnings
 
-__all__ = ["save_output", "load_output"]
+__all__ = ["save_output", "load_output", "load_legacy_output"]
 
 _FORMAT = "pybtls-output-manifest"
 _FORMAT_VERSION = 1
@@ -28,7 +30,10 @@ def _manager_to_record(manager) -> dict:
         return {
             "type": "chunked",
             "sim_tag": manager.tag,
-            "master_seed": manager.master_seed,
+            # a numpy integer seed runs fine but is not JSON serializable
+            "master_seed": (
+                int(manager.master_seed) if manager.master_seed is not None else None
+            ),
             "chunk_days": list(manager._chunk_days),
             "chunks": [_manager_to_record(chunk) for chunk in manager.chunks],
         }
@@ -104,8 +109,15 @@ def save_output(
         "version": _FORMAT_VERSION,
         "outputs": {tag: _manager_to_record(mgr) for tag, mgr in output.items()},
     }
-    with open(file_path, "w") as file:
-        json.dump(manifest, file, indent=1)
+    # write beside the target and swap it in, so a failed save leaves any
+    # existing manifest intact
+    tmp_path = file_path.with_name(file_path.name + ".tmp")
+    try:
+        with open(tmp_path, "w") as file:
+            json.dump(manifest, file, indent=1)
+        os.replace(tmp_path, file_path)
+    finally:
+        tmp_path.unlink(missing_ok=True)
 
     print(f"Outputs have been successfully saved to {file_path}!")
 
@@ -114,10 +126,7 @@ def load_output(
     file_path: Path,
 ) -> dict[str, Union[_OutputManager, _ChunkedOutputManager]]:
     """
-    Load output managers from a manifest file.
-
-    Reads the JSON manifest written by ``save_output``; legacy binary
-    .pkl files written by earlier pybtls versions are also accepted.
+    Load output managers from a manifest file written by ``save_output``.
 
     Parameters
     ----------
@@ -128,6 +137,13 @@ def load_output(
     -------
     dict[str, Union[_OutputManager, _ChunkedOutputManager]]\n
         The output managers, keyed by sim_tag.
+
+    Raises
+    ------
+    RuntimeError\n
+        If the file is not a pybtls output manifest, or is a manifest of a
+        format version this pybtls cannot read. A .pkl file saved by
+        pybtls 1.0.1 or earlier is read with ``load_legacy_output`` instead.
     """
 
     file_path = Path(file_path) if not isinstance(file_path, Path) else file_path
@@ -136,27 +152,69 @@ def load_output(
         with open(file_path, "r") as file:
             manifest = json.load(file)
     except (UnicodeDecodeError, json.JSONDecodeError):
-        # legacy pickle format
-        warnings.warn(
-            "Loading a legacy pickle output file; re-save it with "
-            "save_output() to convert it to the JSON manifest format.",
-            stacklevel=2,
+        manifest = None
+    if not isinstance(manifest, dict) or manifest.get("format") != _FORMAT:
+        raise RuntimeError(
+            f"{file_path} is not a pybtls output manifest. A .pkl file saved by "
+            "pybtls 1.0.1 or earlier can be read with load_legacy_output()."
         )
-        with open(file_path, "rb") as file:
-            output = pickle.load(file)
-        if not all(
-            isinstance(obj, (_OutputManager, _ChunkedOutputManager))
-            for obj in output.values()
-        ):
-            raise RuntimeError("The output pkl is damaged.")
-        print(f"Outputs have been successfully loaded from {file_path}!")
-        return output
-
-    if manifest.get("format") != _FORMAT:
-        raise RuntimeError(f"{file_path} is not a pybtls output manifest.")
+    if manifest.get("version") != _FORMAT_VERSION:
+        raise RuntimeError(
+            f"{file_path} is a pybtls output manifest of version "
+            f"{manifest.get('version')}, which this pybtls cannot read (it reads "
+            f"version {_FORMAT_VERSION}). Upgrade pybtls to load it."
+        )
 
     output = {
         tag: _record_to_manager(record) for tag, record in manifest["outputs"].items()
     }
+    print(f"Outputs have been successfully loaded from {file_path}!")
+    return output
+
+
+def load_legacy_output(
+    file_path: Path,
+) -> dict[str, Union[_OutputManager, _ChunkedOutputManager]]:
+    """
+    Load output managers from a pickle file that ``save_output`` wrote in
+    pybtls 1.0.1 or earlier.
+
+    Deprecated: this reader is kept for compatibility only and may be removed
+    in a future release. Load such a file once and re-save it with
+    ``save_output`` to convert it to a JSON manifest. Only load files you trust:
+    unpickling a file can run arbitrary code.
+
+    Parameters
+    ----------
+    file_path : Path\n
+        The path of the pickle file.
+
+    Returns
+    -------
+    dict[str, Union[_OutputManager, _ChunkedOutputManager]]\n
+        The output managers, keyed by sim_tag.
+
+    Raises
+    ------
+    RuntimeError\n
+        If the file does not hold output managers.
+    """
+
+    warnings.warn(
+        "load_legacy_output reads the pickle files of pybtls 1.0.1 and earlier and "
+        "may be removed in a future release; re-save the outputs with save_output() "
+        "to convert them to a JSON manifest.",
+        FutureWarning,
+        stacklevel=2,
+    )
+    file_path = Path(file_path) if not isinstance(file_path, Path) else file_path
+
+    with open(file_path, "rb") as file:
+        output = pickle.load(file)
+    if not isinstance(output, dict) or not all(
+        isinstance(obj, (_OutputManager, _ChunkedOutputManager))
+        for obj in output.values()
+    ):
+        raise RuntimeError(f"{file_path} does not hold pybtls output managers.")
     print(f"Outputs have been successfully loaded from {file_path}!")
     return output

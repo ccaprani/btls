@@ -54,8 +54,9 @@ class StatsAccumulator:
     ``interval_size`` and ``total_intervals`` are only used when
     ``want_intervals`` is set (SS_S). Interval ``i`` (1-based) covers events with
     start time in ``((i-1)·size, i·size]``, matching CStatsManager::Update's
-    strict-`>` interval rollover; ``sim_start`` is the time origin (0, as the
-    CPU path anchors both traffic kinds at t=0)."""
+    strict-`>` interval rollover; ``sim_start`` is the time origin: the run
+    start, 0 for generated traffic and midnight of recorded traffic's first
+    day, as on the CPU path."""
 
     def __init__(
         self,

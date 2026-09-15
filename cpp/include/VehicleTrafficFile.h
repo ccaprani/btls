@@ -79,6 +79,15 @@ public:
 	 */
 	void AssignTraffic(std::vector<CVehicle_sp> vVehicles);
 
+	/**
+	 * @brief Throw std::invalid_argument unless every vehicle is dated in the BTLS calendar.
+	 *
+	 * Replaying the traffic needs it: a date outside the calendar puts its
+	 * vehicle out of time order (see CVehicle::checkCalendarDate). Reading a
+	 * garage does not use the dates, so Read() and AssignTraffic() do not check.
+	 */
+	void CheckCalendarDates() const;
+
 	/// @brief Get the number of calendar days spanned by the file.
 	size_t getNoDays();
 	/// @brief Get the total number of lanes in the file.
@@ -98,7 +107,7 @@ public:
 	/// @brief Get a copy of all parsed vehicles.
 	std::vector<CVehicle_sp> getVehicles() const { return m_vVehicles; };
 
-	/// @brief Get the timestamp of the first vehicle in the file, in seconds.
+	/// @brief Get the start (midnight) of the first vehicle's day, in seconds: where a replay of the file starts.
 	double getStartTime();
 
 	/// @brief Get the timestamp of the last vehicle in the file, in seconds.

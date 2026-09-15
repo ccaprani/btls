@@ -4,14 +4,16 @@ runs. The load-effect stream was always process-independent; the regression
 pinned here is the vehicle CLASSIFICATION, which lives outside the Vehicle
 property tuple and used to be dropped by pickling — so TrafficLoader sims
 run in a worker process counted every vehicle as a car in the flow /
-statistics outputs (FlowData, SS_C, SS_S).
+statistics outputs (FlowData, SS_C, SS_S). Also pinned: what reaches a worker
+is only the task's own simulation, and a config keeps every field there.
 """
 
 import pickle
+import threading
 from pathlib import Path
 
 import pybtls as pb
-from utils import remove_folder
+from utils import loader_from_rows, make_il7_bridge, remove_folder
 
 TRAFFIC = Path(__file__).parent / "test_data/test_traffic_file.txt"
 ROOT = Path(__file__).parent / "temp_multicore"
@@ -96,3 +98,78 @@ def test_loader_stats_identical_across_cores():
                 f"{name} differs between no_core=1 and pooled {tag}"
             )
     remove_folder(ROOT)
+
+
+def test_a_task_carries_only_its_own_simulation(tmp_path):
+    # A task sends a worker its own sim's arguments, not the Simulation: that
+    # would copy every queued sim's bridge and traffic into every task. The
+    # lock stands for anything on the Simulation that cannot be pickled.
+    sim = pb.Simulation(output_dir=tmp_path)
+    for tag in ("a", "b"):
+        cfg = pb.OutputConfig()
+        cfg.set_BM_output(write_summary=True)
+        sim.add_sim(
+            bridge=make_il7_bridge(),
+            traffic=loader_from_rows([(10.0, 200.0, 20.0)]),
+            no_day=1,
+            output_config=cfg,
+            time_step=0.1,
+            min_gvw=10,
+            tag=tag,
+        )
+    sim._lock = threading.Lock()
+    sim.run(no_core=2, show_progress=False)
+    assert all(out.read_data("BM_summary") for out in sim.get_output().values())
+
+
+def _bound_fields(obj, prefix=""):
+    """(path, value) of every field a config struct binds to Python."""
+    for name in dir(type(obj)):
+        if isinstance(getattr(type(obj), name), property):
+            value = getattr(obj, name)
+            if isinstance(value, (bool, int, float, str)):
+                yield prefix + name, value
+            else:
+                yield from _bound_fields(value, prefix + name + ".")
+
+
+def _attribute(obj, path):
+    for name in path.split("."):
+        obj = getattr(obj, name)
+    return obj
+
+
+def test_config_pickle_keeps_every_field_python_can_set():
+    # The pickle state is built from the same table as the bindings, so a field
+    # Python can set survives the trip to a worker (six used to reset to their
+    # defaults, NO_OVERLAP_LENGTH and HEADWAY_MODEL among them)
+    config = pb.OutputConfig()
+    changed = {}
+    for path, value in _bound_fields(config):
+        if isinstance(value, bool):
+            new = not value
+        elif isinstance(value, str):
+            new = value + "_changed"
+        else:
+            new = value + 3
+        *parents, leaf = path.split(".")
+        setattr(_attribute(config, ".".join(parents)) if parents else config, leaf, new)
+        changed[path] = new
+    assert "_Gen.NO_OVERLAP_LENGTH" in changed and len(changed) > 50
+
+    clone = pickle.loads(pickle.dumps(config))
+    assert {path: _attribute(clone, path) for path in changed} == changed
+
+
+def test_config_state_without_a_newer_field_keeps_its_default():
+    # a pickle or save_output manifest written before a field existed still loads
+    state = pb.OutputConfig().__getstate__()
+    state["Output"]["BlockMax"]["BLOCK_SIZE_DAYS"] = 7
+    del state["Gen"]["NO_OVERLAP_LENGTH"]
+    del state["Output"]["Fatigue"]["WRITE_RAINFLOW_RESIDUALS"]
+
+    config = pb.OutputConfig.__new__(pb.OutputConfig)
+    config.__setstate__(state)
+    assert config._Output.BlockMax.BLOCK_SIZE_DAYS == 7
+    assert config._Gen.NO_OVERLAP_LENGTH == pb.OutputConfig()._Gen.NO_OVERLAP_LENGTH
+    assert config._Output.Fatigue.WRITE_RAINFLOW_RESIDUALS is False

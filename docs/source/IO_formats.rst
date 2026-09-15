@@ -26,6 +26,22 @@ MON remains the recommended compact simulation exchange format. SiWIM support is
 input-only and allows detailed SiWIM CSV exports to be read directly without a
 lossy preprocessing conversion step.
 
+Vehicle dates are in the BTLS calendar of 25 days per month and 10 months per
+year: BTLS writes generated traffic in it and counts arrival times in it.
+Replaying recorded traffic (``TrafficLoader.add_traffic``, or program mode 3)
+raises an error for a date outside it, such as a real calendar date after the
+25th or in November or December, because that vehicle would replay out of time
+order; renumber such dates into the BTLS calendar first. This applies to every
+format, SiWIM included. Reading a garage file does not use the dates. A replay
+starts at midnight of the first vehicle's day and its outputs keep the traffic's
+dates.
+
+``pybtls.utils.to_btls_calendar`` renumbers a recording dated by the real
+calendar: read it with ``pybtls.garage.read_garage_file``, which accepts any
+dates, and pass the vehicles with their format. It keeps the working days, Monday
+to Friday less any holidays given, and numbers them on from 1 January of the
+first one's year; times of day are unchanged.
+
 .. figure:: images/WIMFormat.png
    :alt: WIM database format
    :align: center

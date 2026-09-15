@@ -4,9 +4,15 @@ generator and loader, run both simulations on two cores, read every
 output, and round-trip the output manifest.
 """
 
+import json
+import pickle
+
+import numpy as np
+import pandas as pd
 import pybtls as pb
+import pytest
 from pathlib import Path
-from utils import remove_folder
+from utils import remove_folder, run_loader_cpu
 
 
 def test_sim_run():
@@ -186,3 +192,91 @@ def test_sim_run():
 
     # Clean up the temporary folder
     remove_folder(Path(__file__).parent / "temp_data")
+
+
+def _pickled_output(root):
+    """A run's output managers pickled, as save_output wrote them up to 1.0.1."""
+    config = pb.OutputConfig()
+    config.set_BM_output(write_summary=True)
+    output = {"one": run_loader_cpu(root, "one", [(10.0, 200.0, 20.0)], config)}
+    path = root / "outputs.pkl"
+    path.write_bytes(pickle.dumps(output))
+    return output, path
+
+
+def test_load_output_refers_a_pickle_file_to_load_legacy_output(tmp_path):
+    _, path = _pickled_output(tmp_path)
+    with pytest.raises(RuntimeError, match="load_legacy_output"):
+        pb.load_output(path)
+
+
+def test_load_legacy_output_reads_a_pickle_file_and_warns_it_may_go(tmp_path):
+    output, path = _pickled_output(tmp_path)
+    with pytest.warns(FutureWarning, match="may be removed"):
+        loaded = pb.load_legacy_output(path)
+    assert list(loaded) == ["one"]
+    pd.testing.assert_frame_equal(
+        loaded["one"].read_data("BM_summary")["BM_S_20_Eff_1"],
+        output["one"].read_data("BM_summary")["BM_S_20_Eff_1"],
+    )
+
+
+def _chunked_output(root, master_seed):
+    """Two one-day runs wrapped as the merged view of a chunked simulation."""
+    from pybtls.output.chunked_manager import _ChunkedOutputManager
+
+    config = pb.OutputConfig()
+    config.set_BM_output(write_summary=True)
+    chunks = [
+        run_loader_cpu(root, tag, [(10.0, 200.0, 20.0)], config) for tag in ("c0", "c1")
+    ]
+    return _ChunkedOutputManager(chunks, [1, 1], "sim", master_seed=master_seed)
+
+
+def test_save_output_round_trips_a_chunked_output_with_a_numpy_seed(tmp_path):
+    # a seed drawn with numpy (e.g. rng.integers) runs fine and must also save
+    output = {"sim": _chunked_output(tmp_path, np.int64(7))}
+    pb.save_output(output, tmp_path / "outputs.json")
+    loaded = pb.load_output(tmp_path / "outputs.json")["sim"]
+    assert loaded.master_seed == 7
+    assert [chunk.tag for chunk in loaded.chunks] == ["c0", "c1"]
+    pd.testing.assert_frame_equal(
+        loaded.read_data("BM_summary")["BM_S_20_Eff_1"],
+        output["sim"].read_data("BM_summary")["BM_S_20_Eff_1"],
+    )
+
+
+def test_a_failed_save_output_keeps_the_existing_manifest(tmp_path, monkeypatch):
+    from pybtls.utils import output_pickle
+
+    path = tmp_path / "outputs.json"
+    output = {"sim": _chunked_output(tmp_path, 7)}
+    pb.save_output(output, path)
+    before = path.read_text()
+
+    def dump_then_fail(obj, file, **kwargs):
+        file.write('{"format"')
+        raise OSError("disk full")
+
+    monkeypatch.setattr(output_pickle.json, "dump", dump_then_fail)
+    with pytest.raises(OSError):
+        pb.save_output(output, path)
+    assert path.read_text() == before
+    assert list(tmp_path.glob("outputs.json*")) == [path]
+
+
+def test_load_output_rejects_an_unknown_manifest_version(tmp_path):
+    path = tmp_path / "outputs.json"
+    pb.save_output({"sim": _chunked_output(tmp_path, 7)}, path)
+    manifest = json.loads(path.read_text())
+    manifest["version"] = 2
+    path.write_text(json.dumps(manifest))
+    with pytest.raises(RuntimeError, match="version 2"):
+        pb.load_output(path)
+
+
+def test_load_legacy_output_rejects_a_pickle_without_output_managers(tmp_path):
+    path = tmp_path / "other.pkl"
+    path.write_bytes(pickle.dumps({"one": 1}))
+    with pytest.warns(FutureWarning), pytest.raises(RuntimeError, match="managers"):
+        pb.load_legacy_output(path)

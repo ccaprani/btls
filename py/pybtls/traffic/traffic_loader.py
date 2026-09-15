@@ -13,7 +13,6 @@ from typing import Literal, Union
 from pathlib import Path
 import warnings
 
-from .._resource import warn_if_file_too_large
 from .._kwargs import reject_unknown_kwargs
 
 __all__ = ["TrafficLoader"]
@@ -36,6 +35,7 @@ class TrafficLoader:
 
         self._no_lane = no_lane
         self._sim_day = None
+        self._start_time = None
         self._no_dir = None
         self._no_lane_dir_1 = None
         self._no_lane_dir_2 = None
@@ -60,6 +60,13 @@ class TrafficLoader:
         traffic: Union[Path,list[Vehicle]]\n
             The path to the traffic file,
             or a list of vehicles.
+            Dates must be in the BTLS calendar of 25 days per month and 10 months
+            per year; a date outside it (a real calendar date after the 25th or in
+            November or December) raises ValueError. The replay starts at midnight
+            of the first vehicle's day and keeps these dates.
+            The whole recording is held in memory: a file takes roughly ten
+            times its size on disk once loaded and simulated, so a very long
+            recording can exhaust RAM.
 
         traffic_format : Literal[1, 2, 3, 4, 5], optional\n
             The format of the traffic file.\n
@@ -124,7 +131,6 @@ class TrafficLoader:
             if traffic_format is None:
                 raise ValueError("Argument traffic_format is not specified.")
             traffic = Path(traffic) if not isinstance(traffic, Path) else traffic
-            warn_if_file_too_large(traffic, "recorded traffic file")
             traffic_data.read(
                 traffic, traffic_format
             )  # The simulation requires traffic information before _get_traffic_loader is called.
@@ -136,11 +142,16 @@ class TrafficLoader:
         else:
             raise ValueError("Invalid traffic data for traffic loader.")
 
+        # arrival times are counted in the BTLS calendar: outside it a vehicle
+        # would replay out of time order
+        traffic_data.checkCalendarDates()
+
         if self._no_lane != traffic_data.getNoLanes():
             raise RuntimeError(
                 f"Number of lanes included in traffic file is not equal to {self._no_lane}."
             )
         self._sim_day = traffic_data.getNoDays()
+        self._start_time = traffic_data.getStartTime()
         self._no_dir = traffic_data.getNoDirn()
         self._no_lane_dir_1 = traffic_data.getNoLanesDir1()
         self._no_lane_dir_2 = traffic_data.getNoLanesDir2()
@@ -183,6 +194,10 @@ class TrafficLoader:
     @property
     def sim_day(self) -> int:
         return self._sim_day
+
+    @property
+    def start_time(self) -> float:
+        return self._start_time
 
     @property
     def tag(self) -> str:

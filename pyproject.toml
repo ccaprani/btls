@@ -9,13 +9,14 @@ authors = [
     { name="Ziyi Zhou", email="ziyi.zhou@monash.edu" },
     { name="Akbar Rizqiansyah", email="akbar.rizqiansyah@monash.edu" }
 ]
-license = { text = "GNU GPL v3" }
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
 keywords = ["bridge", "traffic", "simulation"]
 dependencies = [
     "matplotlib",
     "numpy",
-    "pandas>=1.5,<2.3",
-    "scipy>=1.10,<1.17"
+    "pandas>=1.5",
+    "scipy>=1.10"
 ]
 
 [project.urls]
@@ -36,16 +37,16 @@ Tracker = "https://github.com/ccaprani/btls/issues"
 test = ["pytest>=6.0", "pycba>=0.5"]
 # Experimental GPU load-effect engine (engine="cuda"). Needs a CUDA build of
 # PyTorch; Triton (used for the fused kernel) ships with it. Install the wheel
-# matching your CUDA toolkit, e.g. `pip install pybtls[gpu]`.
-gpu = ["torch>=2.1"]
+# matching your CUDA toolkit, e.g. `pip install pybtls[gpu]`. psutil measures
+# the available host memory that sizes the engine's traffic windows.
+gpu = ["torch>=2.1", "psutil"]
 
 [build-system]
 requires = [
-    "scikit-build-core>=0.8",
-    "pybind11>=2.10.0",
+    "scikit-build-core>=0.11", # PEP 639 license expression and license-files
+    "pybind11>=2.13",
     "cmake>=3.25",
     "ninja",
-    "wheel",
 ]
 build-backend = "scikit_build_core.build"
 

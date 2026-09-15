@@ -22,9 +22,8 @@ from ..bridge import Bridge
 from ..bridge.influence_line import InfluenceLine, InfluenceSurface
 from ..traffic import TrafficGenerator, TrafficLoader
 from ..output import OutputConfig, _OutputManager
-from .._resource import available_host_memory
 from . import pot as potmod
-from .engine import compute_pot
+from .engine import available_host_memory, compute_pot
 from .stats import StatsAccumulator
 from .flow import FlowStatsAccumulator
 
@@ -189,20 +188,22 @@ def _new_bm_state(total_blocks, n_eff):
     }
 
 
-def _accumulate_bm(bm_state, pot, ev_mask, block_secs, time_offset, total_blocks):
+def _accumulate_bm(bm_state, pot, ev_mask, block_secs, run_offset, total_blocks):
     """Fold one window's owned events into the block-maxima accumulator,
     replicating CBlockMaxManager::Update: each event is credited to the block
-    containing its START time (block b covers ((b-1)·size, b·size], strict-`>`
-    rollover), into the slot for its number of vehicles, replacing the stored
-    value when ``|new| >= |old|`` (ties go to the later event — windows arrive
-    in time order, so replacing on ``>=`` preserves that within and across
-    windows). An event starting past the run end (before the A2 boundary) is
-    credited to the last block of the window (CBlockMaxManager::Update clamps
-    the rollover time to the simulated end): clipping the block index here is
-    that same rule, so both engines write exactly ``total_blocks`` rows."""
+    containing its START time (block b covers ((b-1)·size, b·size] from the
+    run start, strict-`>` rollover; ``run_offset`` is the window's start
+    counted from the run start), into the slot for its number of vehicles,
+    replacing the stored value when ``|new| >= |old|`` (ties go to the later
+    event — windows arrive in time order, so replacing on ``>=`` preserves that
+    within and across windows). An event starting past the run end (before the
+    A2 boundary) is credited to the last block of the window
+    (CBlockMaxManager::Update clamps the rollover time to the simulated end):
+    clipping the block index here is that same rule, so both engines write
+    exactly ``total_blocks`` rows."""
     if not ev_mask.any():
         return
-    starts = pot["B"][:-1][ev_mask] + time_offset
+    starts = pot["B"][:-1][ev_mask] + run_offset
     vals = pot["peak_value"][:, ev_mask]  # [n_eff, k]
     slot = pot["win_count"][ev_mask].astype(np.int64) - 1  # 0-based event type
     bidx = np.clip(
@@ -299,9 +300,19 @@ class _PotStream:
     written on close — host memory for POT stays bounded by one window
     regardless of the simulated length."""
 
-    def __init__(self, sim_dir, length_str, out, n_eff, counter_secs, n_counter_blocks):
+    def __init__(
+        self,
+        sim_dir,
+        length_str,
+        out,
+        n_eff,
+        counter_secs,
+        n_counter_blocks,
+        sim_start=0.0,
+    ):
         self.n_eff = n_eff
         self.counter_secs = counter_secs
+        self.sim_start = sim_start  # the run start the counter blocks count from
         self.n_counter_blocks = n_counter_blocks
         self.n_events = [0] * n_eff  # per-effect event counter (row numbering)
         self.counts = (
@@ -404,9 +415,11 @@ class _PotStream:
                             fh.write(line + "\n")
             if self.counts is not None:
                 for w in events[e]:
-                    # counter block b covers ((b-1)·size, b·size] by event start
-                    # (CPOTManager::Update's strict-`>` rollover), so bin by ceil
-                    cb = int(np.ceil((B[w] + time_offset) / self.counter_secs)) - 1
+                    # counter block b covers ((b-1)·size, b·size] from the run
+                    # start by event start (CPOTManager::Update's strict-`>`
+                    # rollover), so bin by ceil
+                    rel = B[w] + time_offset - self.sim_start
+                    cb = int(np.ceil(rel / self.counter_secs)) - 1
                     # an event starting beyond the run end (before the A2
                     # boundary) is counted in the last block of the window
                     # (CPOTManager::Update clamps the rollover time to the
@@ -436,7 +449,8 @@ class _PotStream:
 
 def _free_device_bytes(device):
     """Free VRAM on the compute device now, or None if it is not a CUDA device
-    (the per-day device tiling means MPS/XPU are bounded by RAM in practice)."""
+    (an MPS device shares the host's unified memory; see
+    ``_window_target_vehicles``)."""
     try:
         import torch
 
@@ -486,7 +500,9 @@ def _window_target_vehicles(n_eff, device, want_pot):
     else is running). Biased toward safety: an over-large window OOMs (fatal),
     an over-small one only costs a little speed, so the fraction is well under 1
     and the per-vehicle estimates are generous. A budget whose free memory the
-    platform will not report is left out; with neither, the floor applies."""
+    platform will not report is left out; with neither, the floor applies.
+    An Apple silicon GPU (MPS) shares the unified memory with the host, so there
+    a vehicle's host and device bytes come out of the one host budget."""
     FRACTION = 0.5
     HOST_BYTES = 2500  # Python vehicle + numpy axle arrays / veh
     VRAM_BYTES = 400 + (
@@ -494,9 +510,11 @@ def _window_target_vehicles(n_eff, device, want_pot):
     )  # device axle arrays + POT accumulators / veh
 
     targets = []
-    free_host = available_host_memory()  # None where the OS will not report it
+    free_host = available_host_memory()  # None without psutil
     if free_host is not None:
-        targets.append(int(FRACTION * free_host) // HOST_BYTES)
+        unified = str(device).split(":")[0] == "mps"
+        per_vehicle = HOST_BYTES + VRAM_BYTES if unified else HOST_BYTES
+        targets.append(int(FRACTION * free_host) // per_vehicle)
     free_vram = _free_device_bytes(device)
     if free_vram is not None:
         targets.append(int(FRACTION * free_vram) // VRAM_BYTES)
@@ -508,7 +526,7 @@ def _vehicle_stream(traffic, bridge, active_lane, seed, end_time):
     recorded (merge the pre-loaded per-lane lists) and generated (pull the
     generator one vehicle at a time) traffic. Generated traffic is never fully
     materialized: the caller holds only the window being processed. The run is
-    the vehicles arriving in ``[0, end_time]``, as on the CPU: the first
+    the vehicles arriving in ``[start, end_time]``, as on the CPU: the first
     arrival beyond it is not part of the run (it is neither simulated nor
     counted), and a recorded stream may simply run out earlier."""
     if isinstance(traffic, TrafficLoader):
@@ -552,12 +570,13 @@ def _vehicle_stream(traffic, bridge, active_lane, seed, end_time):
         )
 
 
-def _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target):
+def _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target, run_start=0.0):
     """Yield (vehicles, day_offset, window_days): contiguous whole-day windows
     each holding about ``target`` vehicles (a vehicle goes to the window
-    containing its arrival day). Bounds host memory to one window for generated
-    traffic, independent of ``n_days``."""
-    end_time = n_days * SECONDS_PER_DAY
+    containing its arrival day). Days count from ``run_start`` (0, or
+    midnight of recorded traffic's first day). Bounds host memory to one window
+    for generated traffic, independent of ``n_days``."""
+    end_time = run_start + n_days * SECONDS_PER_DAY
     stream = _vehicle_stream(traffic, bridge, active_lane, seed, end_time)
     day0 = 0
     carry = None
@@ -572,7 +591,7 @@ def _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target):
             # an arrival exactly on end_time is in-sim on the CPU and belongs to
             # the last day window (it would otherwise fall in day n_days, past
             # every window, and be dropped with the stream still undrained)
-            vday = min(int(v.get_time() // SECONDS_PER_DAY), n_days - 1)
+            vday = min(int((v.get_time() - run_start) // SECONDS_PER_DAY), n_days - 1)
             if vday < win_end_day:
                 vehicles.append(v)
                 continue
@@ -656,7 +675,7 @@ def _concat_extracted(a, b):
     return tuple(np.concatenate([x, y]) for x, y in zip(a, b))
 
 
-def _seam_context(raw_windows, first_time, carry_of, concat, count):
+def _seam_context(raw_windows, first_time, carry_of, concat, count, run_start=0.0):
     """Attach window-seam context to a raw (data, day0, win_days) window stream.
 
     Yields (data, day0, win_days, n_carried, next_arrival, is_last) where
@@ -667,7 +686,9 @@ def _seam_context(raw_windows, first_time, carry_of, concat, count):
     straddling the seam. Windows whose first arrival is still unknown (empty
     successors) are held back until one arrives. ``is_last`` marks the run's
     final window. The trailing windows get ``inf``: no arrival follows the
-    run, the bridge is run on until it empties."""
+    run, the bridge is run on until it empties. ``day0`` counts from
+    ``run_start``, so the seam passed to ``carry_of`` is ``run_start`` plus whole
+    days."""
     pending = []
     carry = None
     for data, day0, win_days in raw_windows:
@@ -680,7 +701,7 @@ def _seam_context(raw_windows, first_time, carry_of, concat, count):
         if carry is not None and count(carry):
             n_carried = count(carry)
             data = concat(carry, data)
-        carry = carry_of(data, (day0 + win_days) * SECONDS_PER_DAY)
+        carry = carry_of(data, run_start + (day0 + win_days) * SECONDS_PER_DAY)
         pending.append((data, day0, win_days, n_carried))
     for i, p in enumerate(pending):
         yield (*p, np.inf, i == len(pending) - 1)
@@ -695,6 +716,7 @@ def _traffic_windows(
     target,
     want_vehicles,
     classifier=None,
+    run_start=0.0,
 ):
     """Yield (extracted, vehicles, day_offset, window_days, n_carried,
     next_arrival, is_last) day-windows. ``extracted`` (the per-window
@@ -705,7 +727,9 @@ def _traffic_windows(
     are wanted) makes the extraction also return each vehicle's class bin.
     ``n_carried`` / ``next_arrival`` / ``is_last`` are the seam context (see
     :func:`_seam_context`) so load effects and events at window seams match a
-    continuous run."""
+    continuous run. ``run_start`` is where the run starts: 0 for generated
+    traffic, and midnight of recorded traffic's first day, since recorded
+    traffic keeps its own dates."""
     no_lane = bridge.no_lane
     L = bridge.length
     if isinstance(traffic, TrafficGenerator) and not want_vehicles:
@@ -732,7 +756,9 @@ def _traffic_windows(
     else:
         from ..lib import libbtls
 
-        raw = _vehicle_windows(traffic, bridge, n_days, active_lane, seed, target)
+        raw = _vehicle_windows(
+            traffic, bridge, n_days, active_lane, seed, target, run_start
+        )
 
         t_off = lambda v: v.get_time() + (L + v.get_length()) / v.get_velocity()
         for vehicles, day0, win_days, n_carried, next_arrival, is_last in _seam_context(
@@ -741,6 +767,7 @@ def _traffic_windows(
             carry_of=lambda vs, seam: [v for v in vs if t_off(v) > seam],
             concat=lambda ca, vs: ca + vs,
             count=len,
+            run_start=run_start,
         ):
             yield libbtls._extract_axle_data(
                 vehicles, no_lane, classifier
@@ -801,7 +828,7 @@ def run(
     # Same rule as the CPU path: reusing a tag would leave the previous run's
     # files in place for _OutputManager to glob back as this run's, so an
     # existing directory is an error unless the caller asked to overwrite.
-    from ..simulation import _make_sim_dir
+    from .._sim_worker import _make_sim_dir
 
     sim_dir = output_root / str(sim_tag)
     _make_sim_dir(sim_dir, output_root, overwrite)
@@ -813,6 +840,11 @@ def run(
         n_days = int(no_day) if no_day is not None else int(traffic.sim_day)
     else:
         n_days = int(no_day)
+    # generated traffic starts at t=0; recorded traffic keeps its own dates, so
+    # its run starts at midnight of its first day, as on the CPU (simulation.py).
+    # Block, counter, interval and flow-hour indices count from there; written
+    # times stay absolute.
+    run_start = float(traffic.start_time) if isinstance(traffic, TrafficLoader) else 0.0
 
     if output_config is None:
         output_config = OutputConfig()
@@ -851,7 +883,7 @@ def run(
             counter_secs = SECONDS_PER_DAY
         n_counter_blocks = max(1, int(np.ceil(n_days * SECONDS_PER_DAY / counter_secs)))
         pot_stream = _PotStream(
-            sim_dir, length_str, out, n_eff, counter_secs, n_counter_blocks
+            sim_dir, length_str, out, n_eff, counter_secs, n_counter_blocks, run_start
         )
 
     rainflows = None
@@ -883,7 +915,9 @@ def run(
             if want_intervals
             else 0
         )
-        stats = StatsAccumulator(n_eff, want_intervals, interval_size, total_intervals)
+        stats = StatsAccumulator(
+            n_eff, want_intervals, interval_size, total_intervals, sim_start=run_start
+        )
 
     flow = None
     classifier = None
@@ -894,14 +928,16 @@ def run(
         classifier = (
             libbtls._VehClassAxle() if ctype == 0 else libbtls._VehClassPattern()
         )
-        # hour 1 starts at t=0 for both traffic kinds: the CPU engine constructs
-        # its _VehicleBuffer with start_time=0.0 (simulation.py), so recorded
-        # traffic starting later gets leading zero rows, not a shifted grid
+        # hour 1 starts at the run start: the CPU engine constructs its
+        # _VehicleBuffer with that start time (simulation.py), so recorded
+        # traffic whose first vehicle comes later in its first day gets leading
+        # zero rows, not a shifted grid
         flow = FlowStatsAccumulator(
             bridge.no_lane,
             ctype,
             traffic._no_lane_dir_1,
             n_days * 24,
+            hour_origin=run_start,
         )
 
     target = _window_target_vehicles(n_eff, device, want_pot)
@@ -929,14 +965,18 @@ def run(
         target,
         want_vehicles,
         classifier,
+        run_start,
     ):
-        time_offset = day0 * SECONDS_PER_DAY
-        # keep every window's sample grid on the global k*ts lattice: shift the
-        # window-local grid by the phase that lands its first sample on a global
-        # lattice point. 0 when time_offset is a multiple of ts (the default
-        # ts | 86400); otherwise a memory-driven window split would phase-shift
-        # later windows' grids and make results depend on the split.
-        grid_phase = (-time_offset) % time_step
+        # the window's start counted from the run start (block, counter and
+        # interval indices), and as an absolute time (written times)
+        run_offset = day0 * SECONDS_PER_DAY
+        time_offset = run_start + run_offset
+        # keep every window's sample grid on the run's k*ts lattice: shift the
+        # window-local grid by the phase that lands its first sample on a lattice
+        # point counted from the run start. 0 when run_offset is a multiple of ts
+        # (the default ts | 86400); otherwise a memory-driven window split would
+        # phase-shift later windows' grids and make results depend on the split.
+        grid_phase = (-run_offset) % time_step
         if grid_phase < 1e-6 or grid_phase > time_step - 1e-6:
             grid_phase = 0.0
         if want_flow:  # raw per-vehicle counts (time, global lane, is-car, class
@@ -994,7 +1034,7 @@ def run(
 
         if want_bm:
             _accumulate_bm(
-                bm_state, pot, ev_mask, bm_block_secs, time_offset, total_blocks
+                bm_state, pot, ev_mask, bm_block_secs, run_offset, total_blocks
             )
         if want_pot:
             pot_stream.update(

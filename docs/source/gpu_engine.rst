@@ -81,7 +81,12 @@ which ships with PyTorch). Install the optional dependency::
 
    pip install pybtls[gpu]
 
-or install the ``torch`` wheel matching your CUDA toolkit yourself.
+or install the ``torch`` wheel matching your CUDA toolkit yourself, together
+with ``psutil``. The engine sizes its traffic windows from the available host
+memory, which it reads with ``psutil``; without it the engine runs in the
+smallest windows, which is slower but safe. On Apple silicon the GPU shares
+the unified memory, so for ``engine="mps"`` both the windows and the compute
+tiles are sized from that one pool.
 
 Quick start
 -----------

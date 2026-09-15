@@ -1,9 +1,10 @@
 """
 The module that assembles everything together for the simulation. \n
 The methods and classes that are not defined in Python are defined in C++ py_main.cpp.
+The simulations themselves are run by ``_sim_worker``.
 """
 
-from .lib.BTLS import Vehicle, _VehClassPattern, _VehClassAxle, _VehicleBuffer
+from .lib.BTLS import Vehicle
 from .bridge import Bridge
 from .traffic import TrafficGenerator, TrafficLoader
 from .output import OutputConfig, _OutputManager
@@ -11,18 +12,20 @@ from .output.chunked_manager import _ChunkedOutputManager
 from typing import Union
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
+import dataclasses
 import importlib.metadata as package_metadata
 import multiprocessing
+import numbers
 import numpy as np
 import os
 import pickle
 import random
-import shutil
 import sys
 import time
 import platform
 import warnings
 from ._kwargs import reject_unknown_kwargs
+from ._sim_worker import _SimTask, run_task
 
 __all__ = ["Simulation"]
 
@@ -33,29 +36,6 @@ def _fmt_duration(seconds: float) -> str:
     if seconds >= 60:
         return f"{int(seconds // 60)}m{int(seconds % 60):02d}s"
     return f"{seconds:.0f}s"
-
-
-def _make_sim_dir(sim_dir: Path, output_root: Path, overwrite: bool) -> None:
-    """
-    Create one simulation's output directory.
-
-    With ``overwrite=False`` an existing directory is an error: reusing a tag
-    would leave the previous run's files in place for ``_OutputManager`` to glob
-    back as this run's. With ``overwrite=True`` the directory is replaced.
-    """
-
-    if overwrite and sim_dir.is_dir():
-        # Only ever delete a directory strictly inside the output root, so a
-        # stray tag (an absolute path, or one containing "..") cannot turn
-        # overwrite=True into a recursive delete somewhere else.
-        if output_root.resolve() not in sim_dir.resolve().parents:
-            raise ValueError(
-                f"Refusing to overwrite {sim_dir}: it is not inside the "
-                f"simulation output directory {output_root}."
-            )
-        shutil.rmtree(sim_dir)
-
-    os.makedirs(sim_dir, exist_ok=False)
 
 
 def _derive_chunk_seed(master_seed: int, index: int) -> int:
@@ -86,11 +66,6 @@ class Simulation:
             results. Pass True to re-run a script over its own output, as a
             demo or notebook typically wants to.
         """
-
-        try:
-            multiprocessing.set_start_method("spawn")
-        except RuntimeError:
-            pass  # already set, by an earlier Simulation or another library
 
         self._sim_count = 0
         self._sim_argument = []
@@ -131,7 +106,7 @@ class Simulation:
             The traffic can be either generated or recorded.
 
         no_day : int, optional\n
-            The number of days to be simulated (in day). If not provided, the number of days will be the same as the recorded traffic (if given). A single-vehicle simulation will ignore this argument.
+            The number of days to be simulated (in day). If not provided, the number of days will be the same as the recorded traffic (if given). Recorded traffic is replayed from midnight of its first vehicle's day, so the days count from there and the outputs keep the traffic's own dates. A single-vehicle simulation will ignore this argument.
 
         output_config : OutputConfig, optional\n
             The output configuration. This argument is essential for traffic simulation. A single-vehicle simulation will ignore this argument.
@@ -252,12 +227,6 @@ class Simulation:
             output set, use "cpu".
         """
 
-        self._sim_count += 1
-        if tag is None:
-            sim_tag = "Sim_" + str(self._sim_count)
-        else:
-            sim_tag = tag
-
         reject_unknown_kwargs(
             "add_sim", kwargs, ("overlap_avoid_distance", "track_progress", "engine")
         )
@@ -289,30 +258,40 @@ class Simulation:
             )
         min_gvw = int(min_gvw)
 
+        # validate the whole request now, so a bad one fails here rather than
+        # in a worker at run(), after overwrite has already cleared its directory
+        sim_tag = tag if tag is not None else "Sim_" + str(self._sim_count + 1)
+        self._validate_tag(sim_tag)
+        self._validate_sim(
+            bridge, traffic, vehicle, no_day, output_config, active_lane, engine
+        )
+
+        task = _SimTask(
+            bridge=bridge,
+            traffic=traffic,
+            no_day=no_day,
+            output_config=output_config,
+            time_step=time_step,
+            min_gvw=min_gvw,
+            vehicle=vehicle,
+            active_lane=active_lane,
+            sim_tag=sim_tag,
+            overlap_avoid_distance=overlap_avoid_distance,
+            track_progress=track_progress,
+            output_root=self._output_root,
+            seed=seed,
+            engine=engine,
+            overwrite=self._overwrite,
+        )
         if no_chunk is None or no_chunk == 1:
-            self._sim_argument.append(
-                (
-                    bridge,
-                    traffic,
-                    no_day,
-                    output_config,
-                    time_step,
-                    min_gvw,
-                    vehicle,
-                    active_lane,
-                    sim_tag,
-                    overlap_avoid_distance,
-                    track_progress,
-                    self._output_root,
-                    seed,
-                    engine,
-                )
-            )
+            self._sim_count += 1
+            self._sim_argument.append(task)
             return
 
         chunk_days = self._validate_chunking(
             traffic, vehicle, no_day, no_chunk, output_config
         )
+        self._sim_count += 1
         master_seed = (
             seed if seed is not None else random.SystemRandom().randrange(1, 2**31)
         )
@@ -324,6 +303,7 @@ class Simulation:
             output_config = pickle.loads(pickle.dumps(output_config))
             output_config._Output.Fatigue.WRITE_RAINFLOW_RESIDUALS = True
 
+        # each chunk is the same simulation over its own days, tag and seed
         chunk_tags = []
         chunk_seeds = []
         for i in range(no_chunk):
@@ -331,21 +311,12 @@ class Simulation:
             chunk_tags.append(chunk_tag)
             chunk_seeds.append(_derive_chunk_seed(master_seed, i))
             self._sim_argument.append(
-                (
-                    bridge,
-                    traffic,
-                    chunk_days,
-                    output_config,
-                    time_step,
-                    min_gvw,
-                    vehicle,
-                    active_lane,
-                    chunk_tag,
-                    overlap_avoid_distance,
-                    track_progress,
-                    self._output_root,
-                    chunk_seeds[i],
-                    engine,
+                dataclasses.replace(
+                    task,
+                    no_day=chunk_days,
+                    output_config=output_config,
+                    sim_tag=chunk_tag,
+                    seed=chunk_seeds[i],
                 )
             )
 
@@ -355,6 +326,75 @@ class Simulation:
             "master_seed": master_seed,
             "chunk_seeds": chunk_seeds,
         }
+
+    def _validate_tag(self, sim_tag) -> None:
+        """Refuse a tag whose output directory is, contains or lies inside that
+        of a queued simulation: one run would clear or mix the other's files."""
+
+        parts = Path(str(sim_tag)).parts
+        queued_tags = [task.sim_tag for task in self._sim_argument]
+        for queued in queued_tags + list(self._chunk_groups):
+            queued_parts = Path(str(queued)).parts
+            common = min(len(parts), len(queued_parts))
+            if parts[:common] == queued_parts[:common]:
+                raise ValueError(
+                    f"Tag {sim_tag!r} clashes with the queued simulation "
+                    f"{queued!r}: their output directories coincide or nest."
+                )
+
+    @staticmethod
+    def _validate_sim(
+        bridge, traffic, vehicle, no_day, output_config, active_lane, engine
+    ):
+        """Validate the arguments of a traffic or single-vehicle simulation."""
+
+        if bridge is not None and not isinstance(bridge, Bridge):
+            raise TypeError("Argument bridge needs to be Bridge type.")
+
+        if traffic is not None:
+            if not isinstance(traffic, (TrafficGenerator, TrafficLoader)):
+                raise TypeError(
+                    "traffic should be either TrafficGenerator or TrafficLoader."
+                )
+            if isinstance(traffic, TrafficGenerator) and no_day is None:
+                raise ValueError("Argument no_day is not given.")
+            # the GPU engine defaults a missing config to the BM summary
+            if (engine == "cpu" or output_config is not None) and not isinstance(
+                output_config, OutputConfig
+            ):
+                raise TypeError("Argument output needs to be OutputConfig type.")
+            if bridge is not None and bridge.no_lane != traffic.no_lane:
+                raise RuntimeError(
+                    "The number of lanes in the bridge and traffic generator are not equal."
+                )
+            no_lane = traffic.no_lane
+        elif vehicle is not None:
+            if bridge is None:
+                raise TypeError("Argument bridge needs to be Bridge type.")
+            if not isinstance(vehicle, Vehicle):
+                raise TypeError("Argument vehicle needs to be Vehicle type.")
+            no_lane = bridge.no_lane
+        else:
+            raise ValueError("Either traffic or vehicle should be provided.")
+
+        if active_lane is not None:
+            if not isinstance(active_lane, list):
+                raise TypeError("Argument active_lane needs to be a list.")
+            if not active_lane or not all(
+                isinstance(lane, numbers.Integral) and 1 <= lane <= no_lane
+                for lane in active_lane
+            ):
+                raise ValueError(
+                    f"active_lane must be a non-empty list of lane indices from 1 "
+                    f"to {no_lane} (1-based), got {active_lane!r}."
+                )
+
+        if isinstance(traffic, TrafficLoader):
+            lanes = traffic._lanes_vehicles
+            if active_lane is not None:
+                lanes = [lanes[lane - 1] for lane in active_lane]
+            if not any(lanes):
+                raise ValueError("No vehicles in any simulated lane.")
 
     def _validate_chunking(
         self, traffic, vehicle, no_day, no_chunk, output_config
@@ -383,8 +423,6 @@ class Simulation:
                 f"no_day ({no_day}) must be divisible by no_chunk ({no_chunk}) "
                 "so that chunks cover whole days."
             )
-        if not isinstance(output_config, OutputConfig):
-            raise TypeError("Argument output needs to be OutputConfig type.")
 
         chunk_days = int(no_day) // int(no_chunk)
         chunk_secs = chunk_days * 86400
@@ -458,9 +496,10 @@ class Simulation:
             no_core if no_core is not None else max(1, multiprocessing.cpu_count() - 2)
         )
         gpu_tasks = sum(
-            1 for a in self._sim_argument if a[13] in ("cuda", "mps", "xpu")
+            1 for task in self._sim_argument if task.engine in ("cuda", "mps", "xpu")
         )
-        if gpu_tasks and effective_cores > 1:
+        total = len(self._sim_argument)
+        if gpu_tasks and effective_cores > 1 and total > 1:
             print(
                 f"Warning: {gpu_tasks} GPU task(s) queued with no_core="
                 f"{effective_cores}. GPU tasks share one device — concurrency gives "
@@ -470,7 +509,6 @@ class Simulation:
                 flush=True,
             )
 
-        total = len(self._sim_argument)
         start = time.perf_counter()
         done = 0
 
@@ -483,48 +521,79 @@ class Simulation:
             eta = elapsed / done * (total - done)
             width = len(str(total))
             print(
-                f"[{done:>{width}}/{total}] {self._sim_argument[index][8]} done, "
+                f"[{done:>{width}}/{total}] {self._sim_argument[index].sim_tag} done, "
                 f"elapsed {_fmt_duration(elapsed)}, ETA ~{_fmt_duration(eta)}",
                 flush=True,
             )
 
-        if no_core == 1 or total == 1:
-            for i, sim_arg in enumerate(self._sim_argument):
-                self._sim_output[sim_arg[8]] = self._single_sim(sim_arg)
-                report(i)
-        else:
-            # An explicit spawn context, not the (mutable) global default: fork
-            # workers would break CUDA re-initialisation, and set_start_method
-            # in __init__ is silently ignored if another library set the
-            # method first. ProcessPoolExecutor rather than multiprocessing.Pool
-            # because a worker that dies (segfault, OOM kill, a C++ exit()) then
-            # raises BrokenProcessPool instead of blocking run() forever.
-            ctx = multiprocessing.get_context("spawn")
-            results = {}
-            with ProcessPoolExecutor(
-                max_workers=effective_cores, mp_context=ctx
-            ) as executor:
-                futures = {
-                    executor.submit(self._single_sim, sim_arg): i
-                    for i, sim_arg in enumerate(self._sim_argument)
-                }
-                for future in as_completed(futures):
-                    i = futures[future]
-                    results[i] = future.result()
+        results = {}
+        try:
+            if no_core == 1 or total == 1:
+                for i, task in enumerate(self._sim_argument):
+                    results[i] = run_task(task)
                     report(i)
-            # insert in add_sim order so get_output() keys are deterministic
-            for i, sim_arg in enumerate(self._sim_argument):
-                self._sim_output[sim_arg[8]] = results[i]
+            else:
+                # An explicit spawn context, not the (mutable) global default:
+                # fork workers would break CUDA re-initialisation.
+                # ProcessPoolExecutor rather than multiprocessing.Pool because a
+                # worker that dies (segfault, OOM kill, a C++ exit()) then raises
+                # BrokenProcessPool instead of blocking run() forever.
+                ctx = multiprocessing.get_context("spawn")
+                with ProcessPoolExecutor(
+                    max_workers=effective_cores, mp_context=ctx
+                ) as executor:
+                    # run_task pickles by name and a task holds only its own
+                    # simulation's inputs; a Simulation method would pickle the
+                    # whole Simulation, every queued sim's bridge and traffic
+                    # included, into each task
+                    futures = {
+                        executor.submit(run_task, task): i
+                        for i, task in enumerate(self._sim_argument)
+                    }
+                    try:
+                        for future in as_completed(futures):
+                            i = futures[future]
+                            results[i] = future.result()
+                            report(i)
+                    except BaseException:
+                        # a failure (or Ctrl+C) cancels the queued simulations;
+                        # the running ones cannot be stopped, so wait for them
+                        # and keep those that finish
+                        executor.shutdown(cancel_futures=True)
+                        for future, i in futures.items():
+                            if (
+                                i not in results
+                                and not future.cancelled()
+                                and future.exception() is None
+                            ):
+                                results[i] = future.result()
+                        raise
+        finally:
+            self._collect_outputs(results)
 
-        self._reduce_chunk_groups()
+    def _collect_outputs(self, results: dict) -> None:
+        """
+        Store the outputs of this run's finished simulations, keyed by index in
+        the queue, with one merged view per chunked simulation. A simulation
+        that did not finish (the run failed or was interrupted) has no output,
+        and neither has a chunked simulation missing any of its chunks.
+        """
 
-    def _reduce_chunk_groups(self) -> None:
-        """Replace per-chunk outputs with one merged view per chunked sim."""
+        # insert in add_sim order so get_output() keys are deterministic
+        for i, task in enumerate(self._sim_argument):
+            if i in results:
+                self._sim_output[task.sim_tag] = results[i]
+            else:  # drop what an earlier run() left under this tag
+                self._sim_output.pop(task.sim_tag, None)
 
         for parent_tag, group in self._chunk_groups.items():
             chunk_managers = [
-                self._sim_output.pop(chunk_tag) for chunk_tag in group["chunk_tags"]
+                self._sim_output.pop(chunk_tag, None)
+                for chunk_tag in group["chunk_tags"]
             ]
+            if any(manager is None for manager in chunk_managers):
+                self._sim_output.pop(parent_tag, None)
+                continue
             self._sim_output[parent_tag] = _ChunkedOutputManager(
                 chunk_managers,
                 group["chunk_days"],
@@ -558,292 +627,6 @@ class Simulation:
         """
 
         return self._sim_count
-
-    def _single_sim(self, args: tuple) -> _OutputManager:
-        (
-            bridge,
-            traffic,
-            no_day,
-            output_config,
-            time_step,
-            min_gvw,
-            vehicle,
-            active_lane,
-            sim_tag,
-            overlap_avoid_distance,
-            track_progress,
-            output_root,
-            seed,
-            engine,
-        ) = args
-
-        if traffic is not None and engine in ("cuda", "mps", "xpu"):
-            from .gpu import run as gpu_run
-
-            return gpu_run(
-                bridge,
-                traffic,
-                no_day,
-                time_step,
-                min_gvw,
-                active_lane,
-                sim_tag,
-                overlap_avoid_distance,
-                output_root,
-                seed,
-                device=engine,
-                output_config=output_config,
-                overwrite=self._overwrite,
-            )
-        if traffic is not None:
-            return self._single_traffic_sim(
-                bridge,
-                traffic,
-                no_day,
-                output_config,
-                time_step,
-                min_gvw,
-                active_lane,
-                sim_tag,
-                overlap_avoid_distance,
-                track_progress,
-                output_root,
-                seed,
-            )
-        elif vehicle is not None:
-            return self._single_vehicle_sim(
-                bridge, vehicle, active_lane, sim_tag, output_root
-            )
-        else:
-            raise ValueError("Either traffic or vehicle should be provided.")
-
-    def _single_vehicle_sim(
-        self, bridge, vehicle, active_lane, sim_tag, output_root
-    ) -> _OutputManager:
-        _make_sim_dir(output_root / str(sim_tag), output_root, self._overwrite)
-
-        if not isinstance(bridge, Bridge):
-            raise TypeError("Argument bridge needs to be Bridge type.")
-
-        if not isinstance(vehicle, Vehicle):
-            raise TypeError("Argument vehicle needs to be Vehicle type.")
-
-        if active_lane is None:
-            lane_for_calc = list(range(1, bridge.no_lane + 1))  # 1-based global index
-        else:
-            if not isinstance(active_lane, list):
-                raise TypeError("Argument active_lane needs to be a list.")
-            if max(active_lane) > bridge.no_lane:
-                raise ValueError(
-                    "The maximum lane index in active_lane is larger than the number of lanes on the bridge."
-                )
-            lane_for_calc = active_lane  # 1-based global index
-
-        no_dir = 2
-        bridge_length = bridge.length
-
-        # The run sets the vehicle's velocity, time, direction and lane, so
-        # work on a copy and leave the caller's object as it was.
-        vehicle = pickle.loads(pickle.dumps(vehicle))
-
-        # Drive at the vehicle's own speed: the "centrifugal" load effect mode
-        # scales with v^2. A vehicle whose velocity was never set keeps the
-        # historical 1 m/s (a zero velocity would give infinite axle times).
-        velocity = vehicle.get_velocity()
-        if velocity <= 0.0:
-            velocity = 1.0
-            vehicle.set_velocity(velocity)
-
-        vehicle_time_gap = 2 * (bridge_length + vehicle.get_length()) / velocity  # in s
-
-        no_lane_dir_1 = [bridge.no_lane, 0]
-        no_lane_dir_2 = [0, bridge.no_lane]
-
-        output_config = OutputConfig()
-        output_config.set_event_output(
-            write_time_history=True, write_each_event=True
-        )  # set output
-
-        for i in range(no_dir):
-            current_time = 0.0
-            vehicle.set_time(current_time)
-
-            dir_path = output_root / str(sim_tag) / ("dir" + str(i + 1))
-            os.mkdir(dir_path)
-            output_config._Output.OUTPUT_DIR = str(dir_path)
-            output_config._setRoad(
-                bridge.no_lane, 1, no_lane_dir_1[i], no_lane_dir_2[i]
-            )
-            load_calc = bridge._get_bridge(
-                output_config
-            )  # vehicle drive from one dirn then another
-
-            load_calc.initializeDataMgr(
-                current_time, len(lane_for_calc) * vehicle_time_gap
-            )
-            load_calc.setCalcTimeStep(0.01 / velocity)  # 1 cm of travel per step
-
-            for j, lane_index in enumerate(lane_for_calc):
-                next_arrival_time = (j + 1) * vehicle_time_gap
-                vehicle.set_time(current_time)
-
-                vehicle.set_direction(i + 1)
-                vehicle.set_local_from_global_lane(lane_index, bridge.no_lane)
-                load_calc.addVehicle(vehicle)
-                load_calc.update(next_arrival_time, current_time)
-
-                current_time = next_arrival_time
-
-            load_calc.finish()
-
-        return _OutputManager(output_root, sim_tag, None)
-
-    def _single_traffic_sim(
-        self,
-        bridge,
-        traffic,
-        no_day,
-        output_config,
-        time_step,
-        min_gvw,
-        active_lane,
-        sim_tag,
-        overlap_avoid_distance,
-        track_progress,
-        output_root,
-        seed=None,
-    ) -> _OutputManager:
-        if seed is not None:
-            from .lib import libbtls
-
-            libbtls.seed(seed)
-
-        sim_dir = output_root / str(sim_tag)
-        _make_sim_dir(sim_dir, output_root, self._overwrite)
-
-        if isinstance(traffic, TrafficGenerator) and no_day is None:
-            raise ValueError("Argument no_day is not given.")
-        elif isinstance(traffic, TrafficLoader) and no_day is None:
-            no_day = traffic.sim_day
-        else:
-            no_day = int(no_day)
-
-        if not isinstance(output_config, OutputConfig):
-            raise TypeError("Argument output needs to be OutputConfig type.")
-
-        # all C++ writers place their files under OUTPUT_DIR; work on a copy
-        # so the caller's config object is not mutated
-        output_config = pickle.loads(pickle.dumps(output_config))
-        output_config._Output.OUTPUT_DIR = str(sim_dir)
-
-        output_config._setRoad(
-            traffic.no_lane,
-            traffic.no_dir,
-            traffic.no_lane_dir_1,
-            traffic.no_lane_dir_2,
-        )  # this info is used by VehBuffer and EventManager(in CBridge)
-
-        if traffic.vehicle_classifier == 0:
-            vehicle_classifier = _VehClassAxle()
-        else:
-            vehicle_classifier = _VehClassPattern()
-
-        current_time = 0.0
-        end_time = no_day * 86400.0  # 24*3600
-
-        vehicle_buffer = _VehicleBuffer(output_config, vehicle_classifier, current_time)
-        bridge_length = overlap_avoid_distance  # magic number, to avoid vehicle overlap
-
-        if track_progress:
-            current_day = 0
-            sim_progress_print = ""
-            print("Starting simulation...")
-            print("Day complete...")
-
-        if isinstance(bridge, Bridge):
-            load_calc = bridge._get_bridge(output_config)
-            if bridge.no_lane != traffic.no_lane:
-                raise RuntimeError(
-                    "The number of lanes in the bridge and traffic generator are not equal."
-                )
-            load_calc.initializeDataMgr(current_time, end_time)
-            load_calc.setCalcTimeStep(time_step)
-            bridge_length = bridge.length
-
-        if isinstance(traffic, TrafficGenerator):
-            lane_list = traffic._get_traffic_generator(bridge_length)
-        elif isinstance(traffic, TrafficLoader):
-            lane_list = traffic._get_traffic_loader()
-        else:
-            raise TypeError(
-                "traffic should be either TrafficGenerator or TrafficLoader."
-            )
-
-        if active_lane is None:
-            lane_for_calc = lane_list
-        else:
-            if not isinstance(active_lane, list):
-                raise TypeError("Argument active_lane needs to be a list.")
-            if max(active_lane) > traffic.no_lane:
-                raise ValueError(
-                    "The maximum lane index in active_lane is larger than the number of lanes on the bridge."
-                )
-            lane_for_calc = [lane_list[i - 1] for i in active_lane]
-
-        if isinstance(traffic, TrafficLoader):
-            # An initially-empty lane keeps CLane's default next-arrival time
-            # (0.0), so it would sort first and end the merge loop on the
-            # first iteration — exclude empty lanes from the calculation.
-            lane_for_calc = [lane for lane in lane_for_calc if lane.getNoVehicles() > 0]
-            if not lane_for_calc:
-                raise ValueError("No vehicles in any simulated lane.")
-
-        # The run is the set of vehicles arriving in [start, end]: each is
-        # counted once and, if it loads the bridge, crossed to completion. The
-        # bridge is advanced only to the arrivals of the vehicles put on it: an
-        # event ends when the set of vehicles ON the bridge changes, and a
-        # vehicle at or below min_gvw never joins it, so its arrival must not
-        # cut the running event. bridge_time is the last such arrival, where
-        # the bridge clock stands between updates. (The C++ program's
-        # doSimulation in PrepareSim.cpp is the same loop.)
-        bridge_time = current_time
-        while True:
-            lane_for_calc = sorted(lane_for_calc, key=lambda t: t.getNextArrivalTime())
-
-            next_arrival_time = lane_for_calc[0].getNextArrivalTime()
-            vehicle = lane_for_calc[0].getNextVehicle()
-
-            # end of the recorded traffic, or the first arrival beyond the
-            # window: neither is part of the run
-            if vehicle is None or vehicle.get_time() > end_time:
-                break
-
-            vehicle_buffer.addVehicle(vehicle)
-            if isinstance(bridge, Bridge) and vehicle.get_gvw() > int(min_gvw):
-                # (BTLS requires min_gvw in size_t kN)
-                load_calc.update(next_arrival_time, bridge_time)
-                load_calc.addVehicle(vehicle)
-                bridge_time = next_arrival_time
-
-            current_time = vehicle.get_time()
-
-            if track_progress:
-                if current_time > 86400 * (current_day + 1):
-                    current_day += 1
-                    sim_progress_print += "\t" + str(current_day)
-                    if current_day % 10 == 0:
-                        print(sim_progress_print)
-                        sim_progress_print = ""
-
-        if isinstance(bridge, Bridge):
-            # run the bridge on until it empties: the last vehicles' crossings,
-            # and the events they form after the end time, belong to the run
-            load_calc.update(float("inf"), bridge_time)
-            load_calc.finish()
-
-        vehicle_buffer.flushBuffer(end_time)
-
-        return _OutputManager(output_root, sim_tag, output_config)
 
     def _write_version_info(self):
         """

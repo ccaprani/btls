@@ -170,6 +170,8 @@ public:
 	size_t	getHead();
 	/// @brief Get the arrival time in seconds since the simulation epoch.
 	double  getTime() const;
+	/// @brief Throw std::invalid_argument unless the date lies in the BTLS calendar getTime() counts in: days 1 to DAYS_PER_MT, months 1 to MTS_PER_YR.
+	void	checkCalendarDate() const;
 	/// @brief Get the overall vehicle length in metres.
 	double	getLength();
 	/// @brief Get the velocity in metres per second.
@@ -240,12 +242,10 @@ private:
 	void createDITISVehicle(const std::string data);
 	void createMONVehicle(const std::string data);
 
-	// trns is the effective transverse position to write (see Write()); the
-	// member is left untouched so serialising cannot move the vehicle
-	std::string	writeBEDITData(double trns);
-	std::string	writeCASTORData(double trns);
-	std::string writeDITISData(double trns);
-	std::string writeMONData(double trns);
+	std::string	writeBEDITData();
+	std::string	writeCASTORData();
+	std::string writeDITISData();
+	std::string writeMONData();
 
 	Classification m_Class;    ///< Vehicle classification (ID plus label).
 

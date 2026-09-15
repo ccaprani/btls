@@ -16,6 +16,8 @@ Each load effect is described by an ``il_spec`` dict::
                        "lane_centre": ndarray[nlane], "lane_width": ndarray[nlane]}
 """
 
+from pathlib import Path
+
 import numpy as np
 
 from .influence import builtin_ordinate, resample_il, uniform_surface_grid
@@ -122,10 +124,51 @@ def _require_ops(torch, dev, device):
         )
 
 
-# Peak device bytes per expanded axle-sample pair (index/position/weight
-# arrays plus their masked copies and per-effect temporaries), measured
-# generously — used to size the compute tiles below.
-_BYTES_PER_PAIR = 160
+# Peak device bytes per expanded axle-sample pair (index/position/weight/
+# vehicle-off-time arrays plus their masked copies and per-effect
+# temporaries), measured generously — used to size the compute tiles below.
+_BYTES_PER_PAIR = 168
+
+
+def available_host_memory():
+    """Host memory available to this process now, in bytes, or None when psutil
+    (part of the ``gpu`` extra) is not installed. psutil gives each platform's
+    own measure, which counts reclaimable caches as available (Linux
+    MemAvailable, macOS free plus inactive pages, Windows AvailPhys). psutil
+    does not see a cgroup v2 memory limit, as a container sets, so the smallest
+    headroom under one caps the figure."""
+    try:
+        import psutil
+    except ImportError:
+        return None
+    available = psutil.virtual_memory().available
+    headroom = _cgroup_headroom()
+    return available if headroom is None else min(available, headroom)
+
+
+def _cgroup_headroom(proc_cgroup="/proc/self/cgroup", cgroup_root="/sys/fs/cgroup"):
+    """The smallest ``memory.max - memory.current`` over this process's cgroup v2
+    and its ancestors (a limit set on a parent applies too), or None where no
+    limit is set or there is no cgroup v2 (macOS, Windows, cgroup v1)."""
+    try:
+        with open(proc_cgroup) as fh:
+            path = next(ln.strip()[3:] for ln in fh if ln.startswith("0::"))
+    except (OSError, StopIteration):
+        return None
+    parts = [p for p in path.split("/") if p]
+    headroom = None
+    for depth in range(len(parts), -1, -1):
+        base = Path(cgroup_root, *parts[:depth])
+        try:
+            limit = (base / "memory.max").read_text().strip()
+            if limit == "max":
+                continue
+            used = int((base / "memory.current").read_text())
+        except (OSError, ValueError):
+            continue
+        room = max(0, int(limit) - used)
+        headroom = room if headroom is None else min(headroom, room)
+    return headroom
 
 
 def _tile_budget_bytes(torch, dev):
@@ -133,7 +176,12 @@ def _tile_budget_bytes(torch, dev):
     A conservative fraction of the *currently free* VRAM: congested or
     long-span traffic has many times more axle-sample pairs per day, and a
     shared GPU may have little free memory — both shrink the tile instead of
-    OOM-ing (small tiles only cost a few % in extra kernel launches)."""
+    OOM-ing (small tiles only cost a few % in extra kernel launches). An Apple
+    silicon GPU (MPS) has no VRAM of its own: it shares the unified memory, so
+    its budget is the same fraction of the available host memory."""
+    if dev.type == "mps":
+        free = available_host_memory()
+        return None if free is None else int(0.2 * free)
     if dev.type != "cuda":
         return None
     try:
@@ -206,7 +254,7 @@ def _reconstruct_axles(
 
     keep = vgvw > min_gvw
     if not keep.any():
-        return [np.array([]) for _ in range(4)] + [None, None, None, None]
+        return [np.array([]) for _ in range(5)] + [None, None, None, None]
 
     axle_keep = np.repeat(keep, vcount)  # axle-level mask (full vcount)
     counts = vcount[keep]  # kept vehicles' axle counts
@@ -240,7 +288,9 @@ def _reconstruct_axles(
         "kept_idx": np.nonzero(keep)[0],
     }
 
-    out = [datum, a_sign, a_speed, weight]
+    # each axle's vehicle off time: an axle loads the bridge only while its
+    # vehicle is on it (see compute_from_axles)
+    out = [datum, a_sign, a_speed, weight, np.repeat(v_off, counts)]
     if need_transverse:
         # total transverse offset from the lane centre-line combines the recorded
         # trans and the generated lane eccentricity, matching the C++ engine
@@ -269,7 +319,7 @@ def prepare_axles(
     times (window-local origin for streamed runs)."""
     # surfaces need (lane, trans, track); per-lane 1D effects need the lane
     need_lane = any(s["kind"] in ("surface", "per_lane") for s in il_specs)
-    datum, sign, speed, weight, lane, trans, track, veh = _reconstruct_axles(
+    datum, sign, speed, weight, t_off, lane, trans, track, veh = _reconstruct_axles(
         extracted, bridge_length, min_gvw, need_lane, time_offset
     )
     if len(datum) == 0:
@@ -280,6 +330,7 @@ def prepare_axles(
         "sign": sign,
         "speed": speed,
         "weight": weight,
+        "t_off": t_off,
     }
     if lane is not None:
         axles.update(lane=lane, trans=trans, track=track)
@@ -366,6 +417,7 @@ def compute_from_axles(
     sign = torch.as_tensor(axles["sign"], dtype=dt, device=dev)
     speed = torch.as_tensor(axles["speed"], dtype=dt, device=dev)
     weight = torch.as_tensor(axles["weight"], dtype=dt, device=dev)
+    t_off_ax = torch.as_tensor(axles["t_off"], dtype=dt, device=dev)
 
     # per-axle on-bridge window in sample indices (kept resident, axle-scale);
     # the per-time-sample pairs are expanded PER TILE below (a block, or an
@@ -533,17 +585,27 @@ def compute_from_axles(
         )
         gsidx = torch.repeat_interleave(blo, cnt) + off  # global sample index
         si = gsidx - a  # tile-local index
+        t_pair = gsidx.to(dt) * ts + grid_phase
         pp = (
             torch.repeat_interleave(sign, cnt)
             * torch.repeat_interleave(speed, cnt)
-            * (gsidx.to(dt) * ts + grid_phase - torch.repeat_interleave(datum, cnt))
+            * (t_pair - torch.repeat_interleave(datum, cnt))
         )
         ww = torch.repeat_interleave(weight, cnt)
         if need_transverse:
             lane_b = torch.repeat_interleave(lane_ax, cnt)
             trans_b = torch.repeat_interleave(trans_ax, cnt)
             track_b = torch.repeat_interleave(track_ax, cnt)
-        m = (pp >= 0.0) & (pp <= L)
+        # an axle on [0, L] loads the bridge only while its vehicle is on it,
+        # t < t_off: the C++ engine removes a vehicle at its off time
+        # (CVehicle::IsOnBridge), so the last axle, reaching the end of the
+        # bridge exactly then, adds nothing there. The sample at t_off already
+        # belongs to the next event, which the vehicle is not a member of (the
+        # POT mapping below compares the same k*ts + grid_phase against the
+        # boundaries); an influence line non-zero at the bridge end, such as
+        # total load, used to count that axle in it.
+        on = t_pair < torch.repeat_interleave(t_off_ax, cnt)
+        m = (pp >= 0.0) & (pp <= L) & on
         si, pp, ww = si[m].contiguous(), pp[m].contiguous(), ww[m].contiguous()
         if need_transverse:
             lane_b, trans_b, track_b = lane_b[m], trans_b[m], track_b[m]

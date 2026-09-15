@@ -401,7 +401,8 @@ Standalone BTLS entry point
 The following free functions form the standalone BTLS binary's
 orchestration layer (compiled only with the ``Binary`` CMake option).
 The PyBTLS Python layer reimplements the same orchestration in
-``simulation.py``.
+``simulation.py`` (the queue of simulations and the worker processes) and
+``_sim_worker.py`` (one simulation, the loop of ``doSimulation``).
 
 .. doxygenfunction:: run
    :project: pybtls

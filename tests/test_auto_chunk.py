@@ -9,7 +9,7 @@ import pandas as pd
 import pybtls as pb
 import pytest
 from pathlib import Path
-from utils import remove_folder, run_loader_cpu
+from utils import loader_from_rows, remove_folder, run_loader_cpu
 
 from pybtls.output.chunked_manager import _ChunkedOutputManager
 
@@ -197,10 +197,9 @@ def test_chunking_validation_errors():
             no_chunk=0,
         )
 
-    loader = pb.TrafficLoader(no_lane=2)
+    loader = loader_from_rows([(10.0, 200.0, 20.0)])
     with pytest.raises(ValueError, match="TrafficGenerator"):
         sim.add_sim(
-            bridge=bridge,
             traffic=loader,
             no_day=4,
             output_config=output_config,
