@@ -4,11 +4,14 @@ The methods and classes that are not defined in Python are defined in C++ py_mai
 
 from ..lib.BTLS import _LaneFlowComposition
 from typing import Literal
+from .._kwargs import reject_unknown_kwargs
 
 __all__ = ["LaneFlowComposition"]
 
 
 class LaneFlowComposition:
+    """Per-lane hourly traffic data: flow rates, speeds, and truck composition."""
+
     def __init__(
         self,
         lane_index: int,
@@ -63,38 +66,6 @@ class LaneFlowComposition:
         self._speed_assigned = False  # HeDS, freeflow need hourly speed
         self._truck_composition_assigned = False  # grave need hourly truck percentage
 
-    def __getstate__(self):
-        attribute_dict = {}
-        attribute_dict["tag"] = self._tag
-        attribute_dict["lane_index"] = self._lane_index
-        attribute_dict["lane_dir"] = self._lane_dir
-        attribute_dict["no_block"] = self._no_block
-        attribute_dict["block_size"] = self._block_size
-        attribute_dict["hourly_truck_flow"] = self._hourly_truck_flow
-        attribute_dict["hourly_car_percentage"] = self._hourly_car_percentage
-        attribute_dict["hourly_speed_mean"] = self._hourly_speed_mean
-        attribute_dict["hourly_speed_std"] = self._hourly_speed_std
-        attribute_dict["hourly_truck_composition"] = self._hourly_truck_composition
-        attribute_dict["flow_assigned"] = self._flow_assigned
-        attribute_dict["speed_assigned"] = self._speed_assigned
-        attribute_dict["truck_composition_assigned"] = self._truck_composition_assigned
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._lane_index = attribute_dict["lane_index"]
-        self._lane_dir = attribute_dict["lane_dir"]
-        self._no_block = attribute_dict["no_block"]
-        self._block_size = attribute_dict["block_size"]
-        self._hourly_truck_flow = attribute_dict["hourly_truck_flow"]
-        self._hourly_car_percentage = attribute_dict["hourly_car_percentage"]
-        self._hourly_speed_mean = attribute_dict["hourly_speed_mean"]
-        self._hourly_speed_std = attribute_dict["hourly_speed_std"]
-        self._hourly_truck_composition = attribute_dict["hourly_truck_composition"]
-        self._flow_assigned = attribute_dict["flow_assigned"]
-        self._speed_assigned = attribute_dict["speed_assigned"]
-        self._truck_composition_assigned = attribute_dict["truck_composition_assigned"]
-
     @property
     def tag(self) -> str:
         return self._tag
@@ -147,6 +118,19 @@ class LaneFlowComposition:
         -------
         None.
         """
+
+        reject_unknown_kwargs(
+            "assign_lane_data",
+            kwargs,
+            (
+                "hourly_truck_flow",
+                "hourly_car_flow",
+                "hourly_car_percentage",
+                "hourly_speed_mean",
+                "hourly_speed_std",
+                "hourly_truck_composition",
+            ),
+        )
 
         if (
             kwargs.get("hourly_truck_flow") is not None

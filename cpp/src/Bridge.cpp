@@ -26,10 +26,10 @@ CBridge::~CBridge()
 
 }
 
-void CBridge::InitializeDataMgr(double SimStartTime)
+void CBridge::InitializeDataMgr(double SimStartTime, double SimEndTime)
 {
 	// must be called after length, thresholds, etc set
-	m_EventMgr.Initialize(m_Length, m_vThresholds, SimStartTime);
+	m_EventMgr.Initialize(m_Length, m_vThresholds, SimStartTime, SimEndTime);
 }
 
 void CBridge::setLength(double length)
@@ -121,7 +121,7 @@ void CBridge::Update(double NextArrivalTime, double curTime)
 			m_NoVehs += m_vLanes[i].purgeVehicles(m_CurTime);	// remove pointer from lane
 
 	} // while loop until next vehicle arrives
-	
+
 }
 
 void CBridge::Finish()

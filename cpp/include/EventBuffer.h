@@ -10,6 +10,7 @@
 #include <sstream>
 #include <fstream>
 #include "Event.h"
+#include "FilePath.h"
 #include "Effect.h"
 #include "Vehicle.h"
 #include "ConfigData.h"
@@ -39,6 +40,9 @@ public:
 	 */
 	CEventBuffer(size_t bufferSize);
 	virtual ~CEventBuffer();
+
+	/// @brief Set the directory output files are written into ("" = cwd).
+	void setOutputDir(std::string dir) { m_OutputDir = dir; };
 
 	/**
 	 * @brief Select the output format mode.
@@ -91,6 +95,7 @@ private:
 	Mode m_Mode;                       ///< Active output mode.
 	std::vector<CEvent> m_vEvents;     ///< Buffered events awaiting flush.
 	std::ofstream m_OutFile;           ///< Output file stream.
+	std::string m_OutputDir;        ///< Directory output files are written into ("" = cwd).
 	size_t m_BufferSize;               ///< Buffer capacity in events.
 	size_t m_NoEvents;                 ///< Running count of events flushed to disk.
 	double m_BridgeLength;             ///< Bridge length in metres (used in filename stem).

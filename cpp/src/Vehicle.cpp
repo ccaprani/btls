@@ -3,7 +3,9 @@
 //////////////////////////////////////////////////////////////////////
 
 #include <fstream>
+#include <stdexcept>
 #include "Vehicle.h"
+#include "TrafficFileFormat.h"
 #include "ConfigData.h"
 
 
@@ -412,25 +414,24 @@ std::string CVehicle::Write()
 
 std::string CVehicle::Write(size_t file_type)
 {
+	TrafficFileFormatSpec spec = requireTrafficFileWriteFormat(file_type);
+
 	if(m_Trns < 0.01)	// generated vehicles have 0.0 trans but eccentricity
 		m_Trns = 1.80 + m_LaneEccentricity;
 
-	switch(file_type)
+	switch(spec.Format)
 	{
-	case 1:
+	case ETrafficFileFormat::Castor:
 		return writeCASTORData();
-	case 2:
+	case ETrafficFileFormat::Bedit:
 		return writeBEDITData();
-	case 3:
+	case ETrafficFileFormat::Ditis:
 		return writeDITISData();
-	case 4:
+	case ETrafficFileFormat::Mon:
 		return writeMONData();
 	default:
-		return writeCASTORData();
+		throw std::invalid_argument(std::string("Traffic file format ") + spec.Name + " does not support vehicle serialisation");
 	}
-
-	// reset trans
-	m_Trns = 0.0;
 }
 
 	/** Prepares a vehicle for printing to a CASTOR file */
@@ -691,6 +692,16 @@ void CVehicle::setLength(double length)
 	m_Length = length;
 }
 
+void CVehicle::setDateTime(size_t year, size_t month, size_t day, size_t hour, size_t min, double sec)
+{
+	m_Year = year >= MON_BASE_YEAR ? year - MON_BASE_YEAR : year;
+	m_Month = month;
+	m_Day = day;
+	m_Hour = hour;
+	m_Min = min;
+	m_Sec = sec;
+}
+
 // Set local lane number within its direction, 1-based
 void CVehicle::setLocalLane(size_t localLaneIndex)
 {
@@ -769,6 +780,11 @@ void CVehicle::setNoAxles(size_t noAxle)
 	}
 }
 
+void CVehicle::setNoAxleGroups(size_t noAxleGroups)
+{
+	m_NoAxleGroups = noAxleGroups;
+}
+
 void CVehicle::setTrans(double trans)
 {
 	m_Trns = trans;
@@ -791,6 +807,15 @@ void CVehicle::setHead(int head)
 
 void CVehicle::setBridgeTimes(double BridgeLength)
 {
+	// A non-positive velocity makes m_TimeOffBridge infinite, so IsOnBridge()
+	// never turns false: the vehicle is never removed from the lane and every
+	// later vehicle joins the same never-ending event. The fixed-width readers
+	// produce it from a blank speed field (atoi("") == 0), so reject it here
+	// rather than hang the simulation.
+	if(m_Velocity <= 0.0)
+		throw std::invalid_argument("Vehicle " + std::to_string(m_Head)
+			+ " has a non-positive velocity; it would never leave the bridge.");
+
 	setTimeOnBridge();
 	m_TimeOffBridge = m_TimeOnBridge + (BridgeLength + m_Length)/(m_Velocity);
 }
@@ -895,6 +920,19 @@ double CVehicle::getTime() const
 	double time = noDays * s_per_day + m_Hour * s_per_hr + m_Min * SECS_PER_MIN + m_Sec;
 
 	return time;
+}
+
+void CVehicle::checkCalendarDate() const
+{
+	// getTime() counts DAYS_PER_MT days to a month and MTS_PER_YR months to a
+	// year. A date outside that calendar, such as a real calendar date after
+	// the 25th or in November or December, takes the time of a day in the
+	// following month or year, so the vehicle falls out of time order.
+	if (m_Day < 1 || m_Day > DAYS_PER_MT || m_Month < 1 || m_Month > MTS_PER_YR)
+		throw std::invalid_argument("Vehicle " + std::to_string(m_Head) + " is dated day "
+			+ std::to_string(m_Day) + " of month " + std::to_string(m_Month)
+			+ ", outside the BTLS calendar of " + std::to_string(DAYS_PER_MT)
+			+ " days per month and " + std::to_string(MTS_PER_YR) + " months per year.");
 }
 
 std::string CVehicle::getTimeStr()

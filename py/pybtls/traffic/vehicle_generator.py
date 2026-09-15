@@ -20,11 +20,14 @@ from ..garage.read import read_garage_file
 from typing import Literal, Union
 from pathlib import Path
 import importlib.resources as pkg_resources
+from .._kwargs import reject_unknown_kwargs
 
 __all__ = ["VehicleGenNominal", "VehicleGenGrave", "VehicleGenGarage"]
 
 
 class VehicleGenNominal:
+    """Vehicle generator producing copies of a nominal vehicle, optionally randomised by COV."""
+
     def __init__(self, nominal_vehicle: Vehicle, COV_list: list[float], **kwargs):
         """
         The VehicleGenNominal instance in Python stores the data for creating a CVehicleGenNominal instance in C++.\n
@@ -51,6 +54,12 @@ class VehicleGenNominal:
             Kernel type. 0 (Normal) or 1 (Triangle). Default is 1 (Triangle).
         """
 
+        reject_unknown_kwargs(
+            "VehicleGenNominal",
+            kwargs,
+            ("classifier_type", "lane_eccentricity_std", "kernel_type"),
+        )
+
         self._tag = "Nominal"
         self._config = _ConfigData()
 
@@ -61,22 +70,6 @@ class VehicleGenNominal:
         self._COV_list = COV_list  # COV_list = [COV_AS, COV_AW]
 
         self._set_config(**kwargs)
-
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-        attribute_dict["nominal_vehicle"] = self._nominal_vehicle
-        attribute_dict["COV_list"] = self._COV_list
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
-        self._nominal_vehicle = attribute_dict["nominal_vehicle"]
-        self._COV_list = attribute_dict["COV_list"]
 
     @property
     def tag(self) -> str:
@@ -122,6 +115,8 @@ class VehicleGenNominal:
 
 
 class VehicleGenGrave:
+    """Vehicle generator using the Grave model calibrated to built-in traffic sites (e.g. Auxerre)."""
+
     def __init__(
         self,
         traffic_site: Literal[
@@ -163,6 +158,10 @@ class VehicleGenGrave:
             Standard deviation of lane eccentricity. Default is 0.0.
         """
 
+        reject_unknown_kwargs(
+            "VehicleGenGrave", kwargs, ("classifier_type", "lane_eccentricity_std")
+        )
+
         self._tag = "Grave"
         self._config = _ConfigData()
 
@@ -187,18 +186,6 @@ class VehicleGenGrave:
         self._truck_track_width = truck_track_width
 
         self._set_config(**kwargs)
-
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
 
     @property
     def tag(self) -> str:
@@ -253,11 +240,13 @@ class VehicleGenGrave:
 
 
 class VehicleGenGarage:
+    """Vehicle generator sampling from a recorded vehicle pool (garage), optionally randomised by a kernel."""
+
     def __init__(
         self,
         garage: Union[Path, list[Vehicle]],
         kernel: list[list[float]],
-        garage_format: Literal[1, 2, 3, 4] = None,
+        garage_format: Literal[1, 2, 3, 4, 5] = None,
         **kwargs,
     ):
         """
@@ -278,12 +267,13 @@ class VehicleGenGarage:
                 [Mean_AxleSpacing, Std_AxleSpacing]\n
                 ].
 
-        garage_format : Literal[1,2,3,4], optional\n
-            The format of the .txt garage file.\n
+        garage_format : Literal[1,2,3,4,5], optional\n
+            The format of the garage file.\n
             1: CASTOR format.\n
             2: BEDIT format.\n
             3: DITIS format.\n
-            4: MON format.
+            4: MON format.\n
+            5: SiWIM CSV format.
 
         Keyword Arguments
         -----------------
@@ -297,10 +287,16 @@ class VehicleGenGarage:
             Kernel type. 0 (Normal) or 1 (Triangle). Default is 1 (Triangle).
         """
 
+        reject_unknown_kwargs(
+            "VehicleGenGarage",
+            kwargs,
+            ("classifier_type", "lane_eccentricity_std", "kernel_type"),
+        )
+
         self._tag = "Garage"
         self._config = _ConfigData()
 
-        if len(kernel) != 3 and not all(len(sublist) == 2 for sublist in kernel):
+        if len(kernel) != 3 or not all(len(sublist) == 2 for sublist in kernel):
             raise ValueError("Invalid kernel data for garage vehicle generator.")
 
         if isinstance(garage, (Path, str)):
@@ -323,24 +319,6 @@ class VehicleGenGarage:
         self._garage_format = garage_format
 
         self._set_config(**kwargs)
-
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-        attribute_dict["garage"] = self._garage
-        attribute_dict["garage_format"] = self._garage_format
-        attribute_dict["kernel"] = self._kernel
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
-        self._garage = attribute_dict["garage"]
-        self._garage_format = attribute_dict["garage_format"]
-        self._kernel = attribute_dict["kernel"]
 
     @property
     def tag(self) -> str:

@@ -189,9 +189,8 @@ void CEvent::AddSingleEffect(CEffect eff)
 void CEvent::writeToFile(std::string file)
 {
 	// ofstream constructor opens file for appending data
-	const char* pFile; pFile = file.c_str();
-	std::ofstream outFile( pFile, std::ios::app );
-    
+	std::ofstream outFile( file.c_str(), std::ios::app );
+
 	// check to see if file was created
 	if( !outFile )
 	{
@@ -199,26 +198,36 @@ void CEvent::writeToFile(std::string file)
 		exit( 1 );
 	}
 
+	writeToFile(outFile);
+	outFile.close();
+}
+
+void CEvent::writeToFile(std::ofstream& outFile)
+{
+	// stream overload: lets callers writing many events open the file once
+	// (opening per event/effect dominated the simulation wall time)
 	outFile << m_EventID << std::endl;
-//	outFile.close();
 
 	for (size_t k = 0; k < m_NoEffects; k++)
-		writeEffect(k, file, 1);
-
-	outFile.close();
+		writeEffect(k, outFile, 1);
 }
 
 void CEvent::writeEffect(size_t k, std::string file, bool trucks)
 {
 	// ofstream constructor opens file fo appending data
 	std::ofstream outFile( file.c_str(), std::ios::app );
-    
+
 	// check to see if file was created
 	if( !outFile ){
 		std::cerr << "File could not be opened" << std::endl;
 		exit( 1 );
 	}
 
+	writeEffect(k, outFile, trucks);
+}
+
+void CEvent::writeEffect(size_t k, std::ofstream& outFile, bool trucks)
+{
 	double val, time, dist;			size_t nTks;
 	std::ostringstream oStr;
 

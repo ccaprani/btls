@@ -1,7 +1,7 @@
 #include "FlowGenerator.h"
 
 CFlowGenerator::CFlowGenerator(CFlowModelData_sp pFMD, EFlowModel fm)
-	: m_pFlowModelData(pFMD), m_FlowModel(fm), m_TotalFlow(0.0), m_TruckFlow(0.0)
+	: m_pFlowModelData(pFMD), m_FlowModel(fm), m_CurTime(0.0), m_TotalFlow(0.0), m_TruckFlow(0.0)
 	, m_CurBlock(0), m_BlockSize(3600), m_BlockCount(24)
 {
 	m_pPrevVeh = nullptr;
@@ -25,6 +25,7 @@ CFlowGenerator::~CFlowGenerator()
 
 void CFlowGenerator::prepareNextGen(double time, CVehicle_sp pPrevVeh, CVehicle_sp pNextVeh)
 {
+	m_CurTime = time;
 	m_pPrevVeh = pPrevVeh;
 	m_pNextVeh = pNextVeh;
 
@@ -33,6 +34,9 @@ void CFlowGenerator::prepareNextGen(double time, CVehicle_sp pPrevVeh, CVehicle_
 
 double CFlowGenerator::Generate()
 {
+	// A zero-flow block has no arrivals: jump to the next block with flow
+	double deadTime = skipZeroFlowBlocks();
+
 	// Assign speed based on flow model, then check min gap
 	m_pNextVeh->setVelocity(GenerateSpeed());
 	setMinGap();
@@ -51,7 +55,34 @@ double CFlowGenerator::Generate()
 		}
 	}
 
-	return gap;
+	return deadTime + gap;
+}
+
+double CFlowGenerator::skipZeroFlowBlocks()
+{
+	if (m_TotalFlow > 0.0 || m_pFlowModelData == nullptr)
+		return 0.0;
+
+	// find the next block with flow, within one full cycle
+	size_t iBlock = (size_t)(m_CurTime / static_cast<double>(m_BlockSize));
+	for (size_t k = 1; k <= m_BlockCount; k++)
+	{
+		size_t cand = (iBlock + k) % m_BlockCount;
+		double totalFlow = 0.0, truckFlow = 0.0;
+		m_pFlowModelData->getFlow(cand, totalFlow, truckFlow);
+		if (totalFlow > 0.0)
+		{
+			// restart the arrival process at the start of that block
+			double tNext = static_cast<double>(iBlock + k) * m_BlockSize;
+			double deadTime = tNext - m_CurTime;
+			m_CurTime = tNext;
+			updateBlock(tNext);
+			return deadTime;
+		}
+	}
+
+	std::cout << "***Warning: all flow blocks have zero flow" << std::endl;
+	return 0.0;
 }
 
 void CFlowGenerator::setMaxBridgeLength(double length) 
@@ -89,7 +120,13 @@ void CFlowGenerator::updateExponential()
 {
 	// update anything relevant to gap generation as hours changes
 
-	double mean = 3600.0 / m_TotalFlow;
+	// A model without cars (HeDS) emits trucks only, so its arrival rate is the
+	// truck flow; a model with cars arrives at the total (truck + car) flow.
+	double flow = m_TotalFlow;
+	if (m_pFlowModelData != nullptr && !m_pFlowModelData->getModelHasCars())
+		flow = m_TruckFlow;
+
+	double mean = 3600.0 / flow;
 
 	m_RNG.setScale(mean);
 	m_RNG.setLocation(0.0);	// for exponential deviates
@@ -141,6 +178,7 @@ void CFlowGenerator::setMinGap()
 //////////// CFlowGenHeDS ///////////////
 
 CFlowGenHeDS::CFlowGenHeDS(CFlowModelDataHeDS_sp pFMD) : CFlowGenerator(pFMD, eFM_HeDS)
+	, m_bFlowRangeWarned(false)
 {
 	m_pFMD = std::dynamic_pointer_cast<CFlowModelDataHeDS>(m_pFlowModelData);
 
@@ -170,6 +208,16 @@ double CFlowGenHeDS::GenerateGap()
 	int i = 3;
 	while (i < 3 + noIntervals && Q > m_vHeDS[i][0])
 		i++;
+	if (i >= 3 + noIntervals) // flow above the top band: use the highest tabulated interval
+	{
+		i = 3 + noIntervals - 1;
+		if (!m_bFlowRangeWarned)
+		{
+			std::cout << "***Warning: truck flow " << Q << " /h is above the highest HeDS flow interval ("
+				<< m_vHeDS[i][0] << " /h), whose headway distribution is used instead" << std::endl;
+			m_bFlowRangeWarned = true;
+		}
+	}
 	curInterval = i; // not i+1 because it's a zero-based array
 
 	double u1s = quad(m_vHeDS[1][1], m_vHeDS[1][2], m_vHeDS[1][3], 1.0);

@@ -16,7 +16,7 @@ Create working repository with developer install
 
 3. Create new `PyBTLS` developer environment ::
 	
-	conda env create -f environment.yaml
+	conda env create -f environment.yml
 
 4. Activate developer environment ::
 
@@ -38,6 +38,12 @@ Create working repository with developer install
 	pip install sphinx_autodoc_typehints
 	pip install nbsphinx
 	pip install pydata_sphinx_theme
+	pip install breathe
+
+Also install `Doxygen <https://www.doxygen.nl/>`_ and ensure it is on your
+``PATH``: ``conf.py`` uses the ``breathe`` extension and runs Doxygen to
+generate the XML consumed by ``cpp_api.rst``; without it the C++ API pages
+will not build.
 
 8. Add ``PyBTLS`` as upstream ::
 
@@ -61,7 +67,8 @@ Develop and create pull-request (PR)
 	* For new features related to the simulation, modify the C++ code in ``./cpp/``.
 	* Expose your new features to Python by modifying ``./cpp/src/py_main.cpp``, ``./py/pybtls/lib/BTLS.py``, etc. accordingly.
 
-	* For new features related to the data processing, modify the Python code in ``./py/pybtls/post_processing/``.
+	* For new features related to the data processing, post-processing utilities live in
+	  ``pybtls.output`` (readers/plots) and ``pybtls.post_processing`` (extreme-value fitting).
 
 4. [If applicable] Create unit tests for ``pytest``.
     

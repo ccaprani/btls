@@ -5,12 +5,7 @@
  * Adapted from Kernighan and Pike, *The Practice of Programming* (1999).
  */
 
-#if !defined(AFX_CSVPARSE_H__A5DED40F_C9D8_4B26_9333_14BF8D583637__INCLUDED_)
-#define AFX_CSVPARSE_H__A5DED40F_C9D8_4B26_9333_14BF8D583637__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 /* Copyright (C) 1999 Lucent Technologies */
 /* Excerpted from 'The Practice of Programming' */
@@ -109,4 +104,3 @@ private:
 
 };
 
-#endif // !defined(AFX_CSVPARSE_H__A5DED40F_C9D8_4B26_9333_14BF8D583637__INCLUDED_)

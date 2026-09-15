@@ -102,8 +102,6 @@ protected:
 
 	vec m_vCarPercent;                           ///< Per-hour car percentage (24-element vector).
 
-	size_t m_CurLane;                            ///< Lane of the current generation target.
-	size_t m_CurDirection;                       ///< Direction of the current generation target.
 	double m_Time;                               ///< Simulation time (seconds) of the current generation.
 	size_t m_CurHour;                            ///< Current hour-of-day bucket (0–23).
 
