@@ -20,6 +20,8 @@ _MON_BASE_YEAR = 2010
 
 def _calendar_year(stored_year: int, traffic_format: int) -> int:
     """Calendar year of ``stored_year``, as the ``traffic_format`` reader stores it."""
+    # 69 as the century break is the POSIX convention, the one Python's own
+    # ``%y`` follows: a recording before 1969 or after 2068 needs its own handling.
     if traffic_format in (1, 2):  # CASTOR, BeDIT: two digits, 69 to 99 in the 1900s
         return stored_year + (1900 if stored_year >= 69 else 2000)
     if traffic_format == 3:  # DITIS: four digits
@@ -57,7 +59,8 @@ def to_btls_calendar(
     traffic_format : Literal[1, 2, 3, 4, 5]\n
         The format the vehicles were read from, which decides how their years
         are stored.\n
-        1: CASTOR format (two-digit years, 69 to 99 read as the 1900s).\n
+        1: CASTOR format (two-digit years, 69 to 99 read as the 1900s and 00 to
+        68 as the 2000s, the POSIX convention that Python's ``%y`` follows).\n
         2: BEDIT format (two-digit years, as CASTOR).\n
         3: DITIS format.\n
         4: MON format.\n

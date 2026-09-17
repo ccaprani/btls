@@ -7,7 +7,7 @@ changes: an event window is bounded by vehicle on/off transitions, and its
 threshold). See cpp/src/Bridge.cpp (event loop) and cpp/src/POTManager.cpp.
 A vehicle at or below ``min_gvw`` never joins the bridge, so its arrival is
 not a composition change and does not end an event (the driver loops in
-simulation.py and PrepareSim.cpp advance the bridge only to the arrivals of
+simulation/_worker.py and PrepareSim.cpp advance the bridge only to the arrivals of
 the vehicles they put on it).
 
 Because the GPU engine reconstructs each vehicle's on-bridge interval

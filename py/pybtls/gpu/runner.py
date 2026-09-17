@@ -820,7 +820,7 @@ def run(
         raise NotImplementedError(
             "engine='cuda' supports TrafficLoader or TrafficGenerator traffic."
         )
-    if bridge.no_lane != traffic.no_lane:  # as the CPU path checks in simulation.py
+    if bridge.no_lane != traffic.no_lane:  # as add_sim checks for the CPU path
         raise RuntimeError(
             "The number of lanes in the bridge and traffic generator are not equal."
         )
@@ -828,7 +828,7 @@ def run(
     # Same rule as the CPU path: reusing a tag would leave the previous run's
     # files in place for _OutputManager to glob back as this run's, so an
     # existing directory is an error unless the caller asked to overwrite.
-    from .._sim_worker import _make_sim_dir
+    from ..simulation._worker import _make_sim_dir
 
     sim_dir = output_root / str(sim_tag)
     _make_sim_dir(sim_dir, output_root, overwrite)
@@ -841,7 +841,7 @@ def run(
     else:
         n_days = int(no_day)
     # generated traffic starts at t=0; recorded traffic keeps its own dates, so
-    # its run starts at midnight of its first day, as on the CPU (simulation.py).
+    # its run starts at midnight of its first day, as on the CPU (simulation/_worker.py).
     # Block, counter, interval and flow-hour indices count from there; written
     # times stay absolute.
     run_start = float(traffic.start_time) if isinstance(traffic, TrafficLoader) else 0.0
@@ -929,7 +929,7 @@ def run(
             libbtls._VehClassAxle() if ctype == 0 else libbtls._VehClassPattern()
         )
         # hour 1 starts at the run start: the CPU engine constructs its
-        # _VehicleBuffer with that start time (simulation.py), so recorded
+        # _VehicleBuffer with that start time (simulation/_worker.py), so recorded
         # traffic whose first vehicle comes later in its first day gets leading
         # zero rows, not a shifted grid
         flow = FlowStatsAccumulator(
@@ -992,7 +992,7 @@ def run(
         win_secs = win_days * SECONDS_PER_DAY
         # sample/event ownership ends at the seam for interior windows; the
         # run's last window has no end: the CPU runs the bridge on until it
-        # empties (simulation.py, PrepareSim.cpp), so the last window owns
+        # empties (simulation/_worker.py, PrepareSim.cpp), so the last window owns
         # every event starting in it, those past end_time included
         own_end = None if is_last else win_secs
         # BM / POT / stats are all reductions over the C++ event partition,

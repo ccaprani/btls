@@ -1,6 +1,11 @@
 """
-Tests for pybtls.post_processing extreme value fitting (fit_gev / fit_gpd).
+Tests for pybtls.analyse: extreme value fitting (fit_gev / fit_gpd) and its
+diagnostic plots.
 """
+
+import matplotlib
+
+matplotlib.use("Agg")
 
 import numpy as np
 import pandas as pd
@@ -8,12 +13,22 @@ import pytest
 from scipy.stats import genextreme, genpareto
 
 import pybtls as pb
-from pybtls.post_processing import fit_gev, fit_gpd, GEVFit, GPDFit
+from pybtls.analyse import (
+    fit_gev,
+    fit_gpd,
+    GEVFit,
+    GPDFit,
+    plot_mean_residual_life,
+    plot_parameter_stability,
+    plot_qq,
+    plot_return_level,
+)
+from pybtls.analyse.plot import _empirical_return_years, _threshold_grid
 
 
 def test_module_is_exposed_on_package():
-    assert pb.post_processing.fit_gev is fit_gev
-    assert pb.post_processing.fit_gpd is fit_gpd
+    assert pb.analyse.fit_gev is fit_gev
+    assert pb.analyse.fit_gpd is fit_gpd
 
 
 def test_fit_gev_recovers_known_parameters():
@@ -138,3 +153,70 @@ def test_fit_gev_counts_zero_blocks_as_observed():
         populated_only.scale,
     )
     assert fit.return_level(100) < populated_only.return_level(100)
+
+
+# --- diagnostic plots -------------------------------------------------------
+
+
+def test_analyse_plots_are_exposed_on_package():
+    assert pb.analyse.plot_return_level is plot_return_level
+    assert pb.analyse.plot_mean_residual_life is plot_mean_residual_life
+
+
+def test_plot_return_level_and_qq_smoke(tmp_path):
+    rng = np.random.default_rng(3)
+    maxima = rng.gumbel(100.0, 12.0, 300)
+    gev = fit_gev(maxima, block_size_days=1.0)
+    peaks = 100.0 + rng.pareto(4.0, 2000) * 20.0
+    gpd = fit_gpd(peaks, threshold=110.0, n_peaks_per_year=800.0)
+
+    for name, fit, data in (("gev", gev, maxima), ("gpd", gpd, peaks)):
+        plot_return_level(fit, data, save_to=tmp_path / f"rl_{name}.png")
+        plot_qq(fit, data, save_to=tmp_path / f"qq_{name}.png")
+        assert (tmp_path / f"rl_{name}.png").exists()
+        assert (tmp_path / f"qq_{name}.png").exists()
+
+    # the curve alone, without the observations
+    plot_return_level(gev, save_to=tmp_path / "rl_curve.png")
+    assert (tmp_path / "rl_curve.png").exists()
+
+
+def test_plot_threshold_diagnostics_smoke(tmp_path):
+    rng = np.random.default_rng(4)
+    peaks = 100.0 + rng.pareto(4.0, 2000) * 20.0
+
+    plot_mean_residual_life(peaks, save_to=tmp_path / "mrl.png")
+    plot_parameter_stability(peaks, save_to=tmp_path / "stability.png")
+
+    assert (tmp_path / "mrl.png").exists()
+    assert (tmp_path / "stability.png").exists()
+
+
+def test_observations_sit_on_the_return_level_curve_they_were_fitted_to():
+    # the plotting positions must invert return_level's return period, so the
+    # fitted curve passes through the observations of a well-fitting sample
+    rng = np.random.default_rng(5)
+    maxima = rng.gumbel(100.0, 12.0, 2000)
+    fit = fit_gev(maxima, block_size_days=1.0)
+
+    years = _empirical_return_years(fit, maxima.size)
+    fitted = np.array([fit.return_level(year) for year in years])
+    observed = np.sort(maxima)
+
+    middle = slice(maxima.size // 10, -maxima.size // 10)
+    assert np.allclose(fitted[middle], observed[middle], rtol=0.05)
+
+
+def test_threshold_grid_drops_thresholds_with_too_few_exceedances():
+    peaks = np.arange(100.0, 200.0)  # 100 peaks, one per unit
+
+    grid = _threshold_grid(
+        peaks, thresholds=[100.0, 150.0, 189.0, 195.0], min_exceedances=10
+    )
+
+    assert grid.tolist() == [100.0, 150.0, 189.0]
+
+
+def test_threshold_grid_refuses_when_no_threshold_is_usable():
+    with pytest.raises(ValueError, match="No threshold"):
+        _threshold_grid(np.arange(5.0), thresholds=[3.0], min_exceedances=10)

@@ -1,14 +1,14 @@
 """
 The module that assembles everything together for the simulation. \n
 The methods and classes that are not defined in Python are defined in C++ py_main.cpp.
-The simulations themselves are run by ``_sim_worker``.
+The simulations themselves are run by ``_worker``.
 """
 
-from .lib.BTLS import Vehicle
-from .bridge import Bridge
-from .traffic import TrafficGenerator, TrafficLoader
-from .output import OutputConfig, _OutputManager
-from .output.chunked_manager import _ChunkedOutputManager
+from ..lib.BTLS import Vehicle
+from ..bridge import Bridge
+from ..traffic import TrafficGenerator, TrafficLoader
+from ..output import OutputConfig, _OutputManager
+from ..output.chunked_manager import _ChunkedOutputManager
 from typing import Union
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -24,8 +24,8 @@ import sys
 import time
 import platform
 import warnings
-from ._kwargs import reject_unknown_kwargs
-from ._sim_worker import _SimTask, run_task
+from .._kwargs import reject_unknown_kwargs
+from ._worker import _SimTask, run_task
 
 __all__ = ["Simulation"]
 

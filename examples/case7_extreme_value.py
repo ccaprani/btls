@@ -96,7 +96,7 @@ def main():
 
     # --- GEV fit to hourly block maxima of 1-truck events ---
     block_maxima = bm_data["1-Truck Event"]
-    gev_fit = pb.post_processing.fit_gev(block_maxima, block_size_days=1 / 24)
+    gev_fit = pb.analyse.fit_gev(block_maxima, block_size_days=1 / 24)
     print("GEV fit to hourly block maxima (1-truck events):")
     print(
         f"  shape xi = {gev_fit.shape:.4f}, "
@@ -108,9 +108,9 @@ def main():
     # --- GPD fit to peaks over threshold ---
     peaks = pot_data["Peak Value"]
     # average number of threshold exceedances per year (250 simulated days)
-    no_years = 2 / pb.post_processing.DAYS_PER_YEAR
+    no_years = 2 / pb.analyse.DAYS_PER_YEAR
     n_rate = (peaks > POT_RECORD_THRESHOLD).sum() / no_years
-    gpd_fit = pb.post_processing.fit_gpd(
+    gpd_fit = pb.analyse.fit_gpd(
         peaks, threshold=POT_RECORD_THRESHOLD, n_peaks_per_year=n_rate
     )
     print(f"GPD fit to {gpd_fit.n_exceedances} peaks over {POT_RECORD_THRESHOLD} kNm:")

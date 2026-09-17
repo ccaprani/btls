@@ -33,8 +33,17 @@ Added
   calendar, such as a SiWIM export, into the BTLS calendar so that it can be
   replayed. It keeps working days only, Monday to Friday less any holidays
   given, and numbers them on from 1 January of the first one's year.
-- ``pybtls.post_processing``: ``fit_gev`` and ``fit_gpd``, with the
-  ``GEVFit`` and ``GPDFit`` result objects, for extreme-value fitting.
+- ``pybtls.analyse``: ``fit_gev`` and ``fit_gpd``, with the
+  ``GEVFit`` and ``GPDFit`` result objects, for extreme-value fitting, and
+  the plots that go with them: ``plot_return_level`` (the fitted curve with
+  the observations on the same return period axis), ``plot_qq``, and
+  ``plot_mean_residual_life`` and ``plot_parameter_stability``, which are
+  how a GPD threshold is chosen.
+- ``output.plot.plot_TS`` plots the traffic statistics: the vehicle, truck
+  and car counts per hour, and the composition by vehicle class.
+- ``output.plot.plot_SV`` plots a single-vehicle simulation, one line per
+  lane pass and a subplot per direction, so that the influence line and the
+  lane weights the run was made to check can be read off it.
 - ``InfluenceLine.set_mode`` and ``InfluenceSurface.set_mode``
   (**experimental**): a load effect can be evaluated in ``"vertical"`` mode
   (the default) or ``"centrifugal"``, which scales the vertical effect by
@@ -232,7 +241,7 @@ Fixed
   runner has a GPU, so the CUDA tests skip there whatever is installed. CI
   installs torch explicitly on the one leg that requires it, so the GPU
   engine keeps its coverage.
-- ``pybtls.post_processing`` is listed in the API documentation.
+- ``pybtls.analyse`` is listed in the API documentation.
 
 Changed
 ^^^^^^^

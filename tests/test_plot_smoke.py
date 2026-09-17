@@ -10,7 +10,16 @@ matplotlib.use("Agg")
 
 import pandas as pd
 
-from pybtls.output.plot import plot_AE, plot_BM_S, plot_FR, plot_POT_S, plot_TH
+from pybtls.output.plot import (
+    plot_AE,
+    plot_BM_S,
+    plot_FR,
+    plot_POT_S,
+    plot_SV,
+    plot_TH,
+    plot_TS,
+)
+from pybtls.output.plot.single_vehicle import _lane_passes
 
 
 def test_plot_AE_smoke(tmp_path):
@@ -80,3 +89,54 @@ def test_plot_TH_single_row_does_not_crash(tmp_path):
     plot_TH(data, save_to=save_to)
 
     assert save_to.exists()
+
+
+def test_plot_TS_smoke(tmp_path):
+    data = pd.DataFrame(
+        {
+            "Hour": [1, 2, 3],
+            "No. Vehicles": [40, 55, 30],
+            "No. Trucks": [30, 45, 22],
+            "No. Cars": [10, 10, 8],
+            "2: Pattern 11": [12, 20, 9],
+            "4: Pattern 12": [18, 25, 13],
+        }
+    )
+    save_to = tmp_path / "ts.png"
+
+    plot_TS(data, save_to=save_to)
+
+    assert save_to.exists()
+
+
+def test_plot_SV_smoke(tmp_path):
+    # two lane passes: the time history holds rows only while the bridge is
+    # loaded, so a jump in "Time" separates them
+    frame = pd.DataFrame(
+        {
+            "Time": [0.0, 0.1, 0.2, 5.0, 5.1, 5.2],
+            "No. Vehicles": [1] * 6,
+            "Effect 1": [0.0, 10.0, 0.0, 0.0, 6.0, 0.0],
+        }
+    )
+    save_to = tmp_path / "sv.png"
+
+    plot_SV({"dir1": frame, "dir2": frame}, save_to=save_to)
+
+    assert save_to.exists()
+
+
+def test_plot_SV_splits_the_passes_on_the_time_gap():
+    frame = pd.DataFrame(
+        {
+            "Time": [0.0, 0.1, 0.2, 5.0, 5.1],
+            "No. Vehicles": [1] * 5,
+            "Effect 1": [0.0, 10.0, 0.0, 0.0, 6.0],
+        }
+    )
+
+    passes = _lane_passes(frame)
+
+    assert [len(one_pass) for one_pass in passes] == [3, 2]
+    # a zero effect inside a pass does not split it
+    assert passes[0]["Effect 1"].tolist() == [0.0, 10.0, 0.0]
