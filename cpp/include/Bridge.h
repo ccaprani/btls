@@ -171,8 +171,9 @@ public:
 	 * called after setLength(), setThresholds() and setNoLoadEffects().
 	 *
 	 * @param[in] SimStartTime Simulation start time in seconds.
+	 * @param[in] SimEndTime   Simulated end time in seconds (see CEventManager::Initialize).
 	 */
-	void InitializeDataMgr(double SimStartTime);
+	void InitializeDataMgr(double SimStartTime, double SimEndTime);
 
 	/**
 	 * @brief Get a reference to the lane at index @p iLane.

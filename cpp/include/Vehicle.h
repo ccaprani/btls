@@ -3,12 +3,7 @@
  * @brief Interface for the CVehicle class — a single vehicle with axle geometry and kinematics.
  */
 
-#if !defined(AFX_VEHICLE_H__028A909A_9588_4305_9A3E_D255BD8D332A__INCLUDED_)
-#define AFX_VEHICLE_H__028A909A_9588_4305_9A3E_D255BD8D332A__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include <vector>
 #include <sstream>
@@ -102,6 +97,8 @@ public:
 
 	/// @brief Set the vehicle arrival time in seconds (updates the day/month/year/hour/min/sec fields).
 	void	setTime(double time);
+	/// @brief Set vehicle arrival date/time components directly.
+	void	setDateTime(size_t year, size_t month, size_t day, size_t hour, size_t min, double sec);
 	/// @brief Set the overall vehicle length in metres.
 	void	setLength(double length);
 	/// @brief Set the vehicle velocity in metres per second.
@@ -116,6 +113,8 @@ public:
 	void	setGVW(double weight);
 	/// @brief Set the number of axles (resizes the internal axle vector).
 	void	setNoAxles(size_t noAxle);
+	/// @brief Set the number of axle groups.
+	void	setNoAxleGroups(size_t noAxleGroups);
 	/**
 	 * @brief Set axle weight for axle @p i.
 	 * @param[in] i Zero-based axle index.
@@ -171,6 +170,8 @@ public:
 	size_t	getHead();
 	/// @brief Get the arrival time in seconds since the simulation epoch.
 	double  getTime() const;
+	/// @brief Throw std::invalid_argument unless the date lies in the BTLS calendar getTime() counts in: days 1 to DAYS_PER_MT, months 1 to MTS_PER_YR.
+	void	checkCalendarDate() const;
 	/// @brief Get the overall vehicle length in metres.
 	double	getLength();
 	/// @brief Get the velocity in metres per second.
@@ -321,4 +322,3 @@ typedef std::unique_ptr<CVehicle> CVehicle_up;   ///< Unique-pointer alias for C
 typedef std::weak_ptr<CVehicle> CVehicle_wp;     ///< Weak-pointer alias for CVehicle.
 typedef std::shared_ptr<CVehicle> CVehicle_sp;   ///< Shared-pointer alias for CVehicle.
 
-#endif // !defined(AFX_VEHICLE_H__028A909A_9588_4305_9A3E_D255BD8D332A__INCLUDED_)

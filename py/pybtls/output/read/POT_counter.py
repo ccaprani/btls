@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 
+from ._empty import read_csv_or_empty
+
 __all__ = ["read_POT_C"]
 
 
@@ -25,18 +27,28 @@ def read_POT_C(
     Returns
     -------
     pd.DataFrame\n
-        The POT counter data.
+        One row per POT counting block, with columns:\n
+        - "Block" : int, the block index.\n
+        - "Effect 1", "Effect 2", ... : unsigned int, the number of
+          threshold exceedances (peaks over threshold) recorded for that
+          load effect in the block. Unlike the "Effect N" columns
+          elsewhere in this package (e.g. read_AE, read_TH), these are
+          exceedance *counts*, not load effect values.\n
+        The number of effect columns is inferred from the file. Returns
+        a DataFrame with only the "Block" column (no rows) if the file
+        has no data rows.
     """
 
     # Read data
-    return_data = pd.read_csv(
+    return_data = read_csv_or_empty(
         file_path,
-        sep="[\s\t]+",
+        ["Block"],
+        sep=r"\s+",
         header=None,
         skiprows=max(1, start_line),
         nrows=no_lines,
-        engine="python",
     )
+
     no_effects = len(return_data.columns) - 1
 
     # Set column ids

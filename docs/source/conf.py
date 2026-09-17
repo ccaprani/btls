@@ -67,8 +67,13 @@ _docs_dir = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), ".."))
 _doxy_xml = _os.path.join(_docs_dir, "doxygen", "xml")
 
 try:
-    _sp.run(["doxygen", "Doxyfile"], cwd=_docs_dir, check=True,
-            stdout=_sp.PIPE, stderr=_sp.PIPE)
+    _sp.run(
+        ["doxygen", "Doxyfile"],
+        cwd=_docs_dir,
+        check=True,
+        stdout=_sp.PIPE,
+        stderr=_sp.PIPE,
+    )
     print("[conf.py] Doxygen XML regenerated at", _doxy_xml)
 except FileNotFoundError:
     print("[conf.py] doxygen not found on PATH; skipping C++ API regeneration.")
@@ -80,6 +85,7 @@ breathe_default_project = "pybtls"
 breathe_default_members = ("members",)
 
 autodoc_member_order = "bysource"
+autoclass_content = "both"  # class summary line + __init__ parameter docs
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
 autoclass_content = "both"  # Add __init__ doc (ie. params) to class summaries
 html_show_sourcelink = (

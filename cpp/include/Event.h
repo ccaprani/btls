@@ -149,10 +149,29 @@ public:
 	void		writeEffect(size_t k, std::string file, bool trucks);
 
 	/**
+	 * @brief Write one load effect to an already-open output stream.
+	 *
+	 * @param[in] k       Zero-based load-effect index.
+	 * @param[in] outFile Open output stream (append mode).
+	 * @param[in] trucks  If true, include per-truck detail.
+	 */
+	void		writeEffect(size_t k, std::ofstream& outFile, bool trucks);
+
+	/**
 	 * @brief Write the full event to an output file in the configured format.
 	 * @param[in] file Path to the output file.
 	 */
 	void		writeToFile(std::string file);
+
+	/**
+	 * @brief Write the full event to an already-open output stream.
+	 *
+	 * Callers writing many events should open the file once and use this
+	 * overload - opening the file per event dominates the run time.
+	 *
+	 * @param[in] outFile Open output stream (append mode).
+	 */
+	void		writeToFile(std::ofstream& outFile);
 
 	/**
 	 * @brief Add a single effect as both the max and min for its slot.

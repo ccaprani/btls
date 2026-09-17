@@ -1,10 +1,22 @@
 #include "InfluenceLine.h"
+#include <algorithm>
 
+#include <stdexcept>
+
+
+// Acceleration due to gravity used in centrifugal-mode force
+// conversion. CAxle::m_AxleWeight is in kN (= mass[kg] * g[m/s^2]
+// / 1000); dividing by g recovers an axle "mass coefficient" so that
+// the per-axle centrifugal force AxleWeight * v^2 / g (kN.m, before
+// IL convolution that bakes in 1/R) comes out in the right units.
+static constexpr double GRAVITY_MS2_FOR_LE = 9.80665;
 
 CInfluenceLine::CInfluenceLine(void)
 	: m_Type(0), m_Weight(1.0)
+	, m_LoadEffectMode(0)
 {
 	// Type: 1 - expression, 2 - discrete, 3 - Surface
+	// LoadEffectMode: 0 - vertical (default), 1 - centrifugal
 
 	m_vLEfptr.push_back(&CInfluenceLine::LoadEffect1);
 	m_vLEfptr.push_back(&CInfluenceLine::LoadEffect2);
@@ -40,15 +52,37 @@ double CInfluenceLine::getAxleLoadEffect(CAxle& axle)
 {
 	double effVal = 0.0;
 
+	// Per-axle force coefficient: depends on the load-effect mode.
+	// Bridge-geometry constants (radius R, superelevation factor k_e for
+	// centrifugal) are baked
+	// into the influence-line ordinates by the caller at IL construction
+	// time. For type-1 and type-2 influence lines they may instead be
+	// applied through setWeight(); the weight is deliberately NOT applied
+	// to a type-3 influence surface (see the type-3 branch below), so it
+	// cannot carry them there. The C++ side computes only the per-axle
+	// kinematic force proxy.
+	//   Vertical    (0): F_axle = AxleWeight                              (default).
+	//   Centrifugal (1): F_axle = AxleWeight * Speed^2 / g                (per-vehicle v^2).
+	//                    Caller bakes k_e / R into the IL ordinates so that
+	//                    the convolved bearing reaction is in kN.
+	double force_coeff = axle.m_AxleWeight;
+	if (m_LoadEffectMode == LE_Centrifugal)
+	{
+		double v = axle.m_Speed;
+		force_coeff = axle.m_AxleWeight * (v * v) / GRAVITY_MS2_FOR_LE;
+	}
+
 	if(m_Type == 3)	// Influence surface
 	{
 		double ord1 = m_IS.giveOrdinate(axle.m_Position,axle.m_Eccentricity-axle.m_TrackWidth/2,axle.m_Lane);
 		double ord2 = m_IS.giveOrdinate(axle.m_Position,axle.m_Eccentricity+axle.m_TrackWidth/2,axle.m_Lane);
-		effVal = 0.5*axle.m_AxleWeight*(ord1+ord2); // assumes half axle weight on each wheel		
+		// m_Weight is intentionally not applied here: an influence surface is
+		// not scaled by the per-lane influence weight.
+		effVal = 0.5*force_coeff*(ord1+ord2); // assumes half axle force on each wheel
 	}
 	else
-		effVal = axle.m_AxleWeight*getOrdinate(axle.m_Position);
-	
+		effVal = force_coeff*getOrdinate(axle.m_Position);
+
 	return effVal;
 }
 
@@ -114,23 +148,31 @@ void CInfluenceLine::setWeight(double weight)
 	m_Weight = weight;
 }
 
+void CInfluenceLine::setLoadEffectMode(size_t mode)
+{
+	// 0 = vertical (default), 1 = centrifugal.
+	if(mode > LE_Centrifugal)
+		throw std::invalid_argument("Load effect mode must be 0 (vertical) or 1 (centrifugal).");
+	m_LoadEffectMode = mode;
+}
+
 double CInfluenceLine::getDiscreteOrdinate(double x)
 {
-	int i = 0;
 	// right at the end of the IL
 	if(x >= m_Length - 0.001 && x <= m_Length + 0.001)
-		return m_vOrdinate.at(m_NoPoints-1);
+		return m_vOrdinate[m_NoPoints-1];
 	// not on the IL
-	else if(x < m_vDistance.at(0) || x > m_Length)
+	else if(x < m_vDistance[0] || x > m_Length)
 		return 0.0;
 	// On the IL, but not at the end
 	else
 	{
-		while(x >= m_vDistance.at(i)) i++;	// find the index
-		double deltaX = m_vDistance.at(i) - m_vDistance.at(i-1);
-		double ord1 = m_vOrdinate.at(i-1);
-		double ord2 = m_vOrdinate.at(i);
-		double ordinate = ord1 + (x-m_vDistance.at(i-1))/deltaX*(ord2-ord1);
+		// first index with m_vDistance[i] > x - same as the former linear scan
+		size_t i = std::upper_bound(m_vDistance.begin(), m_vDistance.end(), x) - m_vDistance.begin();
+		double deltaX = m_vDistance[i] - m_vDistance[i-1];
+		double ord1 = m_vOrdinate[i-1];
+		double ord2 = m_vOrdinate[i];
+		double ordinate = ord1 + (x-m_vDistance[i-1])/deltaX*(ord2-ord1);
 		return ordinate;
 	}
 }

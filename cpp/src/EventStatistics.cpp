@@ -70,6 +70,16 @@ void CEventStatistics::accumulator(double x)
 
 void CEventStatistics::finalize()	// finalize the statistics from the accumulators
 {
+	if (m_N < 2 || m_M2 == 0.0)
+	{
+		// too few events for second/higher moments: avoid size_t underflow
+		// in (m_N-1) and 0/0 NaNs being written to file
+		m_Variance = 0.0;
+		m_StdDev = 0.0;
+		m_Skewness = 0.0;
+		m_Kurtosis = 0.0;
+		return;
+	}
 	m_Variance = m_M2/(m_N-1);
 	m_StdDev = sqrt(m_Variance);
 	m_Skewness = (sqrt((double)m_N)*m_M3)/sqrt(m_M2*m_M2*m_M2);

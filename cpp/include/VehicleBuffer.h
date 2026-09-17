@@ -101,6 +101,9 @@ public:
 	 */
 	void FlushBuffer();
 
+	/// @brief Flush, filling silent trailing FlowData hours up to the simulated end time.
+	void FlushBuffer(double simEndTime);
+
 private:
 	/// @brief Write all buffered vehicles to the vehicle output file.
 	void writeFlowData();
@@ -112,6 +115,7 @@ private:
 	void flushFlowData();
 
 	std::ofstream m_OutFileVeh;             ///< Output stream for serialised vehicles.
+	std::string m_OutputDir;     ///< Directory output files are written into ("" = cwd).
 	std::ofstream m_OutFileFlow;            ///< Output stream for per-hour flow stats.
 	std::vector<CVehicle_up> m_vVehicles;   ///< Buffered vehicles awaiting flush.
 	size_t m_NoVehicles;                    ///< Running count of vehicles flushed to disk.

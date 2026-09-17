@@ -28,7 +28,8 @@
  *    ±TrackWidth/2 from the axle centreline.
  *
  * A per-effect scaling weight (e.g. a girder distribution factor) is
- * applied to all ordinates via setWeight(). For type-1 expressions, a
+ * applied to the type-1 and type-2 ordinates via setWeight(); it is not
+ * applied to a type-3 influence surface. For type-1 expressions, a
  * function pointer is cached in setIL() so the inner loop does not need
  * to branch on the function index for each axle.
  *
@@ -134,14 +135,46 @@ public:
 	size_t getIndex(void);
 
 	/**
-	 * @brief Set the scaling weight applied to all ordinates.
+	 * @brief Set the scaling weight applied to the type-1 and type-2 ordinates.
 	 *
 	 * Typically used to apply a girder distribution factor or a
-	 * unit-conversion constant.
+	 * unit-conversion constant. The weight has no effect on a type-3
+	 * influence surface: surface load effects are not scaled by it.
 	 *
 	 * @param[in] weight Scaling factor; default is 1.0.
 	 */
 	void setWeight(double weight);
+
+	/**
+	 * @brief Load-effect mode tag for the per-axle force formula.
+	 *
+	 * The bridge-geometry factors (radius R, superelevation factor k_e for
+	 * centrifugal) are intentionally kept on the caller side: the caller
+	 * bakes them into the influence-line ordinates (or, for type-1 and
+	 * type-2 influence lines only, applies them via @ref setWeight) so that
+	 * the IL remains the single source of bridge-specific physics. The C++
+	 * dispatch below only selects the per-axle force proxy:
+	 *
+	 * - Vertical (default): F_axle = AxleWeight; ordinary vertical reaction.
+	 * - Centrifugal: F_axle = AxleWeight * Speed^2 / g, taking the per-axle
+	 *   speed m_Speed (per-vehicle, set by the upstream traffic generator).
+	 *   The caller is expected to supply an IL whose ordinates carry the
+	 *   k_e / R factor so that the convolution yields a force in the same
+	 *   units as the vertical reaction. Unsigned by design: the centrifugal
+	 *   force points to the outside of the curve for both travel directions.
+	 */
+	enum LoadEffectMode {
+		LE_Vertical    = 0,
+		LE_Centrifugal = 1
+	};
+
+	/**
+	 * @brief Select the load-effect mode used in @ref getLoadEffect.
+	 *
+	 * @param[in] mode One of LE_Vertical (0), LE_Centrifugal (1).
+	 * @throws std::invalid_argument if @p mode is outside that range.
+	 */
+	void setLoadEffectMode(size_t mode);
 
 private:
 	/// @brief Compute the load effect contribution of a single axle.
@@ -188,4 +221,6 @@ private:
 
 	std::vector<LEfptr> m_vLEfptr;    ///< Dispatch table for type-1 load-effect functions.
 	LEfptr m_LEfptr;                  ///< Cached function pointer for the current analytical expression.
+
+	size_t m_LoadEffectMode;          ///< Per-axle force formula: 0 = vertical, 1 = centrifugal.
 };

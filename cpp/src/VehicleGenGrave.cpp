@@ -115,7 +115,7 @@ void CVehicleGenGrave::GenerateCommonProps(CVehicle_sp pVeh, size_t nAxles)
 	// Generate GVW, AS, length properties
 	double GVW = -1.0;
 	while (GVW < 35 || GVW > 1000)
-		GVW = m_RNG.GenerateMultiModalNormal(m_pVMD->GetGVW(m_CurDirection, nAxles));
+		GVW = m_RNG.GenerateMultiModalNormal(m_pVMD->GetGVW(m_pVMD->getDirection(), nAxles));
 	GVW = GVW*0.981; // kg/100 to kN
 
 	// Gen axle spacings

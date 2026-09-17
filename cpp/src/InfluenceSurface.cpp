@@ -1,4 +1,5 @@
 #include "InfluenceSurface.h"
+#include <algorithm>
 
 
 CInfluenceSurface::CInfluenceSurface(void)
@@ -88,42 +89,45 @@ double CInfluenceSurface::giveOrdinate(double x, double laneEccentricity, std::s
 	// ylocal is the transverse position within lane number iLane
 
 	//if(iLane > m_NoLanes-1) return 0.0; // better off to crash here though?
-	double yLaneCentre = (m_Ylanes.at(iLane).first+m_Ylanes.at(iLane).second)/2;	// iLane is 0-based global lane index
+	const std::pair<double,double>& lane = m_Ylanes.at(iLane);	// iLane is 0-based global lane index; .at() traps a lane index beyond the surface's lanes
+	double yLaneCentre = (lane.first+lane.second)/2;
 	double y = yLaneCentre + laneEccentricity; // y is now global wrt influence surface
 
 	// check we are within the bounds of the surface
 	double buffer = 0.0;	// tiny additional for end points
-	if(x < m_Xmin - buffer || x > m_Xmax + buffer)	
+	if(x < m_Xmin - buffer || x > m_Xmax + buffer)
 		return 0.0;
 	if(y < m_Ymin - buffer || y > m_Ymax + buffer)
 		return 0.0;
 
-	std::size_t iX = 1;
-	std::size_t iY = 1;
-	
-	// find the indices
-	while(x >= m_X.at(iX) && iX < m_NoX-1) iX++;
-	while(y >= m_Y.at(iY) && iY < m_NoY-1) iY++;
+	// find the indices: first index with coordinate > value, clamped to
+	// [1, n-1] - same result as the former linear scans
+	std::size_t iX = std::upper_bound(m_X.begin(), m_X.end(), x) - m_X.begin();
+	std::size_t iY = std::upper_bound(m_Y.begin(), m_Y.end(), y) - m_Y.begin();
+	if(iX < 1) iX = 1;
+	if(iX > m_NoX-1) iX = m_NoX-1;
+	if(iY < 1) iY = 1;
+	if(iY > m_NoY-1) iY = m_NoY-1;
 
 	// Are we right at the end or edge of the IL?
 	if(x >= m_Xmax - buffer && x <= m_Xmax + buffer) iX = m_NoX-1;
 	if(y >= m_Ymax - buffer && y <= m_Ymax + buffer) iY = m_NoY-1;
 
-	double deltaX = m_X.at(iX) - m_X.at(iX-1);
-	double deltaY = m_Y.at(iY) - m_Y.at(iY-1);
+	double deltaX = m_X[iX] - m_X[iX-1];
+	double deltaY = m_Y[iY] - m_Y[iY-1];
 
-	double xsi1 = m_ISords.at(iX-1).at(iY);
-	double xsi2 = m_ISords.at(iX).at(iY);
-	double xsi3 = m_ISords.at(iX-1).at(iY-1);
-	double xsi4 = m_ISords.at(iX).at(iY-1);
+	double xsi1 = m_ISords[iX-1][iY];
+	double xsi2 = m_ISords[iX][iY];
+	double xsi3 = m_ISords[iX-1][iY-1];
+	double xsi4 = m_ISords[iX][iY-1];
 
 	// interp along x-direction first
-	double xsiA = xsi1 + (x-m_X.at(iX-1))/deltaX*(xsi2-xsi1);	// high y value
-	double xsiB = xsi3 + (x-m_X.at(iX-1))/deltaX*(xsi4-xsi3);	// low y value
+	double xsiA = xsi1 + (x-m_X[iX-1])/deltaX*(xsi2-xsi1);	// high y value
+	double xsiB = xsi3 + (x-m_X[iX-1])/deltaX*(xsi4-xsi3);	// low y value
 
 	// and finally along y-direction
-	double xsi = xsiB + (y-m_Y.at(iY-1))/deltaY*(xsiA-xsiB);
-	
+	double xsi = xsiB + (y-m_Y[iY-1])/deltaY*(xsiA-xsiB);
+
 	return xsi;
 }
 

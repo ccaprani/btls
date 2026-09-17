@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "EventManager.h"
+#include "FilePath.h"
 
 
 //////////////////////////////////////////////////////////////////////
@@ -33,6 +34,10 @@ CEventManager::CEventManager(CConfigDataCore& config)
 	m_NoEvents = 0;
 	m_CurTime = 0.0;
 	m_FatigueEventBuffer.setMode(true);
+
+	m_OutputDir = m_Config.Output.OUTPUT_DIR;
+	m_AllEventBuffer.setOutputDir(m_OutputDir);
+	m_FatigueEventBuffer.setOutputDir(m_OutputDir);
 }
 
 CEventManager::~CEventManager()
@@ -40,7 +45,7 @@ CEventManager::~CEventManager()
 
 }
 
-void CEventManager::Initialize(double BridgeLength, std::vector<double> vThresholds, double SimStartTime)
+void CEventManager::Initialize(double BridgeLength, std::vector<double> vThresholds, double SimStartTime, double SimEndTime)
 {
 	m_BridgeLength = BridgeLength;
 	m_vThresholds = vThresholds;
@@ -51,9 +56,9 @@ void CEventManager::Initialize(double BridgeLength, std::vector<double> vThresho
 	if(WRITE_FATIGUE_EVENT)
 		m_FatigueEventBuffer.setOutFile(m_BridgeLength);
 	
-	if (WRITE_BM) m_BlockMaxManager.Initialize(m_BridgeLength, m_NoLoadEffects, SimStartTime);
-	if (WRITE_POT) m_POTManager.Initialize(m_BridgeLength, m_vThresholds, SimStartTime);
-	if (WRITE_STATS) m_StatsManager.Initialize(m_BridgeLength, m_NoLoadEffects, SimStartTime);
+	if (WRITE_BM) m_BlockMaxManager.Initialize(m_BridgeLength, m_NoLoadEffects, SimStartTime, SimEndTime);
+	if (WRITE_POT) m_POTManager.Initialize(m_BridgeLength, m_vThresholds, SimStartTime, SimEndTime);
+	if (WRITE_STATS) m_StatsManager.Initialize(m_BridgeLength, m_NoLoadEffects, SimStartTime, SimEndTime);
 	if (DO_FATIGUE_RAINFLOW) m_FatigueManager.Initialize(m_BridgeLength, m_NoLoadEffects);  // Will become a || logic
 
 	if(WRITE_TIME_HISTORY)
@@ -152,7 +157,10 @@ void CEventManager::EndEvent()
 	m_CurEvent.reset();
 }
 
-// called at the end of the simulation
+// called at the end of the simulation; the block-max, POT and statistics
+// managers fill their silent trailing blocks/intervals up to the simulated end
+// time given at Initialize() (otherwise outputs would end at the last event and
+// chunked runs could not be merged index-aligned under sparse traffic)
 void CEventManager::Finish()
 {
 	if(WRITE_EACH_EVENT)
@@ -160,7 +168,7 @@ void CEventManager::Finish()
 
 	if(WRITE_FATIGUE_EVENT)
 		m_FatigueEventBuffer.FlushBuffer();
-	
+
 	if(WRITE_BM) m_BlockMaxManager.Finish();
 	if(WRITE_POT) m_POTManager.Finish();
 	if(WRITE_STATS) m_StatsManager.Finish();
@@ -174,7 +182,7 @@ void CEventManager::DoTimeHistory(int i, std::vector<double>& vEff)
 	case 1:
 		{
 			std::string file;
-			file = "TH_" + to_string(m_BridgeLength) + ".txt";
+			file = btls::outPath(m_OutputDir, "TH_" + to_string(m_BridgeLength) + ".txt");
 			m_TimeHistoryFile.open(file.c_str(), std::ios::out);
 			m_TimeHistoryFile << std::setw(12) << "TIME (s)" << "\t\t" 
 					<< "NO. TRUCKS" << "\t" << "EFFECTS" << std::endl;

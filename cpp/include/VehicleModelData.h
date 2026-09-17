@@ -56,6 +56,9 @@ public:
 	 */
 	vec getComposition(size_t i) const;
 
+	/// @brief Get the direction of travel (1 or 2) of the lane this data instance serves.
+	size_t getDirection() const { return m_CurDirection; };
+
 	/// @brief Get the kernel shape used for randomisation (normal or triangle).
 	EKernelType getKernelType() const {return m_KernelType;};
 

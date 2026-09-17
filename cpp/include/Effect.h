@@ -3,12 +3,7 @@
  * @brief Interface for the CEffect class — a single load-effect observation.
  */
 
-#if !defined(AFX_EFFECT_H__0EFA9024_74FF_4E82_BF7C_D5F28B09284B__INCLUDED_)
-#define AFX_EFFECT_H__0EFA9024_74FF_4E82_BF7C_D5F28B09284B__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include "Vehicle.h"
 #include <vector>
@@ -97,4 +92,3 @@ private:
 	std::vector<CVehicle> m_vVehicles;  ///< Vehicles contributing to this observation.
 };
 
-#endif // !defined(AFX_EFFECT_H__0EFA9024_74FF_4E82_BF7C_D5F28B09284B__INCLUDED_)

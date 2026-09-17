@@ -24,6 +24,7 @@ def _draw_samples(n=N_SAMPLES):
 def _draw_seeded_in_subprocess(seed_val):
     """Spawned-process helper: seed, draw, return the samples."""
     from pybtls.lib import libbtls
+
     if seed_val is not None:
         libbtls.seed(seed_val)
     return [libbtls._sample_uniform() for _ in range(N_SAMPLES)]
@@ -32,6 +33,7 @@ def _draw_seeded_in_subprocess(seed_val):
 # -----------------------------------------------------------------------
 # API surface tests
 # -----------------------------------------------------------------------
+
 
 class TestSeedAPI:
     def test_seed_callable(self):
@@ -50,6 +52,7 @@ class TestSeedAPI:
 # -----------------------------------------------------------------------
 # Reproducibility tests (same process)
 # -----------------------------------------------------------------------
+
 
 class TestSeedReproducibility:
     def test_same_seed_same_output(self):
@@ -89,6 +92,7 @@ class TestSeedReproducibility:
 # Cross-process independence tests (multiprocessing with spawn)
 # -----------------------------------------------------------------------
 
+
 class TestSpawnedProcessIndependence:
     def test_unseeded_processes_differ(self):
         """Two spawned processes without explicit seed should produce
@@ -98,9 +102,9 @@ class TestSpawnedProcessIndependence:
         with ctx.Pool(2) as pool:
             results = pool.map(_draw_seeded_in_subprocess, [None, None])
 
-        assert results[0] != results[1], (
-            "Unseeded spawned processes should get different RNG streams"
-        )
+        assert (
+            results[0] != results[1]
+        ), "Unseeded spawned processes should get different RNG streams"
 
     def test_same_seed_across_processes(self):
         """Two spawned processes seeded with the same value must produce
@@ -109,9 +113,9 @@ class TestSpawnedProcessIndependence:
         with ctx.Pool(2) as pool:
             results = pool.map(_draw_seeded_in_subprocess, [42, 42])
 
-        assert results[0] == results[1], (
-            "Same seed in different processes must produce identical sequences"
-        )
+        assert (
+            results[0] == results[1]
+        ), "Same seed in different processes must produce identical sequences"
 
     def test_different_seeds_across_processes(self):
         """Two spawned processes seeded with different values must produce
@@ -120,6 +124,6 @@ class TestSpawnedProcessIndependence:
         with ctx.Pool(2) as pool:
             results = pool.map(_draw_seeded_in_subprocess, [42, 99])
 
-        assert results[0] != results[1], (
-            "Different seeds in different processes must produce different sequences"
-        )
+        assert (
+            results[0] != results[1]
+        ), "Different seeds in different processes must produce different sequences"

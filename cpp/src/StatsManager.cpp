@@ -1,8 +1,11 @@
 #include "StatsManager.h"
+#include "FilePath.h"
+#include <algorithm>
 
 
 CStatsManager::CStatsManager(CConfigDataCore& config) : COutputManagerBase("SS")
 {
+	m_OutputDir = config.Output.OUTPUT_DIR;
 	WRITE_SS_CUMULATIVE		= config.Output.Stats.WRITE_SS_CUMULATIVE;
 	WRITE_SS_INTERVALS		= config.Output.Stats.WRITE_SS_INTERVALS;
 	WRITE_SS_INTERVAL_SIZE	= config.Output.Stats.WRITE_SS_INTERVAL_SIZE;
@@ -20,9 +23,10 @@ CStatsManager::~CStatsManager(void)
 
 }
 
-void CStatsManager::Initialize(double BridgeLength,size_t nLE, double SimStartTime)
+void CStatsManager::Initialize(double BridgeLength,size_t nLE, double SimStartTime, double SimEndTime)
 {
 	m_SimStartTime = SimStartTime;
+	m_SimEndTime = SimEndTime;
 	m_BridgeLength = BridgeLength;
 	m_NoLoadEffects = nLE;
 
@@ -39,12 +43,18 @@ void CStatsManager::Initialize(double BridgeLength,size_t nLE, double SimStartTi
 	}
 }
 
-void CStatsManager::Update(CEvent curEvent)
+void CStatsManager::Update(CEvent& curEvent)
 {
 	m_CurTime = curEvent.getStartTime();
 	
-	if( m_CurTime - m_SimStartTime > (double)(m_CurIntervalNo)*WRITE_SS_INTERVAL_SIZE && WRITE_SS_INTERVALS )
-		CheckBuffer(false);	// at the end of a block
+	// an event can start after the end of the simulated window (the bridge is
+	// run on until the first arrival beyond it); it belongs to the window's
+	// last interval, so clamp the rollover time and never open one past the end
+	double rollTime = (std::min)(m_CurTime, m_SimEndTime);
+
+	// a zero interval size would make the rollover test permanently true
+	while( WRITE_SS_INTERVAL_SIZE > 0 && rollTime - m_SimStartTime > (double)(m_CurIntervalNo)*WRITE_SS_INTERVAL_SIZE && WRITE_SS_INTERVALS )
+		CheckBuffer(false);	// at the end of a block; while, not if: fill in any silent intervals
 
 	if(curEvent.getNoVehicles() > 0)
 	{
@@ -60,21 +70,38 @@ void CStatsManager::Update(CEvent curEvent)
 
 }
 
+void CStatsManager::Finish()
+{
+	// fill any silent trailing intervals up to the simulated end time
+	while( WRITE_SS_INTERVAL_SIZE > 0 && WRITE_SS_INTERVALS && m_SimEndTime - m_SimStartTime > (double)(m_CurIntervalNo)*WRITE_SS_INTERVAL_SIZE )
+		CheckBuffer(false);
+
+	COutputManagerBase::Finish();
+}
+
 void CStatsManager::CheckBuffer(bool bForceOutput)
 {
+	if(bForceOutput)
+		// store the current (final) interval so it gets written too,
+		// otherwise the last interval of every simulation is lost
+		m_vIntStatsBuffer.push_back(m_vIntervalStats);
+
 	if(m_vIntStatsBuffer.size() == WRITE_BUFFER_SIZE || bForceOutput)
 		WriteBuffer();
 
 	if(bForceOutput && WRITE_SS_CUMULATIVE)
 		WriteCumulativeFile();
-	
+
+	if(bForceOutput)
+		return;	// end of simulation - no next interval to prepare
+
 	// store data and update for next interval
 	m_vIntStatsBuffer.push_back(m_vIntervalStats);
-	
+
 	m_CurIntervalNo++;
 
 	m_vIntervalStats.clear();
-	CEventStatistics temp; 
+	CEventStatistics temp;
 	temp.m_ID = m_CurIntervalNo;
 	m_vIntervalStats.assign(m_NoLoadEffects, temp);
 }
@@ -125,7 +152,7 @@ void CStatsManager::WriteIntervalHeadings()
 
 void CStatsManager::WriteCumulativeFile()
 {
-	std::string file = m_FileStem + "_C_" + to_string(m_BridgeLength) + ".txt";
+	std::string file = btls::outPath(m_OutputDir, m_FileStem + "_C_" + to_string(m_BridgeLength) + ".txt");
 	std::ofstream outFile( file.c_str(), std::ios::out );
 
 	CEventStatistics s;

@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 
+from ._empty import read_csv_or_empty
+
 __all__ = ["read_AE"]
 
 
@@ -23,22 +25,32 @@ def read_AE(file_path: Path, no_lines: int = None, start_line: int = 1) -> pd.Da
     Returns
     -------
     pd.DataFrame\n
-        The all events data.
+        One row per event, with columns:\n
+        - "Start Time" : float, seconds.\n
+        - "No. Vehicles" : int, the total number of vehicles in the
+          event, including cars.\n
+        - "Effect 1", "Effect 2", ... : float, the load effect value at
+          the event maximum, in the effect's native unit (kN or kN·m
+          depending on the influence line). The number of effect
+          columns is inferred from the file.\n
+        Returns an empty DataFrame with columns ["Start Time",
+        "No. Vehicles"] if the file has no data rows.
     """
 
     # Read data
-    return_data = pd.read_csv(
+    return_data = read_csv_or_empty(
         file_path,
-        sep="[\s\t]+",
+        ["Start Time", "No. Vehicles"],
+        sep=r"\s+",
         header=None,
         skiprows=max(0, start_line - 1),
         nrows=no_lines,
-        engine="python",
     )
+
     no_effects = len(return_data.columns) - 2
 
     # Set column ids
-    column_ids = ["Start Time", "No. Trucks"] + [
+    column_ids = ["Start Time", "No. Vehicles"] + [
         f"Effect {i + 1}" for i in range(no_effects)
     ]
     return_data.columns = column_ids

@@ -1,10 +1,13 @@
 #include "FatigueManager.h"
+#include "FilePath.h"
 
 CFatigueManager::CFatigueManager(CConfigDataCore &config) : COutputManagerBase("F")
 {
+	m_OutputDir = config.Output.OUTPUT_DIR;
 	DO_FATIGUE_RAINFLOW = config.Output.Fatigue.DO_FATIGUE_RAINFLOW;
 	RAINFLOW_DECIMAL = config.Output.Fatigue.RAINFLOW_DECIMAL;
 	RAINFLOW_CUTOFF = config.Output.Fatigue.RAINFLOW_CUTOFF;
+	WRITE_RAINFLOW_RESIDUALS = config.Output.Fatigue.WRITE_RAINFLOW_RESIDUALS;
 
 	WRITE_BUFFER_SIZE = config.Output.Fatigue.WRITE_FATIGUE_BUFFER_SIZE;
 
@@ -55,13 +58,43 @@ void CFatigueManager::CheckBuffer(bool bForceOutput)
 {
 	if (m_EventCount >= WRITE_BUFFER_SIZE || bForceOutput)
 	{
-		if (DO_FATIGUE_RAINFLOW) 
+		if (DO_FATIGUE_RAINFLOW)
 		{
-			doRainflow(bForceOutput);
-			writeRainflowBuffer();
+			if (bForceOutput && WRITE_RAINFLOW_RESIDUALS)
+			{
+				// Chunk mode: keep the residual open so chunks can be
+				// spliced together exactly; write it to a sidecar file.
+				doRainflow(false);
+				writeRainflowBuffer();
+				writeResidualFiles();
+			}
+			else
+			{
+				doRainflow(bForceOutput);
+				writeRainflowBuffer();
+			}
 		}
 
 		m_EventCount = 0;
+	}
+}
+
+void CFatigueManager::writeResidualFiles()
+{
+	for (size_t i = 0; i < m_NoLoadEffects; i++)
+	{
+		std::string file;
+		file = btls::outPath(m_OutputDir, m_FileStem + "RR_" + to_string(m_BridgeLength) + "_" + to_string(i + 1) + ".txt");  // "FRR_*.txt"
+		std::ofstream outFile(file.c_str(), std::ios::out);
+
+		// header: the binning parameters needed to close the spliced residuals
+		outFile << RAINFLOW_DECIMAL << '\t' << std::setprecision(17) << RAINFLOW_CUTOFF << '\n';
+
+		const std::vector<double>& residuals = m_vRainflow[i].getResiduals();
+		outFile << std::setprecision(17);  // full double round-trip precision
+		for (size_t j = 0; j < residuals.size(); j++)
+			outFile << residuals[j] << '\n';
+		outFile.close();
 	}
 }
 
@@ -78,7 +111,7 @@ void CFatigueManager::writeRainflowBuffer()
 	for (size_t i = 0; i < m_NoLoadEffects; i++)
 	{
 		std::string file;
-		file = m_FileStem + "R_" + to_string(m_BridgeLength) + "_" + to_string(i + 1) + ".txt";  // "FR_*.txt"
+		file = btls::outPath(m_OutputDir, m_FileStem + "R_" + to_string(m_BridgeLength) + "_" + to_string(i + 1) + ".txt");  // "FR_*.txt"
 		std::ostringstream oStr;
 
 		if (m_WriteRainflowHeadLine)
