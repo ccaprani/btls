@@ -7,10 +7,10 @@ simulation, and the function itself, which pickles by name. Nothing here
 reads a ``Simulation``.
 """
 
-from .lib.BTLS import Vehicle, _VehClassPattern, _VehClassAxle, _VehicleBuffer
-from .bridge import Bridge
-from .traffic import TrafficGenerator, TrafficLoader
-from .output import OutputConfig, _OutputManager
+from ..lib.BTLS import Vehicle, _VehClassPattern, _VehClassAxle, _VehicleBuffer
+from ..bridge import Bridge
+from ..traffic import TrafficGenerator, TrafficLoader
+from ..output import OutputConfig, _OutputManager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Union
@@ -74,7 +74,7 @@ def run_task(task: _SimTask) -> _OutputManager:
     """Run one queued simulation and return its output manager."""
 
     if task.traffic is not None and task.engine in ("cuda", "mps", "xpu"):
-        from .gpu import run as gpu_run
+        from ..gpu import run as gpu_run
 
         return gpu_run(
             task.bridge,
@@ -166,7 +166,7 @@ def _run_traffic_sim(task: _SimTask) -> _OutputManager:
     bridge, traffic = task.bridge, task.traffic
 
     if task.seed is not None:
-        from .lib import libbtls
+        from ..lib import libbtls
 
         libbtls.seed(task.seed)
 

@@ -68,7 +68,7 @@ Develop and create pull-request (PR)
 	* Expose your new features to Python by modifying ``./cpp/src/py_main.cpp``, ``./py/pybtls/lib/BTLS.py``, etc. accordingly.
 
 	* For new features related to the data processing, post-processing utilities live in
-	  ``pybtls.output`` (readers/plots) and ``pybtls.post_processing`` (extreme-value fitting).
+	  ``pybtls.output`` (readers/plots) and ``pybtls.analyse`` (extreme-value fitting).
 
 4. [If applicable] Create unit tests for ``pytest``.
     

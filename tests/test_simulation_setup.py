@@ -12,7 +12,7 @@ import warnings
 import pytest
 
 import pybtls as pb
-from pybtls._sim_worker import _SimTask
+from pybtls.simulation._worker import _SimTask
 from pybtls.output.chunked_manager import _ChunkedOutputManager
 from utils import loader_from_rows, make_il7_bridge
 
@@ -36,7 +36,7 @@ def test_simulation_overwrite_replaces_previous_output(tmp_path):
 def test_make_sim_dir_refuses_to_delete_outside_the_output_root(tmp_path):
     """overwrite=True must never turn a stray tag into a recursive delete
     somewhere outside the simulation output directory."""
-    from pybtls._sim_worker import _make_sim_dir
+    from pybtls.simulation._worker import _make_sim_dir
 
     root = tmp_path / "out"
     root.mkdir()

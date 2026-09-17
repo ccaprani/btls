@@ -41,7 +41,7 @@ class _OutputManager:
             The tag of the simulation, which is same as the output folder name.\n
         output_config : Optional[OutputConfig]\n
             The output configuration for the corresponding simulation.\n
-            May be None: single-vehicle simulations (simulation.py) pass
+            May be None: single-vehicle simulations (simulation/_worker.py) pass
             None, in which case only "time_history" and "all_events" are
             discovered, read from the "dir1"/"dir2" subfolders instead of
             the config-driven file patterns (see ``_fetch_summary``).
