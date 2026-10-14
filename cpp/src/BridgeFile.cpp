@@ -19,7 +19,6 @@ void CBridgeFile::ReadBridges(std::string file, std::vector<CInfluenceLine> vDis
 	if( !m_CSV.OpenFile(file, ",") )
 	{
 		std::cerr << "***ERROR: Bridge file could not be opened" << std::endl;
-		system("PAUSE");
 		exit( 1 );
 	}
 	std::string line;
@@ -55,7 +54,6 @@ double CBridgeFile::ReadLoadEffect(CBridge_sp pBridge, std::vector<CInfluenceLin
 	if( m_CSV.getnfield() < 2 )
 	{
 		std::cerr << "***ERROR: Bridge definition wrong at: " << line << std::endl;
-		system("PAUSE");
 		exit( 1 );
 	}
 	int index = m_CSV.stringToInt( m_CSV.getfield(0) );

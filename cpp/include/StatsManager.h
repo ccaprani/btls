@@ -41,12 +41,17 @@ public:
 	 * @brief Consume one completed event and fold its max into the accumulators.
 	 * @param[in] Ev Completed event.
 	 */
-	virtual void Update(CEvent Ev);
+	virtual void Update(CEvent& Ev);
+
+	/// @brief Finish: fill the silent trailing intervals up to the simulated end time, then flush.
+	virtual void Finish();
 
 	/**
-	 * @brief Initialize with bridge length, load-effect count, and simulation start time.
+	 * @brief Initialize with bridge length, load-effect count, and the simulated
+	 *        start and end times. An event starting after the end (the bridge is
+	 *        run on until the first arrival beyond it) is folded into the last interval.
 	 */
-	virtual void Initialize(double BridgeLength, size_t nLE, double SimStartTime);
+	virtual void Initialize(double BridgeLength, size_t nLE, double SimStartTime, double SimEndTime);
 
 private:
 	/// @brief Write per-load-effect summary files at end-of-simulation.

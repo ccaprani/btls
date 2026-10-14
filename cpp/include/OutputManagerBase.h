@@ -51,18 +51,19 @@ public:
 	 *
 	 * @param[in] Ev Completed event (by value so subclasses can mutate).
 	 */
-	virtual void Update(CEvent Ev) = 0;
+	virtual void Update(CEvent& Ev) = 0;
 
 	/// @brief Flush remaining buffers and close output files.
-	void Finish();
+	virtual void Finish();
 
 	/**
 	 * @brief Threshold-aware initialisation (used by @ref CPOTManager).
 	 * @param[in] BridgeLength Bridge length in metres (for filename stemming).
 	 * @param[in] vThreshold   Peak-recording thresholds, one per load effect.
 	 * @param[in] SimStartTime Simulation start time in seconds.
+	 * @param[in] SimEndTime   Simulated end time in seconds.
 	 */
-	virtual void Initialize(double BridgeLength, std::vector<double> vThreshold, double SimStartTime) {};
+	virtual void Initialize(double BridgeLength, std::vector<double> vThreshold, double SimStartTime, double SimEndTime) {};
 
 	/**
 	 * @brief Load-effect-count initialisation (used by @ref CBlockMaxManager).
@@ -101,8 +102,10 @@ protected:
 
 	double	m_BridgeLength;                     ///< Bridge length in metres, used for filename stemming.
 	const std::string m_FileStem;               ///< Output-file name stem supplied at construction.
+	std::string m_OutputDir;                    ///< Directory output files are written into ("" = cwd).
 
 	double m_SimStartTime;                      ///< Simulation start time in seconds.
+	double m_SimEndTime;                        ///< Simulated end time in seconds; an event starting later belongs to the last block/interval.
 
 	size_t m_NoLoadEffects;                     ///< Number of load effects tracked.
 	std::ofstream m_OutFile;                    ///< Generic output file stream.

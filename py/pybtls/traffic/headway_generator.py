@@ -16,6 +16,7 @@ from ..lib.BTLS import (
 )
 from .lfc import LaneFlowComposition
 import importlib.resources as pkg_resources
+from .._kwargs import reject_unknown_kwargs
 
 __all__ = [
     "HeadwayGenHeDS",
@@ -26,7 +27,9 @@ __all__ = [
 
 
 class HeadwayGenHeDS:
-    def __init__(self, **kwargs):
+    """Headway generator using the HeDS (headway distribution statistics) model from Auxerre data."""
+
+    def __init__(self):
         """
         The HeadwayGenHeDS instance in Python stores the data for creating a CFlowGenHeDS instance in C++. \n
         This is for a heavy-vehicle-only traffic. \n
@@ -36,25 +39,13 @@ class HeadwayGenHeDS:
         self._tag = "HeDS"
         self._config = _ConfigData()
 
-        self._set_config(**kwargs)
-
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
+        self._set_config()
 
     @property
     def tag(self) -> str:
         return self._tag
 
-    def _set_config(self, **kwargs):
+    def _set_config(self):
         traffic_folder = str(
             pkg_resources.files("pybtls").joinpath("data/GraveParameters/Auxerre")
         )
@@ -80,7 +71,9 @@ class HeadwayGenHeDS:
 
 
 class HeadwayGenConstant:
-    def __init__(self, constant_speed: float, constant_gap: float, **kwargs):
+    """Headway generator producing a constant speed and constant gap between vehicles."""
+
+    def __init__(self, constant_speed: float, constant_gap: float):
         """
         The HeadwayGenConstant instance in Python stores the data for creating a CFlowGenConstant instance in C++. \n
         All vehicles' headways will be generated based on the constant speed and gap.
@@ -100,25 +93,13 @@ class HeadwayGenConstant:
         self._constant_speed = constant_speed  # in km/h
         self._constant_gap = constant_gap  # in s
 
-        self._set_config(**kwargs)
-
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
+        self._set_config()
 
     @property
     def tag(self) -> str:
         return self._tag
 
-    def _set_config(self, **kwargs):
+    def _set_config(self):
         self._config.set_headway_gen_constant(
             constant_speed=self._constant_speed, constant_gap=self._constant_gap
         )
@@ -139,6 +120,8 @@ class HeadwayGenConstant:
 
 
 class HeadwayGenCongested:
+    """Headway generator for congested traffic: constant speed with normally distributed gaps."""
+
     def __init__(self, congested_spacing: float, congested_speed: float, **kwargs):
         """
         The HeadwayGenCongested instance in Python stores the data for creating a CFlowGenCongested instance in C++. \n
@@ -158,6 +141,10 @@ class HeadwayGenCongested:
             The coefficient of variation of the congested gap. Default is 0.05.
         """
 
+        reject_unknown_kwargs(
+            "HeadwayGenCongested", kwargs, ("congested_gap_coef_var",)
+        )
+
         self._tag = "Congested"
         self._config = _ConfigData()
 
@@ -165,18 +152,6 @@ class HeadwayGenCongested:
         self._congested_speed = congested_speed  # in km/h
 
         self._set_config(**kwargs)
-
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
 
     @property
     def tag(self) -> str:
@@ -207,7 +182,9 @@ class HeadwayGenCongested:
 
 
 class HeadwayGenFreeflow:
-    def __init__(self, **kwargs):
+    """Headway generator for free-flowing traffic: Poisson arrivals (exponential gaps)."""
+
+    def __init__(self):
         """
         The HeadwayGenFreeflow instance in Python stores the data for creating a CFlowGenPoisson instance in C++. \n
         All vehicles' headways will be generated based on the Poisson arrival theory.
@@ -216,25 +193,13 @@ class HeadwayGenFreeflow:
         self._tag = "Freeflow"
         self._config = _ConfigData()
 
-        self._set_config(**kwargs)
-
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["config"] = self._config
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._config = attribute_dict["config"]
+        self._set_config()
 
     @property
     def tag(self) -> str:
         return self._tag
 
-    def _set_config(self, **kwargs):
+    def _set_config(self):
         self._config.set_headway_gen_freeflow()
 
     def _check_lfc(self, lfc: LaneFlowComposition):

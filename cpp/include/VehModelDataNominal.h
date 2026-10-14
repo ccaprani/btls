@@ -48,11 +48,11 @@ public:
 	virtual void ReadDataIn();
 
 	/**
-	 * @brief Get the randomisation kernels for axle weight and spacing.
-	 * @param[out] AW Kernel parameters for axle weight.
+	 * @brief Get the randomisation kernels for axle spacing and axle weight.
 	 * @param[out] AS Kernel parameters for axle spacing.
+	 * @param[out] AW Kernel parameters for axle weight.
 	 */
-	void getKernels(KernelParams& AW, KernelParams& AS);
+	void getKernels(KernelParams& AS, KernelParams& AW);
 
     /// @brief Get the nominal vehicle template (shared).
     CVehicle_sp getNominalVehicle() {return m_pNominalVehicle;};

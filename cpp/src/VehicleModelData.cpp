@@ -13,6 +13,7 @@ CVehicleModelData::CVehicleModelData(CConfigDataCore& config, EVehicleModel vm, 
 	m_KernelType = static_cast<EKernelType>(m_Config.Gen.KERNEL_TYPE);
 
 	m_mComposition = lfc.getComposition();
+	m_CurDirection = lfc.getDirn();
 }
 
 CVehicleModelData::~CVehicleModelData()

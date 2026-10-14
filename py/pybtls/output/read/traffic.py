@@ -7,7 +7,9 @@ import pandas as pd
 __all__ = ["read_traffic"]
 
 
-def read_traffic(file_path: Path, traffic_format: Literal[1, 2, 3, 4]) -> pd.DataFrame:
+def read_traffic(
+    file_path: Path, traffic_format: Literal[1, 2, 3, 4, 5]
+) -> pd.DataFrame:
     """
     Read the traffic data from pybtls results.
 
@@ -15,17 +17,20 @@ def read_traffic(file_path: Path, traffic_format: Literal[1, 2, 3, 4]) -> pd.Dat
     ----------
     file_path : Path\n
         The path to the traffic data file.\n
-    traffic_format : Literal[1,2,3,4]\n
-        The format of the .txt traffic file.\n
+    traffic_format : Literal[1,2,3,4,5]\n
+        The format of the traffic file.\n
         1: CASTOR format.\n
         2: BEDIT format.\n
         3: DITIS format.\n
-        4: MON format.
+        4: MON format.\n
+        5: SiWIM CSV format.
 
     Returns
     -------
     pd.DataFrame\n
-        The traffic data.
+        One row per vehicle. See ``vehicle_list_to_df`` for the full
+        column schema and units (GVW in kN, Velocity in m/s, Length in
+        m, AxleWeights in kN, AxleSpacings in m, AxleWidths in m, etc.).
     """
 
     # Read data

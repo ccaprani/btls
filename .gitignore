@@ -2,6 +2,7 @@
 .DS_Store
 bin
 build
+build_pylib
 pybtls.egg*
 __pycache__
 *.so
@@ -21,6 +22,9 @@ SS_*.txt
 FR_*.txt
 TH_*.txt
 FlowData_*.txt
+
+# Where every examples/*.py writes its results
+examples/output/
 
 BridgeTrafficLoadSim
 
@@ -160,3 +164,15 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# AI guidance
+CLAUDE.md
+
+# Local scratch / profiling IO (kept on /home, not committed)
+tmp/
+
+# Local dev notes, working proposal, and stray generated outputs (local only)
+dev_log/
+refactor_convolution_proposal.md
+sim_version_info.txt
+gpu_demo_out/

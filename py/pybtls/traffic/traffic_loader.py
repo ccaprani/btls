@@ -11,11 +11,16 @@ from ..lib.BTLS import (
 )
 from typing import Literal, Union
 from pathlib import Path
+import warnings
+
+from .._kwargs import reject_unknown_kwargs
 
 __all__ = ["TrafficLoader"]
 
 
 class TrafficLoader:
+    """Loads recorded traffic (e.g. WIM data) from file for replaying through a bridge."""
+
     def __init__(self, no_lane: int):
         """
         The TrafficLoader instance stores the information for creating CTrafficLoader instances for each lane.
@@ -30,6 +35,7 @@ class TrafficLoader:
 
         self._no_lane = no_lane
         self._sim_day = None
+        self._start_time = None
         self._no_dir = None
         self._no_lane_dir_1 = None
         self._no_lane_dir_2 = None
@@ -37,34 +43,10 @@ class TrafficLoader:
 
         self._lanes_vehicles = [[] for _ in range(no_lane)]
 
-    def __getstate__(self):
-        attribute_dict = {}
-
-        attribute_dict["tag"] = self._tag
-        attribute_dict["no_lane"] = self._no_lane
-        attribute_dict["sim_day"] = self._sim_day
-        attribute_dict["no_dir"] = self._no_dir
-        attribute_dict["no_lane_dir_1"] = self._no_lane_dir_1
-        attribute_dict["no_lane_dir_2"] = self._no_lane_dir_2
-        attribute_dict["vehicle_classifier"] = self._vehicle_classifier
-        attribute_dict["lanes_vehicles"] = self._lanes_vehicles
-
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._tag = attribute_dict["tag"]
-        self._no_lane = attribute_dict["no_lane"]
-        self._sim_day = attribute_dict["sim_day"]
-        self._no_dir = attribute_dict["no_dir"]
-        self._no_lane_dir_1 = attribute_dict["no_lane_dir_1"]
-        self._no_lane_dir_2 = attribute_dict["no_lane_dir_2"]
-        self._vehicle_classifier = attribute_dict["vehicle_classifier"]
-        self._lanes_vehicles = attribute_dict["lanes_vehicles"]
-
     def add_traffic(
         self,
         traffic: Union[Path, list[Vehicle]],
-        traffic_format: Literal[1, 2, 3, 4] = None,
+        traffic_format: Literal[1, 2, 3, 4, 5] = None,
         use_average_speed: bool = False,
         use_const_speed: bool = False,
         const_speed_value: float = 0.0,
@@ -78,13 +60,21 @@ class TrafficLoader:
         traffic: Union[Path,list[Vehicle]]\n
             The path to the traffic file,
             or a list of vehicles.
+            Dates must be in the BTLS calendar of 25 days per month and 10 months
+            per year; a date outside it (a real calendar date after the 25th or in
+            November or December) raises ValueError. The replay starts at midnight
+            of the first vehicle's day and keeps these dates.
+            The whole recording is held in memory: a file takes roughly ten
+            times its size on disk once loaded and simulated, so a very long
+            recording can exhaust RAM.
 
-        traffic_format : Literal[1, 2, 3, 4], optional\n
-            The format of the .txt traffic file.\n
+        traffic_format : Literal[1, 2, 3, 4, 5], optional\n
+            The format of the traffic file.\n
             1: CASTOR format.\n
             2: BEDIT format.\n
             3: DITIS format.\n
-            4: MON format.
+            4: MON format.\n
+            5: SiWIM CSV format.
 
         use_average_speed : bool, optional\n
             Whether to use the average speed of the vehicle. \n
@@ -108,6 +98,8 @@ class TrafficLoader:
         None.
         """
 
+        reject_unknown_kwargs("add_traffic", kwargs, ("classifier_type",))
+
         if use_average_speed and use_const_speed:
             raise ValueError(
                 "use_average_speed and use_const_speed cannot both be True."
@@ -125,8 +117,14 @@ class TrafficLoader:
             vehicle_classifier = _VehClassPattern()
             self._vehicle_classifier = 1
 
+        # C++ contract: use_const_speed is the master switch (overwrite every
+        # vehicle with one speed) and use_average_speed only selects where that
+        # speed comes from (file average vs const_speed_value).
         traffic_data = _VehicleTrafficFile(
-            vehicle_classifier, use_const_speed, use_average_speed, const_speed_value
+            vehicle_classifier,
+            use_const_speed or use_average_speed,
+            use_average_speed,
+            const_speed_value,
         )
 
         if isinstance(traffic, (Path, str)):
@@ -144,11 +142,16 @@ class TrafficLoader:
         else:
             raise ValueError("Invalid traffic data for traffic loader.")
 
+        # arrival times are counted in the BTLS calendar: outside it a vehicle
+        # would replay out of time order
+        traffic_data.checkCalendarDates()
+
         if self._no_lane != traffic_data.getNoLanes():
             raise RuntimeError(
                 f"Number of lanes included in traffic file is not equal to {self._no_lane}."
             )
         self._sim_day = traffic_data.getNoDays()
+        self._start_time = traffic_data.getStartTime()
         self._no_dir = traffic_data.getNoDirn()
         self._no_lane_dir_1 = traffic_data.getNoLanesDir1()
         self._no_lane_dir_2 = traffic_data.getNoLanesDir2()
@@ -182,7 +185,7 @@ class TrafficLoader:
             if traffic_loader.getNoVehicles() > 0:
                 traffic_loader.setFirstArrivalTime()
             else:
-                raise Warning(f"No vehicle in lane {i+1}.")
+                warnings.warn(f"No vehicle in lane {i+1}.")
 
             loader_list[i] = traffic_loader
 
@@ -191,6 +194,10 @@ class TrafficLoader:
     @property
     def sim_day(self) -> int:
         return self._sim_day
+
+    @property
+    def start_time(self) -> float:
+        return self._start_time
 
     @property
     def tag(self) -> str:

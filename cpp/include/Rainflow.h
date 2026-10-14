@@ -63,12 +63,29 @@ public:
 
 	/**
 	 * @brief Run the rainflow algorithm on the accumulated reversals.
+	 *
+	 * When @p bIsFinal is false, only cycles closed by the four-point rule
+	 * are counted; the unclosed residual reversals are carried over to the
+	 * next call, so the output is independent of the buffer cadence.
+	 * When @p bIsFinal is true, the series is terminated at zero load and
+	 * the residual is closed out as half cycles (ASTM end-of-data rule).
+	 *
 	 * @param[in] bIsFinal If true, extract residual half-cycles at the end of the series.
 	 */
 	void calcCycles(bool bIsFinal);
 
 	/// @brief Get the accumulated rainflow output: map from rounded range to cycle count.
 	const std::map<double, double>& getRainflowOutput() const { return m_RainflowOutput; }
+
+	/**
+	 * @brief Get the residual (unclosed) reversal sequence.
+	 *
+	 * Valid after calcCycles(false): the alternating sequence of reversals
+	 * not yet closed into cycles. Concatenating the residuals of consecutive
+	 * series chunks and re-processing them reproduces the whole-series
+	 * rainflow count exactly (residue splicing).
+	 */
+	const std::vector<double>& getResiduals() const { return m_vReversals; }
 
 private:
 	/// @brief Round @p x up to @c m_Decimal decimal places.
@@ -84,8 +101,13 @@ private:
 	/// @brief Extract local extrema (reversals) from the raw series.
 	std::vector<double> extractReversals(const std::vector<double> &series) const;
 
-	/// @brief Apply the four-point ASTM algorithm to extract cycles from the reversal buffer.
-	std::vector<CRainflow::ExtractCycleOut> extractCycles() const;
+	/**
+	 * @brief Apply the four-point algorithm to extract cycles from the reversal buffer.
+	 * @param[in]  bCloseResidual If true, also close the residual as half cycles (end of data).
+	 * @param[out] residualOut    The unclosed residual reversals (empty when bCloseResidual).
+	 */
+	std::vector<CRainflow::ExtractCycleOut> extractCycles(
+		bool bCloseResidual, std::vector<double> &residualOut) const;
 
 	/// @brief Aggregate extracted cycles by rounded range.
 	std::vector<std::pair<double, double>> countCycles(const std::vector<CRainflow::ExtractCycleOut> &cycles) const;

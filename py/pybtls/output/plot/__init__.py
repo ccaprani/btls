@@ -3,3 +3,5 @@ from .all_events import *
 from .BM_summary import *
 from .POT_summary import *
 from .fatigue_rainflow import *
+from .traffic_statistics import *
+from .single_vehicle import *

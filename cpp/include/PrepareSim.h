@@ -5,9 +5,10 @@
  * When BTLS is built as a standalone executable (the @c Binary CMake
  * target), @c main() calls run(), which parses the @c BTLSin.txt
  * configuration file, prepares the lane and bridge objects, and
- * dispatches to doSimulation(). These functions are not compiled into
- * the PyBTLS pybind11 extension — the Python layer reimplements the
- * same orchestration in @c simulation.py.
+ * dispatches to doSimulation(). In the PyBTLS pybind11 extension,
+ * run() is exposed as @c pybtls.run() for the traditional BTLSin-file
+ * workflow, while the Python layer reimplements the same orchestration
+ * in @c simulation.py.
  */
 
 #pragma once
@@ -33,16 +34,6 @@
 #include "BridgeFile.h"
 #include "Bridge.h"
 #include "LaneFlowData.h"
-
-
-#ifdef WIN_DEBUG
-// for tracking memory leaks
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-
-#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#define new DEBUG_NEW
-#endif
 
 
 /// @brief Read influence line/surface files and construct the bridge objects.
@@ -88,11 +79,12 @@ void doSimulation(CVehicleClassification_sp pVC, std::vector<CBridge_sp> pBridge
  *
  * Parses the BTLSin configuration file, sets up bridges and lanes,
  * runs the simulation, and prints a summary. Called from main() in
- * @c main.cpp.
+ * @c main.cpp, and also exposed to Python as @c pybtls.run().
  *
  * @param[in] inFile Path to the BTLSin.txt file.
+ * @return 0 on success, 1 if the BTLSin file could not be opened.
  */
-void run(std::string inFile);
+int run(std::string inFile);
 
 /// @brief Print the BTLS version and copyright preamble.
 void preamble();

@@ -3,12 +3,7 @@
  * @brief Interface for the CAxleSpacing class — axle-spacing distribution tables.
  */
 
-#if !defined(AFX_AXLESPACING_H__429CA222_93DF_47F1_A601_251A90BD7355__INCLUDED_)
-#define AFX_AXLESPACING_H__429CA222_93DF_47F1_A601_251A90BD7355__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include "MultiModalNormal.h"
 
@@ -62,4 +57,3 @@ private:
 	std::vector<CMultiModalNormal> m_v5AxleData;  ///< Spacing distributions for 5-axle trucks.
 };
 
-#endif // !defined(AFX_AXLESPACING_H__429CA222_93DF_47F1_A601_251A90BD7355__INCLUDED_)

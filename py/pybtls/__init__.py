@@ -10,7 +10,7 @@ import pybtls.simulation as simulation
 import pybtls.garage as garage
 import pybtls.utils as utils
 
-# import pybtls.post_processing as post_processing
+import pybtls.analyse as analyse
 
 from .lib import (
     Vehicle,
@@ -35,4 +35,4 @@ from .traffic import (
 )
 from .output import OutputConfig, read, plot
 from .simulation import Simulation
-from .utils import save_output, load_output
+from .utils import save_output, load_output, load_legacy_output

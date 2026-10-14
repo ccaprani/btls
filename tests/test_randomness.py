@@ -1,5 +1,6 @@
 from pybtls import Distribution
 import multiprocessing
+import pytest
 
 
 def test_randomness():
@@ -7,8 +8,10 @@ def test_randomness():
     assert values1 != values2
 
 
-def test_randomness_when_multiprocessing():
-    with multiprocessing.Pool(processes=2) as pool:
+@pytest.mark.parametrize("start_method", multiprocessing.get_all_start_methods())
+def test_randomness_when_multiprocessing(start_method):
+    # a forked worker copies the parent's generator state unless it is reseeded
+    with multiprocessing.get_context(start_method).Pool(processes=2) as pool:
         values1, values2 = pool.map(gen_random_values, range(2))
     assert values1 != values2
 

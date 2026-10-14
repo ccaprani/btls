@@ -106,3 +106,23 @@ def test_compress_IL():
 
     # Remove the temporary data folder
     remove_folder(Path("./temp_data"))
+
+
+def test_compress_discrete_IL_handles_duplicate_x_discontinuity():
+    xs, ys = pb.utils.compress_discrete_IL(
+        [0.0, 0.0, 5.0, 10.0], [1.0, 0.0, -0.5, 0.0], 0.05
+    )
+
+    # The discontinuity at x=0.0 must be preserved (both points kept).
+    assert xs.count(0.0) == 2
+
+
+def test_influence_line_compress_tolerance_warns_and_continues():
+    inf_line = pb.InfluenceLine(IL_type="discrete")
+    with pytest.warns(UserWarning):
+        inf_line.set_IL(
+            position=[0.0, 10.0, 20.0],
+            ordinate=[0.0, 5.0, 0.0],
+            compress_tolerance=0.2,
+        )
+    assert inf_line._data_assigned is True

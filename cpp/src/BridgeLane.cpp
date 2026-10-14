@@ -54,7 +54,9 @@ void CBridgeLane::addLoadEffect(CInfluenceLine IL, double weight)
 	IL.setWeight(weight);
 	// Note this assumes that all bridge ISs have the same lane coordinates
 	if(IL.getType() == 3)	// Inf Line Type for Inf Surface is 3
-		m_LaneWidth = IL.getIS()->getLaneWidth(m_LaneNo);
+		// m_Index is the zero-based bridge lane index set by CBridge::InitializeLanes,
+		// i.e. the same lane numbering CAxle::m_Lane passes to CInfluenceSurface::giveOrdinate
+		m_LaneWidth = IL.getIS()->getLaneWidth(m_Index);
 	
 	m_vInfLine.push_back(IL);
 	m_NoLE = static_cast<unsigned int>( m_vInfLine.size() );

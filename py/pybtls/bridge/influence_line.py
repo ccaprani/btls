@@ -5,12 +5,60 @@ The methods and classes that are not defined in Python are defined in C++ py_mai
 from ..lib.BTLS import _InfluenceLine, _InfluenceSurface
 from ..utils.IL_compress import compress_discrete_IL
 import numpy as np
+import warnings
 from typing import Union, Literal
+from .._kwargs import reject_unknown_kwargs
 
 __all__ = ["InfluenceLine", "InfluenceSurface"]
 
 
-class InfluenceLine:
+class _LoadEffectModeMixin:
+    """Shared per-axle force-mode selection for influence lines and surfaces."""
+
+    _load_effect_mode = "vertical"
+
+    def set_mode(self, mode: Literal["vertical", "centrifugal"]) -> None:
+        """
+        Select the per-axle force formula used with this influence line/surface.
+
+        .. warning::
+
+            Experimental. The centrifugal mode has not been checked against a
+            reference solution, and its sign convention may change in a future
+            release.
+
+        The mode is read when the influence line or surface is added to a
+        bridge, by ``Bridge.add_load_effect``, so call this before adding it.
+
+        Parameters
+        ----------
+        mode : Literal["vertical","centrifugal"]
+
+            "vertical" (default): F_axle = AxleWeight - the ordinary
+            vertical reaction.
+
+            "centrifugal": F_axle = AxleWeight * v^2 / g, using each
+            vehicle's speed. Bake the bridge geometry constants (the
+            superelevation factor k_e and 1/R) into the influence
+            ordinates so the convolved effect comes out in kN. The force is
+            unsigned: it points to the outside of the curve for both travel
+            directions.
+
+        Raises
+        ------
+        ValueError\n
+            If the mode is unknown.
+        """
+
+        if mode not in ("vertical", "centrifugal"):
+            raise ValueError("mode must be 'vertical' or 'centrifugal'.")
+
+        self._load_effect_mode = mode
+
+
+class InfluenceLine(_LoadEffectModeMixin):
+    """An influence line (built-in, discrete, or wrapping an influence surface) for one load effect."""
+
     _IL_Index = 0
 
     def __init__(self, IL_type: Literal["discrete", "built-in"]):
@@ -38,20 +86,6 @@ class InfluenceLine:
         }
 
         self._data_assigned = False
-
-    def __getstate__(self):
-        attribute_dict = {}
-        attribute_dict["IL_type"] = self._IL_type
-        attribute_dict["IL_index"] = self._IL_index
-        attribute_dict["data_dict"] = self._data_dict
-        attribute_dict["data_assigned"] = self._data_assigned
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._IL_type = attribute_dict["IL_type"]
-        self._IL_index = attribute_dict["IL_index"]
-        self._data_dict = attribute_dict["data_dict"]
-        self._data_assigned = attribute_dict["data_assigned"]
 
     def set_IL(self, **kwargs) -> None:
         """
@@ -94,6 +128,14 @@ class InfluenceLine:
         None.
         """
 
+        allowed_kwargs = {
+            "discrete": ("position", "ordinate", "compress_tolerance"),
+            "built-in": ("id", "length"),
+            "surface": ("inf_surf",),
+        }
+        if self._IL_type in allowed_kwargs:
+            reject_unknown_kwargs("set_IL", kwargs, allowed_kwargs[self._IL_type])
+
         if self._IL_type == "discrete":
             self._set_IL_discrete(**kwargs)
         elif self._IL_type == "built-in":
@@ -114,7 +156,7 @@ class InfluenceLine:
 
         if compress_tolerance is not None:
             if compress_tolerance > 0.1:
-                raise Warning(
+                warnings.warn(
                     "The compress_tolerance is too large, which may cause the corresponding load effect significantly inaccurate."
                 )
             position, ordinate = compress_discrete_IL(
@@ -162,9 +204,14 @@ class InfluenceLine:
 
         self._data_dict["inf_surf"] = inf_surf
 
-    def _get_IL(self) -> _InfluenceLine:
+    def _get_IL(self, mode: str) -> _InfluenceLine:
         """
         Get the created C++ CInfluenceLine instance.
+
+        ``mode`` is the load effect mode snapshotted by
+        ``Bridge.add_load_effect``, not this object's current one: the same
+        influence line may be added to several load effects under different
+        modes.
         """
 
         inf_line = _InfluenceLine()
@@ -175,6 +222,10 @@ class InfluenceLine:
             inf_line.setIL(self._data_dict["id"], self._data_dict["length"])
         elif self._IL_type == "surface":
             inf_line.setIL(self._data_dict["inf_surf"]._get_IS())
+
+        mode_id = {"vertical": 0, "centrifugal": 1}[mode]
+        if mode_id:
+            inf_line.setLoadEffectMode(mode_id)
 
         return inf_line
 
@@ -190,7 +241,9 @@ class InfluenceLine:
     #     raise NotImplementedError()
 
 
-class InfluenceSurface:
+class InfluenceSurface(_LoadEffectModeMixin):
+    """A 2D influence surface defined on a grid, for load effects that vary transversely."""
+
     _IS_Index = 0
 
     def __init__(self):
@@ -204,18 +257,6 @@ class InfluenceSurface:
         self._data_dict = {"lane_position": None, "IS_matrix": None}
 
         self._data_assigned = False
-
-    def __getstate__(self):
-        attribute_dict = {}
-        attribute_dict["IS_index"] = self._IS_index
-        attribute_dict["data_dict"] = self._data_dict
-        attribute_dict["data_assigned"] = self._data_assigned
-        return attribute_dict
-
-    def __setstate__(self, attribute_dict):
-        self._IS_index = attribute_dict["IS_index"]
-        self._data_dict = attribute_dict["data_dict"]
-        self._data_assigned = attribute_dict["data_assigned"]
 
     def set_IS(
         self, IS_matrix: Union[list, np.ndarray], lane_position: Union[list, np.ndarray]

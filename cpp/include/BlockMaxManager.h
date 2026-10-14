@@ -46,7 +46,10 @@ public:
 	 *
 	 * @param[in] Ev Completed event.
 	 */
-	virtual void Update(CEvent Ev);
+	virtual void Update(CEvent& Ev);
+
+	/// @brief Finish: fill the silent trailing blocks up to the simulated end time, then flush.
+	virtual void Finish();
 
 	/**
 	 * @brief Initialize bucket storage and output files.
@@ -54,8 +57,11 @@ public:
 	 * @param[in] BridgeLength Bridge length in metres.
 	 * @param[in] nLE          Number of load effects tracked.
 	 * @param[in] SimStartTime Simulation start time in seconds.
+	 * @param[in] SimEndTime   Simulated end time in seconds. An event starting
+	 *                         later (the bridge is run on until the first arrival
+	 *                         beyond the end) is credited to the last block.
 	 */
-	virtual void Initialize(double BridgeLength, size_t nLE, double SimStartTime);
+	virtual void Initialize(double BridgeLength, size_t nLE, double SimStartTime, double SimEndTime);
 
 private:
 	/// @brief Write the per-vehicle event files.
@@ -77,7 +83,7 @@ private:
 	void	AddExtraEvents();
 
 	/// @brief Update the mixed-events stream with @p Ev.
-	void	UpdateMixedEvents(CEvent Ev);
+	void	UpdateMixedEvents(CEvent& Ev);
 
 	CBlockMaxEvent				m_BlockMaxEvent;   ///< Running block max indexed by vehicle count.
 	CEvent						m_BMMixedEvent;    ///< Running block max across all vehicle counts (mixed stream).

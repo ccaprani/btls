@@ -33,6 +33,7 @@ Installation
 ============
 
 To install *PyBTLS*, please ensure that you have Python 3.10 or higher installed and are on a 64-bit system. 
+On Linux, the prebuilt wheel also needs glibc 2.27 or newer (Ubuntu 18.04+, Debian 10+, RHEL 8+); on older systems pip builds from source instead, which needs GCC 9 or newer.
 Then, just do:
 
 .. code-block:: bash

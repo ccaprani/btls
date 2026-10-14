@@ -3,12 +3,7 @@
  * @brief Interface for the CAxle class — an individual axle on a bridge lane.
  */
 
-#if !defined(AFX_AXLE_H__9EEC5C84_8B3B_4D68_A004_465AAC0FD15A__INCLUDED_)
-#define AFX_AXLE_H__9EEC5C84_8B3B_4D68_A004_465AAC0FD15A__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include <memory>
 // forward declare
@@ -96,4 +91,3 @@ private:
 	//CVehicle_sp m_pVeh;
 };
 
-#endif // !defined(AFX_AXLE_H__9EEC5C84_8B3B_4D68_A004_465AAC0FD15A__INCLUDED_)
