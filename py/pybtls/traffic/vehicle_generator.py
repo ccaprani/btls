@@ -51,7 +51,13 @@ class VehicleGenNominal:
             Standard deviation of lane eccentricity. Default is 0.0.
 
         kernel_type : int\n
-            Kernel type. 0 (Normal) or 1 (Triangle). Default is 1 (Triangle).
+            The shape of the randomising kernel: 0 (Normal) or 1 (Triangle).
+            The default is 0 (Normal), for which a COV is the coefficient of
+            variation it is named for. With the triangle kernel a COV is
+            instead the half-width of the sampling interval, so a value
+            stays within ``1 +/- COV`` of the nominal and the coefficient of
+            variation it produces is ``COV / sqrt(6)``, 41% of the number
+            given.
         """
 
         reject_unknown_kwargs(
@@ -81,7 +87,7 @@ class VehicleGenNominal:
     def _set_config(self, **kwargs):
         classifier_type = 0 if kwargs.get("classifier_type") == "axle" else 1
         lane_eccentricity_std = kwargs.get("lane_eccentricity_std", 0.0)
-        kernel_type = kwargs.get("kernel_type", 1)
+        kernel_type = kwargs.get("kernel_type", 0)
 
         self._config.set_veh_gen_nominal(
             vehicle_classifier=classifier_type,
@@ -265,7 +271,12 @@ class VehicleGenGarage:
                 [Mean_GVW, Std_GVW],\n
                 [Mean_AxleWeight, Std_AxleWeight],\n
                 [Mean_AxleSpacing, Std_AxleSpacing]\n
-                ].
+                ].\n
+            Each property of the drawn garage vehicle is multiplied by a
+            sample of the kernel, so the mean is 1.0 and the standard
+            deviation is relative; the indicative values of the user manual
+            are [[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]]. ``kernel_type``
+            decides what the second number means.
 
         garage_format : Literal[1,2,3,4,5], optional\n
             The format of the garage file.\n
@@ -284,7 +295,14 @@ class VehicleGenGarage:
             Standard deviation of lane eccentricity. Default is 0.0.
 
         kernel_type : int\n
-            Kernel type. 0 (Normal) or 1 (Triangle). Default is 1 (Triangle).
+            The shape of the randomising kernel: 0 (Normal) or 1 (Triangle).
+            The default is 0 (Normal), for which the second number of each
+            ``kernel`` row is the standard deviation it is named for. With
+            the triangle kernel it is instead the half-width of the sampling
+            interval: every multiplier stays within ``1 +/- Std`` of the
+            garage vehicle - so no vehicle can exceed the heaviest in the
+            garage by more than that - and the standard deviation it
+            produces is ``Std / sqrt(6)``, 41% of the number given.
         """
 
         reject_unknown_kwargs(
@@ -330,7 +348,7 @@ class VehicleGenGarage:
     def _set_config(self, **kwargs):
         classifier_type = 0 if kwargs.get("classifier_type") == "axle" else 1
         lane_eccentricity_std = kwargs.get("lane_eccentricity_std", 0.0)
-        kernel_type = kwargs.get("kernel_type", 1)
+        kernel_type = kwargs.get("kernel_type", 0)
 
         self._config.set_veh_gen_garage(
             vehicle_classifier=classifier_type,

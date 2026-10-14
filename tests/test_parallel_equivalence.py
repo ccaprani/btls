@@ -90,7 +90,16 @@ def _make_traffic_generator() -> "pb.TrafficGenerator":
             hourly_truck_composition=[[25.0, 25.0, 25.0, 25.0] for _ in range(24)],
         )
         traffic_gen.add_lane(
-            vehicle_gen=pb.VehicleGenGarage(garage=garage, kernel=kernel),
+            # the kernel type is pinned so that this fixture's stream, and
+            # with it what the merge is asked to reproduce, does not move
+            # with the default. Under the normal kernel the stream is wider
+            # and the full run then differs from the merged one in two
+            # harmless ways: a POT peak whose value ties across two sample
+            # instants is recorded at the other instant, and the full run
+            # counts one extra zero-amplitude (zero-damage) rainflow cycle.
+            vehicle_gen=pb.VehicleGenGarage(
+                garage=garage, kernel=kernel, kernel_type=1
+            ),
             headway_gen=pb.HeadwayGenFreeflow(),
             lfc=lfc,
         )

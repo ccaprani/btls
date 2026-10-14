@@ -246,6 +246,19 @@ Fixed
 Changed
 ^^^^^^^
 
+- **The default randomising kernel is the normal one (changes results).**
+  ``VehicleGenGarage`` and ``VehicleGenNominal`` took ``kernel_type=1``
+  (triangle), for which the second number of a ``kernel`` row, and a
+  ``COV_list`` entry, is the half-width of the sampling interval rather than
+  the standard deviation and the coefficient of variation they are named
+  for: the spread they produced was that number divided by ``sqrt(6)``, 41%
+  of it, and no generated vehicle could exceed the one drawn from the garage
+  by more than the half-width. The default is now ``kernel_type=0``
+  (normal), under which the documented names hold and the smoothed bootstrap
+  is not bounded by a hard limit. Traffic generated from a garage or a
+  nominal vehicle without an explicit ``kernel_type`` changes accordingly;
+  pass ``kernel_type=1`` for the old behaviour. The C++ program is
+  unaffected: it has no default and reads line 6 of ``BTLSin.txt``.
 - Misspelled keyword arguments now raise ``TypeError`` instead of being
   ignored, in ``Simulation.add_sim``, ``TrafficLoader.add_traffic``, the
   vehicle and headway generators, ``LaneFlowComposition.assign_lane_data``,

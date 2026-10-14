@@ -219,3 +219,64 @@ def test_grave_gvw_follows_lane_direction():
 
     # the two directions must not be drawing from the same distribution
     assert abs(samples[1].mean() - samples[2].mean()) > 20.0
+
+
+# The kernel's second number is a standard deviation under the default normal
+# kernel and the half-width of the sampling interval under the triangle one,
+# where the standard deviation it produces is that number / sqrt(6).
+def test_default_kernel_makes_a_nominal_cov_the_cov_it_is_named_for():
+    cov_aw = 0.2
+    vehicles = _generate(
+        pb.VehicleGenNominal(nominal_vehicle=_nominal_truck(), COV_list=[0.0, cov_aw]),
+        pb.HeadwayGenFreeflow(),
+        n=4000,
+        seed=21,
+    )
+    weight = np.array([v.get_axle_weight(0) for v in vehicles])
+
+    assert weight.std() / weight.mean() == pytest.approx(cov_aw, rel=0.1)
+
+
+def test_triangle_kernel_bounds_the_sample_and_shrinks_its_spread():
+    cov_aw = 0.2
+    nominal = _nominal_truck().get_axle_weight(0)
+    vehicles = _generate(
+        pb.VehicleGenNominal(
+            nominal_vehicle=_nominal_truck(), COV_list=[0.0, cov_aw], kernel_type=1
+        ),
+        pb.HeadwayGenFreeflow(),
+        n=4000,
+        seed=21,
+    )
+    weight = np.array([v.get_axle_weight(0) for v in vehicles])
+
+    assert weight.std() / weight.mean() == pytest.approx(cov_aw / np.sqrt(6), rel=0.1)
+    assert weight.min() >= nominal * (1.0 - cov_aw)
+    assert weight.max() <= nominal * (1.0 + cov_aw)
+
+
+@pytest.mark.parametrize(
+    "kernel_type, expected_std, bounded",
+    [({}, 0.08, False), ({"kernel_type": 1}, 0.08 / np.sqrt(6), True)],
+)
+def test_garage_kernel_spread_follows_the_kernel_type(
+    kernel_type, expected_std, bounded
+):
+    # one vehicle in the garage, so every draw is the same vehicle and the
+    # spread of the generated GVW is the spread of the kernel itself
+    garage_vehicle = _nominal_truck()
+    garage_gvw = sum(garage_vehicle.get_axle_weight(i) for i in range(3))
+    vehicles = _generate(
+        pb.VehicleGenGarage(
+            garage=[garage_vehicle],
+            kernel=[[1.0, 0.08], [1.0, 0.05], [1.0, 0.02]],
+            **kernel_type,
+        ),
+        pb.HeadwayGenFreeflow(),
+        n=4000,
+        seed=31,
+    )
+    gvw = np.array([v.get_gvw() for v in vehicles])
+
+    assert gvw.std() / garage_gvw == pytest.approx(expected_std, rel=0.1)
+    assert bool(gvw.max() <= garage_gvw * 1.08) is bounded  # numpy bool
